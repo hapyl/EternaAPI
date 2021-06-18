@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.module.entity;
 
+@Deprecated(forRemoval = true)
 public class PacketEntityType {
 
 	public static final PacketEntityType SKELETON = new PacketEntityType("EntitySkeleton", "SKELETON");

@@ -1,5 +1,6 @@
-package kz.hapyl.spigotutils.module.reflect.npc;
+package kz.hapyl.spigotutils.module.reflect.npc.entry;
 
+import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.entity.Player;
 
 import java.util.function.Consumer;

@@ -12,15 +12,16 @@ import java.lang.reflect.Constructor;
 import java.util.HashSet;
 import java.util.Set;
 
+@Deprecated(forRemoval = true)
 public final class PacketEntity {
 
 	private final PacketEntityType type;
-	private final Set<Player>      viewers;
+	private final Set<Player> viewers;
 
 	// Entity properties
 	private Location location;
-	private boolean  visible;
-	private boolean  glowing;
+	private boolean visible;
+	private boolean glowing;
 
 	private Object entity;
 
@@ -67,7 +68,7 @@ public final class PacketEntity {
 		this.validateExists();
 		this.validateViewers(viewers);
 
-		final PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving((EntityLiving) this.entity);
+		final PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving((EntityLiving)this.entity);
 		for (final Player player : viewers) {
 			Reflect.sendPacket(player, packet);
 		}
@@ -93,23 +94,23 @@ public final class PacketEntity {
 	}
 
 	public void teleport(Location location) {
-		EntityLiving l = ((EntityLiving) this.entity);
-//		((EntityLiving) this.entity).teleportAndSync(location.getX(), location.getY(), location.getZ());
-//		l.setPositionRotation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-//		l.teleportAndSync(location.getX(), location.getY(), location.getZ());
+		EntityLiving l = ((EntityLiving)this.entity);
+		//		((EntityLiving) this.entity).teleportAndSync(location.getX(), location.getY(), location.getZ());
+		//		l.setPositionRotation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+		//		l.teleportAndSync(location.getX(), location.getY(), location.getZ());
 
 		l.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-		l.setFlag((byte) 0x40, true);
+		l.setFlag((byte)0x40, true);
 
 		// Fix head rotation
-		this.headPacket = new PacketPlayOutEntityHeadRotation(l, (byte) (location.getYaw() * 256 / 360));
+		this.headPacket = new PacketPlayOutEntityHeadRotation(l, (byte)(location.getYaw() * 256 / 360));
 
 	}
 
 	public int getEntityId() {
 		try {
 			assert false;
-			return (int) Reflect.invokeMethod(Reflect.getNetMethod("EntityLiving", "getId"), this.entity);
+			return (int)Reflect.invokeMethod(Reflect.getNetMethod("EntityLiving", "getId"), this.entity);
 		}
 		catch (Exception e) {
 			return -1;

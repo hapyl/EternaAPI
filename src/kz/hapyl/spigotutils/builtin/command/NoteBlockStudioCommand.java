@@ -36,11 +36,11 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 
 	@Override
 	public void execute(CommandSender sender, String[] args) {
-		final Player player = (Player) sender;
+		final Player player = (Player)sender;
 		if (args.length >= 1) {
 			final String argument0 = args[0].toLowerCase(Locale.ROOT);
 			switch (argument0) {
-				case "info": {
+				case "info" -> {
 					if (this.validateHasSong(player)) {
 						return;
 					}
@@ -49,10 +49,8 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 					radio.sendMessage(player, "Currently playing \"%s\" by %s (%s). (%s frames long)", song.getName(), song.getOriginalAuthor(),
 							song.getAuthor(), song.getLength());
 
-					break;
 				}
-
-				case "stop": {
+				case "stop" -> {
 					if (this.validateHasSong(player)) {
 						return;
 					}
@@ -61,23 +59,17 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 						radio.stopPlaying();
 					}
 
-					break;
 				}
-
-				case "pause": {
+				case "pause" -> {
 					if (this.validateHasSong(player)) {
 						return;
 					}
 
 					radio.pausePlaying();
-					break;
 				}
-
-				case "list": {
+				case "list" -> {
 					this.displayListOfCachedSongs(player);
-					break;
 				}
-
 			}
 
 			if (args.length >= 2) {

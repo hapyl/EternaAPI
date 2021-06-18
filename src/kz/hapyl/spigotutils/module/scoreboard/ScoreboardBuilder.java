@@ -7,12 +7,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Create custom per-player (or global(why?)) scoreboards.
+ */
 public class ScoreboardBuilder {
 
 	private Objective obj;

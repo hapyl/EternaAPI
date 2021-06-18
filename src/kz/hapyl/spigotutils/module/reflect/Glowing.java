@@ -12,14 +12,17 @@ import java.util.*;
 
 /**
  * This class allows to apply glowing for entities for certain players. Glowing colors not yet implemented!
+ *
+ * @deprecated Repackaging broke it
  */
+// FIXME: 018. 06/18/2021
 public class Glowing {
 
 	// FIXME: 018. 02/18/2021 - fix this
 
 	public static final Map<Glowing, Integer> glowingFor = new HashMap<>();
 
-	private       Entity      entity;
+	private Entity entity;
 	private final Set<Player> viewers = new HashSet<>();
 
 	public Glowing() {
@@ -62,12 +65,12 @@ public class Glowing {
 			final Object newDataWatcher = Reflect.getNetClass("DataWatcher").getConstructor(Reflect.getNetClass("Entity")).newInstance(netEntity);
 
 			final Int2ObjectMap<Object> entries =
-					(Int2ObjectMap<Object>) FieldUtils.readDeclaredField(dataWatcher, "entries", true);
+					(Int2ObjectMap<Object>)FieldUtils.readDeclaredField(dataWatcher, "entries", true);
 			final Int2ObjectMap<Object> copyEntries = new Int2ObjectOpenHashMap<>();
 
 			entries.forEach((integer, o) -> {
 				try {
-					copyEntries.put((int) integer, o.getClass().getMethod("d").invoke(o));
+					copyEntries.put((int)integer, o.getClass().getMethod("d").invoke(o));
 				}
 				catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 					e.printStackTrace();
@@ -75,11 +78,11 @@ public class Glowing {
 			});
 
 			final Object item = entries.get(0);
-			byte initBitMask = (byte) item.getClass().getMethod("b").invoke(item);
-			byte bitMask = (byte) 6;
+			byte initBitMask = (byte)item.getClass().getMethod("b").invoke(item);
+			byte bitMask = (byte)6;
 
 			item.getClass().getMethod("a", Object.class)
-					.invoke(item, (byte) (glow ? initBitMask | 1 << bitMask : initBitMask & ~(1 << bitMask)));
+					.invoke(item, (byte)(glow ? initBitMask | 1 << bitMask : initBitMask & ~(1 << bitMask)));
 
 			FieldUtils.writeDeclaredField(newDataWatcher, "entries", copyEntries, true);
 
@@ -99,7 +102,8 @@ public class Glowing {
 
 		// TODO: 005. 03/05/2021 - Use player.getScoreboard() thing
 
-		if (true) throw new NotImplementedException();
+		if (true)
+			throw new NotImplementedException();
 
 		try {
 

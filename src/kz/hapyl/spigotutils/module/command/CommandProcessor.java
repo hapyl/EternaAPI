@@ -56,7 +56,7 @@ public class CommandProcessor {
 			final Field field = clazz.getDeclaredField("commandMap");
 
 			field.setAccessible(true);
-			final SimpleCommandMap simpleMap = (SimpleCommandMap) field.get(manager);
+			final SimpleCommandMap simpleMap = (SimpleCommandMap)field.get(manager);
 
 			for (final SimpleCommand cmd : array) {
 
@@ -81,12 +81,11 @@ public class CommandProcessor {
 								if ((cmd.isAllowOnlyOp() && sender.isOp()) || sender.hasPermission(cmd.getPermission())) {
 
 									// check cooldown
-									if (cmd.hasCooldown() && sender instanceof Player) {
+									if (cmd.hasCooldown() && sender instanceof final Player playerSender) {
 										final CommandCooldown cooldown = cmd.getCooldown();
-										final Player playerSender = (Player) sender;
 										if (cooldown.hasCooldown(playerSender)) {
 											sender.sendMessage(ChatColor.RED + String.format("This command is on cooldown for %ss!",
-													BukkitUtils.roundTick((int) (cooldown.getTimeLeft(playerSender) / 50L))));
+													BukkitUtils.roundTick((int)(cooldown.getTimeLeft(playerSender) / 50L))));
 											PlayerLib.playSound(playerSender, Sound.ENTITY_ENDERMAN_TELEPORT, 0.0f);
 											return true;
 										}

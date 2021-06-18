@@ -1,32 +1,32 @@
 package kz.hapyl.spigotutils.module.math;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+
 public class Cuboid {
 
 	// Original Class by: https://www.spigotmc.org/threads/region-cuboid.329859/
 
-	private final int    xMin;
-	private final int    xMax;
-	private final int    yMin;
-	private final int    yMax;
-	private final int    zMin;
-	private final int    zMax;
+	private final int xMin;
+	private final int xMax;
+	private final int yMin;
+	private final int yMax;
+	private final int zMin;
+	private final int zMax;
 	private final double xMinCentered;
 	private final double xMaxCentered;
 	private final double yMinCentered;
 	private final double yMaxCentered;
 	private final double zMinCentered;
 	private final double zMaxCentered;
-	private final World  world;
+	private final World world;
 
 	public Cuboid(final Location point1, final Location point2) {
 		this.xMin = Math.min(point1.getBlockX(), point2.getBlockX());
@@ -58,8 +58,8 @@ public class Cuboid {
 	}
 
 	public Location getCenter() {
-		return new Location(this.world, (this.xMax - this.xMin) / 2 + this.xMin, (this.yMax - this.yMin) / 2 + this.yMin,
-				(this.zMax - this.zMin) / 2 + this.zMin);
+		return new Location(this.world, (this.xMax - this.xMin) / 2d + this.xMin, (this.yMax - this.yMin) / 2d + this.yMin,
+				(this.zMax - this.zMin) / 2d + this.zMin);
 	}
 
 	public double getDistance() {

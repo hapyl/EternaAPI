@@ -13,10 +13,10 @@ public class EntityMetadata {
 	protected final static Map<Integer, EntityMetadata> stream = new HashMap<>();
 
 	private final int entityId;
-	private       int tick;
+	private int tick;
 
 	private final MetadataType type;
-	private final Set<Player>  viewers;
+	private final Set<Player> viewers;
 
 	public EntityMetadata(Entity entity, MetadataType type) {
 		this.entityId = entity.getEntityId();

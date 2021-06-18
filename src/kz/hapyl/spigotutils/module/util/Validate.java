@@ -1,6 +1,5 @@
 package kz.hapyl.spigotutils.module.util;
 
-import net.minecraft.server.commands.CommandSeed;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -14,14 +13,14 @@ public class Validate {
 	public static final long DEFAULT_LONG = 0L;
 	public static final double DEFAULT_DOUBLE = 0.0d;
 	public static final float DEFAULT_FLOAT = 0.0f;
-	public static final short DEFAULT_SHORT = (short) 0;
-	public static final byte DEFAULT_BYTE = (byte) 0;
+	public static final short DEFAULT_SHORT = (short)0;
+	public static final byte DEFAULT_BYTE = (byte)0;
 	public static final String DEFAULT_NAME = "unnamed";
 
 	public static int getInt(Object obj) {
 		Validate.notNull(obj);
 		if (obj instanceof Number) {
-			return ((Number) obj).intValue();
+			return ((Number)obj).intValue();
 		}
 		else {
 			try {
@@ -52,7 +51,7 @@ public class Validate {
 	public static long getLong(Object obj) {
 		Validate.notNull(obj);
 		if (obj instanceof Number) {
-			return ((Number) obj).longValue();
+			return ((Number)obj).longValue();
 		}
 		else {
 			try {
@@ -83,7 +82,7 @@ public class Validate {
 	public static double getDouble(Object obj) {
 		Validate.notNull(obj);
 		if (obj instanceof Number) {
-			return ((Number) obj).doubleValue();
+			return ((Number)obj).doubleValue();
 		}
 		else {
 			try {
@@ -114,7 +113,7 @@ public class Validate {
 	public static double getShort(Object obj) {
 		Validate.notNull(obj);
 		if (obj instanceof Number) {
-			return ((Number) obj).shortValue();
+			return ((Number)obj).shortValue();
 		}
 		else {
 			try {
@@ -145,7 +144,7 @@ public class Validate {
 	public static double getByte(Object obj) {
 		Validate.notNull(obj);
 		if (obj instanceof Number) {
-			return ((Number) obj).byteValue();
+			return ((Number)obj).byteValue();
 		}
 		else {
 			try {
@@ -176,7 +175,7 @@ public class Validate {
 	public static double getFloat(Object obj) {
 		Validate.notNull(obj);
 		if (obj instanceof Number) {
-			return ((Number) obj).floatValue();
+			return ((Number)obj).floatValue();
 		}
 		else {
 			try {

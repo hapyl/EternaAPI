@@ -15,8 +15,6 @@ import java.util.Set;
 
 public class QuestJournal extends PlayerGUI {
 
-	private final QuestJourlanType objectiveVisibility = QuestJourlanType.ALWAYS;
-
 	public QuestJournal(Player player) {
 		super(player, "Quest Journal", 5);
 		this.setOpenEvent(target -> PlayerLib.playSound(player, Sound.ITEM_BOOK_PAGE_TURN, 0.75f));

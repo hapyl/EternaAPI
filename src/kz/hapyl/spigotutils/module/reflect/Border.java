@@ -9,8 +9,9 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * This class allows to create per player border, useful for 'warning red screen' effect.
+ * @deprecated Haven't updated yet after repackaging.
  */
+// FIXME: 018. 06/18/2021 /\
 public class Border {
 
 	private Object border;

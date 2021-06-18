@@ -18,6 +18,8 @@ import kz.hapyl.spigotutils.module.quest.QuestManager;
 import kz.hapyl.spigotutils.module.quest.QuestObjectiveType;
 import kz.hapyl.spigotutils.module.reflect.Reflect;
 import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
+import kz.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
+import kz.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import kz.hapyl.spigotutils.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcherRegistry;
@@ -39,6 +41,9 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * Allows to create SIMPLE player NPCs with support of clicks.
+ */
 @SuppressWarnings("unused")
 public class HumanNPC implements Intractable {
 

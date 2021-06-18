@@ -8,8 +8,6 @@ public class SmartComponent {
 
 	private final LinkedHashMap<ItemStack, GUIClick> map;
 
-	// FIXME: 019. 05/19/2021 -> fix keyset
-
 	public SmartComponent() {
 		this.map = new LinkedHashMap<>();
 	}
@@ -25,7 +23,7 @@ public class SmartComponent {
 	}
 
 	public SmartComponent add(ItemStack item) {
-		return this.add(item, (Action) null);
+		return this.add(item, (Action)null);
 	}
 
 	public void fillItems(GUI gui) {

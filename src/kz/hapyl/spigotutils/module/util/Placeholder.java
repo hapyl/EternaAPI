@@ -5,7 +5,7 @@ public class Placeholder {
 	private static final String PLACEHOLDER_FORMAT = "{}";
 
 	private final String inputString;
-	private final int    expectedFormat;
+	private final int expectedFormat;
 
 	public Placeholder(String inputString) {
 		this.inputString = inputString;
@@ -18,7 +18,7 @@ public class Placeholder {
 		return new Placeholder(input).format(format);
 	}
 
-	public String format( Object... format) {
+	public String format(Object... format) {
 		return this.placeHold(format);
 	}
 

@@ -18,9 +18,9 @@ public class Rope {
 	private static int freeId = 0;
 
 	private boolean removeAtServerRestart;
-	private int     id;
+	private int id;
 
-	private final Bat[]    bats = new Bat[2];
+	private final Bat[] bats = new Bat[2];
 	private final Location startPoint;
 	private final Location endPoint;
 
@@ -46,6 +46,7 @@ public class Rope {
 		for (final Bat bat : this.bats) {
 			if (bat != null) {
 				bat.remove();
+				bat.setLeashHolder(null);
 			}
 		}
 		byId.remove(this.id);

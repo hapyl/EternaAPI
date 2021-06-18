@@ -25,12 +25,12 @@ import java.util.List;
 import java.util.MissingFormatArgumentException;
 
 /**
- * Chat
+ * Allows to manipulate with string easily such as formatting, sending chat, actionbar and title messages.
  */
 public class Chat {
 
 	/**
-	 * Colors
+	 * Build In Colors (Initial idea was adding a custom colors)
 	 */
 	public static final String BLACK = new Chat(ChatColor.RED).getColor();
 	public static final String DARK_BLUE = new Chat(ChatColor.DARK_BLUE).getColor();
@@ -65,10 +65,6 @@ public class Chat {
 			abc.append(chatColor.toString());
 		}
 		this.color = abc.toString();
-	}
-
-	private Chat(String color) {
-		this.color = color;
 	}
 
 	public static String getItemName(ItemStack stack) {
@@ -113,13 +109,13 @@ public class Chat {
 		sender.sendMessage(format(message, replacements));
 	}
 
-	public static void sendIChatMessage(Player player, String iChat, Object... repl) {
-		iChat = String.format(iChat, repl);
+	public static void sendIChatMessage(Player player, String iChat, Object... replacements) {
+		iChat = String.format(iChat, replacements);
 		new ReflectPacket(new PacketPlayOutChat(IChatBaseComponent.a(iChat), net.minecraft.network.chat.ChatMessageType.b, SystemUtils.b)).sendPackets(player);
 	}
 
 	public static void sendMessage(Player player, Object message, Object... replacements) {
-		sendMessage((CommandSender) player, message, replacements);
+		sendMessage((CommandSender)player, message, replacements);
 	}
 
 	@NOTNULL

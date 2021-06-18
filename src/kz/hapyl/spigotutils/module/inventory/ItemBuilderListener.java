@@ -18,8 +18,10 @@ public class ItemBuilderListener implements Listener {
 
 	@EventHandler()
 	private void handleClick(PlayerInteractEvent ev) {
-
-		if (ev.getHand() == EquipmentSlot.OFF_HAND) return;
+		// I just don't like double clicking.
+		if (ev.getHand() == EquipmentSlot.OFF_HAND) {
+			return;
+		}
 
 		final Player player = ev.getPlayer();
 		final Action action = ev.getAction();
@@ -45,7 +47,8 @@ public class ItemBuilderListener implements Listener {
 						final Predicate<Player> predicate = builder.getPredicate();
 						if (predicate != null && predicate.test(player)) {
 							final String error = builder.getError();
-							if (!error.isEmpty()) player.sendMessage(ChatColor.RED + error);
+							if (!error.isEmpty())
+								player.sendMessage(ChatColor.RED + error);
 							return;
 						}
 						if (player.hasCooldown(builder.getItem().getType())) {
@@ -54,7 +57,7 @@ public class ItemBuilderListener implements Listener {
 						player.setCooldown(builder.getItem().getType(), builder.getCd());
 					}
 					func.execute(player);
-					// quest check
+					// Progress USE_CUSTOM_ITEM
 					QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, builder.getId());
 				});
 

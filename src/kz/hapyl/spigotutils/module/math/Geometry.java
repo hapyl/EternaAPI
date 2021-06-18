@@ -76,6 +76,7 @@ public class Geometry {
 		drawSphere(center, rings, radius, draw, false);
 	}
 
+	// FIXME: 018. 06/18/2021 - Heavy and math is wrong
 	public static void drawPolygon(Location center, int points, double radius, Draw draw) {
 		Validate.notNull(center);
 		Validate.notNull(draw);
@@ -131,10 +132,8 @@ public class Geometry {
 				center.add(x * radiusOutwards, y, z * radiusOutwards);
 				draw.draw(center);
 				center.subtract(x * radiusOutwards, y, z * radiusOutwards);
-
 			}
 		}
-
 	}
 
 }

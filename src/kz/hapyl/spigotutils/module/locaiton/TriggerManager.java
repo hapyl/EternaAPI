@@ -17,8 +17,8 @@ import java.util.Set;
 
 public class TriggerManager implements Listener {
 
-	private static final Map<Integer, Trigger>     byId      = new HashMap<>();
-	public static final  Map<Player, Set<Trigger>> inTrigger = new HashMap<>();
+	private static final Map<Integer, Trigger> byId = new HashMap<>();
+	public static final Map<Player, Set<Trigger>> inTrigger = new HashMap<>();
 
 	private static int freeId = 0;
 

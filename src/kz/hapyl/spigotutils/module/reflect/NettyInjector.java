@@ -17,7 +17,10 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.NoSuchElementException;
 
-public class NettyInjector {
+public final class NettyInjector {
+
+	private NettyInjector() {
+	}
 
 	public void removeInjection(Player player) {
 		try {

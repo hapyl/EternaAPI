@@ -16,34 +16,32 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
- * Advanced Chest Inventory builer
- *
- * @version 2.1
+ * Advanced Chest Inventory builder
  */
+@Deprecated(since = "2.6")
 public final class ChestInventory {
 
-	public static final Map<UUID, ChestInventory> perPlayerMenu     = new HashMap<>();
+	public static final Map<UUID, ChestInventory> perPlayerMenu = new HashMap<>();
 	public static final Map<UUID, ChestInventory> perPlayerLastMenu = new HashMap<>();
 
-	private int   closeMenuSlot = 999;
-	private int   onEveryClickDelay;
-	private int[] ignoreSlots   = {};
-	private int[] returnItems   = {};
+	private int closeMenuSlot = 999;
+	private int onEveryClickDelay;
+	private int[] ignoreSlots = {};
+	private int[] returnItems = {};
 
-	private Inventory                                       inventory;
-	private final Map<Integer, ChestInventoryRunnable>            runnablePerSlot = new HashMap<>();
-	private final Map<Integer, ChestInventoryClick>               eventPerSlot    = new HashMap<>();
+	private Inventory inventory;
+	private final Map<Integer, ChestInventoryRunnable> runnablePerSlot = new HashMap<>();
+	private final Map<Integer, ChestInventoryClick> eventPerSlot = new HashMap<>();
 	private BiConsumer<InventoryClickEvent, ChestInventory> consumerClickEvent;
-	private BiConsumer<Player, ChestInventory>              atClose;
-	private BiConsumer<Player, ChestInventory>              atOpen;
-	private BiConsumer<Player, ChestInventory>              outside;
-	private BiConsumer<Player, ChestInventory>              onEveryClick;
+	private BiConsumer<Player, ChestInventory> atClose;
+	private BiConsumer<Player, ChestInventory> atOpen;
+	private BiConsumer<Player, ChestInventory> outside;
+	private BiConsumer<Player, ChestInventory> onEveryClick;
 
 	private boolean cancelClick = true;
-	private boolean predicate   = true;
+	private boolean predicate = true;
 	private boolean built;
 	private boolean cancelOnlyMenu;
 	private boolean ignoreCloseEvent;
@@ -221,7 +219,7 @@ public final class ChestInventory {
 	 * @param item - ItemStack.
 	 */
 	public ChestInventory setItem(int slot, ItemStack item) {
-		return setItem(slot, item, (ChestInventoryClick) null);
+		return setItem(slot, item, (ChestInventoryClick)null);
 	}
 
 	public ChestInventory smartItemFill(Collection<ItemStack> items, int startAtLine) {
@@ -264,6 +262,8 @@ public final class ChestInventory {
 
 	}
 
+	// TODO: 018. 06/18/2021 - More patterns
+
 	private final byte[][] slotPattern = {
 			{0, 0, 0, 0, 1, 0, 0, 0, 0},  // 1
 			{0, 0, 0, 1, 0, 1, 0, 0, 0},  // 2
@@ -273,7 +273,7 @@ public final class ChestInventory {
 
 	private byte[][] calculateBytes(Collection<?> items) {
 		int size = items.size();
-		final int sizeScaled = (int) Math.ceil((float) size / 5);
+		final int sizeScaled = (int)Math.ceil((float)size / 5);
 		byte[][] bytes = new byte[sizeScaled][9];
 
 		int line = 0;
@@ -308,7 +308,7 @@ public final class ChestInventory {
 		return this;
 	}
 
-	public static final ClickType[] CLICK_LEFT  = {ClickType.LEFT, ClickType.SHIFT_LEFT};
+	public static final ClickType[] CLICK_LEFT = {ClickType.LEFT, ClickType.SHIFT_LEFT};
 	public static final ClickType[] CLICK_RIGHT = {ClickType.RIGHT, ClickType.SHIFT_RIGHT};
 
 	public ChestInventory setItem(int slot, ItemStack stack, Runnable run, ClickType... types) {
@@ -378,7 +378,7 @@ public final class ChestInventory {
 	 * @param item - Material.
 	 */
 	public ChestInventory setItem(int slot, Material item) {
-		return setItem(slot, new ItemStack(item), (ChestInventoryClick) null);
+		return setItem(slot, new ItemStack(item), (ChestInventoryClick)null);
 	}
 
 	/**
@@ -616,12 +616,12 @@ public final class ChestInventory {
 	@Nullable
 	public Object getVariable(int memorySlot, Object defaultValue) {
 		isInLimits(memorySlot);
-		return byteVariables.getOrDefault((byte) memorySlot, defaultValue);
+		return byteVariables.getOrDefault((byte)memorySlot, defaultValue);
 	}
 
 	public void setVariable(int memorySlot, Object value) {
 		isInLimits(memorySlot);
-		byteVariables.put((byte) memorySlot, value);
+		byteVariables.put((byte)memorySlot, value);
 	}
 
 	public void wipeAllData(boolean youSure) {
@@ -714,7 +714,8 @@ public final class ChestInventory {
 		}
 		else {
 			for (int ignoreSlot : this.ignoreSlots) {
-				if (ignoreSlot == slot) return true;
+				if (ignoreSlot == slot)
+					return true;
 			}
 		}
 		return false;
@@ -832,9 +833,11 @@ public final class ChestInventory {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		final ChestInventory that = (ChestInventory) o;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		final ChestInventory that = (ChestInventory)o;
 		return closeMenuSlot == that.closeMenuSlot &&
 				onEveryClickDelay == that.onEveryClickDelay &&
 				cancelClick == that.cancelClick &&

@@ -8,11 +8,12 @@ import java.util.UUID;
 public final class Cooldown {
 
 	// FIXME: 023. 03/23/2021 - fix me
+	// FIXME: 018. 06/18/2021 what
 
 	private final String name;
-	private final UUID   owner;
-	private final long   startedAt;
-	private final long   duration;
+	private final UUID owner;
+	private final long startedAt;
+	private final long duration;
 
 	public Cooldown(String name, UUID owner, long durationMillis) {
 		this.name = name;
@@ -68,9 +69,11 @@ public final class Cooldown {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		final Cooldown cooldown = (Cooldown) o;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		final Cooldown cooldown = (Cooldown)o;
 		return startedAt == cooldown.startedAt && duration == cooldown.duration && Objects.equals(name,
 				cooldown.name) && Objects.equals(owner, cooldown.owner);
 	}

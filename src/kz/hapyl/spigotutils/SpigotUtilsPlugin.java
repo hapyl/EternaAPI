@@ -1,7 +1,6 @@
 package kz.hapyl.spigotutils;
 
 import kz.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
-import kz.hapyl.spigotutils.builtin.command.PluginCommand;
 import kz.hapyl.spigotutils.builtin.command.QuestCommand;
 import kz.hapyl.spigotutils.module.command.CommandProcessor;
 import kz.hapyl.spigotutils.module.entity.Rope;
@@ -14,7 +13,6 @@ import kz.hapyl.spigotutils.module.listener.SimpleListener;
 import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.quest.QuestListener;
-import kz.hapyl.spigotutils.module.reflect.GlowingRunnable;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
 import kz.hapyl.spigotutils.module.reflect.NettyInjector;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
@@ -54,7 +52,7 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 		this.songPlayer = new SongPlayer(this);
 		final BukkitScheduler scheduler = Bukkit.getScheduler();
 
-		scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
+		// FIXME: 018. 06/18/2021 -> scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
 		scheduler.runTaskTimer(this, new NPCRunnable(), 0, 2);
 		scheduler.runTaskTimer(this, new HologramRunnable(), 0, 2);
 
@@ -63,7 +61,6 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 
 		// assign built in commands
 		final CommandProcessor commandProcessor = new CommandProcessor(this);
-		commandProcessor.registerCommand(new PluginCommand("plugin"));
 		commandProcessor.registerCommand(new QuestCommand("quest"));
 		commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
 

@@ -6,19 +6,19 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
+@Deprecated(forRemoval = true)
 public class ChainSound {
 
 	// FIXME: 017. 02/17/2021 - redo
 
-	private final List<BukkitSound> sounds    = new ArrayList<>();
-	private final Set<Player>       listeners = new HashSet<>();
-	private SoundCategory     category  = SoundCategory.MASTER;
-	private double            xShift, yShift, zShift;
+	private final List<BukkitSound> sounds = new ArrayList<>();
+	private final Set<Player> listeners = new HashSet<>();
+	private SoundCategory category = SoundCategory.MASTER;
+	private double xShift, yShift, zShift;
 	private boolean playing = false, global = false;
 
 	/**
@@ -215,7 +215,7 @@ public class ChainSound {
 	public static class BukkitSound {
 
 		private final Sound sound;
-		private final int   delay;
+		private final int delay;
 		private final float pitch;
 
 		public BukkitSound(Sound sound, float pitch, int delay) {
@@ -235,7 +235,8 @@ public class ChainSound {
 			for (boolean bool : b) {
 				me = bool;
 			}
-			if (me) throw new ChainSoundException(msg);
+			if (me)
+				throw new ChainSoundException(msg);
 		}
 
 		public Sound getSound() {

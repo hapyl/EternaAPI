@@ -14,6 +14,9 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
+/**
+ * Create ChestGUI
+ */
 public class GUI {
 
 	public static final char ARROW_FORWARD = '➜';

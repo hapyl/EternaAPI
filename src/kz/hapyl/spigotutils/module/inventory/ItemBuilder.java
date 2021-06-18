@@ -6,6 +6,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import kz.hapyl.spigotutils.SpigotUtilsPlugin;
 import kz.hapyl.spigotutils.module.chat.Chat;
+import kz.hapyl.spigotutils.module.math.Numbers;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -30,6 +31,11 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 
+/**
+ * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
+ *
+ * @version 2.2
+ */
 public final class ItemBuilder {
 
 	private static final transient String PLUGIN_ID_PATH = "ItemBuilderId";
@@ -43,7 +49,6 @@ public final class ItemBuilder {
 	private int cd;
 	private Predicate<Player> predicate;
 	private String error;
-
 
 	public ItemBuilder(Material material) {
 		this(new ItemStack(material));
@@ -134,6 +139,11 @@ public final class ItemBuilder {
 		return itemHasID(item) && getItemID(item).contains(id.toLowerCase());
 	}
 
+	public static boolean itemHasID(ItemStack item) {
+		return getItemID(item) != null;
+	}
+
+	// Used to split lore after certain char limit. Honestly I don't remember when I wrote this but it works so Imma not touching it.
 	private static List<String> splitAfter(String linePrefix, String text, int maxChars) {
 		List<String> list = new ArrayList<>();
 		String line = "";
@@ -265,17 +275,34 @@ public final class ItemBuilder {
 		}
 	}
 
-	// Item Click Features
+	/**
+	 * Adds cooldown to click event, requires ID.
+	 *
+	 * @param ticks - Cooldown in ticks.
+	 */
 	public ItemBuilder withCooldown(int ticks) {
 		withCooldown(ticks, null);
 		return this;
 	}
 
+	/**
+	 * Adds cooldown to click event, requires ID.
+	 *
+	 * @param ticks     - Cooldown in ticks.
+	 * @param predicate - Predicate of the cooldown.
+	 */
 	public ItemBuilder withCooldown(int ticks, Predicate<Player> predicate) {
 		withCooldown(ticks, predicate, "&cCannot use that!");
 		return this;
 	}
 
+	/**
+	 * Adds cooldown to click event, requires ID.
+	 *
+	 * @param ticks        - Cooldown in ticks.
+	 * @param predicate    - Predicate of the cooldown.
+	 * @param errorMessage - Error message if predicate fails.
+	 */
 	public ItemBuilder withCooldown(int ticks, Predicate<Player> predicate, String errorMessage) {
 		this.predicate = predicate;
 		this.cd = ticks;
@@ -288,20 +315,28 @@ public final class ItemBuilder {
 		return this;
 	}
 
+	/**
+	 * Adds a click event.
+	 *
+	 * @param consumer - Click action.
+	 * @param act      - Allowed click types.
+	 */
 	public ItemBuilder addClickEvent(Consumer<Player> consumer, Action... act) {
-		if (act.length < 1)
+		if (act.length < 1) {
 			throw new IndexOutOfBoundsException("This requires at least 1 action.");
+		}
 		this.functions.add(new ItemAction(consumer, act));
 		return this;
 	}
 
+	/**
+	 * Adds a click event with only right clicks..
+	 *
+	 * @param consumer - Click action.
+	 */
 	public ItemBuilder addClickEvent(Consumer<Player> consumer) {
 		this.addClickEvent(consumer, Action.RIGHT_CLICK_BLOCK, Action.RIGHT_CLICK_AIR);
 		return this;
-	}
-
-	public static boolean itemHasID(ItemStack item) {
-		return getItemID(item) != null;
 	}
 
 	public ItemBuilder addNbt(String path, Object value) {
@@ -334,35 +369,68 @@ public final class ItemBuilder {
 	}
 
 	public ItemBuilder setAmount(int amount) {
-		this.item.setAmount(Math.min(Math.max(0, amount), Byte.MAX_VALUE));
+		this.item.setAmount(Numbers.clamp(amount, 0, Byte.MAX_VALUE));
 		return this;
 	}
 
-	public ItemBuilder setSmartLore(String lore, final int separator) {
-		this.meta.setLore(splitAfter(lore, separator));
-		return this;
-	}
-
+	/**
+	 * Sets lore.
+	 *
+	 * @param lore - Lore to set.
+	 */
 	public ItemBuilder setLore(List<String> lore) {
 		this.meta.setLore(lore);
 		return this;
 	}
 
+	/**
+	 * Sets smart lore. Smart lore splits automatically at the best places within the chat limit.
+	 *
+	 * @param lore - Lore to set.
+	 */
 	public ItemBuilder setSmartLore(String lore) {
 		this.meta.setLore(splitAfter(lore, 30));
 		return this;
 	}
 
-	public ItemBuilder addSmartLore(String lore, final int splitAfter) {
-		this.addSmartLore(lore, "&7", splitAfter);
+	/**
+	 * Sets smart lore with custom char limit.
+	 *
+	 * @param lore  - Lore to set.
+	 * @param limit - Char limit.
+	 */
+	public ItemBuilder setSmartLore(String lore, final int limit) {
+		this.meta.setLore(splitAfter(lore, limit));
 		return this;
 	}
 
+	/**
+	 * Adds smart lore to existing lore with custom char limit.
+	 *
+	 * @param lore  - Lore to add.
+	 * @param limit - Char limit.
+	 */
+	public ItemBuilder addSmartLore(String lore, final int limit) {
+		this.addSmartLore(lore, "&7", limit);
+		return this;
+	}
+
+	/**
+	 * Adds smart lore to existing lore with custom prefix.
+	 *
+	 * @param lore       - Lore to add.
+	 * @param prefixText - Prefix after every split.
+	 */
 	public ItemBuilder addSmartLore(String lore, String prefixText) {
 		this.addSmartLore(lore, prefixText, 30);
 		return this;
 	}
 
+	/**
+	 * Adds smart lore to existing lore.
+	 *
+	 * @param lore - Lore to add.
+	 */
 	public ItemBuilder addSmartLore(String lore) {
 		addSmartLore(lore, 30);
 		return this;
@@ -392,12 +460,10 @@ public final class ItemBuilder {
 		return this;
 	}
 
-
 	public ItemBuilder setLore(String lore) {
 		this.setLore(lore, "__");
 		return this;
 	}
-
 
 	public ItemBuilder addLore(final String lore, ChatColor afterSplitColor) {
 		List<String> metaLore = this.meta.getLore() != null ? this.meta.getLore() : Lists.newArrayList();
@@ -407,7 +473,6 @@ public final class ItemBuilder {
 		this.meta.setLore(metaLore);
 		return this;
 	}
-
 
 	public ItemBuilder addLore(final String lore) {
 		return this.addLore(lore, ChatColor.GRAY);
@@ -530,30 +595,26 @@ public final class ItemBuilder {
 	private void validatePotionMeta() {
 		final Material type = this.item.getType();
 		switch (type) {
-			case LINGERING_POTION:
-			case POTION:
-			case SPLASH_POTION: {
-				return;
+			case LINGERING_POTION, POTION, SPLASH_POTION -> {
 			}
-			default: {
-				throw new IllegalArgumentException("Material must be POTION, SPLASH_POTION or LINGERING_POTION to use this!");
-			}
+			default -> throw new IllegalArgumentException("Material must be POTION, SPLASH_POTION or LINGERING_POTION to use this!");
 		}
 	}
 
 	public ItemBuilder setLeatherArmorColor(Color color) {
-		final Material m = this.item.getType();
-		if (m == Material.LEATHER_BOOTS || m == Material.LEATHER_CHESTPLATE || m == Material.LEATHER_LEGGINGS || m == Material.LEATHER_HELMET) {
-			LeatherArmorMeta meta = (LeatherArmorMeta)this.meta;
-			meta.setColor(color);
-			this.item.setItemMeta(meta);
-			return this;
+		final Material type = this.item.getType();
+		switch (type) {
+			case LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS, LEATHER_HELMET -> {
+				LeatherArmorMeta meta = (LeatherArmorMeta)this.meta;
+				meta.setColor(color);
+				this.item.setItemMeta(meta);
+				return this;
+			}
+			default -> throw new IllegalArgumentException("Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!");
 		}
-		return this;
 	}
 
 	public ItemBuilder setHeadTexture(String base64) {
-
 		final GameProfile profile = new GameProfile(UUID.randomUUID(), "");
 		profile.getProperties().put("textures", new Property("textures", base64));
 
@@ -641,7 +702,6 @@ public final class ItemBuilder {
 
 
 	public ItemStack build(boolean overrideIfExists) {
-
 		if (this.id != null) {
 			if (isIdRegistered(this.id) && !overrideIfExists) {
 				sendErrorMessage("Could not build ItemBuilder! ID \"%s\" is already registered. Use \"toItemStack\" if you wish to clone it or \"build(true)\" to override existing item!", this
@@ -686,7 +746,6 @@ public final class ItemBuilder {
 		return this.meta.getLore();
 	}
 
-
 	@Nullable
 	public List<String> getLore(int start, int end) {
 		final List<String> hash = new ArrayList<>();
@@ -701,16 +760,13 @@ public final class ItemBuilder {
 		return hash;
 	}
 
-
 	public int getAmount() {
 		return this.item.getAmount();
 	}
 
-
 	public Map<Enchantment, Integer> getEnchants() {
 		return this.meta.getEnchants();
 	}
-
 
 	public boolean isUnbreakable() {
 		return this.meta.isUnbreakable();
@@ -724,16 +780,13 @@ public final class ItemBuilder {
 		return item;
 	}
 
-
 	public int getRepairCost() {
 		return ((Repairable)this.meta).getRepairCost();
 	}
 
-
 	public Color getLeatherColor() {
 		return ((LeatherArmorMeta)this.meta).getColor();
 	}
-
 
 	@Nullable
 	public String getHeadTexture() {
@@ -746,16 +799,13 @@ public final class ItemBuilder {
 		}
 	}
 
-
 	public Set<ItemFlag> getFlags() {
 		return this.meta.getItemFlags();
 	}
 
-
 	public Multimap<Attribute, AttributeModifier> getAttributes() {
 		return this.meta.getAttributeModifiers();
 	}
-
 
 	public double getPureDamage() {
 		double most = 0;

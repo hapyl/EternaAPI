@@ -1,6 +1,7 @@
-package kz.hapyl.spigotutils.module.reflect.npc;
+package kz.hapyl.spigotutils.module.reflect.npc.entry;
 
 import kz.hapyl.spigotutils.module.quest.Quest;
+import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.entity.Player;
 
 public class QuestEntry extends NPCEntry {

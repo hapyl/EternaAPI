@@ -2,7 +2,6 @@ package kz.hapyl.spigotutils.module.player;
 
 import kz.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.*;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -70,10 +69,6 @@ public class PlayerLib {
 
 	public static void playNote(Player player, Note note, float pitch) {
 		player.sendMessage("this is not yet implemented");
-	}
-
-	public enum Note {
-
 	}
 
 	public static void playSoundMessage(Player player, Sound sound, float pitch, String message, Object... replacements) {

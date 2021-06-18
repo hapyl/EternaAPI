@@ -1,6 +1,5 @@
 package kz.hapyl.spigotutils.module.locaiton;
 
-
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.math.Cuboid;
 import org.bukkit.Bukkit;
@@ -12,6 +11,9 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nullable;
 import java.util.*;
 
+/**
+ * Creates Triggers
+ */
 public abstract class Trigger {
 
 	private final String name;
@@ -42,7 +44,8 @@ public abstract class Trigger {
 		this("Anonymous Trigger", startPoint, endPoint);
 	}
 
-	public void onTriggerEnterOnce(Player player) {}
+	public void onTriggerEnterOnce(Player player) {
+	}
 
 	public abstract void onTriggerEnter(Player player);
 

@@ -130,7 +130,7 @@ public class Parser {
 	private short readShort() throws IOException {
 		int byte1 = data.readUnsignedByte();
 		int byte2 = data.readUnsignedByte();
-		return (short) (byte1 + (byte2 << 8));
+		return (short)(byte1 + (byte2 << 8));
 	}
 
 	private int readInt() throws IOException {
@@ -145,8 +145,8 @@ public class Parser {
 		int length = readInt();
 		StringBuilder sb = new StringBuilder(length);
 		for (; length > 0; --length) {
-			char c = (char) data.readByte();
-			if (c == (char) 0x0D) {
+			char c = (char)data.readByte();
+			if (c == (char)0x0D) {
 				c = ' ';
 			}
 			sb.append(c);

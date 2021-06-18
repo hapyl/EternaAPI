@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Opens a SIGN that can be used as input.
+ */
 public abstract class SignGUI {
 
 	public static final Map<Player, SignGUI> saved = new HashMap<>();
@@ -61,13 +64,10 @@ public abstract class SignGUI {
 	}
 
 	private void createPacketAndSend() {
-
 		player.sendBlockChange(location, Material.OAK_SIGN.createBlockData());
 		player.sendSignChange(location, this.lines);
 		new ReflectPacket(new PacketPlayOutOpenSignEditor(new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()))).sendPackets(player);
 		saved.put(player, this);
-
 	}
-
 
 }
