@@ -1,0 +1,7 @@
+name       : "EternaAPI"
+main       : "kz.hapyl.spigotutils.SpigotUtilsPlugin"
+version    : "2.0"
+author     : "hapyl"
+description: "For many month I copy/pasted all the code for builders and helpers, until one day, I understood that I was dumb by doing so, and that's how Eterna was created."
+prefix     : "EternaAPI"
+api-version: 1.16

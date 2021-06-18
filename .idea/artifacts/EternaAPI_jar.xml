@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="EternaAPI:jar">
+    <output-path>$PROJECT_DIR$/../../../../Server/plugins</output-path>
+    <root id="archive" name="SpigotUtils.jar">
+      <element id="module-output" name="SpigotUtils" />
+    </root>
+  </artifact>
+</component>
