@@ -230,7 +230,7 @@ public class Chat {
 	}
 
 	public static void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-		player.sendTitle(Chat.format(title), Chat.format(subtitle), fadeIn, stay, fadeOut);
+		player.sendTitle(Chat.format(title.isEmpty() ? " " : title), Chat.format(subtitle), fadeIn, stay, fadeOut);
 	}
 
 	public static void broadcast(String string, Object... replacement) {
