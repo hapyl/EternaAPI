@@ -426,6 +426,7 @@ public class HumanNPC implements Intractable {
 	}
 
 	public HumanNPC setSkin(String texture, String signature) {
+		this.profile.getProperties().removeAll("textures");
 		this.profile.getProperties().put("textures", new Property("textures", texture, signature));
 		return this;
 	}
@@ -598,7 +599,7 @@ public class HumanNPC implements Intractable {
 		return team;
 	}
 
-	private void syncText() {
+	public void syncText() {
 		if (this.aboveHead != null) {
 			this.aboveHead.teleport(this.location.clone().add(0.0d, 1.50d, 0.0d));
 		}

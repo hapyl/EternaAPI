@@ -1,6 +1,7 @@
 package kz.hapyl.spigotutils.module.util;
 
 import kz.hapyl.spigotutils.module.collection.HashMapHolder;
+import kz.hapyl.spigotutils.module.math.Numbers;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -128,6 +129,11 @@ public class CollectionUtils {
 
 	public static <K> void addMapValue(Map<K, Integer> hashMap, K value, int toAdd) {
 		hashMap.put(value, hashMap.getOrDefault(value, 0) + toAdd);
+	}
+
+	public static <K> void clampMapValue(Map<K, Integer> hashMap, K value, int min, int max) {
+		final int integer = hashMap.getOrDefault(value, 0);
+		hashMap.put(value, Numbers.clamp(integer, min, max));
 	}
 
 	public static <E> E addAndGet(Set<E> set, E toAdd) {
