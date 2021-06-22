@@ -5,6 +5,8 @@ import net.minecraft.network.protocol.Packet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
+
 public class ReflectPacket {
 
 	private final Packet<?>[] packets;
@@ -46,6 +48,12 @@ public class ReflectPacket {
 	}
 
 	public void sendPackets(Player... players) {
+		for (final Player player : players) {
+			sendPackets(player);
+		}
+	}
+
+	public void sendPackets(Collection<Player> players) {
 		for (final Player player : players) {
 			sendPackets(player);
 		}

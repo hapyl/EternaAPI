@@ -148,7 +148,7 @@ public final class NettyInjector {
 
 			};
 
-			ChannelPipeline pipe = getPipe(player);
+			final ChannelPipeline pipe = getPipe(player);
 			if (pipe == null) {
 				Chat.sendMessage(player,
 						"&cAn error occurred whist trying to inject into your netty channel, try rejoining the server if you seeing this for the " +

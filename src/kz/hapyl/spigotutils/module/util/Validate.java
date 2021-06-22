@@ -172,7 +172,7 @@ public class Validate {
 		return false;
 	}
 
-	public static double getFloat(Object obj) {
+	public static float getFloat(Object obj) {
 		Validate.notNull(obj);
 		if (obj instanceof Number) {
 			return ((Number)obj).floatValue();

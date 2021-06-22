@@ -15,6 +15,7 @@ import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.quest.QuestListener;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
 import kz.hapyl.spigotutils.module.reflect.NettyInjector;
+import kz.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -52,9 +53,9 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 		this.songPlayer = new SongPlayer(this);
 		final BukkitScheduler scheduler = Bukkit.getScheduler();
 
-		// FIXME: 018. 06/18/2021 -> scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
 		scheduler.runTaskTimer(this, new NPCRunnable(), 0, 2);
 		scheduler.runTaskTimer(this, new HologramRunnable(), 0, 2);
+		scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
 
 		// reassign pipe
 		Bukkit.getOnlinePlayers().forEach(player -> NettyInjector.getInstance().injectPlayer(player));
