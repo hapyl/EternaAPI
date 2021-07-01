@@ -20,7 +20,7 @@ import java.util.function.BiConsumer;
 /**
  * Advanced Chest Inventory builder
  */
-@Deprecated(since = "2.6")
+@Deprecated(since = "2.1")
 public final class ChestInventory {
 
 	public static final Map<UUID, ChestInventory> perPlayerMenu = new HashMap<>();

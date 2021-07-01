@@ -3,7 +3,6 @@ package kz.hapyl.spigotutils.module.reflect;
 import io.netty.channel.Channel;
 import kz.hapyl.spigotutils.EternaException;
 import kz.hapyl.spigotutils.module.chat.Chat;
-import kz.hapyl.spigotutils.module.entity.PacketEntityType;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import kz.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.network.protocol.Packet;
@@ -15,7 +14,6 @@ import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.EntityPlayer;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -23,7 +21,6 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.libs.jline.internal.Nullable;
-import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -226,9 +223,7 @@ public final class Reflect {
 	}
 
 	public static void hideEntity(Entity entity) {
-		Bukkit.getOnlinePlayers().forEach(player -> {
-			hideEntity(entity, player);
-		});
+		Bukkit.getOnlinePlayers().forEach(player -> hideEntity(entity, player));
 	}
 
 	/**

@@ -26,12 +26,10 @@ import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EnumItemSlot;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -64,6 +62,7 @@ public class HumanNPC implements Intractable {
 
 	private Location location;
 	private String chatPrefix;
+	private boolean alive;
 
 	private boolean persistent;
 	private int farAwayDist = 40;
@@ -114,6 +113,7 @@ public class HumanNPC implements Intractable {
 		this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getId()));
 
 		byId.put(this.human.getId(), this);
+		this.alive = true;
 
 	}
 
@@ -121,6 +121,10 @@ public class HumanNPC implements Intractable {
 		for (final HumanNPC value : byId.values()) {
 			value.hideTabListName();
 		}
+	}
+
+	public boolean isAlive() {
+		return alive;
 	}
 
 	public Set<Player> getViewers() {
@@ -490,6 +494,21 @@ public class HumanNPC implements Intractable {
 		new ReflectPacket(new PacketPlayOutEntityEquipment(this.human.getId(), list)).sendPackets(players);
 	}
 
+	@InsuredViewers
+	public void setEquipment(EntityEquipment equipment, Player... players) {
+		players = insureViewers(players);
+		setItem(ItemSlot.HEAD, notNullItem(equipment.getHelmet()), players);
+		setItem(ItemSlot.CHEST, notNullItem(equipment.getChestplate()), players);
+		setItem(ItemSlot.LEGS, notNullItem(equipment.getLeggings()), players);
+		setItem(ItemSlot.FEET, notNullItem(equipment.getBoots()), players);
+		setItem(ItemSlot.MAINHAND, notNullItem(equipment.getItemInMainHand()), players);
+		setItem(ItemSlot.OFFHAND, notNullItem(equipment.getItemInOffHand()), players);
+	}
+
+	private ItemStack notNullItem(ItemStack stack) {
+		return stack == null ? new ItemStack(Material.AIR) : stack;
+	}
+
 	public void showAll() {
 		for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
 			this.show(onlinePlayer);
@@ -546,6 +565,7 @@ public class HumanNPC implements Intractable {
 	}
 
 	public void remove() {
+		this.alive = false;
 		this.hide();
 		this.showingTo.clear();
 		byId.remove(this.getHuman().getId());

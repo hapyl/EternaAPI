@@ -29,15 +29,13 @@ public class SpigotUtils {
 
 	public SpigotUtils(JavaPlugin init, boolean broadcastMessageOnlyToConsole) {
 
-		if (pluginVersion > 1.6d) {
-			if (init == null) {
-				throw new EternaException("Could not load EternaAPI since provided plugin is null!");
-			}
+		if (init == null) {
+			throw new EternaException("Could not load EternaAPI since provided plugin is null!");
+		}
 
-			if (!isDepends(init)) {
-				throw new EternaException
-						(String.format("Could not load EternaAPI for %s since it's doesn't depend nor soft-depends the API!", init.getName()));
-			}
+		if (!isDepends(init)) {
+			throw new EternaException
+					(String.format("Could not load EternaAPI for %s since it's doesn't depend nor soft-depends the API!", init.getName()));
 		}
 
 		this.plugin = init;
