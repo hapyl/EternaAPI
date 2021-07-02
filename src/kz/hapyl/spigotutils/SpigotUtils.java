@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class SpigotUtils {
 
-	private final static double pluginVersion = 1.63d;
+	private final static String pluginVersion = "1.7";
 
 	private final JavaPlugin plugin;
 
