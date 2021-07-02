@@ -7,13 +7,12 @@ import org.bukkit.Material;
 import org.bukkit.Note;
 import org.bukkit.entity.Breedable;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Villager;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 
 public enum QuestObjectiveType {
 
-	/* todo _ cannot find event */ TRADE_WITH_VILLAGER(Villager.class),
+	// TRADE_WITH_VILLAGER(Villager.class),
 
 	SLAY_ENTITY(LivingEntity.class, long.class),
 	PLACE_BLOCKS(Material.class),

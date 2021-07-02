@@ -51,7 +51,6 @@ public class Geometry {
 
 	@AsyncSafe
 	public static void drawSphere(Location center, double rings, double radius, Draw draw, boolean drawOnlyTop) {
-		// TODO: 028. 02/28/2021 Quality impls
 		Validate.notNull(center);
 		Validate.notNull(draw);
 
@@ -76,7 +75,6 @@ public class Geometry {
 		drawSphere(center, rings, radius, draw, false);
 	}
 
-	// FIXME: 018. 06/18/2021 - Heavy and math is wrong
 	public static void drawPolygon(Location center, int points, double radius, Draw draw) {
 		Validate.notNull(center);
 		Validate.notNull(draw);

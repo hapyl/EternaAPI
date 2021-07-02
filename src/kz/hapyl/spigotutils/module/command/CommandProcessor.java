@@ -22,8 +22,6 @@ import java.util.List;
 
 public class CommandProcessor {
 
-	private static final String processorVersion = "1.1";
-
 	private final JavaPlugin plugin;
 
 	public CommandProcessor() {
@@ -136,8 +134,9 @@ public class CommandProcessor {
 		return list;
 	}
 
+	@Deprecated
 	public static String getProcessorVersion() {
-		return processorVersion;
+		return "getProcessorVersion() is deprecated";
 	}
 
 	public static void checkForUpdate() {

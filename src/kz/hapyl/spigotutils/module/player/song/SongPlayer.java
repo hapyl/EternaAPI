@@ -3,7 +3,6 @@ package kz.hapyl.spigotutils.module.player.song;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -99,6 +98,9 @@ public class SongPlayer {
 		}
 
 		sendMessage("&aNow Playing &l" + this.currentSong.getName());
+		if (!currentSong.isOkOctave()) {
+			sendMessage("&eSome notes in this song aren't between F#0 and F#2, it might sound off!");
+		}
 		this.playing = true;
 		this.tick = 0;
 		this.task = new BukkitRunnable() {

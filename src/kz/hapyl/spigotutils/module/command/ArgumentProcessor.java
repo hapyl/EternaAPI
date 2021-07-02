@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ArgumentProcessor {
 
-	private final SimpleCommand      command;
+	private final SimpleCommand command;
 	private final List<SimpleSwitch> switches = new ArrayList<>();
 
 	public ArgumentProcessor(SimpleCommand command) {
@@ -18,10 +18,6 @@ public class ArgumentProcessor {
 		final SimpleSwitch simpleSwitch = new SimpleSwitch(this, pos, value);
 		switches.add(simpleSwitch);
 		return simpleSwitch;
-	}
-
-	public ComplexSwitch when(int pos, Class<?> type) {
-		return new ComplexSwitch();
 	}
 
 	public boolean compareAndInvoke(CommandSender sender, String[] str) {

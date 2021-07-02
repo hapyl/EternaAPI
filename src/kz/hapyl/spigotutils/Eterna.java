@@ -9,4 +9,6 @@ public class Eterna implements EternaAPI {
 	public SongPlayer getSongPlayer() {
 		return SpigotUtilsPlugin.getPlugin().getSongPlayer();
 	}
+
+
 }

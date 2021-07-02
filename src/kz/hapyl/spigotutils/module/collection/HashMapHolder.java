@@ -3,6 +3,13 @@ package kz.hapyl.spigotutils.module.collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Don't even ask what is this, I don't know.
+ *
+ * @author hapyl
+ * @deprecated
+ */
+@Deprecated(forRemoval = true)
 public class HashMapHolder<K, V> {
 
 	private final Map<K, V> map;

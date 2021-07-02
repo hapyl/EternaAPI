@@ -38,7 +38,7 @@ public class QuestManager {
 	}
 
 	public void completeQuest(QuestProgress quest) {
-		// TODO: 023. 03/23/2021 - no auto completing quest, need to click in menu (or configurable)
+		// TODO: 023. 03/23/2021 - Add ability to claiming quests instead of auto claiming when finishing (configurable)
 		removeQuest(quest);
 	}
 

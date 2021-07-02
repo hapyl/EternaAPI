@@ -9,6 +9,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Creates a SimpleCommand.
+ *
+ * @author hapyl
+ */
 public abstract class SimpleCommand {
 
 	private SimpleCommand() {
@@ -43,7 +48,7 @@ public abstract class SimpleCommand {
 		this.aliases = new String[]{};
 		this.permission = "";
 		this.usage = "/" + name;
-		this.description = "Made using SimpleCommand using EternaAPI.";
+		this.description = "Made using SimpleCommand by EternaAPI.";
 		this.allowOnlyPlayer = false;
 		this.allowOnlyOp = false;
 		this.cooldownTick = 0;

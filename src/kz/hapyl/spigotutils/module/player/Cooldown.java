@@ -7,9 +7,6 @@ import java.util.UUID;
 
 public final class Cooldown {
 
-	// FIXME: 023. 03/23/2021 - fix me
-	// FIXME: 018. 06/18/2021 what
-
 	private final String name;
 	private final UUID owner;
 	private final long startedAt;

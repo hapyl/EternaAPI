@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 public abstract class PlayerQuestObjective extends QuestObjective {
 
 	private final QuestProgress progress;
-	private final Player        player;
+	private final Player player;
 
 	private double goalCurrent;
 
@@ -67,25 +67,20 @@ public abstract class PlayerQuestObjective extends QuestObjective {
 		Chat.sendMessage(player, "");
 
 		switch (type) {
-
-			case COMPLETE: {
+			case COMPLETE -> {
 				Chat.sendCenterMessage(player, "&2&lOBJECTIVE COMPLETE!");
 				Chat.sendCenterMessage(player, "&a✔ " + this.getObjectiveName());
-				break;
 			}
-
-			case STARTED: {
+			case STARTED -> {
 				Chat.sendCenterMessage(player, "&e&lNEW OBJECTIVE!");
 				Chat.sendCenterMessage(player, "&6" + this.getObjectiveName());
 				Chat.sendCenterMessage(player, "&7" + this.getObjectiveShortInfo());
-				break;
 			}
 
-			// TODO : add impl for failing such as timed quests etc
-			case FAILED: {
+			// TODO: 002. 07/02/2021 - Add impl for failing quests, such as timeouts or deaths (configurable)
+			case FAILED -> {
 				Chat.sendCenterMessage(player, "&c&lOBJECTIVE FAILED!");
 				Chat.sendCenterMessage(player, "&7It's ok! Try again.");
-				break;
 			}
 		}
 

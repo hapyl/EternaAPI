@@ -10,6 +10,12 @@ import org.bukkit.util.Consumer;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * This class allows to summon entities easier and caches saved entities. (Unless said not to)
+ *
+ * @param <T> - Type of the entity.
+ * @author hapyl
+ */
 public final class Entities<T extends Entity> {
 
 	// Saved all spawned entities
@@ -132,10 +138,20 @@ public final class Entities<T extends Entity> {
 		return this.spawn(location, null);
 	}
 
+	public final T spawn(Location location, boolean cache) {
+		return spawn(location, null, cache);
+	}
+
 	public final T spawn(Location location, Consumer<T> beforeSpawn) {
+		return spawn(location, beforeSpawn, true);
+	}
+
+	public final T spawn(Location location, Consumer<T> beforeSpawn, boolean cache) {
 		Validate.notNull(location.getWorld(), "world cannot be null");
 		final T entity = location.getWorld().spawn(location, this.entityClass, beforeSpawn);
-		spawned.add(entity);
+		if (cache) {
+			spawned.add(entity);
+		}
 		return entity;
 	}
 

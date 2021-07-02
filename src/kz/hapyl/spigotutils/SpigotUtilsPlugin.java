@@ -76,7 +76,6 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 			e.printStackTrace();
 		}
 
-
 	}
 
 	public SongPlayer getSongPlayer() {

@@ -13,6 +13,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * Allows to manipulate with blocks such as changing types or sending packet changes.
+ *
+ * @author hapyl
+ */
 public class BlockMagic {
 
 	protected static final Set<BlockMagic> allAffected = new ConcurrentSet<>();

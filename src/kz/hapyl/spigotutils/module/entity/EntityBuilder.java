@@ -9,6 +9,12 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+/**
+ * Allows to create entity and configure it before spawning. (Use consumer)
+ *
+ * @deprecated Use consumer
+ */
+@Deprecated
 public class EntityBuilder {
 
 	private final EntityType type;

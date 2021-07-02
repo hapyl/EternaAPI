@@ -466,7 +466,6 @@ public class HumanNPC implements Intractable {
 			return new String[]{"invalidValue", "invalidSignature"};
 		}
 		try {
-			// FIXME: 029. 05/29/2021 - timeout
 			final URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + targetName);
 			final InputStreamReader reader = new InputStreamReader(url.openStream());
 			final String uuid = new JsonParser().parse(reader).getAsJsonObject().get("id").getAsString();

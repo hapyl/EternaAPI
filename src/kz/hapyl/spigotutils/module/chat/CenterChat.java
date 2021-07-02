@@ -6,6 +6,14 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+/**
+ * This util class is used to send perfectly centered messages in chat.
+ *
+ * (Original Post): https://spigotmc.org/threads/free-code-sending-perfectly-centered-chat-message.95872/
+ *
+ * @author SirSpoodles (Original Class)
+ * @author hapyl (Added clickable impl)
+ */
 public class CenterChat {
 
 	/**
@@ -22,13 +30,16 @@ public class CenterChat {
 
 	public static void sendCenteredClickableMessage(Player player, String message, HoverEvent hover, ClickEvent click) {
 		final ComponentBuilder builder = new ComponentBuilder(makeString(message));
-		if (hover != null) builder.event(hover);
-		if (click != null) builder.event(click);
+		if (hover != null)
+			builder.event(hover);
+		if (click != null)
+			builder.event(click);
 		player.spigot().sendMessage(builder.create());
 	}
 
 	public static String makeString(String message) {
-		if (message == null || message.equals("")) return "";
+		if (message == null || message.equals(""))
+			return "";
 		message = ChatColor.translateAlternateColorCodes('&', message);
 
 		int messagePxSize = 0;
@@ -164,7 +175,7 @@ public class CenterChat {
 		DEFAULT('a', 4);
 
 		private final char character;
-		private final int  length;
+		private final int length;
 
 		DefaultFontInfo(char character, int length) {
 			this.character = character;
@@ -180,13 +191,15 @@ public class CenterChat {
 		}
 
 		public int getBoldLength() {
-			if (this == SPACE) return this.getLength();
+			if (this == SPACE)
+				return this.getLength();
 			return this.length + 1;
 		}
 
 		public static CenterChat.DefaultFontInfo getDefaultFontInfo(char c) {
 			for (CenterChat.DefaultFontInfo dFI : CenterChat.DefaultFontInfo.values()) {
-				if (dFI.getCharacter() == c) return dFI;
+				if (dFI.getCharacter() == c)
+					return dFI;
 			}
 			return DEFAULT;
 		}

@@ -8,6 +8,11 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.Collection;
 
+/**
+ * This util class allows to manipulate entities (Hide using packets, remove collision)
+ *
+ * @author hapyl
+ */
 public class EntityUtils {
 
 	/**

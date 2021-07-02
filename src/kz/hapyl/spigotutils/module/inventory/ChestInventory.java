@@ -262,8 +262,7 @@ public final class ChestInventory {
 
 	}
 
-	// TODO: 018. 06/18/2021 - More patterns
-
+	// TODO: 018. 06/18/2021 - Add more patterns and maybe rework this method.
 	private final byte[][] slotPattern = {
 			{0, 0, 0, 0, 1, 0, 0, 0, 0},  // 1
 			{0, 0, 0, 1, 0, 1, 0, 0, 0},  // 2

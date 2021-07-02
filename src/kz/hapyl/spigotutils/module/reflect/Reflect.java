@@ -311,7 +311,7 @@ public final class Reflect {
 
 	public static void sendPacket(Object packet, Player... viewers) {
 		for (final Player viewer : viewers) {
-			sendPacket((Player)viewer, packet);
+			sendPacket(viewer, packet);
 		}
 	}
 
@@ -329,12 +329,8 @@ public final class Reflect {
 
 	@Nullable
 	public static Channel getNettyChannel(Player player) {
-		// TODO: 017. 02/17/2021 -
 		try {
-			final Object craftPlayer = getCraftPlayer(player);
-			final Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
-			final Object networkManager = playerConnection.getClass().getField("networkManager").get(craftPlayer);
-			return (Channel)networkManager.getClass().getField("channel").get(craftPlayer);
+			return getMinecraftPlayer(player).b.a.k;
 		}
 		catch (Exception ex) {
 			ex.printStackTrace();
@@ -343,12 +339,11 @@ public final class Reflect {
 	}
 
 	/**
-	 * @param player - CraftPlayer.
-	 * @return Player's current ping. Updates one per minute.
+	 * @deprecated player#getPing()
 	 */
+	@Deprecated
 	public static int getPing(Player player) {
-		final Object craftPlayer = getCraftPlayer(player);
-		return (int)getFieldValue(lazyField(getCraftPlayer(player).getClass(), "ping"), craftPlayer);
+		return player.getPing();
 	}
 
 	public static Method getCraftMethod(String entity, String name, Class<?>... params) {

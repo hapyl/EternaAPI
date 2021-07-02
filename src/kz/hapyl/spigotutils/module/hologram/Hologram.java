@@ -21,9 +21,12 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * This class allows to create packet-holograms
+ */
 public class Hologram {
 
-	public static final Collection<Hologram> holograms = new ArrayList<>();
+	public static final Set<Hologram> holograms = new HashSet<>();
 
 	/**
 	 * Vertical offset of the holograms.
@@ -39,6 +42,11 @@ public class Hologram {
 
 	private Location location;
 
+	/**
+	 * Creates hologram with provided size.
+	 *
+	 * @param size - Lines size.
+	 */
 	public Hologram(int size) {
 		this.lines = new ArrayList<>(size);
 		this.packets = new HashMap<>();
@@ -50,11 +58,22 @@ public class Hologram {
 		this(1);
 	}
 
+	/**
+	 * Adds a line of hologram, lines are sorted from top bo bottom. (Revertible)
+	 *
+	 * @param line - String.
+	 */
 	public Hologram addLine(String line) {
 		this.lines.add(line);
 		return this;
 	}
 
+	/**
+	 * Removes line at the given index.
+	 *
+	 * @param index - Index.
+	 * @throws IndexOutOfBoundsException if there is on sucn line.
+	 */
 	public Hologram removeLine(int index) throws IndexOutOfBoundsException {
 		if (this.lines.size() - 1 < index) {
 			throw new IndexOutOfBoundsException(String.format("There is only %s lines, not %s.", this.lines.size(), index));
@@ -65,7 +84,13 @@ public class Hologram {
 		return this;
 	}
 
-	public Hologram setLine(int index, String line) throws IndexOutOfBoundsException {
+	/**
+	 * Sets string at provided index.
+	 *
+	 * @param index - Index.
+	 * @param line  - String.
+	 */
+	public Hologram setLine(int index, String line) {
 		if (this.lines.size() - 1 < index) {
 			for (int i = 0; i < index; i++) {
 				addLine("");
@@ -96,6 +121,11 @@ public class Hologram {
 		holograms.clear();
 	}
 
+	/**
+	 * If hologram is persistent it will not be removed when far away./
+	 *
+	 * @param persistent - flag.
+	 */
 	public Hologram setPersistent(boolean persistent) {
 		this.persistent = persistent;
 		return this;
@@ -105,8 +135,8 @@ public class Hologram {
 		return persistent;
 	}
 
-	public Hologram setRemoveWhenFarAway(int removeWhenFarAway) {
-		this.removeWhenFarAway = removeWhenFarAway;
+	public Hologram setRemoveWhenFarAway(int hideWhenFurtherThan) {
+		this.removeWhenFarAway = hideWhenFurtherThan;
 		return this;
 	}
 

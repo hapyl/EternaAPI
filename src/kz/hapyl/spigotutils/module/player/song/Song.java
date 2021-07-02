@@ -11,6 +11,7 @@ public class Song {
 	private final long length;
 	private final int tempo;
 	private final Map<Long, List<SongNote>> notes;
+	private boolean okOctave;
 
 	public Song(String name, String author, String originalAuthor, long length, int tempo) {
 		this.name = name;
@@ -19,6 +20,14 @@ public class Song {
 		this.length = length;
 		this.tempo = 20 / tempo;
 		this.notes = new HashMap<>();
+	}
+
+	public void markInvalidOctave() {
+		this.okOctave = false;
+	}
+
+	public boolean isOkOctave() {
+		return okOctave;
 	}
 
 	public long getLength() {

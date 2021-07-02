@@ -7,12 +7,27 @@ import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
 
+/**
+ * This util class allows to handle exceptions.
+ *
+ * @author hapyl
+ */
 public final class Exceptions {
 
+	/**
+	 * Throws an abstract error with provided message.
+	 *
+	 * @param message - Message.
+	 */
 	public static void throwRuntimeError(String message) {
 		throw new RuntimeException(message);
 	}
 
+	/**
+	 * Runs runnable with and ignored all exceptions.
+	 *
+	 * @param runnable - Runnable.
+	 */
 	public static void runSafe(Runnable runnable) {
 		try {
 			runnable.run();
@@ -21,10 +36,21 @@ public final class Exceptions {
 		}
 	}
 
+	/**
+	 * Runs runnable with and reports any exceptions.
+	 *
+	 * @param runnable - Runnable.
+	 */
 	public static void handleAny(Runnable runnable) {
 		handleAny(null, runnable);
 	}
 
+	/**
+	 * /** Runs runnable with and reports any exceptions to executor and console.
+	 *
+	 * @param runnable - Runnable.
+	 * @param executor - Executor.
+	 */
 	public static void handleAny(CommandSender executor, Runnable runnable) {
 		try {
 			runnable.run();

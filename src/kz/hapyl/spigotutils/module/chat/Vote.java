@@ -2,14 +2,22 @@ package kz.hapyl.spigotutils.module.chat;
 
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+/**
+ * Allows to create votes to a server, kinda deprecated I think?
+ *
+ * @author hapyl
+ */
 public class Vote {
 
 	protected static final Set<Vote> storedVotes = new HashSet<>();
 
-	private final String           question;
-	private final long             timeBeing;
+	private final String question;
+	private final long timeBeing;
 	private final List<VoteAnswer> answers;
 
 	public Vote(String question, long timeBeing) {

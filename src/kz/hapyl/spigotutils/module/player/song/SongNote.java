@@ -1,7 +1,6 @@
 package kz.hapyl.spigotutils.module.player.song;
 
 import org.bukkit.Instrument;
-import org.bukkit.Location;
 import org.bukkit.Note;
 import org.bukkit.entity.Player;
 
@@ -11,10 +10,20 @@ public class SongNote {
 
 	private final Instrument instrument;
 	private final Note note;
+	private boolean okOctave;
 
 	public SongNote(Instrument instrument, Note note) {
 		this.instrument = instrument;
 		this.note = note;
+		this.okOctave = true;
+	}
+
+	public boolean isOkOctave() {
+		return okOctave;
+	}
+
+	public void markInvalidOctave() {
+		this.okOctave = false;
 	}
 
 	public Instrument getInstrument() {

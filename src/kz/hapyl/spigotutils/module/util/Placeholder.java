@@ -12,8 +12,6 @@ public class Placeholder {
 		this.expectedFormat = this.countExpectedFormat();
 	}
 
-	// FIXME: 018. 04/18/2021 -> might need to fix this since the same name
-
 	public static String format(String input, Object... format) {
 		return new Placeholder(input).format(format);
 	}

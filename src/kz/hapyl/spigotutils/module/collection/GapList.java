@@ -1,10 +1,15 @@
 package kz.hapyl.spigotutils.module.collection;
 
-
 import kz.hapyl.spigotutils.module.annotate.NOTNULL;
 
 import java.util.*;
 
+/**
+ * This supposed to be a Cycled Linked List
+ *
+ * @param <E> - Type of list
+ * @author hapyl
+ */
 public class GapList<E> implements List<E> {
 
 	private final List<E> list;

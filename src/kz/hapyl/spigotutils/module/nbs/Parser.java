@@ -96,7 +96,11 @@ public class Parser {
 					// 33 - 57
 					final byte key = this.readByte();
 
-					this.song.putNote(tick, new SongNote(SongHelper.getInstrument(noteBlock), SongHelper.getNote(key)));
+					final SongNote note = new SongNote(SongHelper.getInstrument(noteBlock), SongHelper.getNote(key));
+					if (SongHelper.isInvalidOctave(key)) {
+						this.song.markInvalidOctave();
+					}
+					this.song.putNote(tick, note);
 
 					if (version >= 4) {
 						this.readByte();

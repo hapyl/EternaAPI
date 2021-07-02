@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * This class allows to create ropes between two areas.
+ */
 public class Rope {
 
 	private static final Map<Integer, Rope> byId = new HashMap<>();
@@ -24,6 +27,12 @@ public class Rope {
 	private final Location startPoint;
 	private final Location endPoint;
 
+	/**
+	 * Creates a rope.
+	 *
+	 * @param startPoint - From.
+	 * @param endPoint   - To;
+	 */
 	public Rope(Location startPoint, Location endPoint) {
 		this.startPoint = startPoint;
 		this.endPoint = endPoint;
@@ -37,11 +46,19 @@ public class Rope {
 		this(new Location(Bukkit.getWorlds().get(0), x, y, z), new Location(Bukkit.getWorlds().get(0), x1, y1, z1));
 	}
 
+	/**
+	 * If true, this rope will be removed on server restart.
+	 *
+	 * @param flag - flag.
+	 */
 	public Rope setRemoveAtServerRestart(boolean flag) {
 		this.removeAtServerRestart = flag;
 		return this;
 	}
 
+	/**
+	 * Removed the rope.
+	 */
 	public void remove() {
 		for (final Bat bat : this.bats) {
 			if (bat != null) {

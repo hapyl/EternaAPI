@@ -7,8 +7,6 @@ import org.bukkit.entity.Player;
 
 public class MobSpellParticleBuilder extends RedstoneParticleBuilder {
 
-	// FIXME: 027. 02/27/2021 - fix offsets and counts not working
-
 	public MobSpellParticleBuilder(Color color, boolean ambient) {
 		super(color);
 		this.setParticle(ambient ? Particle.SPELL_MOB_AMBIENT : Particle.SPELL_MOB);

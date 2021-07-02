@@ -8,6 +8,11 @@ import org.bukkit.craftbukkit.libs.jline.internal.Nullable;
 import java.awt.*;
 import java.util.Arrays;
 
+/**
+ * This class allows to create gradient strings. Only supported in Bukkit. (I think?)
+ *
+ * @author Schottky
+ */
 public class Gradient {
 
 	private String str;

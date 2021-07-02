@@ -26,6 +26,8 @@ import java.util.MissingFormatArgumentException;
 
 /**
  * Allows to manipulate with string easily such as formatting, sending chat, actionbar and title messages.
+ *
+ * @author hapyl
  */
 public class Chat {
 
