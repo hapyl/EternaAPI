@@ -3,12 +3,16 @@ package kz.hapyl.spigotutils;
 import kz.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
 import kz.hapyl.spigotutils.builtin.command.QuestCommand;
 import kz.hapyl.spigotutils.module.command.CommandProcessor;
+import kz.hapyl.spigotutils.module.command.SimpleCommand;
 import kz.hapyl.spigotutils.module.entity.Rope;
 import kz.hapyl.spigotutils.module.hologram.Hologram;
 import kz.hapyl.spigotutils.module.hologram.HologramRunnable;
 import kz.hapyl.spigotutils.module.inventory.ChestInventoryListener;
 import kz.hapyl.spigotutils.module.inventory.ItemBuilderListener;
 import kz.hapyl.spigotutils.module.inventory.gui.GUIListener;
+import kz.hapyl.spigotutils.module.inventory.item.CustomItem;
+import kz.hapyl.spigotutils.module.inventory.item.CustomItemHolder;
+import kz.hapyl.spigotutils.module.inventory.item.CustomItemListener;
 import kz.hapyl.spigotutils.module.listener.SimpleListener;
 import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
@@ -16,6 +20,7 @@ import kz.hapyl.spigotutils.module.quest.QuestListener;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
 import kz.hapyl.spigotutils.module.reflect.NettyInjector;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
+import kz.hapyl.spigotutils.module.reflect.npc.AIHumanNpc;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -36,6 +41,7 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 	private static SpigotUtilsPlugin plugin;
 
 	private SongPlayer songPlayer;
+	private CustomItemHolder itemHolder;
 
 	@Override
 	public void onEnable() {
@@ -44,6 +50,7 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 		final PluginManager manager = this.getServer().getPluginManager();
 
 		manager.registerEvents(new ItemBuilderListener(), this);
+		manager.registerEvents(new CustomItemListener(), this);
 		manager.registerEvents(new ChestInventoryListener(), this);
 		manager.registerEvents(new GUIListener(), this);
 		manager.registerEvents(new TriggerManager(), this);
@@ -51,6 +58,7 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 		manager.registerEvents(this, this);
 
 		this.songPlayer = new SongPlayer(this);
+		this.itemHolder = new CustomItemHolder();
 		final BukkitScheduler scheduler = Bukkit.getScheduler();
 
 		scheduler.runTaskTimer(this, new NPCRunnable(), 0, 2);
@@ -69,6 +77,7 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 		this.getConfig().options().copyDefaults(true);
 		this.saveConfig();
 
+		// Create songs folder
 		try {
 			final boolean created = new File(this.getDataFolder() + "/songs").mkdir();
 		}
@@ -78,6 +87,10 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 
 	}
 
+	public CustomItemHolder getItemHolder() {
+		return itemHolder;
+	}
+
 	public SongPlayer getSongPlayer() {
 		return songPlayer;
 	}
@@ -85,22 +98,44 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 	@Override
 	public void onDisable() {
 		// remove pipes
-		this.runSafe(() -> Bukkit.getOnlinePlayers().forEach(player -> NettyInjector.getInstance().removeInjection(player)));
+		this.runSafe(() -> Bukkit.getOnlinePlayers().forEach(player -> NettyInjector.getInstance().removeInjection(player)), "netty inject");
 		// remove NPCs
-		//this.runSafe(NPC::removeAll);
-		this.runSafe(HumanNPC::removeAll);
+		this.runSafe(HumanNPC::removeAll, "human npc removal");
+		this.runSafe(AIHumanNpc::removeAll, "ai human npc removal");
 		// remove holograms
-		this.runSafe(Hologram::removeAll);
+		this.runSafe(Hologram::removeAll, "hologram removal");
 		// remove ropes
-		this.runSafe(Rope::callThisOnDisable);
+		this.runSafe(Rope::callThisOnDisable, "ropes removal");
 	}
 
-	private void runSafe(Runnable runnable) {
+	private void runSafe(Runnable runnable, String name) {
 		try {
 			runnable.run();
 		}
 		catch (Exception ignored0) {
+			Bukkit.getLogger().warning("Could not run " + name + " in onDisable(), did you /reload your server?");
 		}
+	}
+
+	private static final Registry registry = new Registry() {
+		@Override
+		public void registerCommand(SimpleCommand command) {
+			new CommandProcessor().registerCommand(command);
+		}
+
+		@Override
+		public void registerCommand(JavaPlugin plugin, SimpleCommand command) {
+			new CommandProcessor(plugin).registerCommand(command);
+		}
+
+		@Override
+		public void registerItem(CustomItem item) {
+			getPlugin().getItemHolder().register(item);
+		}
+	};
+
+	public static Registry registry() {
+		return registry;
 	}
 
 	public static void runTaskLater(Consumer<BukkitTask> runnable, int later) {

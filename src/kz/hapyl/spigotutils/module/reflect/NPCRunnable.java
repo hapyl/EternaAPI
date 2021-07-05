@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.module.reflect;
 
+import kz.hapyl.spigotutils.module.reflect.npc.AIHumanNpc;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -69,6 +70,13 @@ public class NPCRunnable implements Runnable {
 				}
 			}
 		});
+
+
+		// AI
+		if (!AIHumanNpc.pairs.isEmpty()) {
+			AIHumanNpc.pairs.forEach((fake, npc) -> npc.tick());
+		}
+
 	}
 
 }

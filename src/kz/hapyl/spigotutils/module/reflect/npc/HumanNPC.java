@@ -71,7 +71,7 @@ public class HumanNPC implements Intractable {
 	private final HashMap<Player, Boolean> showingTo = new HashMap<>();
 	private final List<NPCEntry> entries = new ArrayList<>();
 
-	public HumanNPC() {
+	private HumanNPC() {
 		this(BukkitUtils.getSpawnLocation(), "", "");
 	}
 
@@ -397,6 +397,7 @@ public class HumanNPC implements Intractable {
 		this.location.setYaw(yaw);
 		this.location.setPitch(pitch);
 		this.setLocation(this.location);
+		syncText();
 	}
 
 	@InsuredViewers
@@ -406,6 +407,7 @@ public class HumanNPC implements Intractable {
 		this.human.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 		this.setHeadRotation(this.location.getYaw(), viewers);
 		new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(viewers);
+		syncText();
 	}
 
 	@InsuredViewers
@@ -426,7 +428,6 @@ public class HumanNPC implements Intractable {
 
 	private void swingArm(boolean b, Player... insured) {
 		new ReflectPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3)).sendPackets(insured);
-
 	}
 
 	public HumanNPC setSkin(String texture, String signature) {
@@ -582,6 +583,17 @@ public class HumanNPC implements Intractable {
 		this.updateDataWatcher(viewers);
 	}
 
+	@InsuredViewers
+	public void playAnimation(NPCAnimation animation, Player... viewers) {
+		viewers = insureViewers(viewers);
+		new ReflectPacket(new PacketPlayOutAnimation(this.getHuman(), animation.getPos())).sendPackets(viewers);
+	}
+
+	public int getId() {
+		return this.getHuman().getId();
+	}
+
+	@InsuredViewers
 	public void updateDataWatcher(Player... players) {
 		players = insureViewers(players);
 		new ReflectPacket(new PacketPlayOutEntityMetadata(this.human.getId(), this.human.getDataWatcher(), true)).sendPackets(players);
