@@ -87,7 +87,7 @@ public class Glowing implements Ticking {
 					deleteTeam(player);
 				}
 				else {
-					createTeam(player);
+					addEntry(player);
 				}
 			}
 
@@ -101,31 +101,38 @@ public class Glowing implements Ticking {
 
 	}
 
+	public void stop() {
+		this.duration = 0;
+	}
+
 	private void deleteTeam(Player player) {
-		final Team team = player.getScoreboard().getTeam("ETERNA_API_GC");
-		if (team != null) {
-			team.unregister();
+		final Team entryTeam = player.getScoreboard().getEntryTeam(getEntityName());
+		if (entryTeam != null) {
+			entryTeam.setColor(ChatColor.WHITE);
+			if (entryTeam.getName().equals("ETERNA_API_GC")) {
+				entryTeam.unregister();
+			}
 		}
 	}
 
-	private void createTeam(Player player) {
+	private void addEntry(Player player) {
 		final Team team = getTeamOrCreate(player);
-		team.setColor(this.color);
-		team.addEntry(this.entity.getUniqueId().toString());
+		final String entry = getEntityName();
+		team.addEntry(entry);
 	}
 
 	private Team getTeamOrCreate(Player player) {
 		final Scoreboard scoreboard = player.getScoreboard();
-		Team team = scoreboard.getTeam("ETERNA_API_GC");
+		Team team = scoreboard.getEntryTeam(getEntityName());
 		if (team == null) {
 			team = scoreboard.registerNewTeam("ETERNA_API_GC");
-			team.setColor(this.color);
 		}
+		team.setColor(this.color);
 		return team;
 	}
 
-	private void __debug(Object o) {
-		Bukkit.broadcastMessage(o.toString());
+	private String getEntityName() {
+		return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
 	}
 
 	public boolean isEveryoneIsListener() {

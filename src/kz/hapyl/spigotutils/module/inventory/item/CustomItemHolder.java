@@ -20,7 +20,7 @@ public final class CustomItemHolder {
 
 	@Nullable
 	public CustomItem byItemStack(ItemStack stack) {
-		return byId(NBT.getString(stack.getItemMeta(), "Id"));
+		return (stack == null || stack.getItemMeta() == null) ? null : byId(NBT.getString(stack.getItemMeta(), "Id"));
 	}
 
 	public boolean isAnyItems() {
