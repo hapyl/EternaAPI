@@ -22,11 +22,11 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://E:/BuildTools/spigot-1.17.jar!/" />
+          <root url="jar://E:/BuildTools/spigot-1.17.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://E:/BuildTools/spigot-1.17.jar!/" />
+          <root url="jar://E:/BuildTools/spigot-1.17.1.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

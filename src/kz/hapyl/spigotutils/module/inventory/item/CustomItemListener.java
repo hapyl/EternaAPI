@@ -70,7 +70,7 @@ public class CustomItemListener implements Listener {
 		customItem.onPlace(ev.getPlayer(), item, ev);
 	}
 
-	@EventHandler()
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void handlePlayerDrop(PlayerDropItemEvent ev) {
 		final ItemStack item = ev.getItemDrop().getItemStack();
 		final CustomItem customItem = getItem(item);

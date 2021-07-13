@@ -37,7 +37,7 @@ public class Geometry {
 		Validate.notNull(draw);
 		Validate.isTrue(Objects.equals(start.getWorld(), end.getWorld()), "start and end point must be in the same world");
 
-		Location dynamic = end.clone();
+		Location dynamic = start.clone();
 
 		final double distance = start.distance(end);
 		final Vector vector = end.toVector().subtract(start.toVector()).normalize().multiply(step);

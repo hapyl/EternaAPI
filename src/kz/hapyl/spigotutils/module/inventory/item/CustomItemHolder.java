@@ -40,7 +40,7 @@ public final class CustomItemHolder {
 		if (isItemExists(id)) {
 			throw new IllegalArgumentException("cannot register %s since it's already registered!".formatted(id));
 		}
-		this.customItems.put(id, item);
+		this.customItems.put(formatId(id), item);
 	}
 
 	public void unregister(CustomItem item) {
@@ -48,7 +48,7 @@ public final class CustomItemHolder {
 		if (!isItemExists(id)) {
 			throw new IllegalArgumentException("cannot unregister %s since it's doesn't exist!".formatted(id));
 		}
-		this.customItems.remove(id, item);
+		this.customItems.remove(formatId(id), item);
 	}
 
 	public static CustomItemHolder getInstance() {

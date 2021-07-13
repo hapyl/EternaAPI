@@ -34,7 +34,7 @@ public class AIHumanNpc extends HumanNPC implements Ticking {
 		this.ghost = new EntityZombieHusk(EntityTypes.N, this.getHuman().getWorldServer()) {
 			@Override
 			protected void initPathfinder() {
-				AIHumanNpc.this.initPathfinder(this, this.bO);
+				AIHumanNpc.this.initPathfinder(this, this.bP);
 			}
 		};
 		this.ghost.setPosition(location.getX(), location.getY(), location.getZ());
