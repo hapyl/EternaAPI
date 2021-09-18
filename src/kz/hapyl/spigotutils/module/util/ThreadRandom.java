@@ -1,5 +1,7 @@
 package kz.hapyl.spigotutils.module.util;
 
+import kz.hapyl.spigotutils.module.math.Numbers;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ThreadRandom {
@@ -20,15 +22,23 @@ public class ThreadRandom {
 		return ThreadLocalRandom.current().nextFloat();
 	}
 
+	public static float nextFloat(float bound) {
+		return nextFloat(0, bound);
+	}
+
+	public static float nextFloat(float origin, float bound) {
+		return (float)Numbers.clamp(nextDouble(origin, bound), Float.MIN_VALUE, Float.MAX_VALUE);
+	}
+
 	public static double nextDouble() {
 		return ThreadLocalRandom.current().nextDouble();
 	}
 
-	public static double nextDouble(int bound) {
+	public static double nextDouble(double bound) {
 		return ThreadLocalRandom.current().nextDouble(bound);
 	}
 
-	public static double nextDouble(int origin, int bound) {
+	public static double nextDouble(double origin, double bound) {
 		return ThreadLocalRandom.current().nextDouble(origin, bound);
 	}
 
@@ -36,11 +46,11 @@ public class ThreadRandom {
 		return ThreadLocalRandom.current().nextLong();
 	}
 
-	public static long nextLong(int bound) {
+	public static long nextLong(long bound) {
 		return ThreadLocalRandom.current().nextLong(bound);
 	}
 
-	public static long nextLong(int origin, int bound) {
+	public static long nextLong(long origin, long bound) {
 		return ThreadLocalRandom.current().nextLong(origin, bound);
 	}
 
