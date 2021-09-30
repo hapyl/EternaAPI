@@ -26,6 +26,9 @@ public class Glowing implements Ticking {
 	private final net.minecraft.world.entity.Entity netEntity;
 	private final Entity entity;
 	private final Set<Player> viewers;
+	private final DataWatcher dataWatcher;
+	private final DataWatcher fakeWatcher;
+
 	private ChatColor color;
 	private int duration;
 	private boolean everyoneIsListener;
@@ -37,8 +40,13 @@ public class Glowing implements Ticking {
 		this.everyoneIsListener = false;
 		this.viewers = Sets.newHashSet();
 		this.setColor(color);
+
+		this.dataWatcher = netEntity.getDataWatcher();
+		this.fakeWatcher = new DataWatcher(netEntity);
+
 		glowing.add(this);
 	}
+
 
 	public Glowing(Entity entity, int duration) {
 		this(entity, ChatColor.WHITE, duration);
@@ -55,19 +63,21 @@ public class Glowing implements Ticking {
 		if (everyoneIsListener) {
 			this.viewers.addAll(Bukkit.getOnlinePlayers());
 		}
+
 		final boolean last = duration-- <= 0;
+
 		if (last || entity.isDead()) {
 			glowing.remove(this);
 		}
 
 		try {
 
-			// This is maybe not the best way of doing this
-			final DataWatcher dataWatcher = netEntity.getDataWatcher();
-			final DataWatcher fakeWatcher = new DataWatcher(netEntity);
-
-			final Int2ObjectMap<DataWatcher.Item<?>> values = (Int2ObjectMap<DataWatcher.Item<?>>)FieldUtils.getDeclaredField(DataWatcher.class, "f", true)
-					.get(dataWatcher);
+			// I should copy this every tick right? Since if player has new effect it will not be updated in packet?
+			final Int2ObjectMap<DataWatcher.Item<?>> values = (Int2ObjectMap<DataWatcher.Item<?>>)FieldUtils.getDeclaredField(
+					DataWatcher.class,
+					"f",
+					true
+			).get(dataWatcher);
 			final Int2ObjectMap<DataWatcher.Item<?>> fakeValues = new Int2ObjectOpenHashMap<>();
 
 			values.forEach((pos, object) -> {
@@ -109,7 +119,7 @@ public class Glowing implements Ticking {
 		final Team entryTeam = player.getScoreboard().getEntryTeam(getEntityName());
 		if (entryTeam != null) {
 			entryTeam.setColor(ChatColor.WHITE);
-			if (entryTeam.getName().equals("ETERNA_API_GC")) {
+			if (entryTeam.getName().equals("ETGlowing")) {
 				entryTeam.unregister();
 			}
 		}
@@ -125,7 +135,7 @@ public class Glowing implements Ticking {
 		final Scoreboard scoreboard = player.getScoreboard();
 		Team team = scoreboard.getEntryTeam(getEntityName());
 		if (team == null) {
-			team = scoreboard.registerNewTeam("ETERNA_API_GC");
+			team = scoreboard.registerNewTeam("ETGlowing");
 		}
 		team.setColor(this.color);
 		return team;
