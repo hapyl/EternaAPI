@@ -22,7 +22,7 @@ public class Scoreboarder {
 		this.players = new HashSet<>();
 
 		this.scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
-		this.objective = this.scoreboard.registerNewObjective(title, "dummy", "title");
+		this.objective = this.scoreboard.registerNewObjective(UUID.randomUUID().toString().substring(0, 16), "dummy", "title");
 		this.setTitle(title);
 		this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
@@ -30,11 +30,10 @@ public class Scoreboarder {
 		for (int i = 0; i < 17; i++) {
 			this.scoreboard.registerNewTeam("%" + i).addEntry(colorCharAt(i));
 		}
-
 	}
 
 	public void setTitle(String title) {
-		this.objective.setDisplayName(title);
+		this.objective.setDisplayName(Chat.format(title));
 	}
 
 	public void setLine(int line, String text) {
@@ -48,19 +47,25 @@ public class Scoreboarder {
 		this.lines.clear();
 		this.lines.addAll(Arrays.asList(lines));
 
+		this.updateLines();
+	}
+
+	public void addLines(String... lines) {
+		this.lines.addAll(Arrays.asList(lines));
+	}
+
+	// this forces teams to update and set their values
+	public void updateLines() {
+
+		// set the value
 		int index = this.lines.size();
 		for (final String line : this.lines) {
 			setLine(index, line);
 			--index;
 		}
 
-		this.updateLines();
-	}
-
-	// this forces teams to update and set their values
-	public void updateLines() {
-		for (int size = this.lines.size(); size >= 0; size--) {
-			this.objective.getScore(colorCharAt(size)).setScore(size);
+		for (int i = 0; i <= this.lines.size(); i++) {
+			this.objective.getScore(colorCharAt(i)).setScore(i + 1);
 		}
 	}
 

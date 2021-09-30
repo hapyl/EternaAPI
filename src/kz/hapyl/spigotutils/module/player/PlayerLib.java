@@ -1,26 +1,64 @@
 package kz.hapyl.spigotutils.module.player;
 
+import kz.hapyl.spigotutils.SpigotUtilsPlugin;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Collection;
+
 public class PlayerLib {
+
+	public static final SoundCategory defaultCategory = SoundCategory.RECORDS;
 
 	public static void playSound(Player player, Sound sound, float pitch) {
 		validateTrue(pitch >= 0.0f && pitch <= 2.0f);
-		player.playSound(player.getLocation(), sound, SoundCategory.RECORDS, 2, pitch);
+		player.playSound(player.getLocation(), sound, defaultCategory, 2, pitch);
 	}
 
 	public static void playSound(Location location, Sound sound, float pitch) {
 		validateTrue(pitch >= 0.0f && pitch <= 2.0f);
 		validateTrue(location.getWorld() != null);
-		location.getWorld().playSound(location, sound, SoundCategory.RECORDS, 20, pitch);
+		location.getWorld().playSound(location, sound, defaultCategory, 20, pitch);
+	}
+
+	public static void playSound(Player player, Location location, Sound sound, float pitch) {
+		validateTrue(pitch >= 0.0f && pitch <= 2.0f);
+		validateTrue(location.getWorld() != null);
+		player.playSound(location, sound, defaultCategory, 20, pitch);
+	}
+
+	public static void playSoundAndCut(Player player, Sound sound, float pitch, int cutAfter) {
+		playSound(player, sound, pitch);
+		SpigotUtilsPlugin.runTaskLater((task) -> {
+			player.stopSound(sound, defaultCategory);
+		}, cutAfter);
+	}
+
+	public static void playSoundAndCut(Location location, Sound sound, float pitch, int cutAfter) {
+		final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+		players.forEach(player -> {
+			playSound(player, location, sound, pitch);
+		});
+		SpigotUtilsPlugin.runTaskLater((task) -> {
+			players.forEach(player -> {
+				player.stopSound(sound, defaultCategory);
+			});
+			players.clear();
+		}, cutAfter);
+	}
+
+	public static void playSoundAndCut(Player player, Location location, Sound sound, float pitch, int cutAfter) {
+		playSound(player, location, sound, pitch);
+		SpigotUtilsPlugin.runTaskLater((task) -> {
+			player.stopSound(sound, defaultCategory);
+		}, cutAfter);
 	}
 
 	public static void stopSound(Sound sound) {
-		Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(sound));
+		Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(sound, defaultCategory));
 	}
 
 	public static void spawnParticle(Player player, Location location, Particle particle, int amount, double x, double y, double z, float speed) {

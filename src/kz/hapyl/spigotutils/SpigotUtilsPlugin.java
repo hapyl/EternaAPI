@@ -18,8 +18,10 @@ import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.quest.QuestListener;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
-import kz.hapyl.spigotutils.module.reflect.NettyInjector;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
+import kz.hapyl.spigotutils.module.reflect.netty.NettyInjector;
+import kz.hapyl.spigotutils.module.reflect.netty.builtin.NPCListener;
+import kz.hapyl.spigotutils.module.reflect.netty.builtin.SignListener;
 import kz.hapyl.spigotutils.module.reflect.npc.AIHumanNpc;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.Bukkit;
@@ -66,7 +68,12 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 		scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
 
 		// reassign pipe
-		Bukkit.getOnlinePlayers().forEach(player -> NettyInjector.getInstance().injectPlayer(player));
+		final NettyInjector injector = NettyInjector.getInstance();
+		Bukkit.getOnlinePlayers().forEach(injector::injectPlayer);
+
+		// register default netty listeners
+		injector.addListener(new SignListener());
+		injector.addListener(new NPCListener());
 
 		// assign built in commands
 		final CommandProcessor commandProcessor = new CommandProcessor(this);
