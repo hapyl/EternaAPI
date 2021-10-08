@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.*;
@@ -40,7 +41,7 @@ public class Scoreboarder {
 		if (line < 0 || line > 17) {
 			throw new IllegalArgumentException("line cannot be negative nor higher than 17");
 		}
-		Objects.requireNonNull(this.scoreboard.getTeam("%" + line)).setSuffix(Chat.format(text));
+		Objects.requireNonNull(this.scoreboard.getTeam("%" + line)).setSuffix(text.isEmpty() ? "" : Chat.format(text));
 	}
 
 	public void setLines(String... lines) {
@@ -56,6 +57,19 @@ public class Scoreboarder {
 
 	// this forces teams to update and set their values
 	public void updateLines() {
+
+		// remove old lines
+		for (int i = 0; i < 17; i++) {
+			if (i <= this.lines.size()) {
+				continue;
+			}
+			final String colorChar = colorCharAt(i);
+			final Score score = this.objective.getScore(colorChar);
+
+			if (score.getScore() > i) {
+				this.scoreboard.resetScores(colorChar);
+			}
+		}
 
 		// set the value
 		int index = this.lines.size();
