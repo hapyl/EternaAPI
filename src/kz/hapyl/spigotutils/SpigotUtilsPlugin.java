@@ -4,6 +4,7 @@ import kz.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
 import kz.hapyl.spigotutils.builtin.command.QuestCommand;
 import kz.hapyl.spigotutils.module.command.CommandProcessor;
 import kz.hapyl.spigotutils.module.command.SimpleCommand;
+import kz.hapyl.spigotutils.module.command.SimplePlayerCommand;
 import kz.hapyl.spigotutils.module.entity.Rope;
 import kz.hapyl.spigotutils.module.hologram.Hologram;
 import kz.hapyl.spigotutils.module.hologram.HologramRunnable;
@@ -17,6 +18,7 @@ import kz.hapyl.spigotutils.module.listener.SimpleListener;
 import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.quest.QuestListener;
+import kz.hapyl.spigotutils.module.reflect.Laser;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
 import kz.hapyl.spigotutils.module.reflect.netty.NettyInjector;
@@ -25,6 +27,8 @@ import kz.hapyl.spigotutils.module.reflect.netty.builtin.SignListener;
 import kz.hapyl.spigotutils.module.reflect.npc.AIHumanNpc;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -79,6 +83,17 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 		final CommandProcessor commandProcessor = new CommandProcessor(this);
 		commandProcessor.registerCommand(new QuestCommand("quest"));
 		commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
+
+		commandProcessor.registerCommand(new SimplePlayerCommand("test") {
+
+			@Override
+			protected void execute(Player player, String[] args) {
+				final Location location = player.getLocation();
+				final Laser laser = new Laser(location, location.add(0.0d, 5.0d, 0.0d));
+				laser.spawn(player);
+			}
+
+		});
 
 		// Config
 		this.getConfig().options().copyDefaults(true);

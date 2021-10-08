@@ -8,6 +8,7 @@ import kz.hapyl.spigotutils.module.command.SimpleAdminCommand;
 import kz.hapyl.spigotutils.module.nbs.Parser;
 import kz.hapyl.spigotutils.module.player.song.Song;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
+import kz.hapyl.spigotutils.module.player.song.SongQueue;
 import kz.hapyl.spigotutils.module.player.song.SongStorage;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -15,11 +16,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class NoteBlockStudioCommand extends SimpleAdminCommand {
 
@@ -31,7 +30,7 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 		this.setAliases("radio");
 		this.setDescription("Allows admins to play \".nbs\" format song! Only one instance of radio may exists per server. Once song played once it " +
 				"will be cached into memory.");
-		this.setUsage("nbs play/stop/pause/list/info (SongPath/CachedSongName)");
+		this.setUsage("nbs play/stop/pause/list/info/add/skip [SongPath/CachedSongName]");
 	}
 
 	@Override
@@ -47,7 +46,8 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 
 					final Song song = radio.getCurrentSong();
 					radio.sendMessage(player, "Currently playing \"%s\" by %s (%s). (%s frames long)", song.getName(), song.getOriginalAuthor(),
-							song.getAuthor(), song.getLength());
+							song.getAuthor(), song.getLength()
+					);
 
 				}
 				case "stop" -> {
@@ -70,49 +70,70 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 				case "list" -> {
 					this.displayListOfCachedSongs(player);
 				}
+
+				// queue related commands
+				case "queue" -> {
+					final SongQueue queue = radio.getQueue();
+					final Queue<Song> list = queue.getQueue();
+					if (list.isEmpty()) {
+						radio.sendMessage(player, "No songs in the queue.");
+					}
+					else {
+						final StringBuilder builder = new StringBuilder();
+						int i = 0;
+						for (final Song song : list) {
+							builder.append("%s".formatted(song.getName()));
+							++i;
+							if (i < list.size()) {
+								builder.append(", ");
+							}
+						}
+						radio.sendMessage(player, "&aCurrent Queue:");
+						radio.sendMessage(player, builder.toString());
+					}
+				}
+
+				case "add" -> {
+					// radio add (...)
+					final StringBuilder builder = new StringBuilder();
+					for (int i = 1; i < args.length; i++) {
+						builder.append(args[i]).append(" ");
+					}
+					final String name = builder.toString().trim();
+					final Song song = findSong(name);
+
+					if (song == null) {
+						radio.sendMessage(player, "&cCouldn't find song named \"%s\"!", name);
+						return;
+					}
+
+					radio.getQueue().addSong(song);
+					radio.sendMessage(player, "&aAdded \"%s\" to the queue!", song.getName());
+				}
+
+				case "skip" -> {
+					if (validateHasSong(player)) {
+						return;
+					}
+
+					radio.getQueue().skip();
+				}
 			}
 
 			if (args.length >= 2) {
 				if (argument0.equalsIgnoreCase("play")) {
-
 					final StringBuilder builder = new StringBuilder();
 					for (int i = 1; i < args.length; i++) {
 						builder.append(args[i]).append(" ");
 					}
 
-					// Add extension if not added
-					String name = builder.toString().trim();
-					name = name.endsWith(".nbs") ? name : name + ".nbs";
-					final String nameWithoutNbs = name.replace(".nbs", "");
-
-					radio.sendMessage(player, "&eLooking for \"%s\" in cache...", name);
-
-					if (SongStorage.alreadyParsed(nameWithoutNbs)) {
-						this.startPlayingSong(SongStorage.getSong(nameWithoutNbs));
+					final Song song = findSong(builder.toString());
+					if (song == null) {
+						radio.sendMessage(player, "&cCouldn't find a nbs file named \"%s\"!");
+						return;
 					}
-					else {
-						radio.sendMessage(player, "&eCouldn't find \"%s\" in cache, trying to parse...", name);
-						final File file = new File(SpigotUtilsPlugin.getPlugin().getDataFolder() + "/songs", name);
 
-						if (!file.exists()) {
-							radio.sendMessage(player, "&cCouldn't find a nbs file named \"%s\"!", name);
-							return;
-						}
-
-						final Parser parses = new Parser(file);
-						parses.parse();
-						final Song song = parses.getSong();
-
-						if (song == null) {
-							radio.sendMessage(player, "&cAn error occurred whilst trying to parse %s!", name);
-							return;
-						}
-
-						radio.sendMessage(player, "&7Caching \"%s\", expect some lag...", nameWithoutNbs);
-						SongStorage.addSong(nameWithoutNbs, song);
-						this.startPlayingSong(song);
-
-					}
+					this.startPlayingSong(song);
 
 				}
 			}
@@ -121,6 +142,59 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 
 		this.sendInvalidUsageMessage(player);
 
+	}
+
+	@Nullable
+	private Song findSong(String name) {
+		// Add extension if not added
+		name = name.trim();
+		name = name.endsWith(".nbs") ? name : name + ".nbs";
+		final String nameWithoutNbs = name.replace(".nbs", "");
+
+		// find song in cache
+		if (SongStorage.alreadyParsed(nameWithoutNbs)) {
+			return SongStorage.getSong(nameWithoutNbs);
+		}
+		// else try and find the file
+		else {
+			File file = new File(SpigotUtilsPlugin.getPlugin().getDataFolder() + "/songs", name);
+
+			// if exact name does not find the file then try and find similar one
+			if (!file.exists()) {
+				final File parent = file.getParentFile();
+				if (parent == null || parent.listFiles() == null) {
+					return null;
+				}
+
+				final File[] files = parent.listFiles();
+				if (files == null) {
+					return null;
+				}
+
+				for (final File otherFile : files) {
+					if (otherFile.getName().toLowerCase(Locale.ROOT).contains(nameWithoutNbs)) {
+						file = otherFile;
+						break;
+					}
+				}
+			}
+
+			if (!file.exists()) {
+				return null;
+			}
+
+			final Parser parses = new Parser(file);
+			parses.parse();
+			final Song song = parses.getSong();
+
+			if (song == null) {
+				return null;
+			}
+
+			SongStorage.addSong(nameWithoutNbs, song);
+			return song;
+
+		}
 	}
 
 	private void displayListOfCachedSongs(Player player) {
@@ -171,7 +245,7 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 	public List<String> tabComplete(CommandSender sender, String[] args) {
 
 		if (args.length == 1) {
-			return completerSort(Arrays.asList("play", "stop", "list", "pause", "info"), args);
+			return completerSort(Arrays.asList("play", "stop", "list", "pause", "info", "queue", "add", "skip"), args);
 		}
 
 		else if (args.length >= 2 && args[0].equalsIgnoreCase("play")) {

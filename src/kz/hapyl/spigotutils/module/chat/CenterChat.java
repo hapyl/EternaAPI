@@ -16,12 +16,6 @@ import org.bukkit.entity.Player;
  */
 public class CenterChat {
 
-	/**
-	 * ORIGINAL: https://www.spigotmc.org/threads/free-code-sending-perfectly-centered-chat-message.95872/
-	 *
-	 * Edit by hapyl: - Added clickable centered messages support.
-	 */
-
 	private final static int CENTER_PX = 154;
 
 	public static void sendCenteredMessage(Player player, String message) {

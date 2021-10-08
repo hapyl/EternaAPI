@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class SpigotUtils {
 
-	private final static String pluginVersion = "1.7";
+	@Deprecated private final static String pluginVersion = "1.8";
 
 	private final JavaPlugin plugin;
 
@@ -39,7 +39,7 @@ public class SpigotUtils {
 		}
 
 		this.plugin = init;
-		final String formattedMessage = String.format("%s implements EternaAPI v%s.", plugin.getName(), pluginVersion);
+		final String formattedMessage = String.format("%s implements EternaAPI v%s.", plugin.getName(), getPluginVersion());
 
 		new BukkitRunnable() {
 			@Override
@@ -56,6 +56,10 @@ public class SpigotUtils {
 				broadcastAPIMessage(formattedMessage);
 			}
 		}.runTaskLater(plugin, 20);
+	}
+
+	public String getPluginVersion() {
+		return SpigotUtilsPlugin.getPlugin().getDescription().getVersion();
 	}
 
 	public JavaPlugin getPlugin() {

@@ -34,8 +34,10 @@ public class SongPlayerQueue implements SongQueue {
 	@Override
 	public void playNext() {
 		if (this.hasNext()) {
-			this.current = this.getNext();
-			SpigotUtilsPlugin.getPlugin().getSongPlayer().setCurrentSong(this.current);
+			this.current = this.queue.poll();
+			final SongPlayer player = SpigotUtilsPlugin.getPlugin().getSongPlayer();
+			player.setCurrentSong(this.current);
+			player.startPlaying();
 		}
 	}
 
@@ -52,5 +54,9 @@ public class SongPlayerQueue implements SongQueue {
 	@Override
 	public void removeSong() {
 		this.queue.remove();
+	}
+
+	public Queue<Song> getQueue() {
+		return queue;
 	}
 }

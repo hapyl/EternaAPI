@@ -65,7 +65,6 @@ public final class NettyInjector {
 			}
 
 			pipe.addBefore("packet_handler", channelName, channel);
-			System.out.println(pipe.names());
 
 		}
 		catch (NoSuchElementException e) {

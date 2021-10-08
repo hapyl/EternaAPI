@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+// FIXME: 008. 10/08/2021 - it works but entities have collision for whatever reason
 public class Laser {
 
 	private final Location start;
@@ -27,9 +28,19 @@ public class Laser {
 		// NSM
 		this.guardian = new EntityGuardian(EntityTypes.K, Reflect.getMinecraftWorld(this.start.getWorld()));
 		this.guardian.setLocation(this.start.getX(), this.start.getY(), this.start.getZ(), this.start.getYaw(), this.start.getPitch());
+		this.guardian.collides = false;
 
 		this.squid = new EntitySquid(EntityTypes.aJ, Reflect.getMinecraftWorld(this.end.getWorld()));
 		this.squid.setLocation(this.end.getX(), this.end.getY(), this.end.getZ(), this.end.getYaw(), this.end.getPitch());
+		this.squid.collides = false;
+
+		//this.guardian.collidableExemptions.add(this.squid.getUniqueID());
+		//this.squid.collidableExemptions.add(this.guardian.getUniqueID());
+		//
+		//for (final Player viewer : viewers) {
+		//	this.guardian.collidableExemptions.add(viewer.getUniqueId());
+		//	this.squid.collidableExemptions.add(viewer.getUniqueId());
+		//}
 
 		new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.guardian)).sendPackets(viewers);
 		new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.squid)).sendPackets(viewers);

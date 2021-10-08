@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.builtin.gui;
 
+import kz.hapyl.spigotutils.Rule;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.inventory.ItemBuilder;
 import kz.hapyl.spigotutils.module.inventory.gui.PlayerGUI;
@@ -17,6 +18,12 @@ public class QuestJournal extends PlayerGUI {
 
 	public QuestJournal(Player player) {
 		super(player, "Quest Journal", 5);
+
+		if (!Rule.ALLOW_QUEST_JOURNAL.isTrue()) {
+			Chat.sendMessage(player, "&cThis server does not allow Quest Journal!");
+			return;
+		}
+
 		this.setOpenEvent(target -> PlayerLib.playSound(player, Sound.ITEM_BOOK_PAGE_TURN, 0.75f));
 		this.setUpItems();
 	}
@@ -34,60 +41,58 @@ public class QuestJournal extends PlayerGUI {
 			this.setItem(22, new ItemBuilder(Material.CAULDRON).setName("&cNo Quests")
 					.setSmartLore("You don't have any ongoing quests right now!")
 					.toItemStack());
-			return;
 		}
+		else {
+			int slot = 10;
+			for (final QuestProgress progress : quests) {
+				final ItemBuilder builder = new ItemBuilder(Material.SKULL_BANNER_PATTERN)
+						.hideFlags()
+						.predicate(progress.isComplete(), ItemBuilder::glow);
 
-		int slot = 10;
-		for (final QuestProgress progress : quests) {
-			final ItemBuilder builder = new ItemBuilder(Material.SKULL_BANNER_PATTERN)
-					.hideFlags()
-					.predicate(progress.isComplete(), ItemBuilder::glow);
+				builder.setName(Chat.GREEN + progress.getQuest().getQuestName());
+				builder.addLore(progress.isComplete() ? "&aFinished Quest" : "&7Ongoing Quest");
+				builder.addLore();
+				builder.addLore("&7Stage: &b%s", progress.isComplete()
+						? "COMPLETE"
+						: progress.getCurrentStage() + 1 + "/" + progress.getTotalStages());
+				builder.addLore();
 
-			builder.setName(Chat.GREEN + progress.getQuest().getQuestName());
-			builder.addLore(progress.isComplete() ? "&aFinished Quest" : "&7Ongoing Quest");
-			builder.addLore();
-			builder.addLore("&7Stage: &b%s", progress.isComplete()
-					? "COMPLETE"
-					: progress.getCurrentStage() + 1 + "/" + progress.getTotalStages());
-			builder.addLore();
-
-			builder.addLore("&7Objectives:");
-			progress.getQuest().getObjectives().forEach((i, obj) -> {
-				// cannot use comparing since it's another object
-				// complete objective
-				if (progress.getCurrentStage() > i) {
-					builder.addLore(" &a✔ " + obj.getObjectiveName());
-				}
-				// current objective
-				else if (progress.getCurrentStage() == i) {
-					final PlayerQuestObjective current = progress.getCurrentObjective();
-					builder.addLore(" &e→ %s%s", obj.getObjectiveName(), current.getPercentComplete());
-					builder.addSmartLore(obj.getObjectiveShortInfo(), "  &7&o");
-				}
-				// next objectives
-				else {
-					builder.addLore(" &8" + (obj.isHidden() ? "???" : obj.getObjectiveName()));
-				}
-			});
-
-			this.setItem(slot, builder.toItemStack());
-
-			if (progress.isComplete()) {
-				this.setClick(slot, player -> {
-					progress.getQuest().grantRewardIfExist(player);
-					Chat.sendMessage(player, "&a&lQUEST CLAIMED &7" + progress.getQuest().getQuestName());
-					QuestManager.current().completeQuest(progress);
-					PlayerLib.plingNote(player, 2.0f);
-					this.setUpItems();
+				builder.addLore("&7Objectives:");
+				progress.getQuest().getObjectives().forEach((i, obj) -> {
+					// cannot use comparing since it's another object
+					// complete objective
+					if (progress.getCurrentStage() > i) {
+						builder.addLore(" &a✔ " + obj.getObjectiveName());
+					}
+					// current objective
+					else if (progress.getCurrentStage() == i) {
+						final PlayerQuestObjective current = progress.getCurrentObjective();
+						builder.addLore(" &e→ %s%s", obj.getObjectiveName(), current.getPercentComplete());
+						builder.addSmartLore(obj.getObjectiveShortInfo(), "  &7&o");
+					}
+					// next objectives
+					else {
+						builder.addLore(" &8" + (obj.isHidden() ? "???" : obj.getObjectiveName()));
+					}
 				});
+
+				this.setItem(slot, builder.toItemStack());
+
+				if (progress.isComplete()) {
+					this.setClick(slot, player -> {
+						progress.getQuest().grantRewardIfExist(player);
+						Chat.sendMessage(player, "&a&lQUEST CLAIMED &7" + progress.getQuest().getQuestName());
+						QuestManager.current().completeQuest(progress);
+						PlayerLib.plingNote(player, 2.0f);
+						this.setUpItems();
+					});
+				}
+
+				slot += (slot % 9 == 8) ? 2 : 1;
 			}
-
-			slot += (slot % 9 == 8) ? 2 : 1;
-
 		}
 
 		this.openInventory();
-
 	}
 
 }

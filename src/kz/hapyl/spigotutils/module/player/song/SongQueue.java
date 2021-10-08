@@ -1,5 +1,7 @@
 package kz.hapyl.spigotutils.module.player.song;
 
+import java.util.Queue;
+
 public interface SongQueue {
 
 	Song current();
@@ -15,6 +17,8 @@ public interface SongQueue {
 	void addSong(Song song);
 
 	void removeSong();
+
+	Queue<Song> getQueue();
 
 
 }

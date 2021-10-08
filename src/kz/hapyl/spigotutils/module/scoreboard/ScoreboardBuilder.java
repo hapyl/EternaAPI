@@ -13,7 +13,11 @@ import java.util.List;
 
 /**
  * Create custom per-player (or global(why?)) scoreboards.
+ *
+ * @see Scoreboarder
+ * @deprecated create new class
  */
+@Deprecated
 public class ScoreboardBuilder {
 
 	private Objective obj;

@@ -47,18 +47,22 @@ public class ItemBuilderListener implements Listener {
 						final Predicate<Player> predicate = builder.getPredicate();
 						if (predicate != null && predicate.test(player)) {
 							final String error = builder.getError();
-							if (!error.isEmpty())
+							if (!error.isEmpty()) {
 								player.sendMessage(ChatColor.RED + error);
+							}
 							return;
 						}
+
 						if (player.hasCooldown(builder.getItem().getType())) {
 							return;
 						}
+
 						player.setCooldown(builder.getItem().getType(), builder.getCd());
 					}
 					func.execute(player);
 					// Progress USE_CUSTOM_ITEM
 					QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, builder.getId());
+
 				});
 
 	}

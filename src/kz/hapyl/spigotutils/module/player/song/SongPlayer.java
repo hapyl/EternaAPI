@@ -92,7 +92,6 @@ public class SongPlayer {
 	}
 
 	public void startPlaying() {
-
 		if (playing) {
 			stopPlaying();
 		}
