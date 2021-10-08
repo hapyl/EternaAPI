@@ -88,15 +88,20 @@ public class Scoreboarder {
 	}
 
 	public void addPlayer(Player player) {
+		if (this.players.contains(player)) {
+			return;
+		}
 		updateLines();
 		this.players.add(player);
 		player.setScoreboard(this.scoreboard);
 	}
 
 	public void removePlayer(Player player) {
-		updateLines();
+		if (!this.players.contains(player)) {
+			return;
+		}
 		this.players.remove(player);
-		this.scoreboard.getEntries().remove(player.getName());
+		player.setScoreboard(Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard());
 	}
 
 	public Set<Player> getPlayers() {
