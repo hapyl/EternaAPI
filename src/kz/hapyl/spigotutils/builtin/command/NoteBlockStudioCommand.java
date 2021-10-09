@@ -129,7 +129,7 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 
 					final Song song = findSong(builder.toString());
 					if (song == null) {
-						radio.sendMessage(player, "&cCouldn't find a nbs file named \"%s\"!");
+						radio.sendMessage(player, "&cCouldn't find a nbs file named \"%s\"!", builder.toString());
 						return;
 					}
 
