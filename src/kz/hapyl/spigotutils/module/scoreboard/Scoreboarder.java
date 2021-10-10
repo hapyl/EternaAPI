@@ -55,6 +55,21 @@ public class Scoreboarder {
 		this.lines.addAll(Arrays.asList(lines));
 	}
 
+	public void addLine(String line, Object... objects) {
+		this.lines.add(line.formatted(objects));
+	}
+
+	public void clearLines() {
+		this.lines.clear();
+	}
+
+	public void removeLine(int line) {
+		if (line < 0 || line > 17 || line >= lines.size()) {
+			return;
+		}
+		lines.remove(line);
+	}
+
 	// this forces teams to update and set their values
 	public void updateLines() {
 
@@ -72,14 +87,15 @@ public class Scoreboarder {
 		}
 
 		// set the value
-		int index = this.lines.size();
+		int index = this.lines.size() - 1;
 		for (final String line : this.lines) {
 			setLine(index, line);
 			--index;
 		}
 
-		for (int i = 0; i <= this.lines.size(); i++) {
-			this.objective.getScore(colorCharAt(i)).setScore(i + 1);
+		// update scores
+		for (int i = 1; i <= this.lines.size(); i++) {
+			this.objective.getScore(colorCharAt(i - 1)).setScore(i);
 		}
 	}
 

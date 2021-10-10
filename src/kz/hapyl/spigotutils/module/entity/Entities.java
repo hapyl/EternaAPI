@@ -7,7 +7,10 @@ import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.*;
 import org.bukkit.util.Consumer;
 
+import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -18,8 +21,11 @@ import java.util.Set;
  */
 public final class Entities<T extends Entity> {
 
-	// Saved all spawned entities
+	// Saved all spawned entities.
 	protected static final Set<Entity> spawned = Sets.newConcurrentHashSet();
+
+	// All types by name.
+	private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
 
 	public static final Entities<ExperienceOrb> EXPERIENCE_ORB = new Entities<>(ExperienceOrb.class);
 	public static final Entities<AreaEffectCloud> AREA_EFFECT_CLOUD = new Entities<>(AreaEffectCloud.class);
@@ -132,6 +138,7 @@ public final class Entities<T extends Entity> {
 
 	private Entities(Class<T> entityClass) {
 		this.entityClass = entityClass;
+		byName.put(this.entityClass.getSimpleName().toLowerCase(Locale.ROOT), this);
 	}
 
 	public final T spawn(Location location) {
@@ -164,6 +171,11 @@ public final class Entities<T extends Entity> {
 
 	public static Set<Entity> getEntities() {
 		return spawned;
+	}
+
+	@Nullable
+	public static Entities<? extends Entity> byName(String name) {
+		return byName.getOrDefault(name.toLowerCase(Locale.ROOT), null);
 	}
 
 	// Get all spawnable entities
