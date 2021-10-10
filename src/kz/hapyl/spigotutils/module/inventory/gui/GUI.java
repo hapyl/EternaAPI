@@ -58,7 +58,12 @@ public class GUI {
 		return listener;
 	}
 
+	@Deprecated
 	public final void setOnlyCanelGUI(boolean flag) {
+		this.ignoreOnlyGUIClicks = flag;
+	}
+
+	public final void setOnlyCancelGUI(boolean flag) {
 		this.ignoreOnlyGUIClicks = flag;
 	}
 
@@ -244,6 +249,66 @@ public class GUI {
 				this.setClick(i, action);
 			}
 		}
+	}
+
+
+	/**
+	 * Fills a line (9 horizontal slots) of the GUI.
+	 */
+	public GUI fillLine(int line, ItemStack stack) {
+		line = Validate.ifTrue(line < 0, 0, line);
+		line = Validate.ifTrue(line > this.getSize() / 9, this.getSize() / 9, line);
+
+		for (int i = 0; i < this.getSize(); ++i) {
+			if (i / 9 == line) {
+				this.setItem(i, stack);
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * Fill a column (n of vertical slots) of the GUI.
+	 */
+	public GUI fillColumn(int column, ItemStack stack) {
+		Validate.notNullItemStack(stack);
+		column = Validate.ifTrue(column > 8, 8, column);
+
+		for (int i = 0; i < this.getSize(); ++i) {
+			if (i % 9 == column) {
+				this.setItem(i, stack);
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * Fills the outer layer of the GUI.
+	 */
+	public GUI fillOuter(ItemStack item) {
+		Validate.notNullItemStack(item);
+
+		for (int i = 0; i < this.inventory.getSize(); i++) {
+			if ((i > 0 && i < 9) || (i > this.inventory.getSize() - 9 && i < this.inventory.getSize() - 1) || (i % 9 == 0) || (i % 9 == 8)) {
+				this.inventory.setItem(i, item);
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * Fills the inner layer of the GUI.
+	 */
+	public GUI fillInner(ItemStack item) {
+		Validate.notNullItemStack(item);
+
+		for (int i = 10; i < this.getInventory().getSize() - 10; i++) {
+			if ((i % 9 != 0) && (i % 9 != 8)) {
+				this.setItem(i, item);
+			}
+		}
+
+		return this;
 	}
 
 	protected final void fillItems(Map<ItemStack, GUIClick> hashMap, int startLine) {
