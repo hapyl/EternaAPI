@@ -156,14 +156,22 @@ public final class ItemBuilder {
 			counter++;
 
 			if (c == '_' && text.charAt(i + 1) == '_') {
+				// this fixes an extra space before manual split.
+				// it's not a bug and it works as indented, but it's
+				// getting quite annoying at times to fix.
+				final String lastValue = list.get(list.size() - 1).trim().replace("§", "&");
+				if (lastValue.isEmpty() || lastValue.isBlank() || lastValue.equalsIgnoreCase(linePrefix)) {
+					list.remove(list.size() - 1);
+				}
 				list.add(colorize(linePrefix + line.substring(0, line.length() - 1).trim()));
 				line = "";
 				counter = 0;
 				i++;
 				continue;
 			}
+
 			if (counter >= maxChars || i == text.length() - 1) {
-				if (c == ' ' || checkLast) {
+				if (Character.isWhitespace(c) || checkLast) {
 					list.add(colorize(linePrefix + line.trim()));
 					line = "";
 					counter = 0;
@@ -183,7 +191,7 @@ public final class ItemBuilder {
 	}
 
 	private static String colorize(String s) {
-		return ChatColor.GRAY + ChatColor.translateAlternateColorCodes('&', s);
+		return ChatColor.translateAlternateColorCodes('&', s);
 	}
 
 	// Item Value Setters
@@ -610,7 +618,8 @@ public final class ItemBuilder {
 				this.item.setItemMeta(meta);
 				return this;
 			}
-			default -> throw new IllegalArgumentException("Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!");
+			default -> throw new IllegalArgumentException(
+					"Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!");
 		}
 	}
 
@@ -704,9 +713,12 @@ public final class ItemBuilder {
 	public ItemStack build(boolean overrideIfExists) {
 		if (this.id != null) {
 			if (isIdRegistered(this.id) && !overrideIfExists) {
-				sendErrorMessage("Could not build ItemBuilder! ID \"%s\" is already registered. Use \"toItemStack\" if you wish to clone it or \"build(true)\" to override existing item!", this
-						.getItem()
-						.getType());
+				sendErrorMessage(
+						"Could not build ItemBuilder! ID \"%s\" is already registered. Use \"toItemStack\" if you wish to clone it or \"build(true)\" to override existing item!",
+						this
+								.getItem()
+								.getType()
+				);
 				return item;
 			}
 			setPersistentData(PLUGIN_ID_PATH, PersistentDataType.STRING, this.id);
