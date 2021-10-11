@@ -28,7 +28,7 @@ public class BukkitUtils {
 	}
 
 	public static String roundTick(int tick) {
-		return tick % 20 == 0 ? "" + (tick / 20d) : BukkitUtils.decimalFormat((tick / 20f));
+		return tick % 20 == 0 ? "" + (tick / 20) : BukkitUtils.decimalFormat(tick / 20.0d);
 	}
 
 	public static String locationToString(Location location, boolean includeRotation) {

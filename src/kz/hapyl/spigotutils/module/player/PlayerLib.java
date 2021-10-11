@@ -71,6 +71,14 @@ public class PlayerLib {
 		}
 	}
 
+	public static void addEffect(Player player, EffectType type, int duration, int amplifier) {
+		addEffect(player, type.getType(), duration, amplifier);
+	}
+
+	public static void removeEffect(Player player, EffectType type) {
+		removeEffect(player, type.getType());
+	}
+
 	public static void addEffect(Player player, PotionEffectType type, int duration, int amplifier) {
 		player.addPotionEffect(new PotionEffect(type, duration, amplifier, true, false));
 	}
