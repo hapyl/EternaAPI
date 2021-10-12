@@ -159,10 +159,13 @@ public final class ItemBuilder {
 				// this fixes an extra space before manual split.
 				// it's not a bug and it works as indented, but it's
 				// getting quite annoying at times to fix.
-				final String lastValue = list.get(list.size() - 1).trim().replace("§", "&");
-				if (lastValue.isEmpty() || lastValue.isBlank() || lastValue.equalsIgnoreCase(linePrefix)) {
-					list.remove(list.size() - 1);
+				if (list.size() > 1) {
+					final String lastValue = list.get(list.size() - 1).trim().replace("§", "&");
+					if (lastValue.isEmpty() || lastValue.isBlank() || lastValue.equalsIgnoreCase(linePrefix)) {
+						list.remove(list.size() - 1);
+					}
 				}
+
 				list.add(colorize(linePrefix + line.substring(0, line.length() - 1).trim()));
 				line = "";
 				counter = 0;

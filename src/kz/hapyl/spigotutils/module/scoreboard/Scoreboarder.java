@@ -75,7 +75,7 @@ public class Scoreboarder {
 
 		// remove old lines
 		for (int i = 0; i < 17; i++) {
-			if (i <= this.lines.size()) {
+			if (i <= (this.lines.size() - 1)) {
 				continue;
 			}
 			final String colorChar = colorCharAt(i);
