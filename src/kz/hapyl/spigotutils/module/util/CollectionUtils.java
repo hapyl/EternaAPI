@@ -1,6 +1,5 @@
 package kz.hapyl.spigotutils.module.util;
 
-import kz.hapyl.spigotutils.module.collection.HashMapHolder;
 import kz.hapyl.spigotutils.module.math.Numbers;
 
 import javax.annotation.Nullable;
@@ -93,7 +92,6 @@ public class CollectionUtils {
 		return array == null || array.length == 0;
 	}
 
-
 	@SafeVarargs
 	public static <E> List<E> migrateSilent(List<E>... lists) {
 		return migrate(false, lists);
@@ -151,10 +149,12 @@ public class CollectionUtils {
 		return new Gap<>();
 	}
 
+	@SafeVarargs
 	public static <E> void addAll(List<E> list, E... toAdd) {
 		list.addAll(Arrays.asList(toAdd));
 	}
 
+	@SafeVarargs
 	public static <E> void addAll(Set<E> hashSet, E... toAdd) {
 		hashSet.addAll(Arrays.asList(toAdd));
 	}
@@ -224,14 +224,6 @@ public class CollectionUtils {
 
 	public static <E> void addAll(Collection<E> collection, Collection<E> anotherCollection) {
 		collection.addAll(anotherCollection);
-	}
-
-	public static <K, V> HashMapHolder<K, V> chainPut(Map<K, V> map) {
-		return new HashMapHolder<>(map);
-	}
-
-	public static <K, V> HashMapHolder<K, V> chainPut() {
-		return new HashMapHolder<>();
 	}
 
 	@SafeVarargs

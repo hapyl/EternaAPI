@@ -585,12 +585,12 @@ public final class ItemBuilder {
 	}
 
 	public ItemBuilder setPotionMeta(PotionEffectType type, int lvl, int duration, Color color) {
-		Material m = this.item.getType();
-		if (m == Material.POTION || m == Material.SPLASH_POTION || m == Material.LINGERING_POTION) {
-			PotionMeta meta = (PotionMeta)this.meta;
-			meta.addCustomEffect(new PotionEffect(type, duration, lvl), false);
-			meta.setColor(color);
-			return this;
+		switch (this.item.getType()) {
+			case POTION, SPLASH_POTION, LINGERING_POTION, TIPPED_ARROW -> {
+				PotionMeta meta = (PotionMeta)this.meta;
+				meta.addCustomEffect(new PotionEffect(type, duration, lvl), false);
+				meta.setColor(color);
+			}
 		}
 		return this;
 	}
@@ -606,9 +606,9 @@ public final class ItemBuilder {
 	private void validatePotionMeta() {
 		final Material type = this.item.getType();
 		switch (type) {
-			case LINGERING_POTION, POTION, SPLASH_POTION -> {
+			case LINGERING_POTION, POTION, SPLASH_POTION, TIPPED_ARROW -> {
 			}
-			default -> throw new IllegalArgumentException("Material must be POTION, SPLASH_POTION or LINGERING_POTION to use this!");
+			default -> throw new IllegalArgumentException("Material must be POTION, SPLASH_POTION, LINGERING_POTION or TIPPED_ARROW to use this!");
 		}
 	}
 
