@@ -4,10 +4,7 @@ import kz.hapyl.spigotutils.module.annotate.NOTNULL;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.command.CommandSender;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Creates a SimpleCommand.
@@ -176,6 +173,14 @@ public abstract class SimpleCommand {
 		return completerSort(list, args, true);
 	}
 
+	protected <E> List<String> completerSort(E[] array, String[] args) {
+		return completerSort(arrayToList(array), args);
+	}
+
+	protected <E> List<String> completerSort(Collection<E> list, String[] args) {
+		return Chat.tabCompleterSort(eToString(list), args);
+	}
+
 	protected List<String> setToList(Set<String> set) {
 		return new ArrayList<>(set);
 	}
@@ -186,6 +191,14 @@ public abstract class SimpleCommand {
 
 	protected void sendInvalidUsageMessage(CommandSender sender) {
 		Chat.sendMessage(sender, "&cInvalid Usage! &e%s.", this.usage);
+	}
+
+	private <E> List<String> eToString(Collection<E> list) {
+		List<String> str = new ArrayList<>();
+		for (final E e : list) {
+			str.add(e.toString());
+		}
+		return str;
 	}
 
 	// end of utils
