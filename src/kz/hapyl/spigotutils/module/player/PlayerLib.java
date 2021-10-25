@@ -65,9 +65,19 @@ public class PlayerLib {
 		player.spawnParticle(particle, location, amount, x, y, z, speed);
 	}
 
+	public static void spawnParticle(Player player, Location location, Particle particle, int amount) {
+		player.spawnParticle(particle, location, amount, 0.0d, 0.0d, 0.0d, 0.0f);
+	}
+
 	public static void spawnParticle(Location location, Particle particle, int amount, double x, double y, double z, float speed) {
 		if (location.getWorld() != null) {
 			location.getWorld().spawnParticle(particle, location, amount, x, y, z, speed);
+		}
+	}
+
+	public static void spawnParticle(Location location, Particle particle, int amount) {
+		if (location.getWorld() != null) {
+			location.getWorld().spawnParticle(particle, location, amount, 0.0d, 0.0d, 0.0d, 0.0f);
 		}
 	}
 
@@ -85,6 +95,44 @@ public class PlayerLib {
 
 	public static void removeEffect(Player player, PotionEffectType type) {
 		player.removePotionEffect(type);
+	}
+
+	public enum Sounds {
+
+		VILLAGER_YES(Sound.ENTITY_VILLAGER_YES),
+		VILLAGER_NO(Sound.ENTITY_VILLAGER_NO),
+		ENDERMAN_TELEPORT(Sound.ENTITY_ENDERMAN_TELEPORT, 0.0f),
+
+		;
+
+		private final Sound sound;
+		private final float pitch;
+
+		Sounds(Sound sound) {
+			this(sound, 1.0f);
+		}
+
+		Sounds(Sound sound, float pitch) {
+			this.sound = sound;
+			this.pitch = pitch;
+		}
+
+		public void play(Player player, float pitch) {
+			playSound(player, sound, pitch);
+		}
+
+		public void play(Player player) {
+			this.play(player, pitch);
+		}
+
+		public void play(Location location, float pitch) {
+			playSound(location, sound, pitch);
+		}
+
+		public void play(Location location) {
+			this.play(location, pitch);
+		}
+
 	}
 
 	public static void villagerYes(Player player) {
