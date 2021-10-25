@@ -7,6 +7,7 @@ import com.mojang.authlib.properties.Property;
 import kz.hapyl.spigotutils.SpigotUtilsPlugin;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.math.Numbers;
+import kz.hapyl.spigotutils.module.util.Nulls;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -34,9 +35,9 @@ import java.util.regex.PatternSyntaxException;
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
  *
- * @version 2.2
+ * @version 2.3 ToDo -> rework class
  */
-public final class ItemBuilder {
+public class ItemBuilder {
 
 	private static final transient String PLUGIN_ID_PATH = "ItemBuilderId";
 	protected static Map<String, ItemBuilder> itemsWithEvents = new HashMap<>();
@@ -143,7 +144,48 @@ public final class ItemBuilder {
 		return getItemID(item) != null;
 	}
 
+	public static List<String> splitString(@Nullable String prefix, String string, int limit) {
+		final List<String> list = new ArrayList<>();
+		final char[] chars = string.toCharArray();
+
+		StringBuilder builder = new StringBuilder();
+		int counter = 0;
+
+		for (int i = 0; i < chars.length; i++) {
+			final char c = chars[i];
+			final boolean isManualSplit = (isManualSplitChar(c) && (i + 1 < chars.length && isManualSplitChar(chars[i + 1])));
+
+			// If out of limit and hit whitespace then add line.
+			if (i == chars.length - 1 || (counter >= limit && Character.isWhitespace(c)) || isManualSplit) {
+				if (isManualSplit) {
+					i++;
+				}
+
+				list.add(colorize((prefix == null ? "" : prefix) + builder.toString().trim()));
+				counter = 0;
+				builder = new StringBuilder();
+				continue;
+			}
+
+			builder.append(c);
+			++counter;
+
+		}
+
+		return list;
+	}
+
+	private static boolean isManualSplitChar(char c) {
+		return c == '_';
+	}
+
 	// Used to split lore after certain char limit. Honestly I don't remember when I wrote this but it works so Imma not touching it.
+
+	/**
+	 * @see ItemBuilder#splitString(String, String, int)
+	 * @deprecated improved system a little bit
+	 */
+	@Deprecated
 	private static List<String> splitAfter(String linePrefix, String text, int maxChars) {
 		List<String> list = new ArrayList<>();
 		String line = "";
@@ -185,12 +227,22 @@ public final class ItemBuilder {
 		return list;
 	}
 
+	@Deprecated
 	public static List<String> splitAfter(String text, int max) {
 		return splitAfter("&7", text, max);
 	}
 
+	@Deprecated
 	public static List<String> splitAfter(String text, int max, String prefix) {
 		return splitAfter(prefix, text, max);
+	}
+
+	public static List<String> splitString(String text, int max) {
+		return splitString("&7", text, max);
+	}
+
+	public static List<String> splitString(String text) {
+		return splitString(text, 35);
 	}
 
 	private static String colorize(String s) {
@@ -200,13 +252,13 @@ public final class ItemBuilder {
 	// Item Value Setters
 	public static void setName(ItemStack item, String name) {
 		final ItemMeta meta = item.getItemMeta();
-		meta.setDisplayName(colorize(name));
+		Nulls.runIfNotNull(meta, m -> m.setDisplayName(colorize(name)));
 		item.setItemMeta(meta);
 	}
 
 	public static void setLore(ItemStack item, String lore) {
 		final ItemMeta meta = item.getItemMeta();
-		meta.setLore(Collections.singletonList(lore));
+		Nulls.runIfNotNull(meta, m -> m.setLore(Collections.singletonList(lore)));
 		item.setItemMeta(meta);
 	}
 
@@ -215,24 +267,46 @@ public final class ItemBuilder {
 		return this;
 	}
 
+	@Nullable
 	public ItemBuilder clone() {
-		if (!this.id.isEmpty()) {
-			throw new UnsupportedOperationException("Clone does not support ID's!");
+		try {
+			final ItemBuilder clone = (ItemBuilder)super.clone();
+			if (!this.id.isEmpty()) {
+				throw new UnsupportedOperationException("Clone does not support ID's!");
+			}
+			return new ItemBuilder(this.item).setItemMeta(this.meta);
 		}
-		return new ItemBuilder(this.item).setItemMeta(this.meta);
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+	private void displayWarning(String warning, Object... objects) {
+		Bukkit.getLogger().warning(ChatColor.YELLOW + warning.formatted(objects));
 	}
 
 	public ItemBuilder setMapView(MapView view) {
 		if (this.item.getType() != Material.FILLED_MAP) {
-			throw new IllegalArgumentException("Material must be FILLED_MAP to set Map View.");
+			displayWarning("Material must be FILLED_MAP to use map view.");
+			return this;
 		}
+
 		MapMeta meta = (MapMeta)this.meta;
 		meta.setMapView(view);
 		return this;
 	}
 
+	public Material getType() {
+		return item.getType();
+	}
+
 	public ItemBuilder setBookName(String name) {
-		this.validateBookMeta();
+		final Material type = this.getItem().getType();
+		if (type != Material.WRITTEN_BOOK) {
+			displayWarning("Material must be WRITTEN_BOOK to set book name.");
+			return this;
+		}
+
 		final BookMeta bookMeta = (BookMeta)this.meta;
 		bookMeta.setDisplayName(colorize(name));
 		this.item.setItemMeta(bookMeta);
@@ -453,13 +527,13 @@ public final class ItemBuilder {
 	}
 
 	public ItemBuilder setSmartLore(String lore, String prefixColor, int splitAfter) {
-		this.meta.setLore(splitAfter(prefixColor, lore, splitAfter));
+		this.meta.setLore(splitString(prefixColor, lore, splitAfter));
 		return this;
 	}
 
 	public ItemBuilder addSmartLore(String lore, String prefixText, int splitAfter) {
 		List<String> metaLore = this.meta.getLore() != null ? this.meta.getLore() : Lists.newArrayList();
-		metaLore.addAll(splitAfter(prefixText, lore, splitAfter));
+		metaLore.addAll(splitString(prefixText, lore, splitAfter));
 		this.meta.setLore(metaLore);
 		return this;
 	}
@@ -749,7 +823,6 @@ public final class ItemBuilder {
 	public ItemStack build() {
 		return this.build(false);
 	}
-
 
 	public String getName() {
 		return this.meta.getDisplayName();
