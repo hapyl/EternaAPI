@@ -156,9 +156,15 @@ public class ItemBuilder {
 			final boolean isManualSplit = (isManualSplitChar(c) && (i + 1 < chars.length && isManualSplitChar(chars[i + 1])));
 
 			// If out of limit and hit whitespace then add line.
-			if (i == chars.length - 1 || (counter >= limit && Character.isWhitespace(c)) || isManualSplit) {
+			final boolean lastChar = i == chars.length - 1;
+			if (lastChar || (counter >= limit && Character.isWhitespace(c)) || isManualSplit) {
 				if (isManualSplit) {
 					i++;
+				}
+
+				// Don't eat the last char.
+				if (lastChar) {
+					builder.append(c);
 				}
 
 				list.add(colorize((prefix == null ? "" : prefix) + builder.toString().trim()));
@@ -169,7 +175,6 @@ public class ItemBuilder {
 
 			builder.append(c);
 			++counter;
-
 		}
 
 		return list;
