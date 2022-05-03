@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class ConfirmGUI extends PlayerGUI {
-
 	private static final ItemStack acceptButton = new ItemBuilder(Material.EMERALD_BLOCK).setName("&aConfirm").toItemStack();
 	private static final ItemStack cancelButton = new ItemBuilder(Material.REDSTONE_BLOCK).setName("&cCancel").toItemStack();
 

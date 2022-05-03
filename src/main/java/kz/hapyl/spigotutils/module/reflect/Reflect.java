@@ -1,7 +1,11 @@
 package kz.hapyl.spigotutils.module.reflect;
 
-import kz.hapyl.spigotutils.EternaException;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import kz.hapyl.spigotutils.module.annotate.TestedNMS;
 import kz.hapyl.spigotutils.module.chat.Chat;
+import kz.hapyl.spigotutils.module.error.EternaException;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import kz.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.network.protocol.Packet;
@@ -30,11 +34,10 @@ import java.lang.reflect.Method;
 import java.nio.channels.Channel;
 import java.util.Collection;
 
+// TODO: 003. 03/05/2022 - Clean this mess and rework more stuff to use Protocol.
+
 /**
- * Helpful class for doing reflections with some pre-made features.
- *
- * @author hapyl
- * @version 1.6 (Added NMS because of repackaging)
+ * Changed how class works, implemented Protocol where needed.
  */
 public final class Reflect {
 
@@ -76,19 +79,21 @@ public final class Reflect {
         new ReflectPacket(new PacketPlayOutEntityTeleport(netEntity)).sendPackets(v1);
     }
 
+    @TestedNMS(version = "1.18")
     public static void setEntityLocation(net.minecraft.world.entity.Entity entity, Location location) {
-//        entity.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     public static void destroyEntity(net.minecraft.world.entity.Entity entity, Player... v1) {
         new ReflectPacket(new PacketPlayOutEntityDestroy(entity.getBukkitEntity().getEntityId())).sendPackets(v1);
     }
 
+    @TestedNMS(version = "1.18")
     public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, Player... v1) {
-//        v1 = insureViewers(v1);
-//        final DataWatcher dataWatcher = entity.getDataWatcher();
-//        dataWatcher.set(type.get().a(key), value);
-//        new ReflectPacket(new PacketPlayOutEntityMetadata(entity.getId(), dataWatcher, true)).sendPackets(v1);
+        v1 = insureViewers(v1);
+        final DataWatcher dataWatcher = entity.ai();
+        dataWatcher.a(type.get().a(key), value);
+        new ReflectPacket(new PacketPlayOutEntityMetadata(entity.ae(), dataWatcher, true)).sendPackets(v1);
     }
 
     public static int getNetEntityId(Object entity) {
@@ -295,7 +300,7 @@ public final class Reflect {
             return;
         }
         final EntityPlayer mc = getMinecraftPlayer(player);
-//        mc.b.sendPacket(packet);
+        //        mc.b.sendPacket(packet);
     }
 
     public static void sendPacket(Object packet, Player... viewers) {
@@ -320,7 +325,7 @@ public final class Reflect {
     public static Channel getNettyChannel(Player player) {
         try {
             return null;
-//            return getMinecraftPlayer(player).b.a.m;
+            //            return getMinecraftPlayer(player).b.a.m;
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -413,13 +418,28 @@ public final class Reflect {
     }
 
     public static net.minecraft.world.level.World getMinecraftWorld(World bukkitWorld) {
-        return (net.minecraft.world.level.World) Reflect.invokeMethod(Reflect.lazyMethod(bukkitWorld, "getHandle"),
-                                                                      bukkitWorld);
+        return (net.minecraft.world.level.World) Reflect.invokeMethod(
+                Reflect.lazyMethod(bukkitWorld, "getHandle"),
+                bukkitWorld
+        );
     }
 
+    @TestedNMS(version = "1.18")
     public static void sendPacket(Packet<?> packet, Player... receivers) {
         for (final Player receiver : receivers) {
-//            getMinecraftPlayer(receiver).b.a.sendPacket(packet);
+            getMinecraftPlayer(receiver).b.a.a(packet);
+        }
+    }
+
+    private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+
+    public static void sendPacket(PacketContainer packet, Player... receivers) {
+        try {
+            for (Player receiver : receivers) {
+                manager.sendServerPacket(receiver, packet);
+            }
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
     }
 

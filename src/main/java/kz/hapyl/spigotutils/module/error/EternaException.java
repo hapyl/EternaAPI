@@ -1,4 +1,4 @@
-package kz.hapyl.spigotutils;
+package kz.hapyl.spigotutils.module.error;
 
 public class EternaException extends RuntimeException {
 

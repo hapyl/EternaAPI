@@ -43,7 +43,7 @@ public class Validate {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static long getLong(Object obj) {
@@ -72,7 +72,7 @@ public class Validate {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static double getDouble(Object obj) {
@@ -101,7 +101,7 @@ public class Validate {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static double getShort(Object obj) {
@@ -130,7 +130,7 @@ public class Validate {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static double getByte(Object obj) {
@@ -159,7 +159,7 @@ public class Validate {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static float getFloat(Object obj) {
@@ -188,7 +188,7 @@ public class Validate {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static String getString(Object obj) {

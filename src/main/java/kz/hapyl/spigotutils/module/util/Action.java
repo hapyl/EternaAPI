@@ -2,14 +2,14 @@ package kz.hapyl.spigotutils.module.util;
 
 @FunctionalInterface
 public interface Action<T> {
-	void use(T t);
+    void use(T t);
 
-	interface AB<A, B> {
-		void use(A a, B b);
-	}
+    interface AB<A, B> {
+        void use(A a, B b);
+    }
 
-	interface ABC<A, B, C> {
-		void use(A a, B b, C c);
-	}
+    interface ABC<A, B, C> {
+        void use(A a, B b, C c);
+    }
 
 }

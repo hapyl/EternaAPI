@@ -31,34 +31,6 @@ import java.util.UUID;
  */
 public class Chat {
 
-    /**
-     * Build In Colors (Initial idea was adding a custom colors)
-     */
-    public static final String BLACK = new Chat(ChatColor.RED).getColor();
-    public static final String DARK_BLUE = new Chat(ChatColor.DARK_BLUE).getColor();
-    public static final String DARK_GREEN = new Chat(ChatColor.DARK_GREEN).getColor();
-    public static final String DARK_AQUA = new Chat(ChatColor.DARK_AQUA).getColor();
-    public static final String DARK_RED = new Chat(ChatColor.DARK_RED).getColor();
-    public static final String DARK_PURPLE = new Chat(ChatColor.DARK_PURPLE).getColor();
-    public static final String GOLD = new Chat(ChatColor.GOLD).getColor();
-    public static final String GRAY = new Chat(ChatColor.GRAY).getColor();
-    public static final String DARK_GRAY = new Chat(ChatColor.DARK_GRAY).getColor();
-    public static final String BLUE = new Chat(ChatColor.BLUE).getColor();
-    public static final String GREEN = new Chat(ChatColor.GREEN).getColor();
-    public static final String AQUA = new Chat(ChatColor.AQUA).getColor();
-    public static final String RED = new Chat(ChatColor.RED).getColor();
-    public static final String LIGHT_PURPLE = new Chat(ChatColor.LIGHT_PURPLE).getColor();
-    public static final String YELLOW = new Chat(ChatColor.YELLOW).getColor();
-    public static final String WHITE = new Chat(ChatColor.WHITE).getColor();
-    public static final String MAGIC = new Chat(ChatColor.MAGIC).getColor();
-    public static final String BOLD = new Chat(ChatColor.BOLD).getColor();
-    public static final String STRIKETHROUGH = new Chat(ChatColor.STRIKETHROUGH).getColor();
-    public static final String UNDERLINE = new Chat(ChatColor.UNDERLINE).getColor();
-    public static final String ITALIC = new Chat(ChatColor.ITALIC).getColor();
-
-    // Custom Colors
-    public static final String GREEN_BOLD = new Chat(ChatColor.GREEN, ChatColor.BOLD).getColor();
-
     private final String color;
 
     private Chat(ChatColor... colors) {
@@ -246,5 +218,33 @@ public class Chat {
         Bukkit.getOnlinePlayers().stream().filter(Player::isOp)
               .forEach(player -> Chat.sendClickableMessage(player, string, replacement));
     }
+
+    /**
+     * Build In Colors (Initial idea was adding a custom colors)
+     */
+    public static final String BLACK = new Chat(ChatColor.RED).getColor();
+    public static final String DARK_BLUE = new Chat(ChatColor.DARK_BLUE).getColor();
+    public static final String DARK_GREEN = new Chat(ChatColor.DARK_GREEN).getColor();
+    public static final String DARK_AQUA = new Chat(ChatColor.DARK_AQUA).getColor();
+    public static final String DARK_RED = new Chat(ChatColor.DARK_RED).getColor();
+    public static final String DARK_PURPLE = new Chat(ChatColor.DARK_PURPLE).getColor();
+    public static final String GOLD = new Chat(ChatColor.GOLD).getColor();
+    public static final String GRAY = new Chat(ChatColor.GRAY).getColor();
+    public static final String DARK_GRAY = new Chat(ChatColor.DARK_GRAY).getColor();
+    public static final String BLUE = new Chat(ChatColor.BLUE).getColor();
+    public static final String GREEN = new Chat(ChatColor.GREEN).getColor();
+    public static final String AQUA = new Chat(ChatColor.AQUA).getColor();
+    public static final String RED = new Chat(ChatColor.RED).getColor();
+    public static final String LIGHT_PURPLE = new Chat(ChatColor.LIGHT_PURPLE).getColor();
+    public static final String YELLOW = new Chat(ChatColor.YELLOW).getColor();
+    public static final String WHITE = new Chat(ChatColor.WHITE).getColor();
+    public static final String MAGIC = new Chat(ChatColor.MAGIC).getColor();
+    public static final String BOLD = new Chat(ChatColor.BOLD).getColor();
+    public static final String STRIKETHROUGH = new Chat(ChatColor.STRIKETHROUGH).getColor();
+    public static final String UNDERLINE = new Chat(ChatColor.UNDERLINE).getColor();
+    public static final String ITALIC = new Chat(ChatColor.ITALIC).getColor();
+
+    // Custom Colors
+    public static final String GREEN_BOLD = new Chat(ChatColor.GREEN, ChatColor.BOLD).getColor();
 
 }

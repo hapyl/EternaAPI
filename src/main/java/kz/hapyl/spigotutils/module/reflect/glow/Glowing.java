@@ -1,15 +1,15 @@
 package kz.hapyl.spigotutils.module.reflect.glow;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import kz.hapyl.spigotutils.module.reflect.Reflect;
-import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
+import kz.hapyl.spigotutils.SpigotUtilsPlugin;
 import kz.hapyl.spigotutils.module.reflect.Ticking;
 import kz.hapyl.spigotutils.module.util.Validate;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.syncher.DataWatcher;
-import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
@@ -17,151 +17,195 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.util.Map;
 import java.util.Set;
 
 public class Glowing implements Ticking {
 
-	protected final static Set<Glowing> glowing = Sets.newConcurrentHashSet();
+    private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
-	private final net.minecraft.world.entity.Entity netEntity;
-	private final Entity entity;
-	private final Set<Player> viewers;
-	private final DataWatcher dataWatcher;
-	private final DataWatcher fakeWatcher;
+    private ChatColor color;
+    private int duration;
+    private boolean everyoneIsListener;
 
-	private ChatColor color;
-	private int duration;
-	private boolean everyoneIsListener;
+    private boolean status;
 
-	public Glowing(Entity entity, ChatColor color, int duration) {
-		this.entity = entity;
-		this.netEntity = Reflect.getMinecraftEntity(entity);
-		this.duration = duration;
-		this.everyoneIsListener = false;
-		this.viewers = Sets.newHashSet();
-		this.setColor(color);
+    private final Set<Player> viewers;
+    private final Map<Player, ChatColor> oldColor = Maps.newHashMap();
+    private final Entity entity;
 
-		this.dataWatcher = netEntity.ai();
-		this.fakeWatcher = new DataWatcher(netEntity);
+    public Glowing(Entity entity, int duration) {
+        this(entity, ChatColor.WHITE, duration);
+    }
 
-		glowing.add(this);
-	}
+    public Glowing(Entity entity, ChatColor color, int duration) {
+        this.entity = entity;
+        this.duration = duration;
+        this.everyoneIsListener = false;
+        this.status = false;
+        this.viewers = Sets.newHashSet();
+        this.setColor(color);
+
+        SpigotUtilsPlugin.getPlugin().getGlowingManager().addGlowing(entity, this);
+    }
+
+    public void setColor(ChatColor color) {
+        Validate.isTrue(color.isColor(), "color must be color, not formatter!");
+        this.color = color;
+        if (isGlowing()) {
+            updateTeamColor();
+        }
+    }
+
+    protected void createPacket(boolean flag) {
+        final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+        packet.getIntegers().write(0, entity.getEntityId());
+
+        final WrappedDataWatcher data = new WrappedDataWatcher();
+        final WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.get(Byte.class);
+
+        final WrappedDataWatcher realData = WrappedDataWatcher.getEntityWatcher(entity);
+
+        final byte initByte = realData.getByte(0);
+        final byte bitMask = (byte) 0x40;
+
+        data.setEntity(entity);
+        data.setObject(0, serializer, (byte) (flag ? (initByte | bitMask) : (initByte & ~bitMask)));
+        packet.getWatchableCollectionModifier().write(0, data.getWatchableObjects());
+
+        // send packet
+        try {
+            if (isEveryoneIsListener()) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    manager.sendServerPacket(player, packet);
+                }
+            }
+            else {
+                for (Player player : viewers) {
+                    manager.sendServerPacket(player, packet);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public final void tick() {
+        if (!status) {
+            return;
+        }
+
+        boolean lastTick = duration-- <= 0;
+
+        if (lastTick) {
+            createPacket(false);
+            createTeam(false);
+            SpigotUtilsPlugin.getPlugin().getGlowingManager().removeGlowing(entity, this);
+        }
+    }
+
+    public boolean isEveryoneIsListener() {
+        return everyoneIsListener;
+    }
+
+    public void setEveryoneIsListener(boolean everyoneIsListener) {
+        this.everyoneIsListener = everyoneIsListener;
+    }
+
+    public void addViewer(Player player) {
+        this.viewers.add(player);
+    }
+
+    public void removeViewer(Player player) {
+        this.viewers.remove(player);
+    }
+
+    public boolean isViewer(Player player) {
+        return this.viewers.contains(player);
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void glow() {
+        this.start();
+    }
+
+    public void start() {
+        this.status = true;
+        createPacket(true);
+        createTeam(true);
+    }
+
+    public boolean isGlowing() {
+        return status && duration > 0;
+    }
+
+    public void stop() {
+        this.duration = 0;
+    }
+
+    private void updateTeamColor() {
+        viewers.forEach(player -> getTeamOrCreate(player).setColor(this.color));
+    }
+
+    public void createTeam(boolean flag) {
+        if (viewers.isEmpty()) {
+            return;
+        }
+
+        // Create team
+        viewers.forEach(player -> {
+            if (flag) {
+                final Team team = getTeamOrCreate(player);
+                team.addEntry(getEntityName());
+            }
+            else {
+                deleteTeam(player);
+            }
+        });
+    }
 
 
-	public Glowing(Entity entity, int duration) {
-		this(entity, ChatColor.WHITE, duration);
-	}
+    private void deleteTeam(Player player) {
+        final Team entryTeam = player.getScoreboard().getEntryTeam(getEntityName());
+        if (entryTeam != null) {
+            // Change team color to previous one or delete if fake team.
+            entryTeam.setColor(oldColor.getOrDefault(player, ChatColor.WHITE));
+            oldColor.remove(player);
 
-	public void setColor(ChatColor color) {
-		Validate.isTrue(color.isColor(), "color must be color, not formatter!");
-		this.color = color;
-	}
+            if (entryTeam.getName().equals("ETGlowing")) {
+                entryTeam.unregister();
+            }
+        }
+    }
 
-	@Override
-	@SuppressWarnings("all")
-	public void tick() {
-		if (everyoneIsListener) {
-			this.viewers.addAll(Bukkit.getOnlinePlayers());
-		}
+    /**
+     * If players already has a team, just change the team color and store old team color.
+     * Else create new team and apply changes.
+     * <p>
+     * Probably should be using packets for this as well.
+     */
+    private Team getTeamOrCreate(Player player) {
+        final Scoreboard scoreboard = player.getScoreboard();
+        Team team = scoreboard.getEntryTeam(getEntityName());
 
-		final boolean last = duration-- <= 0;
+        if (team == null) {
+            team = scoreboard.registerNewTeam("ETGlowing");
+        }
+        else {
+            oldColor.putIfAbsent(player, team.getColor());
+        }
 
-		if (last || entity.isDead()) {
-			glowing.remove(this);
-		}
+        team.setColor(this.color);
+        return team;
+    }
 
-		try {
+    private String getEntityName() {
+        return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
+    }
 
-			// I should copy this every tick right? Since if player has new effect it will not be updated in packet?
-			final Int2ObjectMap<DataWatcher.Item<?>> values = (Int2ObjectMap<DataWatcher.Item<?>>)FieldUtils.getDeclaredField(
-					DataWatcher.class,
-					"f",
-					true
-			).get(dataWatcher);
-			final Int2ObjectMap<DataWatcher.Item<?>> fakeValues = new Int2ObjectOpenHashMap<>();
-
-			values.forEach((pos, object) -> {
-				fakeValues.put(pos, object.d());
-			});
-
-			// 0 is always a byte value as far as protocol says so we should be fine casting
-			final DataWatcher.Item<Byte> item = (DataWatcher.Item<Byte>)fakeValues.get(0);
-			final byte initBitMask = (byte)item.b();
-			final byte bitMask = 0x40;
-
-			item.a((byte)(!last ? initBitMask | bitMask : initBitMask & ~bitMask));
-
-			// Update Color
-			for (final Player player : this.viewers) {
-				if (last) {
-					deleteTeam(player);
-				}
-				else {
-					addEntry(player);
-				}
-			}
-
-			FieldUtils.writeDeclaredField(fakeWatcher, "f", fakeValues, true);
-			new ReflectPacket(new PacketPlayOutEntityMetadata(entity.getEntityId(), fakeWatcher, true)).sendPackets(this.viewers);
-
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void stop() {
-		this.duration = 0;
-	}
-
-	private void deleteTeam(Player player) {
-		final Team entryTeam = player.getScoreboard().getEntryTeam(getEntityName());
-		if (entryTeam != null) {
-			entryTeam.setColor(ChatColor.WHITE);
-			if (entryTeam.getName().equals("ETGlowing")) {
-				entryTeam.unregister();
-			}
-		}
-	}
-
-	private void addEntry(Player player) {
-		final Team team = getTeamOrCreate(player);
-		final String entry = getEntityName();
-		team.addEntry(entry);
-	}
-
-	private Team getTeamOrCreate(Player player) {
-		final Scoreboard scoreboard = player.getScoreboard();
-		Team team = scoreboard.getEntryTeam(getEntityName());
-		if (team == null) {
-			team = scoreboard.registerNewTeam("ETGlowing");
-		}
-		team.setColor(this.color);
-		return team;
-	}
-
-	private String getEntityName() {
-		return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
-	}
-
-	public boolean isEveryoneIsListener() {
-		return everyoneIsListener;
-	}
-
-	public void setEveryoneIsListener(boolean everyoneIsListener) {
-		this.everyoneIsListener = everyoneIsListener;
-	}
-
-	public void addViewer(Player player) {
-		this.viewers.add(player);
-	}
-
-	public void removeViewer(Player player) {
-		this.viewers.remove(player);
-	}
-
-	public boolean isViewer(Player player) {
-		return this.viewers.contains(player);
-	}
 }

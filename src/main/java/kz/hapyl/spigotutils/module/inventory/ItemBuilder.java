@@ -12,7 +12,6 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.craftbukkit.v1_18_R2.profile.CraftPlayerProfile;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -24,7 +23,6 @@ import org.bukkit.map.MapView;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.profile.PlayerProfile;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -36,8 +34,6 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
- *
- * @version 2.3 ToDo -> rework class
  */
 public class ItemBuilder {
 

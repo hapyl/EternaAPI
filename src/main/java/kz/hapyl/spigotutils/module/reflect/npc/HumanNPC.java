@@ -1,5 +1,7 @@
 package kz.hapyl.spigotutils.module.reflect.npc;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
@@ -8,6 +10,7 @@ import com.mojang.datafixers.util.Pair;
 import kz.hapyl.spigotutils.SpigotUtilsPlugin;
 import kz.hapyl.spigotutils.module.annotate.DevNote;
 import kz.hapyl.spigotutils.module.annotate.InsuredViewers;
+import kz.hapyl.spigotutils.module.annotate.TestedNMS;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.hologram.Hologram;
 import kz.hapyl.spigotutils.module.math.IntInt;
@@ -22,32 +25,39 @@ import kz.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import kz.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import kz.hapyl.spigotutils.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.entity.EntityPose;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nullable;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
 /**
  * Allows to create SIMPLE player NPCs with support of clicks.
+ * For complex NPCs use {@link net.citizensnpcs.api.CitizensAPI}
  */
 @SuppressWarnings("unused")
+@TestedNMS(version = "1.18")
 public class HumanNPC implements Intractable {
 
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
     public static final HashMap<Integer, HumanNPC> byId = new HashMap<>();
+
+    private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
     private final ReflectPacket packetAddPlayer;
     private final ReflectPacket packetRemovePlayer;
@@ -105,19 +115,23 @@ public class HumanNPC implements Intractable {
             this.setSkin(skinOwner);
         }
 
-        this.human = new EntityPlayer(Reflect.getMinecraftServer(),
-                                      (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
-                                      profile);
-        this.human.a(this.location.getX(),
-                     this.location.getY(),
-                     this.location.getZ(),
-                     this.location.getYaw(),
-                     this.location.getPitch());
+        this.human = new EntityPlayer(
+                Reflect.getMinecraftServer(),
+                (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
+                profile
+        );
 
-        this.packetAddPlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.a,
-                                                                             this.human));
-        this.packetRemovePlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e,
-                                                                                this.human));
+
+        this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+
+        this.packetAddPlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(
+                PacketPlayOutPlayerInfo.EnumPlayerInfoAction.a,
+                this.human
+        ));
+        this.packetRemovePlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(
+                PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e,
+                this.human
+        ));
         this.packetSpawn = new ReflectPacket(new PacketPlayOutNamedEntitySpawn(this.human));
         this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getBukkitEntity()
                                                                                         .getEntityId()));
@@ -389,7 +403,7 @@ public class HumanNPC implements Intractable {
     }
 
     public HumanNPC setPose(NPCPose pose) {
-        this.human.a(pose.getNMSValue());
+        this.human.b(pose.getNMSValue());
         this.updateDataWatcher();
         return this;
     }
@@ -462,14 +476,14 @@ public class HumanNPC implements Intractable {
         return this;
     }
 
+    @TestedNMS(version = "1.18")
     public String[] getSkin(String targetName) {
         // if player on the server just get their game profile
         if (Bukkit.getPlayer(targetName) != null) {
             try {
                 final Player player = Bukkit.getPlayer(targetName);
-                final Object craftPlayer = Reflect.getCraftPlayer(player);
-                final GameProfile profile = (GameProfile) craftPlayer.getClass().getMethod("getProfile")
-                                                                     .invoke(craftPlayer);
+                final EntityPlayer nmsEntity = Reflect.getMinecraftPlayer(player);
+                final GameProfile profile = nmsEntity.fq();
 
                 final Property textures = profile.getProperties()
                                                  .get("textures")
@@ -480,7 +494,7 @@ public class HumanNPC implements Intractable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return null;
+            return new String[] { "null", "null" };
         }
         // if name longer than max name than have to assume it's texture
         if (targetName.length() > 16) {
@@ -541,16 +555,25 @@ public class HumanNPC implements Intractable {
         this.packetAddPlayer.sendPackets(players);
         this.packetSpawn.sendPackets(players);
         this.setLocation(this.location, players);
-        this.updateSkin(players);
+
+        runAsync(() -> this.updateSkin(players));
 
         for (final Player player : players) {
             this.showingTo.put(player, true);
         }
 
-        this.human.b(EntityPose.a);
-        this.updateDataWatcher(players);
+        setPose(NPCPose.STANDING);
 
         this.hideTabListName(players);
+    }
+
+    private void runAsync(Runnable runnable) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }.runTaskLaterAsynchronously(SpigotUtilsPlugin.getPlugin(), 10);
     }
 
     @InsuredViewers
@@ -564,7 +587,6 @@ public class HumanNPC implements Intractable {
         this.aboveHead.hide(players);
         this.packetRemovePlayer.sendPackets(players);
         this.packetDestroy.sendPackets(players);
-
     }
 
     public HumanNPC setCollision(boolean flag) {
@@ -599,8 +621,23 @@ public class HumanNPC implements Intractable {
 
     @InsuredViewers
     public void updateSkin(Player... viewers) {
-        this.human.ai().a(DataWatcherRegistry.a.a(17), (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40));
+        final DataWatcher dataWatcher = this.human.ai();
+
+        try {
+            final Method method = dataWatcher.getClass().getDeclaredMethod("c", DataWatcherObject.class, Object.class);
+            method.setAccessible(true);
+            method.invoke(
+                    dataWatcher,
+                    DataWatcherRegistry.a.a(17),
+                    (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40)
+            );
+            method.setAccessible(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         this.updateDataWatcher(viewers);
+
     }
 
     @InsuredViewers
@@ -666,6 +703,11 @@ public class HumanNPC implements Intractable {
             byId.forEach((a, b) -> b.getViewers().forEach(b::hide));
         }
         byId.clear();
+    }
+
+    @Nullable
+    public static HumanNPC getById(int id) {
+        return byId.getOrDefault(id, null);
     }
 
 }

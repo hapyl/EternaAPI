@@ -14,7 +14,6 @@ import java.util.Arrays;
  * @author Schottky
  */
 public class Gradient {
-
     private String str;
     private boolean bold, italic, underscore, strikethrough;
 

@@ -1,6 +1,7 @@
 package kz.hapyl.spigotutils;
 
 import kz.hapyl.spigotutils.module.chat.Chat;
+import kz.hapyl.spigotutils.module.error.EternaException;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -9,71 +10,78 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class SpigotUtils {
 
-	@Deprecated private final static String pluginVersion = "1.8";
+    @Deprecated
+    private final static String pluginVersion = "2.0";
 
-	private final JavaPlugin plugin;
+    private final JavaPlugin plugin;
 
-	public static void hookIntoAPI(JavaPlugin init) {
-		new SpigotUtils(init);
-	}
+    public static void hookIntoAPI(JavaPlugin init) {
+        new SpigotUtils(init);
+    }
 
-	public SpigotUtils(JavaPlugin init) {
-		this(init, false);
-	}
+    public SpigotUtils(JavaPlugin init) {
+        this(init, false);
+    }
 
-	private boolean isDepends(JavaPlugin plugin) {
-		final PluginDescriptionFile description = plugin.getDescription();
-		final String pluginName = SpigotUtilsPlugin.getPlugin().getName();
-		return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
-	}
+    private boolean isDepends(JavaPlugin plugin) {
+        final PluginDescriptionFile description = plugin.getDescription();
+        final String pluginName = SpigotUtilsPlugin.getPlugin().getName();
+        return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
+    }
 
-	public SpigotUtils(JavaPlugin init, boolean broadcastMessageOnlyToConsole) {
+    public SpigotUtils(JavaPlugin init, boolean broadcastMessageOnlyToConsole) {
 
-		if (init == null) {
-			throw new EternaException("Could not load EternaAPI since provided plugin is null!");
-		}
+        if (init == null) {
+            throw new EternaException("Could not load EternaAPI since provided plugin is null!");
+        }
 
-		if (!isDepends(init)) {
-			throw new EternaException
-					(String.format("Could not load EternaAPI for %s since it's doesn't depend nor soft-depends the API!", init.getName()));
-		}
+        if (!isDepends(init)) {
+            throw new EternaException(String.format(
+                    "Could not load EternaAPI for %s since it's doesn't depend nor soft-depends the API!",
+                    init.getName()
+            ));
+        }
 
-		this.plugin = init;
-		final String formattedMessage = String.format("%s implements EternaAPI v%s.", plugin.getName(), getPluginVersion());
+        this.plugin = init;
+        final String formattedMessage = String.format(
+                "%s implements EternaAPI v%s.",
+                plugin.getName(),
+                getPluginVersion()
+        );
 
-		new BukkitRunnable() {
-			@Override
-			public void run() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
 
-				// broadcast to console
-				Bukkit.getConsoleSender().sendMessage(formattedMessage);
+                // broadcast to console
+                Bukkit.getConsoleSender().sendMessage(formattedMessage);
 
-				if (broadcastMessageOnlyToConsole) {
-					return;
-				}
+                if (broadcastMessageOnlyToConsole) {
+                    return;
+                }
 
-				// broadcast to admins
-				broadcastAPIMessage(formattedMessage);
-			}
-		}.runTaskLater(plugin, 20);
-	}
+                // broadcast to admins
+                broadcastAPIMessage(formattedMessage);
+            }
+        }.runTaskLater(plugin, 20);
+    }
 
-	public String getPluginVersion() {
-		return SpigotUtilsPlugin.getPlugin().getDescription().getVersion();
-	}
+    public String getPluginVersion() {
+        return SpigotUtilsPlugin.getPlugin().getDescription().getVersion();
+    }
 
-	public JavaPlugin getPlugin() {
-		return plugin;
-	}
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
 
-	private static final String PREFIX = "&b&lEternaAPI&b> &a";
+    private static final String PREFIX = "&b&lEternaAPI&b> &a";
 
-	private static void broadcastAPIMessage(String string) {
-		Chat.broadcastOp(PREFIX + string);
-	}
+    public static void broadcastAPIMessage(String string) {
+        Chat.broadcastOp(PREFIX + string);
+    }
 
-	public static void sendAPIMessage(CommandSender receiver, String string, Object... replacements) {
-		Chat.sendMessage(receiver, PREFIX + string, replacements);
-	}
+    public static void sendAPIMessage(CommandSender receiver, String string, Object... replacements) {
+        Chat.sendMessage(receiver, PREFIX + string, replacements);
+    }
 
 }

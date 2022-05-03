@@ -110,7 +110,7 @@ public class Rope {
     }
 
     private Bat spawnBat(Location location) {
-        return location.getWorld().spawn(location, Bat.class, me -> {
+        return Entities.BAT.spawn(location, me -> {
             me.setAwake(false);
             me.setAI(false);
             me.setGravity(false);

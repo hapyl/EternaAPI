@@ -17,13 +17,12 @@ import kz.hapyl.spigotutils.module.listener.SimpleListener;
 import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.quest.QuestListener;
-import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
+import kz.hapyl.spigotutils.module.reflect.glow.GlowingManager;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
-import kz.hapyl.spigotutils.module.reflect.netty.NettyInjector;
-import kz.hapyl.spigotutils.module.reflect.netty.builtin.NPCListener;
-import kz.hapyl.spigotutils.module.reflect.netty.builtin.SignListener;
-import kz.hapyl.spigotutils.module.reflect.npc.AIHumanNpc;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
+import kz.hapyl.spigotutils.module.reflect.protocol.GlowingListener;
+import kz.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
+import kz.hapyl.spigotutils.module.reflect.protocol.SignListener;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,6 +33,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
+import test.Commands;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -44,6 +44,7 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 
     private SongPlayer songPlayer;
     private CustomItemHolder itemHolder;
+    private GlowingManager glowingManager;
 
     @Override
     public void onEnable() {
@@ -60,33 +61,36 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
         manager.registerEvents(this, this);
 
         this.songPlayer = new SongPlayer(this);
+        this.glowingManager = new GlowingManager(this);
         this.itemHolder = new CustomItemHolder();
+
         final BukkitScheduler scheduler = Bukkit.getScheduler();
 
-        scheduler.runTaskTimer(this, new NPCRunnable(), 0, 2);
+        // Schedule tasks
+        //        scheduler.runTaskTimer(this, new NPCRunnable(), 0, 2); -- Use Citizens
         scheduler.runTaskTimer(this, new HologramRunnable(), 0, 2);
         scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
 
-        // reassign pipe
-        //		final NettyInjector injector = NettyInjector.getInstance();
-        //		Bukkit.getOnlinePlayers().forEach(injector::injectPlayer);
+        // Load ProtocolLib listeners
+        new SignListener();
+        new GlowingListener();
+        new HumanNPCListener();
 
-        // register default netty listeners
-        //		injector.addListener(new SignListener());
-        //		injector.addListener(new NPCListener());
-
-        // assign built in commands
+        // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);
         commandProcessor.registerCommand(new QuestCommand("quest"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
 
-        // Config
+        // TEST --remove
+        Commands.createCommands();
+
+        // Load configuration file
         this.getConfig().options().copyDefaults(true);
         this.saveConfig();
 
         // Create songs folder
         try {
-            final boolean created = new File(this.getDataFolder() + "/songs").mkdir();
+            new File(this.getDataFolder() + "/songs").mkdir();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,11 +107,8 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        // remove pipes
-        //		this.runSafe(() -> Bukkit.getOnlinePlayers().forEach(player -> NettyInjector.getInstance().removeInjection(player)), "netty inject");
         // remove NPCs
         this.runSafe(HumanNPC::removeAll, "human npc removal");
-        this.runSafe(AIHumanNpc::removeAll, "ai human npc removal");
         // remove holograms
         this.runSafe(Hologram::removeAll, "hologram removal");
         // remove ropes
@@ -145,6 +146,10 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 
     public static void runTaskLater(Consumer<BukkitTask> runnable, int later) {
         Bukkit.getScheduler().runTaskLater(plugin, runnable, later);
+    }
+
+    public GlowingManager getGlowingManager() {
+        return glowingManager;
     }
 
     public static SpigotUtilsPlugin getPlugin() {
