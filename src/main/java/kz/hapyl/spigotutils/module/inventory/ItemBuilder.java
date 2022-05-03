@@ -708,7 +708,7 @@ public class ItemBuilder {
 
     public ItemBuilder setHeadTexture(String base64) {
         final SkullMeta skullMeta = (SkullMeta) this.meta;
-        skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(UUID.randomUUID(), ""));
+        skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(UUID.randomUUID(), base64));
         return this;
     }
 
@@ -739,16 +739,20 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setPureDamage(double damage) {
-        this.addAttribute(Attribute.GENERIC_ATTACK_DAMAGE,
-                          damage,
-                          AttributeModifier.Operation.ADD_NUMBER,
-                          EquipmentSlot.HAND);
+        this.addAttribute(
+                Attribute.GENERIC_ATTACK_DAMAGE,
+                damage,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlot.HAND
+        );
         return this;
     }
 
     public ItemBuilder addAttribute(Attribute a, double amount, AttributeModifier.Operation operation, EquipmentSlot slot) {
-        this.meta.addAttributeModifier(a,
-                                       new AttributeModifier(UUID.randomUUID(), a.toString(), amount, operation, slot));
+        this.meta.addAttributeModifier(
+                a,
+                new AttributeModifier(UUID.randomUUID(), a.toString(), amount, operation, slot)
+        );
         return this;
     }
 
@@ -807,7 +811,8 @@ public class ItemBuilder {
             if (isIdRegistered(this.id) && !overrideIfExists) {
                 sendErrorMessage(
                         "Could not build ItemBuilder! ID \"%s\" is already registered. Use \"toItemStack\" if you wish to clone it or \"build(true)\" to override existing item!",
-                        this.getItem().getType());
+                        this.getItem().getType()
+                );
                 return item;
             }
             setPersistentData(PLUGIN_ID_PATH, PersistentDataType.STRING, this.id);
@@ -818,7 +823,8 @@ public class ItemBuilder {
         else if (!this.functions.isEmpty()) {
             sendErrorMessage(
                     "Could not build ItemBuilder! ID is required to add click events. \"new ItemBuilder(%s, ID)\"",
-                    this.getItem().getType());
+                    this.getItem().getType()
+            );
             return item;
         }
 
