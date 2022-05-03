@@ -9,6 +9,7 @@ import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.math.Numbers;
 import kz.hapyl.spigotutils.module.util.Nulls;
 import net.md_5.bungee.api.chat.BaseComponent;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -702,26 +703,25 @@ public class ItemBuilder {
                 return this;
             }
             default -> throw new IllegalArgumentException(
-                    "Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!");
+                    "Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!"
+            );
         }
     }
 
-    public ItemBuilder setHeadTexture(String base64) {
+    public ItemBuilder setHeadTexture(UUID uuid, String name) {
         final SkullMeta skullMeta = (SkullMeta) this.meta;
-        skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(UUID.randomUUID(), base64));
+        skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(UUID.randomUUID(), name));
         return this;
     }
 
-    public ItemBuilder setHeadTexture0(String base64) {
+    public ItemBuilder setHeadTexture(String base64) {
         final GameProfile profile = new GameProfile(UUID.randomUUID(), "");
         profile.getProperties().put("textures", new Property("textures", base64));
 
         try {
-            Field f = this.meta.getClass().getDeclaredField("profile");
-            f.setAccessible(true);
-            f.set(this.meta, profile);
-            f.setAccessible(false);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+            final Field field = FieldUtils.getDeclaredField(this.meta.getClass(), "profile", true);
+            field.set(this.meta, profile);
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
 
