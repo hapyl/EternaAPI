@@ -21,7 +21,7 @@ public enum Placeholders {
     }
 
     public String get() {
-        return "{" + placeholder + "}";
+        return "{" + placeholder.toLowerCase() + "}";
     }
 
 }

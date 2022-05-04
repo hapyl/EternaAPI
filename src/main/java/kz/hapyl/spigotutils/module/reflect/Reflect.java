@@ -14,6 +14,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.EntityPlayer;
@@ -91,9 +92,29 @@ public final class Reflect {
     @TestedNMS(version = "1.18")
     public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, Player... v1) {
         v1 = insureViewers(v1);
+
         final DataWatcher dataWatcher = entity.ai();
-        dataWatcher.a(type.get().a(key), value);
-        new ReflectPacket(new PacketPlayOutEntityMetadata(entity.ae(), dataWatcher, true)).sendPackets(v1);
+        setDataWatcherValue0(dataWatcher, type.get().a(key), value);
+        updateMetadata(entity, dataWatcher, v1);
+    }
+
+    private static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T object) {
+        try {
+            final Method method = dataWatcher.getClass().getDeclaredMethod("c", DataWatcherObject.class, Object.class);
+            method.setAccessible(true);
+            method.invoke(
+                    dataWatcher,
+                    type,
+                    object
+            );
+            method.setAccessible(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void updateMetadata(net.minecraft.world.entity.Entity entity, DataWatcher watcher, Player... recievers) {
+        new ReflectPacket(new PacketPlayOutEntityMetadata(entity.ae(), watcher, true)).sendPackets(recievers);
     }
 
     public static int getNetEntityId(Object entity) {
@@ -208,7 +229,8 @@ public final class Reflect {
 
     public static Object getBlockPosition(Location loc) {
         return newInstance(getNetConstructor("BlockPosition", double.class, double.class, double.class),
-                           loc.getX(), loc.getY(), loc.getZ());
+                           loc.getX(), loc.getY(), loc.getZ()
+        );
     }
 
     public static void hideEntity(Entity entity, Collection<Player> viewers) {
@@ -295,12 +317,11 @@ public final class Reflect {
     }
 
     public static void sendPacket(Player player, Packet<?> packet) {
-        // Don't allow sending packets to NPCs
         if (HumanNPC.byId.containsKey(player.getEntityId())) {
             return;
         }
         final EntityPlayer mc = getMinecraftPlayer(player);
-        //        mc.b.sendPacket(packet);
+        mc.b.a.a(packet);
     }
 
     public static void sendPacket(Object packet, Player... viewers) {
@@ -409,8 +430,10 @@ public final class Reflect {
 
     @Nullable
     public static net.minecraft.world.entity.Entity getMinecraftEntity(Entity bukkitEntity) {
-        return (net.minecraft.world.entity.Entity) Reflect.invokeMethod(Reflect.lazyMethod(bukkitEntity.getClass(),
-                                                                                           "getHandle"), bukkitEntity);
+        return (net.minecraft.world.entity.Entity) Reflect.invokeMethod(Reflect.lazyMethod(
+                bukkitEntity.getClass(),
+                "getHandle"
+        ), bukkitEntity);
     }
 
     public static EntityPlayer getMinecraftPlayer(Player player) {

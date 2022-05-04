@@ -69,6 +69,16 @@ public class Hologram {
     }
 
     /**
+     * Adds all lines to hologram.
+     *
+     * @param lines - String[]
+     */
+    public Hologram addLines(String... lines) {
+        this.lines.addAll(Arrays.asList(lines));
+        return this;
+    }
+
+    /**
      * Removes line at the given index.
      *
      * @param index - Index.
@@ -161,7 +171,6 @@ public class Hologram {
     }
 
     public void destroy() {
-
         this.removeStands();
 
         if (this.task != null) {
@@ -188,6 +197,8 @@ public class Hologram {
             return null;
         }
 
+        updateLines();
+
         this.packets.forEach((entity, packet) -> {
             for (final Player player : players) {
                 this.showingTo.put(player, true);
@@ -195,7 +206,6 @@ public class Hologram {
                 packet.sendPacket(1, player);
             }
         });
-
         return this;
     }
 
@@ -336,17 +346,19 @@ public class Hologram {
 
         bukkit.teleport(location);
 
+        bukkit.setInvisible(true);
         bukkit.setSmall(true);
         bukkit.setMarker(true);
-        bukkit.setInvisible(true);
         bukkit.setCustomName(name);
         bukkit.setCustomNameVisible(true);
 
-        this.packets.put(armorStand, new ReflectPacket(
-                                 new PacketPlayOutSpawnEntityLiving(armorStand),
-                                 new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.ai(), true),
-                                 new PacketPlayOutEntityDestroy(bukkit.getEntityId())
-                         )
+        this.packets.put(
+                armorStand,
+                new ReflectPacket(
+                        new PacketPlayOutSpawnEntityLiving(armorStand),
+                        new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.ai(), true),
+                        new PacketPlayOutEntityDestroy(bukkit.getEntityId())
+                )
         );
 
     }
