@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.nbt;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
@@ -75,7 +75,7 @@ public class NBT {
     }
 
     private static NamespacedKey createKey(String path) {
-        return new NamespacedKey(SpigotUtilsPlugin.getPlugin(), path);
+        return new NamespacedKey(EternaPlugin.getPlugin(), path);
     }
 
 

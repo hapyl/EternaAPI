@@ -1,6 +1,6 @@
 package test;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.reflect.glow.Glowing;
 import kz.hapyl.spigotutils.module.util.CollectionUtils;
 import org.bukkit.ChatColor;
@@ -22,7 +22,7 @@ public class GlowingTest {
                     glowing.setColor(randomColor());
                 }
             }
-        }.runTaskTimer(SpigotUtilsPlugin.getPlugin(), 0, 2);
+        }.runTaskTimer(EternaPlugin.getPlugin(), 0, 2);
 
         glowing.addViewer(player);
         glowing.start();

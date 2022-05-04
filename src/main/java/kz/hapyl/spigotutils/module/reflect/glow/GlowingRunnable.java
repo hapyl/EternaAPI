@@ -1,12 +1,13 @@
 package kz.hapyl.spigotutils.module.reflect.glow;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+
+import kz.hapyl.spigotutils.EternaPlugin;
 
 public class GlowingRunnable implements Runnable {
     @Override
     public void run() {
         try {
-            SpigotUtilsPlugin.getPlugin().getGlowingManager().tickAll();
+            EternaPlugin.getPlugin().getGlowingManager().tickAll();
         } catch (Exception ex) {
             ex.printStackTrace();
         }

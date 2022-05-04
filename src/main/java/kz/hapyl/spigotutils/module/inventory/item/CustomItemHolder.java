@@ -1,7 +1,7 @@
 package kz.hapyl.spigotutils.module.inventory.item;
 
 import com.google.common.collect.Maps;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.nbt.NBT;
 import org.bukkit.inventory.ItemStack;
 
@@ -52,7 +52,7 @@ public final class CustomItemHolder {
     }
 
     public static CustomItemHolder getInstance() {
-        return SpigotUtilsPlugin.getPlugin().getItemHolder();
+        return EternaPlugin.getPlugin().getItemHolder();
     }
 
 

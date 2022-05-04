@@ -5,14 +5,13 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 
 public abstract class ProtocolListener {
 
-    private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-
     public ProtocolListener(PacketType type) {
-        manager.addPacketListener(new PacketAdapter(SpigotUtilsPlugin.getPlugin(), type) {
+        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+        manager.addPacketListener(new PacketAdapter(EternaPlugin.getPlugin(), type) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 ProtocolListener.this.onPacketReceiving(event);

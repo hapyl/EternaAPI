@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.command;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.annotate.NOTNULL;
 import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.util.BukkitUtils;
@@ -25,7 +25,7 @@ public class CommandProcessor {
     private final JavaPlugin plugin;
 
     public CommandProcessor() {
-        this(SpigotUtilsPlugin.getPlugin());
+        this(EternaPlugin.getPlugin());
     }
 
     public CommandProcessor(JavaPlugin plugin) {

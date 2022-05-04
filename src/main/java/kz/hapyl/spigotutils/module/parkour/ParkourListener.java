@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.parkour;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.event.parkour.ParkourCheckpointEvent;
 import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.util.cd.InternalCooldownStorage;
@@ -18,7 +18,7 @@ import org.bukkit.event.player.*;
 public class ParkourListener implements Listener {
 
     private ParkourManager manager() {
-        return SpigotUtilsPlugin.getPlugin().getParkourManager();
+        return EternaPlugin.getPlugin().getParkourManager();
     }
 
     @EventHandler()

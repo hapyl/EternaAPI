@@ -7,7 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.reflect.Ticking;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
@@ -46,7 +46,7 @@ public class Glowing implements Ticking {
         this.viewers = Sets.newHashSet();
         this.setColor(color);
 
-        SpigotUtilsPlugin.getPlugin().getGlowingManager().addGlowing(entity, this);
+        EternaPlugin.getPlugin().getGlowingManager().addGlowing(entity, this);
     }
 
     public void setColor(ChatColor color) {
@@ -102,7 +102,7 @@ public class Glowing implements Ticking {
         if (lastTick) {
             createPacket(false);
             createTeam(false);
-            SpigotUtilsPlugin.getPlugin().getGlowingManager().removeGlowing(entity, this);
+            EternaPlugin.getPlugin().getGlowingManager().removeGlowing(entity, this);
         }
     }
 

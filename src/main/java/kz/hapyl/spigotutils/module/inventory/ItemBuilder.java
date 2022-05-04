@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.math.Numbers;
 import kz.hapyl.spigotutils.module.util.Nulls;
@@ -128,8 +128,9 @@ public class ItemBuilder {
         if (iMeta == null) {
             return "null";
         }
-        return iMeta.getPersistentDataContainer()
-                    .get(new NamespacedKey(SpigotUtilsPlugin.getPlugin(), PLUGIN_ID_PATH), PersistentDataType.STRING);
+        return iMeta
+                .getPersistentDataContainer()
+                .get(new NamespacedKey(EternaPlugin.getPlugin(), PLUGIN_ID_PATH), PersistentDataType.STRING);
     }
 
     public static boolean itemHasID(ItemStack item, String id) {
@@ -592,8 +593,9 @@ public class ItemBuilder {
         try {
             this.meta.setLore(Arrays.asList(colorize(lore).split(separator)));
         } catch (PatternSyntaxException ex) {
-            Bukkit.getConsoleSender()
-                  .sendMessage(colorize("&4[ERROR] &cChar &e" + separator + " &cused as separator for lore!"));
+            Bukkit
+                    .getConsoleSender()
+                    .sendMessage(colorize("&4[ERROR] &cChar &e" + separator + " &cused as separator for lore!"));
         }
         return this;
     }
@@ -610,8 +612,9 @@ public class ItemBuilder {
             throw new NullPointerException("ItemMeta doesn't have any lore!");
         }
         if (line > this.meta.getLore().size()) {
-            throw new IndexOutOfBoundsException("ItemMeta has only " + this.meta.getLore()
-                                                                                .size() + " lines! Given " + line);
+            throw new IndexOutOfBoundsException("ItemMeta has only " + this.meta
+                    .getLore()
+                    .size() + " lines! Given " + line);
         }
         List<String> old = this.meta.getLore();
         old.remove(line);
@@ -703,8 +706,7 @@ public class ItemBuilder {
                 return this;
             }
             default -> throw new IllegalArgumentException(
-                    "Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!"
-            );
+                    "Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!");
         }
     }
 
@@ -928,8 +930,9 @@ public class ItemBuilder {
 
     public <T> ItemBuilder setPersistentData(String path, PersistentDataType<T, T> type, T value) {
         try {
-            this.meta.getPersistentDataContainer()
-                     .set(new NamespacedKey(SpigotUtilsPlugin.getPlugin(), path), type, value);
+            this.meta
+                    .getPersistentDataContainer()
+                    .set(new NamespacedKey(EternaPlugin.getPlugin(), path), type, value);
         } catch (IllegalArgumentException er) {
             Bukkit.broadcastMessage(ChatColor.RED + "An error occurred whilst trying to perform this action. Check the console!");
             throw new ItemBuilderException(
@@ -939,11 +942,11 @@ public class ItemBuilder {
     }
 
     public <T> boolean hasPersistentData(String path, PersistentDataType<T, T> type) {
-        return this.meta.getPersistentDataContainer().has(new NamespacedKey(SpigotUtilsPlugin.getPlugin(), path), type);
+        return this.meta.getPersistentDataContainer().has(new NamespacedKey(EternaPlugin.getPlugin(), path), type);
     }
 
     public <T> T getPersistentData(String path, PersistentDataType<T, T> type) {
-        return this.meta.getPersistentDataContainer().get(new NamespacedKey(SpigotUtilsPlugin.getPlugin(), path), type);
+        return this.meta.getPersistentDataContainer().get(new NamespacedKey(EternaPlugin.getPlugin(), path), type);
     }
 
     public ItemBuilder glow() {

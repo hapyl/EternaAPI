@@ -1,12 +1,12 @@
 package kz.hapyl.spigotutils.module.util;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class Runnables {
 
-    private final static JavaPlugin plugin = SpigotUtilsPlugin.getPlugin();
+    private final static JavaPlugin plugin = EternaPlugin.getPlugin();
 
     public static void runLater(Runnable runnable, long delay) {
         newBukkitRunnable(runnable).runTaskLater(plugin, delay);

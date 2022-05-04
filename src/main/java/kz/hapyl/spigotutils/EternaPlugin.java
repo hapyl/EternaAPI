@@ -13,7 +13,10 @@ import kz.hapyl.spigotutils.module.inventory.item.CustomItemHolder;
 import kz.hapyl.spigotutils.module.inventory.item.CustomItemListener;
 import kz.hapyl.spigotutils.module.listener.SimpleListener;
 import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
-import kz.hapyl.spigotutils.module.parkour.*;
+import kz.hapyl.spigotutils.module.parkour.Parkour;
+import kz.hapyl.spigotutils.module.parkour.ParkourListener;
+import kz.hapyl.spigotutils.module.parkour.ParkourManager;
+import kz.hapyl.spigotutils.module.parkour.ParkourRunnable;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.quest.QuestListener;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
@@ -24,25 +27,18 @@ import kz.hapyl.spigotutils.module.reflect.protocol.GlowingListener;
 import kz.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
 import kz.hapyl.spigotutils.module.reflect.protocol.SignListener;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
-import test.Commands;
 
 import java.io.File;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
+public class EternaPlugin extends JavaPlugin {
 
-    private static SpigotUtilsPlugin plugin;
+    private static EternaPlugin plugin;
 
     private SongPlayer songPlayer;
     private CustomItemHolder itemHolder;
@@ -62,7 +58,6 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
         manager.registerEvents(new TriggerManager(), this);
         manager.registerEvents(new QuestListener(), this);
         manager.registerEvents(new ParkourListener(), this);
-        manager.registerEvents(this, this);
 
         this.songPlayer = new SongPlayer(this);
         this.glowingManager = new GlowingManager(this);
@@ -93,43 +88,14 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 
         // Create songs folder
         try {
-            new File(this.getDataFolder() + "/songs").mkdir();
+            boolean b = new File(this.getDataFolder() + "/songs").mkdir();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // FIXME: 005. 05/05/2022 - remove this before publish
-        //        test();
+        //        new Test().test();
 
-    }
-
-    private void test() {
-        Commands.createCommands();
-
-        final World world = Bukkit.getWorlds().get(0);
-        final Parkour parkour = new Parkour(
-                "Lobby Parkour",
-                new Position(world, 9, 65, -5, -45.0f, 0.0f),
-                new Position(world, -2, 65, 8)
-        );
-
-        parkour.addCheckpoint(world, 9, 67, 5, 35.0f, 0.0f);
-        parkour.addCheckpoint(world, 1, 67, 11, 55.0f, 0.0f);
-        parkour.addCheckpoint(world, -4, 68, 8, -90.0f, 65.0f);
-
-        parkourManager.registerParkour(parkour);
-    }
-
-    public CustomItemHolder getItemHolder() {
-        return itemHolder;
-    }
-
-    public SongPlayer getSongPlayer() {
-        return songPlayer;
-    }
-
-    public ParkourManager getParkourManager() {
-        return parkourManager;
     }
 
     @Override
@@ -146,6 +112,22 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
         this.runSafe(Rope::callThisOnDisable, "ropes removal");
     }
 
+    public CustomItemHolder getItemHolder() {
+        return itemHolder;
+    }
+
+    public SongPlayer getSongPlayer() {
+        return songPlayer;
+    }
+
+    public ParkourManager getParkourManager() {
+        return parkourManager;
+    }
+
+    public GlowingManager getGlowingManager() {
+        return glowingManager;
+    }
+
     private void runSafe(Runnable runnable, String name) {
         try {
             runnable.run();
@@ -158,11 +140,7 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
         Bukkit.getScheduler().runTaskLater(plugin, runnable, later);
     }
 
-    public GlowingManager getGlowingManager() {
-        return glowingManager;
-    }
-
-    public static SpigotUtilsPlugin getPlugin() {
+    public static EternaPlugin getPlugin() {
         return plugin;
     }
 
@@ -172,16 +150,6 @@ public class SpigotUtilsPlugin extends JavaPlugin implements Listener {
 
     public static Logger logger() {
         return getPlugin().getLogger();
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void handleJoinEvent(PlayerJoinEvent ev) {
-        //		NettyInjector.getInstance().injectPlayer(ev.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void handleQuitEvent(PlayerQuitEvent ev) {
-        //        NettyInjector.getInstance().removeInjection(ev.getPlayer());
     }
 
 }

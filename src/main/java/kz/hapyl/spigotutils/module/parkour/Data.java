@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.parkour;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.util.Holder;
 import org.bukkit.Location;
@@ -106,7 +106,7 @@ public class Data extends Holder<Player> {
         checkpoints.remove(currentCheckpoint);
 
         if (sendMessage && !parkour.isSilent()) {
-            SpigotUtilsPlugin
+            EternaPlugin
                     .getPlugin()
                     .getParkourManager()
                     .sendParkourMessage(

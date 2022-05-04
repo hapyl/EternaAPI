@@ -1,6 +1,6 @@
 package test;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.command.CommandProcessor;
 import kz.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import org.bukkit.entity.Player;
@@ -19,9 +19,9 @@ public class Commands {
         registerCommand("testscoreboard", TestScoreboard::create);
         registerCommand(
                 "testshowplugins",
-                (p, a) -> System.out.println(Arrays.toString(SpigotUtilsPlugin.getPlugin().getServer()
-                                                                              .getPluginManager()
-                                                                              .getPlugins()))
+                (p, a) -> System.out.println(Arrays.toString(EternaPlugin.getPlugin().getServer()
+                                                                     .getPluginManager()
+                                                                     .getPlugins()))
         );
         registerCommand("testsigngui", (p, a) -> SignGUITest.run(p));
         registerCommand(

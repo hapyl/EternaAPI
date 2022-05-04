@@ -4,7 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingManager;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -13,7 +13,7 @@ import java.util.List;
 
 public class GlowingListener extends ProtocolListener {
 
-    private final GlowingManager manager = SpigotUtilsPlugin.getPlugin().getGlowingManager();
+    private final GlowingManager manager = EternaPlugin.getPlugin().getGlowingManager();
 
     public GlowingListener() {
         super(PacketType.Play.Server.ENTITY_METADATA);

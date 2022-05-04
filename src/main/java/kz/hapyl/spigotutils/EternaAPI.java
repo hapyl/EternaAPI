@@ -8,28 +8,16 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class SpigotUtils {
+public final class EternaAPI {
 
-    @Deprecated
-    private final static String pluginVersion = "2.0";
-
+    private static final String PREFIX = "&b&lEternaAPI&b> &a";
     private final JavaPlugin plugin;
 
-    public static void hookIntoAPI(JavaPlugin init) {
-        new SpigotUtils(init);
-    }
-
-    public SpigotUtils(JavaPlugin init) {
+    public EternaAPI(JavaPlugin init) {
         this(init, false);
     }
 
-    private boolean isDepends(JavaPlugin plugin) {
-        final PluginDescriptionFile description = plugin.getDescription();
-        final String pluginName = SpigotUtilsPlugin.getPlugin().getName();
-        return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
-    }
-
-    public SpigotUtils(JavaPlugin init, boolean broadcastMessageOnlyToConsole) {
+    public EternaAPI(JavaPlugin init, boolean broadcastMessageOnlyToConsole) {
 
         if (init == null) {
             throw new EternaException("Could not load EternaAPI since provided plugin is null!");
@@ -66,15 +54,19 @@ public class SpigotUtils {
         }.runTaskLater(plugin, 20);
     }
 
+    private boolean isDepends(JavaPlugin plugin) {
+        final PluginDescriptionFile description = plugin.getDescription();
+        final String pluginName = EternaPlugin.getPlugin().getName();
+        return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
+    }
+
     public String getPluginVersion() {
-        return SpigotUtilsPlugin.getPlugin().getDescription().getVersion();
+        return EternaPlugin.getPlugin().getDescription().getVersion();
     }
 
     public JavaPlugin getPlugin() {
         return plugin;
     }
-
-    private static final String PREFIX = "&b&lEternaAPI&b> &a";
 
     public static void broadcastAPIMessage(String string) {
         Chat.broadcastOp(PREFIX + string);

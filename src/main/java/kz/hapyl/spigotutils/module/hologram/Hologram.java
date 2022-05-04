@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.hologram;
 
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.reflect.Reflect;
 import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
@@ -251,7 +251,7 @@ public class Hologram {
             public void run() {
                 action.consume(receivers);
             }
-        }.runTaskTimer(SpigotUtilsPlugin.getPlugin(), 0, tick);
+        }.runTaskTimer(EternaPlugin.getPlugin(), 0, tick);
         return this;
     }
 

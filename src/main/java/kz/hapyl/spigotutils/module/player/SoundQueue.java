@@ -2,7 +2,7 @@ package kz.hapyl.spigotutils.module.player;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -102,7 +102,7 @@ public class SoundQueue {
 					listeners.forEach(player -> PlayerLib.playSound(player, sound.getSound(), sound.getPitch()));
 				}
 			}
-		}.runTaskTimer(SpigotUtilsPlugin.getPlugin(), 0, 1);
+		}.runTaskTimer(EternaPlugin.getPlugin(), 0, 1);
 	}
 
 	public void stop() {

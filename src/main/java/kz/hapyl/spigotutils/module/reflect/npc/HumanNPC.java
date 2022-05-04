@@ -7,7 +7,7 @@ import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.annotate.InsuredViewers;
 import kz.hapyl.spigotutils.module.annotate.TestedNMS;
 import kz.hapyl.spigotutils.module.chat.Chat;
@@ -287,7 +287,7 @@ public class HumanNPC implements Intractable {
             final IntInt nextDelay = new IntInt();
             final IntInt i = new IntInt();
             for (final NPCEntry entry : this.entries) {
-                SpigotUtilsPlugin.runTaskLater((task) -> {
+                EternaPlugin.runTaskLater((task) -> {
 
                     if (!this.exists() || !player.isOnline() || stopTalking) {
                         stopTalking = false;
@@ -547,7 +547,7 @@ public class HumanNPC implements Intractable {
             this.setSkin(callback[0], callback[1]);
             this.reloadNpcData();
         });
-        SpigotUtilsPlugin.logger()
+        EternaPlugin.logger()
                 .warning("Async skin grab called for (%s). It is not recommended to use API grab.".formatted(
                         this.npcName));
     }
@@ -558,7 +558,7 @@ public class HumanNPC implements Intractable {
             public void run() {
                 callback.accept(getSkin(str));
             }
-        }.runTaskAsynchronously(SpigotUtilsPlugin.getPlugin());
+        }.runTaskAsynchronously(EternaPlugin.getPlugin());
     }
 
     @TestedNMS(version = "1.18")
@@ -757,7 +757,7 @@ public class HumanNPC implements Intractable {
     public void hideTabListName(Player... players) {
         final Player[] finalPlayers = insureViewers(players);
         Bukkit.getScheduler()
-              .runTaskLater(SpigotUtilsPlugin.getPlugin(), () -> this.packetRemovePlayer.sendPackets(finalPlayers), 20);
+                .runTaskLater(EternaPlugin.getPlugin(), () -> this.packetRemovePlayer.sendPackets(finalPlayers), 20);
     }
 
     @InsuredViewers

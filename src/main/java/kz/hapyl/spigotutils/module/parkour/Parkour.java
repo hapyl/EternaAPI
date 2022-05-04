@@ -2,7 +2,7 @@ package kz.hapyl.spigotutils.module.parkour;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import kz.hapyl.spigotutils.SpigotUtilsPlugin;
+import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.hologram.Hologram;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
@@ -60,12 +60,12 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
 
     @Override
     public void start(Player player) {
-        SpigotUtilsPlugin.getPlugin().getParkourManager().startParkour(player, this);
+        EternaPlugin.getPlugin().getParkourManager().startParkour(player, this);
     }
 
     @Override
     public void finish(Player player) {
-        SpigotUtilsPlugin.getPlugin().getParkourManager().finishParkour(player);
+        EternaPlugin.getPlugin().getParkourManager().finishParkour(player);
     }
 
     public Location getQuitLocation() {
