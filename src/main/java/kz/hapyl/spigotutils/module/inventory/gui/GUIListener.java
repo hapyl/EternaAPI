@@ -11,69 +11,68 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class GUIListener implements Listener {
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void handleGUIListener(InventoryClickEvent ev) {
-		final Player player = (Player)ev.getWhoClicked();
-		final GUI gui = GUI.getPlayerGUI(player);
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void handleGUIListener(InventoryClickEvent ev) {
+        final Player player = (Player) ev.getWhoClicked();
+        final GUI gui = GUI.getPlayerGUI(player);
 
-		if (gui == null) {
-			return;
-		}
+        if (gui == null) {
+            return;
+        }
 
-		if (!gui.compareInventory(ev.getInventory())) {
-			return;
-		}
+        if (!gui.compareInventory(ev.getInventory())) {
+            return;
+        }
 
-		final int slot = ev.getRawSlot();
+        final int slot = ev.getRawSlot();
 
-		if (slot >= gui.getSize() && !gui.onlyCancelGUI()) {
-			ev.setCancelled(true);
-		}
+        if (slot >= gui.getSize() && !gui.onlyCancelGUI()) {
+            ev.setCancelled(true);
+        }
 
-		if (slot < gui.getSize() && !gui.isIgnoredSlot(slot)) {
-			ev.setCancelled(true);
-		}
+        if (slot < gui.getSize() && !gui.isIgnoredSlot(slot)) {
+            ev.setCancelled(true);
+        }
 
-		if (gui.getListener() != null) {
-			gui.getListener().listen(player, gui, ev);
-		}
+        if (gui.getListener() != null) {
+            gui.getListener().listen(player, gui, ev);
+        }
 
-		if (gui.hasEvent(slot)) {
-			gui.acceptEvent(slot, player, ev.getClick());
-		}
+        if (gui.hasEvent(slot)) {
+            gui.acceptEvent(slot, player, ev.getClick());
+        }
 
-	}
+    }
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void handleInventoryCloseEvent(InventoryCloseEvent ev) {
-		final Player player = (Player)ev.getPlayer();
-		final GUI gui = GUI.getPlayerGUI(player);
-		if (gui != null && gui.getCloseEvent() != null) {
-			gui.getCloseEvent().invoke(player);
-			GUI.removePlayerGUI(player);
-		}
-	}
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void handleInventoryCloseEvent(InventoryCloseEvent ev) {
+        final Player player = (Player) ev.getPlayer();
+        final GUI gui = GUI.getPlayerGUI(player);
+        if (gui != null && gui.getCloseEvent() != null) {
+            gui.getCloseEvent().invoke(player);
+            GUI.removePlayerGUI(player);
+        }
+    }
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void handleInventoryOpenEvent(InventoryOpenEvent ev) {
-		final Player player = (Player)ev.getPlayer();
-		final GUI gui = GUI.getPlayerGUI(player);
-		if (gui != null && gui.getOpenEvent() != null) {
-			gui.getOpenEvent().invoke(player);
-		}
-	}
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void handleInventoryOpenEvent(InventoryOpenEvent ev) {
+        final Player player = (Player) ev.getPlayer();
+        final GUI gui = GUI.getPlayerGUI(player);
+        if (gui != null && gui.getOpenEvent() != null) {
+            gui.getOpenEvent().invoke(player);
+        }
+    }
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void handlePlayerLeave(PlayerQuitEvent ev) {
-		final Player player = ev.getPlayer();
-		final GUI gui = GUI.getPlayerGUI(player);
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void handlePlayerLeave(PlayerQuitEvent ev) {
+        final Player player = ev.getPlayer();
+        final GUI gui = GUI.getPlayerGUI(player);
 
-		if (gui == null) {
-			return;
-		}
+        if (gui == null) {
+            return;
+        }
 
-		GUI.removePlayerGUI(player);
-
-	}
+        GUI.removePlayerGUI(player);
+    }
 
 }
