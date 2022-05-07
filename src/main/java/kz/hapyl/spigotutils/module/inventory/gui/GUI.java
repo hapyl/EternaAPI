@@ -32,6 +32,9 @@ public class GUI {
     private Action closeEvent;
     private EventListener listener;
 
+    private boolean allowDrag;
+    private boolean allowShiftClick;
+
     private boolean ignoreOnlyGUIClicks;
 
     private final Map<Integer, GUIClick> bySlot;
@@ -426,6 +429,22 @@ public class GUI {
             removePlayerGUI(onlinePlayer);
         }
         playerInventory.clear();
+    }
+
+    public boolean isAllowDrag() {
+        return allowDrag;
+    }
+
+    public void setAllowDrag(boolean allowDrag) {
+        this.allowDrag = allowDrag;
+    }
+
+    public boolean isAllowShiftClick() {
+        return allowShiftClick;
+    }
+
+    public void setAllowShiftClick(boolean allowShiftClick) {
+        this.allowShiftClick = allowShiftClick;
     }
 
     public boolean compareInventory(Inventory inventory) {
