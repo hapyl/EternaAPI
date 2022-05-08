@@ -197,15 +197,15 @@ public class GUI {
     }
 
     public final void setArrowBack(int slot, String to, Action action) {
-        this.setItem(slot, new ItemBuilder(Material.ARROW)
-                .setName("&aGo Back")
-                .setLore("To " + to).toItemStack(), action);
+        this.setItem(slot, new ItemBuilder(Material.ARROW).setName("&aGo Back").addLore("To " + to).toItemStack(), action);
     }
 
     public final void setArrowBack(int slot, GUI guiTo) {
-        this.setItem(slot, new ItemBuilder(Material.ARROW)
-                .setName("&aGo Back")
-                .setLore("To " + guiTo.getName()).toItemStack(), guiTo::openInventory);
+        this.setItem(
+                slot,
+                new ItemBuilder(Material.ARROW).setName("&aGo Back").addLore("To " + guiTo.getName()).toItemStack(),
+                guiTo::openInventory
+        );
     }
 
     public static String menuArrowSplit(String... strings) {

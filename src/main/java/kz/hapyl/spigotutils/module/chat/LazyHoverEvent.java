@@ -18,7 +18,7 @@ public enum LazyHoverEvent {
         this.action = action;
     }
 
-    public HoverEvent of(String value) {
+    public HoverEvent of(Object value) {
         return new HoverEvent(this.action, new Text(Chat.format(value)));
     }
 

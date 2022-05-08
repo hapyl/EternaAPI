@@ -28,6 +28,7 @@ import java.util.UUID;
  * Allows to manipulate with string easily such as formatting, sending chat, actionbar and title messages.
  *
  * @author hapyl
+ * todo clean this message a little
  */
 public class Chat {
 
@@ -42,8 +43,7 @@ public class Chat {
     }
 
     public static String getItemName(ItemStack stack) {
-        return (stack.getItemMeta() == null) ? Chat.stringifyItemName(stack.getType()) : (stack.getItemMeta()
-                                                                                               .getDisplayName());
+        return (stack.getItemMeta() == null) ? Chat.stringifyItemName(stack.getType()) : (stack.getItemMeta().getDisplayName());
     }
 
     public static String stringifyItemStack(ItemStack stack) {
@@ -85,9 +85,11 @@ public class Chat {
 
     public static void sendIChatMessage(Player player, String iChat, Object... replacements) {
         iChat = String.format(iChat, replacements);
-        new ReflectPacket(new PacketPlayOutChat(IChatBaseComponent.a(iChat),
-                                                net.minecraft.network.chat.ChatMessageType.b,
-                                                UUID.randomUUID())).sendPackets(player);
+        new ReflectPacket(new PacketPlayOutChat(
+                IChatBaseComponent.a(iChat),
+                net.minecraft.network.chat.ChatMessageType.b,
+                UUID.randomUUID()
+        )).sendPackets(player);
     }
 
     public static void sendMessage(Player player, Object message, Object... replacements) {
@@ -181,25 +183,22 @@ public class Chat {
         sender.sendMessage(CenterChat.makeString(Chat.format(message.toString(), format)));
     }
 
-    public static void sendClickableMessage(Player player, Object s, Object... format) {
-        player.sendMessage(Chat.format(s.toString(), format));
+    public static void sendMessage_(Player player, Object s, Object... format) {
+        sendMessage(player, s, format);
     }
 
     public static void sendClickableMessage(CommandSender sender, ClickEvent event, Object message, Object... format) {
-        sender.spigot()
-              .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
+        sender.spigot().sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
     }
 
     public static void sendHoverableMessage(CommandSender sender, HoverEvent event, Object message, Object... format) {
-        sender.spigot()
-              .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
+        sender.spigot().sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
     }
 
-    public static void sendClickableHoverableMessage(CommandSender sender, ClickEvent clickEvent,
-                                                     HoverEvent hoverEvent, Object message, Object... format) {
-        sender.spigot().sendMessage(new ComponentBuilder(Chat.format(message.toString(), format))
-                                            .event(clickEvent)
-                                            .event(hoverEvent).create());
+    public static void sendClickableHoverableMessage(CommandSender sender, ClickEvent clickEvent, HoverEvent hoverEvent, Object message, Object... format) {
+        sender
+                .spigot()
+                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(clickEvent).event(hoverEvent).create());
     }
 
     public static void sendActionbar(Player player, String message, Object... g) {
@@ -215,8 +214,7 @@ public class Chat {
     }
 
     public static void broadcastOp(String string, Object... replacement) {
-        Bukkit.getOnlinePlayers().stream().filter(Player::isOp)
-              .forEach(player -> Chat.sendClickableMessage(player, string, replacement));
+        Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(player -> Chat.sendMessage_(player, string, replacement));
     }
 
     /**

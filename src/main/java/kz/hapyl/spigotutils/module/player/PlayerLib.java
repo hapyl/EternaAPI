@@ -140,7 +140,7 @@ public class PlayerLib {
     }
 
     public static void villagerYes(Player player, String string, Object... replacements) {
-        Chat.sendClickableMessage(player, string, replacements);
+        Chat.sendMessage_(player, string, replacements);
         villagerYes(player);
     }
 
@@ -153,7 +153,7 @@ public class PlayerLib {
     }
 
     public static void villagerNo(Player player, String string, Object... replacements) {
-        Chat.sendClickableMessage(player, string, replacements);
+        Chat.sendMessage_(player, string, replacements);
         villagerNo(player);
     }
 
@@ -167,7 +167,7 @@ public class PlayerLib {
 
     public static void playSoundMessage(Player player, Sound sound, float pitch, String message, Object... replacements) {
         playSound(player, sound, pitch);
-        Chat.sendClickableMessage(player, message, replacements);
+        Chat.sendMessage_(player, message, replacements);
     }
 
     public static void playSound(Sound sound, float pitch) {

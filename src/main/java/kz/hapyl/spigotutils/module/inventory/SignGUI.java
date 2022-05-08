@@ -1,6 +1,8 @@
 package kz.hapyl.spigotutils.module.inventory;
 
+import kz.hapyl.spigotutils.module.annotate.AsyncWarning;
 import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
+import kz.hapyl.spigotutils.module.util.Runnables;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.game.PacketPlayOutOpenSignEditor;
 import org.bukkit.Location;
@@ -23,11 +25,11 @@ public abstract class SignGUI {
     public SignGUI(Player player, String prompt) {
         this.player = player;
         final Location clone = player.getLocation().clone();
-        clone.setY(0);
+        clone.setY(-64);
         this.location = clone;
         this.lines = new String[4];
 
-        final List<String> splits = ItemBuilder.splitAfter(prompt, 14);
+        final List<String> splits = ItemBuilder.splitString(prompt, 14);
 
         for (int i = 3, line = 0; i >= 0; i--, line++) {
             this.lines[line] = i < splits.size() ? splits.get(i) : i == splits.size() ? "^^^^^^^^^^^^^^" : "";
@@ -55,7 +57,33 @@ public abstract class SignGUI {
         player.sendBlockChange(location, location.getBlock().getBlockData());
     }
 
+    /**
+     * @param player   - Player.
+     * @param response - Four lines of a sign, including ^^^^^^^^^^^^^^ and prompt.
+     *                 Use {@link this#onResponse(Player, String)} for player's response excluding prompt.
+     */
+    @AsyncWarning
     public abstract void onResponse(Player player, String[] response);
+
+    public void onResponse(Player player, String string) {
+
+    }
+
+    public String concatString(String[] array) {
+        final StringBuilder builder = new StringBuilder();
+        for (String str : array) {
+            if (str.contains("^^^^^^^^^^^^^^")) {
+                break;
+            }
+
+            builder.append(str).append(" ");
+        }
+        return builder.toString().trim();
+    }
+
+    protected void runSync(Runnable runnable) {
+        Runnables.runSync(runnable);
+    }
 
     protected String getResponseValue(String[] response, int index) {
         return index >= response.length ? "empty" : response[index];

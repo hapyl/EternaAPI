@@ -24,21 +24,12 @@ public class SignListener extends ProtocolListener {
 
         final String[] lines = packet.getStringArrays().read(0);
         signGUI.onResponse(player, lines);
+        signGUI.onResponse(player, signGUI.concatString(lines));
         signGUI.clearSign();
         SignGUI.saved.remove(player);
     }
 
     @Override
     public void onPacketSending(PacketEvent adapter) {
-
     }
-
-    //    private void addPacketListener() {
-    //        manager.addPacketListener(new PacketAdapter(this.plugin, PacketType.Play.Client.UPDATE_SIGN) {
-    //            @Override
-    //            public void onPacketReceiving(PacketEvent event) {
-    //
-    //            }
-    //        });
-    //    }
 }

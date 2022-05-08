@@ -17,7 +17,7 @@ public enum LazyClickEvent {
         this.action = action;
     }
 
-    public ClickEvent of(String value) {
+    public ClickEvent of(Object value) {
         return new ClickEvent(this.action, Chat.format(value));
     }
 
