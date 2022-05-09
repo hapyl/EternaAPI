@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class Config {
@@ -75,13 +76,23 @@ public class Config {
         return dataFieldWorker((d, f) -> {
             try {
                 Object value = config.get(d.path());
-                if (value == null) { // do not load null values
+                final Class<?> type = f.getType();
+
+                if (value == null) { // do not set null values
                     return;
                 }
 
+                // Objects that saved with yaml '!!' will
+                // break the server after reload. Convert
+                // them from string to load.
+
+                if (type.equals(UUID.class)) {
+                    value = UUID.fromString((String) value);
+                }
+
                 f.set(this, value);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
     }
@@ -98,10 +109,19 @@ public class Config {
     public final int saveDataFields() {
         return dataFieldWorker((d, f) -> {
             try {
-                final Object object = f.get(this);
+                Object object = f.get(this);
+
+                // Objects that saved with yaml '!!' will
+                // break the server after reload. Convert
+                // them to string to save.
+
+                if (object instanceof UUID uuid) {
+                    object = uuid.toString();
+                }
+
                 set(d.path(), object);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
     }
