@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.function.BiConsumer;
 
 public class Config {
@@ -71,12 +70,16 @@ public class Config {
      * Loads all DataField fields from the config.
      *
      * @return amount of fields loaded.
-     * @throws IllegalArgumentException if field is final.
      */
     public final int loadDataFields() {
         return dataFieldWorker((d, f) -> {
             try {
-                f.set(this, config.get(d.path()));
+                Object value = config.get(d.path());
+                if (value == null) { // do not load null values
+                    return;
+                }
+
+                f.set(this, value);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -91,13 +94,12 @@ public class Config {
      * You must call {@link this#save()} to save the config.
      *
      * @return amount of fields written.
-     * @throws IllegalArgumentException if field is final.
-     * @implNote
      */
     public final int saveDataFields() {
         return dataFieldWorker((d, f) -> {
             try {
-                set(d.path(), f.get(this));
+                final Object object = f.get(this);
+                set(d.path(), object);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -111,10 +113,6 @@ public class Config {
                 final DataField dataField = field.getAnnotation(DataField.class);
                 if (dataField == null) {
                     continue;
-                }
-
-                if (Modifier.isFinal(field.getModifiers())) {
-                    throw new IllegalArgumentException("DataField must not be final.");
                 }
 
                 final boolean access = field.canAccess(this);
