@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class Config {
@@ -84,13 +83,8 @@ public class Config {
 
                 // Objects that saved with yaml '!!' will
                 // break the server after reload. Convert
-                // them from string to load.
-
-                if (type.equals(UUID.class)) {
-                    value = UUID.fromString((String) value);
-                }
-
-                f.set(this, value);
+                // them from string to their value.
+                f.set(this, StaticNonPrimitiveDataField.loadFrom(type, value));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -109,17 +103,11 @@ public class Config {
     public final int saveDataFields() {
         return dataFieldWorker((d, f) -> {
             try {
-                Object object = f.get(this);
-
                 // Objects that saved with yaml '!!' will
                 // break the server after reload. Convert
-                // them to string to save.
-
-                if (object instanceof UUID uuid) {
-                    object = uuid.toString();
-                }
-
-                set(d.path(), object);
+                // them to string to save and then load using
+                // string conversion back to their original form.
+                set(d.path(), StaticNonPrimitiveDataField.saveTo(f.get(this)));
             } catch (Exception e) {
                 e.printStackTrace();
             }
