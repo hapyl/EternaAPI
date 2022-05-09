@@ -35,7 +35,7 @@ public class GUI {
     private boolean allowDrag;
     private boolean allowShiftClick;
 
-    private boolean ignoreOnlyGUIClicks;
+    private CancelType cancelType;
 
     private final Map<Integer, GUIClick> bySlot;
     private final Inventory inventory;
@@ -44,13 +44,21 @@ public class GUI {
         this.name = name;
         this.size = rows * 9;
         this.bySlot = new HashMap<>();
-        this.ignoreOnlyGUIClicks = true;
+        this.cancelType = CancelType.GUI;
         this.ignoredClicks = new HashSet<>();
         this.inventory = Bukkit.createInventory(null, this.size, name);
     }
 
+    public void setCancelType(CancelType cancelType) {
+        this.cancelType = cancelType;
+    }
+
+    public CancelType getCancelType() {
+        return cancelType;
+    }
+
     protected final boolean onlyCancelGUI() {
-        return this.ignoreOnlyGUIClicks;
+        return cancelType == CancelType.GUI;
     }
 
     public final void setEventListener(EventListener listener) {
@@ -61,13 +69,20 @@ public class GUI {
         return listener;
     }
 
+    /**
+     * @deprecated {@link this#setCancelType(CancelType)}
+     */
     @Deprecated
     public final void setOnlyCanelGUI(boolean flag) {
-        this.ignoreOnlyGUIClicks = flag;
+        setOnlyCancelGUI(flag);
     }
 
+    /**
+     * @deprecated {@link this#setCancelType(CancelType)}
+     */
+    @Deprecated
     public final void setOnlyCancelGUI(boolean flag) {
-        this.ignoreOnlyGUIClicks = flag;
+        setCancelType(flag ? CancelType.GUI : CancelType.EITHER);
     }
 
     protected final boolean isIgnoredSlot(int slot) {
