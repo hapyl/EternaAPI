@@ -46,11 +46,7 @@ public class GUIListener implements Listener {
             ev.setCancelled(true);
         }
 
-        if (slot < gui.getSize() && (cancelType == CancelType.GUI || cancelType == CancelType.EITHER)) {
-            ev.setCancelled(true);
-        }
-
-        if (slot < gui.getSize() && !gui.isIgnoredSlot(slot)) {
+        if (slot < gui.getSize() && (cancelType == CancelType.GUI || cancelType == CancelType.EITHER) && !gui.isIgnoredSlot(slot)) {
             ev.setCancelled(true);
         }
 
