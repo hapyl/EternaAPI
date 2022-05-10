@@ -1,6 +1,5 @@
 package kz.hapyl.spigotutils.module.chat;
 
-import kz.hapyl.spigotutils.module.annotate.NOTNULL;
 import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
 import kz.hapyl.spigotutils.module.util.Placeholder;
 import net.md_5.bungee.api.ChatMessageType;
@@ -19,6 +18,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingFormatArgumentException;
@@ -50,11 +50,7 @@ public class Chat {
         return String.format("x%s %s", stack.getAmount(), getItemName(stack));
     }
 
-    public String getColor() {
-        return this.color;
-    }
-
-    @NOTNULL
+    @Nonnull
     public static String format(Object input, Object... replacements) {
         return format(input.toString(), replacements);
     }
@@ -67,7 +63,7 @@ public class Chat {
         player.sendMessage(bformat(string, objects));
     }
 
-    @NOTNULL
+    @Nonnull
     public static String format(String input, Object... replacements) {
         try {
             return ChatColor.translateAlternateColorCodes('&', String.format(input, replacements));
@@ -78,7 +74,6 @@ public class Chat {
         }
     }
 
-    // kz.hapyl.spigotutils.module.chat.Chat.sendMessage(Lorg/bukkit/entity/Player;Ljava/lang/Object;[Ljava/lang/Object;)V
     public static void sendMessage(CommandSender sender, Object message, Object... replacements) {
         sender.sendMessage(format(message, replacements));
     }
@@ -96,7 +91,7 @@ public class Chat {
         sendMessage((CommandSender) player, message, replacements);
     }
 
-    @NOTNULL
+    @Nonnull
     public static String bformat(String input, Object... objects) {
         return Chat.format(Placeholder.format(input, objects));
     }
@@ -132,6 +127,22 @@ public class Chat {
         return capitalize(material.name());
     }
 
+    public static <T> String arrayToString(T[] array, int startAt) {
+        final StringBuilder builder = new StringBuilder();
+        for (int i = startAt; i < array.length; i++) {
+            builder.append(array[i]).append(" ");
+        }
+        return builder.toString().trim();
+    }
+
+    public static <T> List<String> arrayToList(T[] array) {
+        final List<String> newList = new ArrayList<>(array.length);
+        for (final T t : array) {
+            newList.add(String.valueOf(t));
+        }
+        return newList;
+    }
+
     public static List<String> tabCompleterSort(List<?> list, String[] args, boolean forceLowerCase) {
         final List<String> result = new ArrayList<>();
         String latest = args[args.length - 1];
@@ -150,41 +161,44 @@ public class Chat {
         return result;
     }
 
-    public static <T> String arrayToString(T[] array, int startAt) {
-        final StringBuilder builder = new StringBuilder();
-        for (int i = startAt; i < array.length; i++) {
-            builder.append(array[i]).append(" ");
-        }
-        return builder.toString().trim();
-    }
-
     public static List<String> tabCompleterSort(List<?> list, String[] args) {
         return tabCompleterSort(list, args, true);
     }
 
-    public static <T> List<String> arrayToList(T[] array) {
-        final List<String> newList = new ArrayList<>(array.length);
-        for (final T t : array) {
-            newList.add(String.valueOf(t));
-        }
-        return newList;
-    }
-
-    @NOTNULL
+    @Nonnull
     public static String capitalize(String str) {
         return WordUtils.capitalize(str.toLowerCase().replace('_', ' '));
     }
 
     public static String capitalize(Enum<?> enumQ) {
-        return capitalize(enumQ.name().toLowerCase().replace('_', ' '));
+        return capitalize(enumQ.name());
     }
 
     public static void sendCenterMessage(CommandSender sender, Object message, Object... format) {
         sender.sendMessage(CenterChat.makeString(Chat.format(message.toString(), format)));
     }
 
+    @Deprecated
     public static void sendMessage_(Player player, Object s, Object... format) {
         sendMessage(player, s, format);
+    }
+
+    public static void sendClickableMessage(CommandSender sender, Object runCommand, Object message, Object... format) {
+        sendClickableMessage(sender, LazyClickEvent.RUN_COMMAND.of(runCommand), message, format);
+    }
+
+    public static void sendHoverableMessage(CommandSender sender, Object showText, Object message, Object... format) {
+        sendClickableMessage(sender, LazyHoverEvent.SHOW_TEXT.of(showText), message, format);
+    }
+
+    public static void sendClickableHoverableMessage(CommandSender sender, Object runCommand, Object showText, Object message, Object... format) {
+        sendClickableHoverableMessage(
+                sender,
+                LazyClickEvent.RUN_COMMAND.of(runCommand),
+                LazyHoverEvent.SHOW_TEXT.of(sender),
+                message,
+                format
+        );
     }
 
     public static void sendClickableMessage(CommandSender sender, ClickEvent event, Object message, Object... format) {
@@ -215,6 +229,10 @@ public class Chat {
 
     public static void broadcastOp(String string, Object... replacement) {
         Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(player -> Chat.sendMessage_(player, string, replacement));
+    }
+
+    public String getColor() {
+        return this.color;
     }
 
     /**

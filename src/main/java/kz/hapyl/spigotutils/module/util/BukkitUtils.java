@@ -4,9 +4,11 @@ import kz.hapyl.spigotutils.EternaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -15,6 +17,9 @@ import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.Collection;
 
+/**
+ * Some utils for things that are done regularly by me.
+ */
 public class BukkitUtils {
 
     private static final JavaPlugin PLUGIN = EternaPlugin.getPlugin();
@@ -36,23 +41,27 @@ public class BukkitUtils {
     }
 
     public static String locationToString(Location location, String format, boolean includeRotation) {
-        return String.format(
-                format,
-                location.getX(),
-                location.getY(),
-                location.getZ(),
-                location.getYaw(),
-                location.getPitch()
-        );
+        return String.format(format, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     public static Location centerLocation(Location location) {
-        return new Location(
-                location.getWorld(),
-                location.getBlockX() + 0.5d,
-                location.getBlockY() + 0.5d,
-                location.getBlockZ() + 0.5d
-        );
+        return new Location(location.getWorld(), location.getBlockX() + 0.5d, location.getBlockY() + 0.5d, location.getBlockZ() + 0.5d);
+    }
+
+    public static void lockArmorStand(ArmorStand stand) {
+        for (EquipmentSlot value : EquipmentSlot.values()) {
+            for (ArmorStand.LockType lockType : ArmorStand.LockType.values()) {
+                stand.addEquipmentLock(value, lockType);
+            }
+        }
+    }
+
+    public static void unlockArmorStand(ArmorStand stand) {
+        for (EquipmentSlot value : EquipmentSlot.values()) {
+            for (ArmorStand.LockType lockType : ArmorStand.LockType.values()) {
+                stand.removeEquipmentLock(value, lockType);
+            }
+        }
     }
 
     public static Location getSpawnLocation(World world) {
@@ -155,7 +164,7 @@ public class BukkitUtils {
     }
 
     public static double random() {
-        return 0.0d;
+        return ThreadRandom.nextDouble();
     }
 
     public static Location defLocation(int x, int y, int z) {

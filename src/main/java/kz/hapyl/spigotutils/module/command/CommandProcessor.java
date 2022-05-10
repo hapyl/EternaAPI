@@ -2,6 +2,7 @@ package kz.hapyl.spigotutils.module.command;
 
 import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.annotate.NOTNULL;
+import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.util.BukkitUtils;
 import org.bukkit.Bukkit;
@@ -68,12 +69,7 @@ public class CommandProcessor {
 
                 simpleMap.register(
                         this.plugin.getName(),
-                        new Command(
-                                cmd.getName(),
-                                cmd.getDescription(),
-                                cmd.getUsage(),
-                                Arrays.asList(cmd.getAliases())
-                        ) {
+                        new Command(cmd.getName(), cmd.getDescription(), cmd.getUsage(), Arrays.asList(cmd.getAliases())) {
 
                             // Register Command
                             @Override
@@ -83,37 +79,36 @@ public class CommandProcessor {
                                     return true;
                                 }
 
-                                if ((cmd.isAllowOnlyOp() && sender.isOp()) || sender.hasPermission(cmd.getPermission())) {
+                                // permission check
+                                if ((cmd.isAllowOnlyOp() && !sender.isOp()) || !sender.hasPermission(cmd.getPermission())) {
+                                    sender.sendMessage(ChatColor.RED + "No permissions.");
+                                    return true;
+                                }
 
-                                    // check cooldown
-                                    if (cmd.hasCooldown() && sender instanceof final Player playerSender) {
-                                        final CommandCooldown cooldown = cmd.getCooldown();
-                                        if (cooldown.hasCooldown(playerSender)) {
-                                            sender.sendMessage(ChatColor.RED + String.format(
-                                                    "This command is on cooldown for %ss!",
-                                                    BukkitUtils.roundTick((int) (cooldown.getTimeLeft(
-                                                            playerSender) / 50L))
-                                            ));
-                                            PlayerLib.playSound(
-                                                    playerSender,
-                                                    Sound.ENTITY_ENDERMAN_TELEPORT,
-                                                    0.0f
-                                            );
-                                            return true;
-                                        }
+                                // cooldown check
+                                if (cmd.hasCooldown() && sender instanceof final Player playerSender) {
+                                    final CommandCooldown cooldown = cmd.getCooldown();
+                                    if (cooldown.hasCooldown(playerSender)) {
+                                        Chat.sendMessage(
+                                                playerSender,
+                                                "&cThis command is on cooldown for %ss!",
+                                                BukkitUtils.roundTick((int) (cooldown.getTimeLeft(playerSender) / 50L))
+                                        );
+                                        PlayerLib.playSound(playerSender, Sound.ENTITY_ENDERMAN_TELEPORT, 0.0f);
+                                        return true;
+                                    }
+                                    if (!cooldown.canIgnoreCooldown(playerSender)) {
                                         cooldown.startCooldown(playerSender);
                                     }
-
-                                    cmd.execute(sender, args);
-
-                                    // check post processor
-                                    if (cmd.getPost() != null && args != null) {
-                                        cmd.getPost().compareAndInvoke(sender, args);
-                                    }
                                 }
-                                else {
-                                    sender.sendMessage(ChatColor.RED + "You must be admin to use this!");
+
+                                cmd.execute(sender, args);
+
+                                // check post processor
+                                if (cmd.getPost() != null && args != null) {
+                                    cmd.getPost().compareAndInvoke(sender, args);
                                 }
+
                                 return true;
                             }
 

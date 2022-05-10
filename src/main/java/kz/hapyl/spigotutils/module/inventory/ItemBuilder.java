@@ -27,6 +27,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -77,8 +78,13 @@ public class ItemBuilder {
     }
 
     // Static Members
+
     public static ItemBuilder playerHead(String texture) {
         return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
+    }
+
+    public static ItemBuilder playerHeadUrl(String url) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
     }
 
     public static ItemBuilder leatherHat(Color color) {
@@ -593,9 +599,7 @@ public class ItemBuilder {
         try {
             this.meta.setLore(Arrays.asList(colorize(lore).split(separator)));
         } catch (PatternSyntaxException ex) {
-            Bukkit
-                    .getConsoleSender()
-                    .sendMessage(colorize("&4[ERROR] &cChar &e" + separator + " &cused as separator for lore!"));
+            Bukkit.getConsoleSender().sendMessage(colorize("&4[ERROR] &cChar &e" + separator + " &cused as separator for lore!"));
         }
         return this;
     }
@@ -612,9 +616,7 @@ public class ItemBuilder {
             throw new NullPointerException("ItemMeta doesn't have any lore!");
         }
         if (line > this.meta.getLore().size()) {
-            throw new IndexOutOfBoundsException("ItemMeta has only " + this.meta
-                    .getLore()
-                    .size() + " lines! Given " + line);
+            throw new IndexOutOfBoundsException("ItemMeta has only " + this.meta.getLore().size() + " lines! Given " + line);
         }
         List<String> old = this.meta.getLore();
         old.remove(line);
@@ -712,10 +714,29 @@ public class ItemBuilder {
 
     public ItemBuilder setHeadTexture(UUID uuid, String name) {
         final SkullMeta skullMeta = (SkullMeta) this.meta;
-        skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(UUID.randomUUID(), name));
+        skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(uuid, name));
         return this;
     }
 
+    private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
+    private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
+
+    /**
+     * Sets a link to minecraft skin texture as textures.
+     * Use Other->Minecraft-URL from minecraft-heads.
+     *
+     * @param url An url to texture. May or may not contains {@link ItemBuilder#URL_TEXTURE_LINK}
+     */
+    public ItemBuilder setHeadTextureUrl(String url) {
+        url = URL_TEXTURE_FORMAT.formatted(url.contains(URL_TEXTURE_LINK) ? url : URL_TEXTURE_LINK + url);
+        setHeadTexture(new String(Base64.getEncoder().encode(url.getBytes(StandardCharsets.UTF_8))));
+        return this;
+    }
+
+    /**
+     * Sets an actual base64 value as textures.
+     * Use Other->Value from minecraft-heads.
+     */
     public ItemBuilder setHeadTexture(String base64) {
         final GameProfile profile = new GameProfile(UUID.randomUUID(), "");
         profile.getProperties().put("textures", new Property("textures", base64));
@@ -730,7 +751,6 @@ public class ItemBuilder {
         return this;
     }
 
-
     public ItemBuilder setSkullOwner(String owner) {
         if (this.item.getType() == Material.PLAYER_HEAD) {
             SkullMeta meta = (SkullMeta) this.meta;
@@ -741,20 +761,12 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setPureDamage(double damage) {
-        this.addAttribute(
-                Attribute.GENERIC_ATTACK_DAMAGE,
-                damage,
-                AttributeModifier.Operation.ADD_NUMBER,
-                EquipmentSlot.HAND
-        );
+        this.addAttribute(Attribute.GENERIC_ATTACK_DAMAGE, damage, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
         return this;
     }
 
     public ItemBuilder addAttribute(Attribute a, double amount, AttributeModifier.Operation operation, EquipmentSlot slot) {
-        this.meta.addAttributeModifier(
-                a,
-                new AttributeModifier(UUID.randomUUID(), a.toString(), amount, operation, slot)
-        );
+        this.meta.addAttributeModifier(a, new AttributeModifier(UUID.randomUUID(), a.toString(), amount, operation, slot));
         return this;
     }
 
@@ -930,9 +942,7 @@ public class ItemBuilder {
 
     public <T> ItemBuilder setPersistentData(String path, PersistentDataType<T, T> type, T value) {
         try {
-            this.meta
-                    .getPersistentDataContainer()
-                    .set(new NamespacedKey(EternaPlugin.getPlugin(), path), type, value);
+            this.meta.getPersistentDataContainer().set(new NamespacedKey(EternaPlugin.getPlugin(), path), type, value);
         } catch (IllegalArgumentException er) {
             Bukkit.broadcastMessage(ChatColor.RED + "An error occurred whilst trying to perform this action. Check the console!");
             throw new ItemBuilderException(
