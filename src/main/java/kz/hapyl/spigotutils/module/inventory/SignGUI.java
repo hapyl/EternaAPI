@@ -27,12 +27,22 @@ public abstract class SignGUI {
         final Location clone = player.getLocation().clone();
         clone.setY(-64);
         this.location = clone;
-        this.lines = new String[4];
+        this.lines = new String[] { "", "", "", "" };
 
         final List<String> splits = ItemBuilder.splitString(prompt, 14);
 
-        for (int i = 3, line = 0; i >= 0; i--, line++) {
-            this.lines[line] = i < splits.size() ? splits.get(i) : i == splits.size() ? "^^^^^^^^^^^^^^" : "";
+        if (splits.size() == 0 || prompt.isBlank()) {
+            this.lines[3] = "^^^^^^^^^^^^^^";
+        }
+        else if (splits.size() == 1) {
+            this.lines[2] = "^^^^^^^^^^^^^^";
+            this.lines[3] = splits.get(0);
+        }
+        else {
+            this.lines[1] = "^^^^^^^^^^^^^^";
+            this.lines[2] = splits.get(0);
+            final String lastLine = splits.get(1);
+            this.lines[3] = (splits.size() > 2) ? (lastLine.substring(0, lastLine.length() - 3) + "...") : lastLine;
         }
 
     }

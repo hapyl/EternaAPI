@@ -101,15 +101,17 @@ public class EternaPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         // reset parkours
-        parkourManager.getRegisteredParkours().forEach(Parkour::removeWorldEntities);
-        parkourManager.restoreAllData();
+        runSafe(() -> {
+            parkourManager.getRegisteredParkours().forEach(Parkour::removeWorldEntities);
+            parkourManager.restoreAllData();
+        }, "parkour manager reset");
 
         // remove NPCs
-        this.runSafe(HumanNPC::removeAll, "human npc removal");
+        runSafe(HumanNPC::removeAll, "human npc removal");
         // remove holograms
-        this.runSafe(Hologram::removeAll, "hologram removal");
+        runSafe(Hologram::removeAll, "hologram removal");
         // remove ropes
-        this.runSafe(Rope::callThisOnDisable, "ropes removal");
+        runSafe(Rope::callThisOnDisable, "ropes removal");
     }
 
     public CustomItemHolder getItemHolder() {
@@ -131,8 +133,9 @@ public class EternaPlugin extends JavaPlugin {
     private void runSafe(Runnable runnable, String name) {
         try {
             runnable.run();
-        } catch (Exception ignored0) {
-            Bukkit.getLogger().warning("Could not run " + name + " in onDisable(), did you /reload your server?");
+        } catch (Error exception) {
+            Bukkit.getLogger().severe("Could not run " + name + " in onDisable(), did you /reload your server?");
+            Bukkit.getLogger().severe(exception.getMessage());
         }
     }
 
