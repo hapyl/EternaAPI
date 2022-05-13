@@ -11,7 +11,6 @@ import java.util.Arrays;
 public class Commands {
 
     public static void createCommands() {
-
         registerCommand("testholo", HologramTest::run);
         registerCommand("testnpc", (p, a) -> {
             NPCTest.create(p, a.length >= 1 ? a[0] : p.getName());
