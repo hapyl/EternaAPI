@@ -28,7 +28,6 @@ import java.util.UUID;
  * Allows to manipulate with string easily such as formatting, sending chat, actionbar and title messages.
  *
  * @author hapyl
- * todo clean this message a little
  */
 public class Chat {
 

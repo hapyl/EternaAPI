@@ -14,14 +14,14 @@ public class Commands {
 
         registerCommand("testholo", HologramTest::run);
         registerCommand("testnpc", (p, a) -> {
-            TestNPC.create(p, a.length >= 1 ? a[0] : p.getName());
+            NPCTest.create(p, a.length >= 1 ? a[0] : p.getName());
         });
-        registerCommand("testscoreboard", TestScoreboard::create);
+        registerCommand("testscoreboard", ScoreboardTest::create);
         registerCommand(
                 "testshowplugins",
-                (p, a) -> System.out.println(Arrays.toString(EternaPlugin.getPlugin().getServer()
-                                                                     .getPluginManager()
-                                                                     .getPlugins()))
+                (p, a) -> p.sendMessage(Arrays.toString(EternaPlugin.getPlugin().getServer()
+                                                                .getPluginManager()
+                                                                .getPlugins()))
         );
         registerCommand("testsigngui", (p, a) -> SignGUITest.run(p));
         registerCommand(
@@ -29,6 +29,8 @@ public class Commands {
                 (p, a) -> GlowingTest.run(p, a.length >= 1 ? NumberConversions.toInt(a[0]) : 40)
         );
 
+        registerCommand("testlaser", (p, a) -> LaserTest.test(p.getPlayer()));
+        registerCommand("testgui", (p, a) -> GUITest.test(p));
 
     }
 

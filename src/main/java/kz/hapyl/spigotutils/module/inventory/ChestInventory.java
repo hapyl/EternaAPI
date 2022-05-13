@@ -81,9 +81,11 @@ public final class ChestInventory {
             Bukkit.getLogger().warning("Too many or not enough slots!");
             return;
         }
-        this.inventory = Bukkit.createInventory(null,
-                                                rows * 9,
-                                                ChatColor.translateAlternateColorCodes('&', displayName));
+        this.inventory = Bukkit.createInventory(
+                null,
+                rows * 9,
+                ChatColor.translateAlternateColorCodes('&', displayName)
+        );
     }
 
     /**
@@ -261,16 +263,15 @@ public final class ChestInventory {
             }
         }
         return slots;
-
     }
 
-    // TODO: 018. 06/18/2021 - Add more patterns and maybe rework this method.
     private final byte[][] slotPattern = {
             { 0, 0, 0, 0, 1, 0, 0, 0, 0 },  // 1
             { 0, 0, 0, 1, 0, 1, 0, 0, 0 },  // 2
             { 0, 0, 1, 0, 1, 0, 1, 0, 0 },  // 3
             { 0, 0, 1, 1, 0, 1, 1, 0, 0 },  // 4
-            { 0, 0, 1, 1, 1, 1, 1, 0, 0 } }; // 5
+            { 0, 0, 1, 1, 1, 1, 1, 0, 0 }   // 5
+    };
 
     private byte[][] calculateBytes(Collection<?> items) {
         int size = items.size();
@@ -665,10 +666,12 @@ public final class ChestInventory {
     public void openInventory(Player player) {
 
         if (!this.predicate) {
-            PlayerLib.playSoundMessage(player,
-                                       Sound.ENTITY_VILLAGER_NO,
-                                       1.0f,
-                                       "&cYou cannot access this menu right now!");
+            PlayerLib.playSoundMessage(
+                    player,
+                    Sound.ENTITY_VILLAGER_NO,
+                    1.0f,
+                    "&cYou cannot access this menu right now!"
+            );
             return;
         }
 
@@ -876,31 +879,33 @@ public final class ChestInventory {
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(closeMenuSlot,
-                                  onEveryClickDelay,
-                                  inventory,
-                                  runnablePerSlot,
-                                  eventPerSlot,
-                                  consumerClickEvent,
-                                  atClose,
-                                  atOpen,
-                                  outside,
-                                  onEveryClick,
-                                  cancelClick,
-                                  built,
-                                  cancelOnlyMenu,
-                                  ignoreCloseEvent,
-                                  returnAllItems,
-                                  allowDrag,
-                                  allowShiftClick,
-                                  allowShiftClickMenu,
-                                  allowSwapClick,
-                                  staticMenu,
-                                  openSound,
-                                  closeSound,
-                                  openSoundPitch,
-                                  closeSoundPitch,
-                                  byteVariables);
+        int result = Objects.hash(
+                closeMenuSlot,
+                onEveryClickDelay,
+                inventory,
+                runnablePerSlot,
+                eventPerSlot,
+                consumerClickEvent,
+                atClose,
+                atOpen,
+                outside,
+                onEveryClick,
+                cancelClick,
+                built,
+                cancelOnlyMenu,
+                ignoreCloseEvent,
+                returnAllItems,
+                allowDrag,
+                allowShiftClick,
+                allowShiftClickMenu,
+                allowSwapClick,
+                staticMenu,
+                openSound,
+                closeSound,
+                openSoundPitch,
+                closeSoundPitch,
+                byteVariables
+        );
         result = 31 * result + Arrays.hashCode(ignoreSlots);
         result = 31 * result + Arrays.hashCode(returnItems);
         return result;

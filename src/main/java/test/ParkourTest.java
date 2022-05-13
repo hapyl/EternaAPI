@@ -6,7 +6,7 @@ import kz.hapyl.spigotutils.module.parkour.Position;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-public class Test {
+public class ParkourTest {
 
     public void test() {
         Commands.createCommands();

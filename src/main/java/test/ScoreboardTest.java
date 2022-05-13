@@ -3,7 +3,7 @@ package test;
 import kz.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import org.bukkit.entity.Player;
 
-public class TestScoreboard {
+public class ScoreboardTest {
 
     private static Scoreboarder scoreboarder;
 

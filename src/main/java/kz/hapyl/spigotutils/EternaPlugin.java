@@ -31,6 +31,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
+import test.ParkourTest;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -93,8 +94,7 @@ public class EternaPlugin extends JavaPlugin {
             e.printStackTrace();
         }
 
-        // FIXME: 005. 05/05/2022 - remove this before publish
-        //        new Test().test();
+        new ParkourTest().test();
 
     }
 

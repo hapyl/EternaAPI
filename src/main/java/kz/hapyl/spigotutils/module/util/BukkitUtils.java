@@ -37,11 +37,16 @@ public class BukkitUtils {
     }
 
     public static String locationToString(Location location, boolean includeRotation) {
-        return locationToString(location, "%s, %s, %s (%s, %s)", true);
+        return locationToString(location, "%s, %s, %s (%s, %s)", includeRotation);
     }
 
     public static String locationToString(Location location, String format, boolean includeRotation) {
-        return String.format(format, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        if (includeRotation) {
+            return String.format(format, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        }
+        else {
+            return String.format(format, location.getX(), location.getY(), location.getZ());
+        }
     }
 
     public static Location centerLocation(Location location) {
@@ -154,7 +159,7 @@ public class BukkitUtils {
     }
 
     public static void runLater(Runnable runnable, int ticks) {
-        Validate.isTrue(ticks > 0, "ticks value mu be positive");
+        Validate.isTrue(ticks > 0, "ticks value must be positive");
         new BukkitRunnable() {
             @Override
             public void run() {

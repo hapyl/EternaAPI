@@ -21,7 +21,6 @@ public class Placeholder {
     }
 
     protected String placeHold(Object... format) {
-
         // nothing to format
         if (!isAnythingToReplace()) {
             return this.inputString;

@@ -1,32 +1,42 @@
 package test;
 
-import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.module.entity.Entities;
+import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.reflect.glow.Glowing;
 import kz.hapyl.spigotutils.module.util.CollectionUtils;
+import kz.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.ChatColor;
+import org.bukkit.Particle;
+import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class GlowingTest {
 
     public static void run(Player player, int i) {
         player.sendMessage("§aTesting glowing.");
 
-        // keep last
-        final Glowing glowing = new Glowing(player, i);
+        final Pig pig = Entities.PIG.spawn(player.getLocation());
 
-        new BukkitRunnable() {
+        final Glowing glowing = new Glowing(pig, i) {
+
             @Override
-            public void run() {
-                if (glowing.isGlowing()) {
-                    glowing.setColor(randomColor());
-                }
+            public void onGlowingStart() {
+                PlayerLib.spawnParticle(getEntity().getLocation().add(0.0d, 1.0d, 0.0d), Particle.HEART, 1);
             }
-        }.runTaskTimer(EternaPlugin.getPlugin(), 0, 2);
+
+            @Override
+            public void onGlowingTick() {
+                setColor(randomColor());
+            }
+
+            @Override
+            public void onGlowingStop() {
+                Runnables.runLater(pig::remove, 10L);
+            }
+        };
 
         glowing.addViewer(player);
         glowing.start();
-
     }
 
     private static ChatColor randomColor() {

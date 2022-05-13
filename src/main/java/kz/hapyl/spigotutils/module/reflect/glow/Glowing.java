@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.reflect.Ticking;
+import kz.hapyl.spigotutils.module.util.Helper;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,7 +21,7 @@ import org.bukkit.scoreboard.Team;
 import java.util.Map;
 import java.util.Set;
 
-public class Glowing implements Ticking {
+public class Glowing implements Ticking, GlowingListener {
 
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
@@ -49,7 +50,22 @@ public class Glowing implements Ticking {
         EternaPlugin.getPlugin().getGlowingManager().addGlowing(entity, this);
     }
 
-    public void setColor(ChatColor color) {
+    @Override
+    public void onGlowingStart() {
+
+    }
+
+    @Override
+    public void onGlowingStop() {
+
+    }
+
+    @Override
+    public void onGlowingTick() {
+
+    }
+
+    public final void setColor(ChatColor color) {
         Validate.isTrue(color.isColor(), "color must be color, not formatter!");
         this.color = color;
         if (isGlowing()) {
@@ -57,7 +73,7 @@ public class Glowing implements Ticking {
         }
     }
 
-    protected void createPacket(boolean flag) {
+    private void createPacket(boolean flag) {
         final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
         packet.getIntegers().write(0, entity.getEntityId());
 
@@ -88,7 +104,18 @@ public class Glowing implements Ticking {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    public final Entity getEntity() {
+        return entity;
+    }
+
+    public final ChatColor getColor() {
+        return color;
+    }
+
+    public final Set<Player> getViewers() {
+        return viewers;
     }
 
     @Override
@@ -100,59 +127,76 @@ public class Glowing implements Ticking {
         boolean lastTick = duration-- <= 0;
 
         if (lastTick) {
-            createPacket(false);
-            createTeam(false);
-            EternaPlugin.getPlugin().getGlowingManager().removeGlowing(entity, this);
+            forceStop();
         }
+        this.onGlowingTick();
     }
 
-    public boolean isEveryoneIsListener() {
+    public final boolean isEveryoneIsListener() {
         return everyoneIsListener;
     }
 
-    public void setEveryoneIsListener(boolean everyoneIsListener) {
+    public final void setEveryoneIsListener(boolean everyoneIsListener) {
         this.everyoneIsListener = everyoneIsListener;
     }
 
-    public void addViewer(Player player) {
+    public final void addViewer(Player player) {
         this.viewers.add(player);
     }
 
-    public void removeViewer(Player player) {
+    public final void removeViewer(Player player) {
         this.viewers.remove(player);
     }
 
-    public boolean isViewer(Player player) {
+    public final boolean isViewer(Player player) {
         return this.viewers.contains(player);
     }
 
-    public int getDuration() {
+    public final int getDuration() {
         return duration;
     }
 
-    public void glow() {
+    /**
+     * Stars the glowing.
+     */
+    public final void glow() {
         this.start();
     }
 
-    public void start() {
+    /**
+     * Stars the glowing.
+     */
+    public final void start() {
         this.status = true;
         createPacket(true);
         createTeam(true);
+
+        this.onGlowingStart();
     }
 
-    public boolean isGlowing() {
+    public final boolean isGlowing() {
         return status && duration > 0;
     }
 
-    public void stop() {
+    public final void stop() {
         this.duration = 0;
+    }
+
+    /**
+     * This calls all onStop methods instead of setting duration to 0.
+     */
+    public final void forceStop() {
+        createPacket(false);
+        createTeam(false);
+        EternaPlugin.getPlugin().getGlowingManager().removeGlowing(entity, this);
+        this.onGlowingStop();
     }
 
     private void updateTeamColor() {
         viewers.forEach(player -> getTeamOrCreate(player).setColor(this.color));
     }
 
-    public void createTeam(boolean flag) {
+    private void createTeam(boolean flag) {
         if (viewers.isEmpty()) {
             return;
         }
@@ -169,41 +213,47 @@ public class Glowing implements Ticking {
         });
     }
 
-
+    /**
+     * This doesn't actually delete anything, just removes target from a team.
+     */
     private void deleteTeam(Player player) {
         final Team entryTeam = player.getScoreboard().getEntryTeam(getEntityName());
-        if (entryTeam != null) {
-            // Change team color to previous one or delete if fake team.
-            entryTeam.setColor(oldColor.getOrDefault(player, ChatColor.WHITE));
-            oldColor.remove(player);
+        if (entryTeam == null) {
+            return;
+        }
 
-            if (entryTeam.getName().equals("ETGlowing")) {
-                entryTeam.unregister();
-            }
+        // if glowing entity is player then restore their team is there is one
+        if (entity instanceof Player target) {
+            entryTeam.setColor(oldColor.getOrDefault(target, ChatColor.WHITE));
+            oldColor.remove(target);
+        }
+
+        // if fake team, remove target from that team
+        if (Helper.Teams.GLOWING.compareName(entryTeam.getName())) {
+            entryTeam.removeEntry(getEntityName());
         }
     }
 
     /**
-     * If players already has a team, just change the team color and store old team color.
-     * Else create new team and apply changes.
-     * <p>
-     * Probably should be using packets for this as well.
+     * This creates (or gets) a glowing for specific scoreboard and applies color to it.
+     * If target is a player, then store their old team to restore after glowing is over.
      */
     private Team getTeamOrCreate(Player player) {
         final Scoreboard scoreboard = player.getScoreboard();
         Team team = scoreboard.getEntryTeam(getEntityName());
 
         if (team == null) {
-            team = scoreboard.registerNewTeam("ETGlowing");
-        }
-        else {
-            oldColor.putIfAbsent(player, team.getColor());
+            team = Helper.getGlowingTeam(scoreboard);
         }
 
+        if (entity instanceof Player target) {
+            oldColor.putIfAbsent(target, team.getColor());
+        }
         team.setColor(this.color);
         return team;
     }
 
+    // returns either player's name or entities UUID to use as entry in a team
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
     }

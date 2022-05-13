@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.quest;
 
-import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
@@ -22,7 +22,6 @@ import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class QuestListener implements Listener {
 
@@ -42,18 +41,10 @@ public class QuestListener implements Listener {
             return;
         }
 
-        for (final PlayerQuestObjective obj : manager.getActiveObjectivesOfType(
-                player,
-                QuestObjectiveType.SAY_IN_CHAT
-        )) {
+        for (final PlayerQuestObjective obj : manager.getActiveObjectivesOfType(player, QuestObjectiveType.SAY_IN_CHAT)) {
             if (obj.testQuestCompletion(message) == 1.0d) {
                 ev.setCancelled(true);
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        obj.incrementGoal(true);
-                    }
-                }.runTask(EternaPlugin.getPlugin());
+                Runnables.runSync(() -> obj.incrementGoal(true));
             }
         }
 
@@ -62,13 +53,11 @@ public class QuestListener implements Listener {
     @EventHandler()
     public void handleEntityBreed(EntityBreedEvent ev) {
         final LivingEntity breeder = ev.getBreeder();
-        if (!(breeder instanceof Player)) {
+        if (!(breeder instanceof final Player player)) {
             return;
         }
 
-        final Player player = ((Player) breeder);
         manager.checkActiveQuests(player, QuestObjectiveType.BREED_ANIMALS, ev.getFather());
-
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -77,35 +66,23 @@ public class QuestListener implements Listener {
         final int increment = ev.getNewValue() - ev.getPreviousValue();
 
         if (increment > 0) {
-
-            switch (stat) {
-
-                case JUMP: {
-                    manager.checkActiveQuests(ev.getPlayer(), QuestObjectiveType.JUMP);
-                    return;
-                }
-
-                default: {
-                    return;
-                }
-
+            if (stat == Statistic.JUMP) {
+                manager.checkActiveQuests(ev.getPlayer(), QuestObjectiveType.JUMP);
+                return;
             }
-
         }
 
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void handlePlayerInteract(PlayerInteractEvent ev) {
-        if (ev.getHand() == EquipmentSlot.OFF_HAND
-                || ev.getAction() == Action.PHYSICAL
-                || ev.getClickedBlock() == null) {
+        if (ev.getHand() == EquipmentSlot.OFF_HAND || ev.getAction() == Action.PHYSICAL || ev.getClickedBlock() == null) {
             return;
         }
 
         // prevent creative block break
-        if (ev.getPlayer().getGameMode() == GameMode.CREATIVE
-                && (ev.getAction() == Action.LEFT_CLICK_AIR || ev.getAction() == Action.LEFT_CLICK_BLOCK)) {
+        if (ev.getPlayer().getGameMode() == GameMode.CREATIVE &&
+                (ev.getAction() == Action.LEFT_CLICK_AIR || ev.getAction() == Action.LEFT_CLICK_BLOCK)) {
             return;
         }
 
@@ -194,11 +171,9 @@ public class QuestListener implements Listener {
     public void handleEntityDamage(EntityDamageByEntityEvent ev) {
         final Entity entity = ev.getEntity();
 
-        if (!(ev.getDamager() instanceof Player)) {
+        if (!(ev.getDamager() instanceof final Player player)) {
             return;
         }
-
-        final Player player = (Player) ev.getDamager();
         final double damage = ev.getFinalDamage();
 
         if (damage <= 0.0d) {
@@ -212,10 +187,9 @@ public class QuestListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void handleEntityDamageEvent(EntityDamageEvent ev) {
-        if (!(ev.getEntity() instanceof Player)) {
+        if (!(ev.getEntity() instanceof final Player player)) {
             return;
         }
-        final Player player = (Player) ev.getEntity();
         final double damage = ev.getFinalDamage();
 
         if (damage <= 0.0d) {
@@ -224,16 +198,9 @@ public class QuestListener implements Listener {
 
         manager.checkActiveQuests(player, QuestObjectiveType.TAKE_DAMAGE, damage);
 
-        if (ev instanceof EntityDamageByEntityEvent) {
-            final EntityDamageByEntityEvent evDamageByEntity = (EntityDamageByEntityEvent) ev;
-            manager.checkActiveQuests(
-                    player,
-                    QuestObjectiveType.TAKE_DAMAGE_FROM,
-                    damage,
-                    evDamageByEntity.getDamager()
-            );
+        if (ev instanceof final EntityDamageByEntityEvent evDamageByEntity) {
+            manager.checkActiveQuests(player, QuestObjectiveType.TAKE_DAMAGE_FROM, damage, evDamageByEntity.getDamager());
         }
-
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -246,12 +213,9 @@ public class QuestListener implements Listener {
 
     @EventHandler()
     public void handleItemCraftEvent(CraftItemEvent ev) {
-
-        if (!(ev.getWhoClicked() instanceof Player)) {
+        if (!(ev.getWhoClicked() instanceof final Player player)) {
             return;
         }
-
-        final Player player = (Player) ev.getWhoClicked();
         final ItemStack item = ev.getCurrentItem();
 
         if (item == null) {
@@ -259,7 +223,6 @@ public class QuestListener implements Listener {
         }
 
         manager.checkActiveQuests(player, QuestObjectiveType.CRAFT_ITEM, item.getType());
-
     }
 
     @EventHandler()

@@ -4,7 +4,7 @@ import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class TestNPC {
+public class NPCTest {
 
     public static HumanNPC npc;
 
@@ -18,11 +18,6 @@ public class TestNPC {
         }
 
         npc = new HumanNPC(player.getLocation(), "", name);
-
-        //
-        // make a per-player npc
-        //
-
         npc.show(player);
         npc.setCollision(false);
 

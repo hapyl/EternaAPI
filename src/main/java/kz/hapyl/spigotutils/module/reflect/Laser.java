@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.module.reflect;
 
+import kz.hapyl.spigotutils.module.annotate.TestedNMS;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.EntitySquid;
@@ -8,73 +9,101 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-// FIXME: 008. 10/08/2021 - it works but entities have collision for whatever reason
+import javax.annotation.Nullable;
+
+/**
+ * Creates a laser (Guardian beam) between start and end.
+ */
+@TestedNMS(version = "1.18")
 public class Laser {
 
-	private final Location start;
-	private final Location end;
+    private final Location start;
+    private final Location end;
 
-	private EntityGuardian guardian;
-	private EntitySquid squid;
+    private EntityGuardian guardian;
+    private EntitySquid squid;
 
-	public Laser(Location start, Location end) {
-		this.start = start;
-		this.end = end;
-	}
+    public Laser(Location start, Location end) {
+        this.start = start;
+        this.end = end;
+    }
 
-	public void spawn(Player... viewers) {
-		viewers = a(viewers);
+    /**
+     * Spawns laser for players.
+     *
+     * @param viewers - Players who will see the laser. <b>Keep null to make everyone a viewer.</b>
+     */
+    public void spawn(@Nullable Player... viewers) {
+        viewers = insureViewers(viewers);
+        create();
 
-		// NSM
-		this.guardian = new EntityGuardian(EntityTypes.K, Reflect.getMinecraftWorld(this.start.getWorld()));
-//		this.guardian.setLocation(this.start.getX(), this.start.getY(), this.start.getZ(), this.start.getYaw(), this.start.getPitch());
-		this.guardian.collides = false;
+        // spawn entity
+        new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.guardian)).sendPackets(viewers);
+        new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.squid)).sendPackets(viewers);
 
-		this.squid = new EntitySquid(EntityTypes.aJ, Reflect.getMinecraftWorld(this.end.getWorld()));
-//		this.squid.setLocation(this.end.getX(), this.end.getY(), this.end.getZ(), this.end.getYaw(), this.end.getPitch());
-		this.squid.collides = false;
+        // remove player collision
+        for (Player player : viewers) {
+            Reflect.setCollision(squid, player, false);
+            Reflect.setCollision(guardian, player, false);
+        }
 
-		//this.guardian.collidableExemptions.add(this.squid.getUniqueID());
-		//this.squid.collidableExemptions.add(this.guardian.getUniqueID());
-		//
-		//for (final Player viewer : viewers) {
-		//	this.guardian.collidableExemptions.add(viewer.getUniqueId());
-		//	this.squid.collidableExemptions.add(viewer.getUniqueId());
-		//}
+        // make entities invisible and set guardian's beam target
+        Reflect.setDataWatcherValue(squid, DataWatcherType.BYTE, 0, (byte) 0x20, viewers);
+        Reflect.setDataWatcherValue(guardian, DataWatcherType.BYTE, 0, (byte) 0x20, viewers);
+        Reflect.setDataWatcherValue(guardian, DataWatcherType.INT, 17, Reflect.getEntityId(squid), viewers);
+    }
 
-		new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.guardian)).sendPackets(viewers);
-		new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.squid)).sendPackets(viewers);
+    /**
+     * Removes laser.
+     *
+     * @param viewers - Player who will see remove. <b>Keep null to remove for everyone.</b>
+     */
+    public void remove(Player... viewers) {
+        if (this.guardian == null || this.squid == null) {
+            return;
+        }
 
-		Reflect.setDataWatcherValue(squid, DataWatcherType.BYTE, 0, (byte)0x20, viewers);
-		Reflect.setDataWatcherValue(guardian, DataWatcherType.BYTE, 0, (byte)0x20, viewers);
-//		Reflect.setDataWatcherValue(guardian, DataWatcherType.INT, 17, squid.getId(), viewers);
+        viewers = insureViewers(viewers);
+        Reflect.destroyEntity(this.guardian, viewers);
+        Reflect.destroyEntity(this.squid, viewers);
+    }
 
-	}
+    /**
+     * Moves the laser to the new position.
+     *
+     * @param start   - New start location. Keep null to keep previous location.
+     * @param end     - New end location. Keep null to keep previous location.
+     * @param viewers - Players who will see the move. <b>Provided players must see the laser. Keep null to make everyone a viewer.</b>
+     */
+    public void move(@Nullable Location start, @Nullable Location end, @Nullable Player... viewers) {
+        viewers = insureViewers(viewers);
+        Reflect.setEntityLocation(this.guardian, start == null ? this.start : start);
+        Reflect.setEntityLocation(this.squid, end == null ? this.end : end);
+        Reflect.updateEntityLocation(this.guardian, viewers);
+        Reflect.updateEntityLocation(this.squid, viewers);
+    }
 
-	private Player[] a(Player... b) {
-		if (b == null || b.length == 0) {
-			return Bukkit.getOnlinePlayers().toArray(new Player[]{});
-		}
-		return b;
-	}
+    private void create() {
+        if (guardian != null && squid != null) {
+            return;
+        }
 
-	public void remove(Player... viewers) {
-		if (this.guardian == null || this.squid == null) {
-			return;
-		}
+        guardian = new EntityGuardian(EntityTypes.K, Reflect.getMinecraftWorld(this.start.getWorld()));
+        Reflect.setEntityLocation(guardian, start);
 
-		viewers = a(viewers);
-		Reflect.destroyEntity(this.guardian, viewers);
-		Reflect.destroyEntity(this.squid, viewers);
+        squid = new EntitySquid(EntityTypes.aJ, Reflect.getMinecraftWorld(this.end.getWorld()));
+        Reflect.setEntityLocation(squid, end);
 
-	}
+        // remove collision between guardian and squid
+        Reflect.setCollision(squid, guardian.getBukkitEntity(), false);
+        Reflect.setCollision(guardian, squid.getBukkitEntity(), false);
+    }
 
-	public void move(Location start, Location end, Player... v1) {
-		v1 = a(v1);
-		Reflect.setEntityLocation(this.guardian, start);
-		Reflect.setEntityLocation(this.squid, end);
-		Reflect.updateEntityLocation(this.guardian, v1);
-		Reflect.updateEntityLocation(this.squid, v1);
-	}
+    private Player[] insureViewers(Player... b) {
+        if (b == null || b.length == 0) {
+            return Bukkit.getOnlinePlayers().toArray(new Player[] {});
+        }
+        return b;
+    }
 
 }

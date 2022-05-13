@@ -113,15 +113,16 @@ public class ParkourManager {
             return;
         }
 
-        PlayerLib.removeEffect(player, EffectType.INVISIBILITY);
+        // make sure to remove player's data before restoring the info
+        parkourData.remove(player);
         data.getPlayerInfo().restore();
+
+        PlayerLib.removeEffect(player, EffectType.INVISIBILITY);
 
         if (!data.getParkour().isSilent()) {
             sendParkourMessage(player, "&cParkour failed, &l%s&c!", type.getReason());
             PlayerLib.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0f);
         }
-
-        parkourData.remove(player);
     }
 
     public void teleportToCheckpoint(Player player) {

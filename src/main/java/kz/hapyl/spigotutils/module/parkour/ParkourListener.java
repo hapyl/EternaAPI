@@ -13,6 +13,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.*;
 
 public class ParkourListener implements Listener {
@@ -88,11 +89,7 @@ public class ParkourListener implements Listener {
                     if (data.hasNextCheckpoint()) {
                         manager().teleportToCheckpoint(player);
                     }
-                    manager().sendParkourMessage(
-                            player,
-                            "&cYou missed &l%s&c checkpoints!",
-                            data.missedCheckpointsCount()
-                    );
+                    manager().sendParkourMessage(player, "&cYou missed &l%s&c checkpoints!", data.missedCheckpointsCount());
                     return;
                 }
 
@@ -134,8 +131,6 @@ public class ParkourListener implements Listener {
                 PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
             }
         }
-
-
     }
 
     // Fail detection
@@ -154,6 +149,14 @@ public class ParkourListener implements Listener {
     @EventHandler()
     public void handlePlayerToggleFlightEvent(PlayerToggleFlightEvent ev) {
         testFail(ev.getPlayer(), FailType.FLIGHT);
+    }
+
+    @EventHandler()
+    public void handleParkourBlockBreak(BlockBreakEvent ev) {
+        final Material type = ev.getBlock().getType();
+        if (type == Position.Type.START_OR_FINISH.material() || type == Position.Type.CHECKPOINT.material()) {
+            ev.setCancelled(true);
+        }
     }
 
     private void testFail(Player player, FailType type) {

@@ -9,111 +9,96 @@ import org.bukkit.entity.Player;
  */
 public abstract class PlayerQuestObjective extends QuestObjective {
 
-	private final QuestProgress progress;
-	private final Player player;
+    private final QuestProgress progress;
+    private final Player player;
 
-	private double goalCurrent;
+    private double goalCurrent;
 
-	protected PlayerQuestObjective(QuestProgress progress, QuestObjective objective) {
-		super(objective.getQuestType(), objective.getCompletionGoal(), objective.getObjectiveName(), objective.getObjectiveShortInfo());
-		this.progress = progress;
-		this.player = progress.getPlayer();
-		this.goalCurrent = 0;
-	}
+    protected PlayerQuestObjective(QuestProgress progress, QuestObjective objective) {
+        super(objective.getQuestType(), objective.getCompletionGoal(), objective.getObjectiveName(), objective.getObjectiveShortInfo());
+        this.progress = progress;
+        this.player = progress.getPlayer();
+        this.goalCurrent = 0;
+    }
 
-	public Player getPlayer() {
-		return this.player;
-	}
+    public Player getPlayer() {
+        return this.player;
+    }
 
-	public double getGoalCurrent() {
-		return this.goalCurrent;
-	}
+    public double getGoalCurrent() {
+        return this.goalCurrent;
+    }
 
-	public void incrementGoal() {
-		this.incrementGoal(true);
-	}
+    public void incrementGoal() {
+        this.incrementGoal(true);
+    }
 
-	public void incrementGoal(boolean checkCompletion) {
-		this.incrementGoal(1.0d, checkCompletion);
-	}
+    public void incrementGoal(boolean checkCompletion) {
+        this.incrementGoal(1.0d, checkCompletion);
+    }
 
-	public void incrementGoal(double amount, boolean checkCompletion) {
-		this.goalCurrent += amount;
-		this.afterObjectiveIncrement(this.getPlayer(), amount);
-		if (this.isFinished()) {
-			this.afterObjectiveCompletion(this.getPlayer(), amount);
-		}
-		if (checkCompletion) {
-			if (this.isFinished()) {
-				this.progress.nextObjective();
-			}
-		}
-	}
+    public void incrementGoal(double amount, boolean checkCompletion) {
+        this.goalCurrent += amount;
+        this.afterObjectiveIncrement(this.getPlayer(), amount);
+        if (this.isFinished()) {
+            this.afterObjectiveCompletion(this.getPlayer(), amount);
+        }
+        if (checkCompletion) {
+            if (this.isFinished()) {
+                this.progress.nextObjective();
+            }
+        }
+    }
 
-	public boolean isFinished() {
-		return this.goalCurrent >= this.getCompletionGoal();
-	}
+    public boolean isFinished() {
+        return this.goalCurrent >= this.getCompletionGoal();
+    }
 
-	public String getPercentComplete() {
-		// Don't show percent completion if one time action
-		if (this.getCompletionGoal() <= 1.0f) {
-			return "";
-		}
-		return Chat.format(" &7(%s%%)", BukkitUtils.decimalFormat(this.goalCurrent * 100 / this.getCompletionGoal(), "0.0"));
-	}
+    public String getPercentComplete() {
+        // Don't show percent completion if one time action
+        if (this.getCompletionGoal() <= 1.0f) {
+            return "";
+        }
+        return Chat.format(" &7(%s%%)", BukkitUtils.decimalFormat(this.goalCurrent * 100 / this.getCompletionGoal(), "0.0"));
+    }
 
-	public void sendMessage(Type type) {
+    public void sendMessage(Type type) {
+        final Quest quest = progress.getQuest();
+        final QuestFormatter formatter = quest.getFormatter();
 
-		Chat.sendMessage(player, "");
+        switch (type) {
+            case COMPLETE -> formatter.sendObjectiveComplete(player, this);
+            case STARTED -> formatter.sendObjectiveNew(player, this);
+            // TODO: 002. 07/02/2021 - Add impl for failing quests, such as timeouts or deaths (configurable)
+            case FAILED -> formatter.sendObjectiveFailed(player, this);
+        }
+    }
 
-		switch (type) {
-			case COMPLETE -> {
-				Chat.sendCenterMessage(player, "&2&lOBJECTIVE COMPLETE!");
-				Chat.sendCenterMessage(player, "&a✔ " + this.getObjectiveName());
-			}
-			case STARTED -> {
-				Chat.sendCenterMessage(player, "&e&lNEW OBJECTIVE!");
-				Chat.sendCenterMessage(player, "&6" + this.getObjectiveName());
-				Chat.sendCenterMessage(player, "&7" + this.getObjectiveShortInfo());
-			}
+    @Override
+    public String toString() {
+        return "PlayerQuestObjective{" +
+                ", type=" + this.getQuestType() +
+                ", goal=" + this.getCompletionGoal() +
+                ", done=" + this.getGoalCurrent() +
+                '}';
+    }
 
-			// TODO: 002. 07/02/2021 - Add impl for failing quests, such as timeouts or deaths (configurable)
-			case FAILED -> {
-				Chat.sendCenterMessage(player, "&c&lOBJECTIVE FAILED!");
-				Chat.sendCenterMessage(player, "&7It's ok! Try again.");
-			}
-		}
+    public enum Type {
 
-		Chat.sendMessage(player, "");
+        STARTED(true),
+        COMPLETE(false),
+        FAILED(false);
 
+        private final boolean b;
 
-	}
+        Type(boolean b) {
+            this.b = b;
+        }
 
-	@Override
-	public String toString() {
-		return "PlayerQuestObjective{" +
-				", type=" + this.getQuestType() +
-				", goal=" + this.getCompletionGoal() +
-				", done=" + this.getGoalCurrent() +
-				'}';
-	}
+        public boolean sendAnotherLine() {
+            return this.b;
+        }
 
-	public enum Type {
-
-		STARTED(true),
-		COMPLETE(false),
-		FAILED(false);
-
-		private final boolean b;
-
-		Type(boolean b) {
-			this.b = b;
-		}
-
-		public boolean sendAnotherLine() {
-			return this.b;
-		}
-
-	}
+    }
 
 }

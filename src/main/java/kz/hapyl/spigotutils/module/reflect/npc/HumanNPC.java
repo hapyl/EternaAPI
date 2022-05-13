@@ -24,6 +24,7 @@ import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
 import kz.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import kz.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import kz.hapyl.spigotutils.module.util.BukkitUtils;
+import kz.hapyl.spigotutils.module.util.Helper;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.server.level.EntityPlayer;
@@ -571,10 +572,10 @@ public class HumanNPC implements Intractable {
                 final GameProfile profile = nmsEntity.fq();
 
                 final Property textures = profile.getProperties()
-                                                 .get("textures")
-                                                 .stream()
-                                                 .findFirst()
-                                                 .orElse(new Property(targetName, targetName));
+                        .get("textures")
+                        .stream()
+                        .findFirst()
+                        .orElse(new Property(targetName, targetName));
                 return new String[] { textures.getValue(), textures.getSignature() };
             } catch (Exception e) {
                 e.printStackTrace();
@@ -732,9 +733,11 @@ public class HumanNPC implements Intractable {
 
     public HumanNPC setCollision(boolean flag) {
         for (final Player viewer : this.getViewers()) {
-            final Team team = getTeamOrCreate(viewer.getScoreboard());
+            final Team team = Helper.getNpcTeam(viewer.getScoreboard());
             team.setOption(Team.Option.COLLISION_RULE, flag ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
             team.addEntry(this.hexName);
+            //            final Team team = getTeamOrCreate(viewer.getScoreboard());
+            //            team.setOption(Team.Option.COLLISION_RULE, flag ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
         }
         return this;
     }
@@ -793,8 +796,8 @@ public class HumanNPC implements Intractable {
 
     public void hideDisplayName(Player... players) {
         for (final Player player : players) {
-            final Team t = getTeamOrCreate(player.getScoreboard());
-            t.addEntry(this.hexName);
+            final Team team = Helper.getNpcTeam(player.getScoreboard());
+            team.addEntry(this.hexName);
         }
     }
 
@@ -813,6 +816,10 @@ public class HumanNPC implements Intractable {
         return players;
     }
 
+    /**
+     * @deprecated Use {@link Helper}
+     */
+    @Deprecated
     private Team getTeamOrCreate(Scoreboard scoreboard) {
         Team team = scoreboard.getTeam("ETERNA_API");
         if (team == null) {

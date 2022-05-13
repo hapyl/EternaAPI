@@ -1,7 +1,9 @@
 package kz.hapyl.spigotutils.module.inventory.gui;
 
+import kz.hapyl.spigotutils.module.annotate.Super;
 import kz.hapyl.spigotutils.module.inventory.ChestInventory;
 import kz.hapyl.spigotutils.module.inventory.ItemBuilder;
+import kz.hapyl.spigotutils.module.math.Numbers;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -42,9 +44,9 @@ public class GUI {
 
     public GUI(String name, int rows) {
         this.name = name;
-        this.size = rows * 9;
+        this.size = Numbers.clamp(rows * 9, 9, 54);
         this.bySlot = new HashMap<>();
-        this.cancelType = CancelType.GUI;
+        this.cancelType = CancelType.EITHER;
         this.ignoredClicks = new HashSet<>();
         this.inventory = Bukkit.createInventory(null, this.size, name);
     }
@@ -57,7 +59,7 @@ public class GUI {
         return cancelType;
     }
 
-    protected final boolean onlyCancelGUI() {
+    public final boolean onlyCancelGUI() {
         return cancelType == CancelType.GUI;
     }
 
@@ -124,7 +126,9 @@ public class GUI {
     }
 
     public final void clearClickEvents() {
-        this.bySlot.clear();
+        bySlot.clear();
+        closeEvent = null;
+        openEvent = null;
     }
 
     // Set Item
@@ -158,7 +162,7 @@ public class GUI {
     }
 
     // Private Set Item (super)
-    private void setItem(int slot, @Nullable ItemStack item, GUIClick action) {
+    private void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
         if (slot > this.size) {
             throw new IndexOutOfBoundsException(String.format("There are only %s slots, given %s.", this.size, slot));
         }
@@ -269,7 +273,6 @@ public class GUI {
         }
     }
 
-
     /**
      * Fills a line (9 horizontal slots) of the GUI.
      */
@@ -329,7 +332,38 @@ public class GUI {
         return this;
     }
 
-    protected final void fillItems(Map<ItemStack, GUIClick> hashMap, int startLine) {
+    public final void fillItems(SmartComponent component, SlotPattern pattern, int startLine) {
+        fillItems(component.getMap(), pattern, startLine);
+    }
+
+    public final void fillItems(List<ItemStack> items, SlotPattern pattern, int startLine) {
+        final HashMap<ItemStack, GUIClick> map = new HashMap<>();
+        for (ItemStack item : items) {
+            map.put(item, null);
+        }
+
+        fillItems(map, pattern, startLine);
+    }
+
+    @Super
+    public final void fillItems(Map<ItemStack, GUIClick> items, SlotPattern pattern, int startLine) {
+        final List<Integer> slots = pattern.getSlots(items.keySet(), startLine);
+        final Iterator<ItemStack> iterator = items.keySet().iterator();
+        for (Integer slot : slots) {
+            if (size < slot || !iterator.hasNext()) {
+                continue;
+            }
+
+            final ItemStack item = iterator.next();
+            setItem(slot, item, items.get(item));
+        }
+    }
+
+    /**
+     * @deprecated {@link GUI#fillItems(Map, SlotPattern, int)}
+     */
+    @Deprecated
+    protected final void fillItems(LinkedHashMap<ItemStack, GUIClick> hashMap, int startLine) {
         final List<Integer> slots = ChestInventory.convertItemsIntoSmartSlots(hashMap.keySet(), startLine);
         final Iterator<ItemStack> iterator = hashMap.keySet().iterator();
         for (final Integer slot : slots) {
@@ -347,8 +381,8 @@ public class GUI {
         }
     }
 
-    protected final void fillItems(Map<ItemStack, GUIClick> hashMap) {
-        this.fillItems(hashMap, 1);
+    protected final void fillItems(LinkedHashMap<ItemStack, GUIClick> hashMap) {
+        fillItems(hashMap, 1);
     }
 
     public final SmartComponent fillItems() {
@@ -450,38 +484,41 @@ public class GUI {
         return allowDrag;
     }
 
-    public void setAllowDrag(boolean allowDrag) {
+    public final void setAllowDrag(boolean allowDrag) {
         this.allowDrag = allowDrag;
     }
 
-    public boolean isAllowShiftClick() {
+    public final boolean isAllowShiftClick() {
         return allowShiftClick;
     }
 
-    public void setAllowShiftClick(boolean allowShiftClick) {
+    public final void setAllowShiftClick(boolean allowShiftClick) {
         this.allowShiftClick = allowShiftClick;
     }
 
-    public boolean compareInventory(Inventory inventory) {
-        return this.inventory == inventory;
+    public final boolean compareInventory(Inventory inventory) {
+        return this.inventory.equals(inventory);
     }
 
-    protected void setCloseEvent(Action close) {
+    public final void setCloseEvent(Action close) {
         this.closeEvent = close;
     }
 
-    protected void setOpenEvent(Action open) {
+    public final void setOpenEvent(Action open) {
         this.openEvent = open;
     }
 
-    protected void clearItems() {
+    public final void clearItems() {
         for (int i = 0; i < this.getSize(); i++) {
             this.setItem(i, null);
         }
     }
 
-    protected void clearEverything() {
-        this.clearClickEvents();
+    /**
+     * Clears everything this GUI has to offer, such as items, click, close and open events.
+     */
+    public final void clearEverything() {
+        clearClickEvents();
         for (int i = 0; i < this.getSize(); i++) {
             this.setItem(i, null);
         }

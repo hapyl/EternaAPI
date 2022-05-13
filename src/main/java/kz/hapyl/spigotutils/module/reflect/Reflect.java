@@ -34,6 +34,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.channels.Channel;
 import java.util.Collection;
+import java.util.UUID;
 
 // TODO: 003. 03/05/2022 - Clean this mess and rework more stuff to use Protocol.
 
@@ -117,12 +118,31 @@ public final class Reflect {
         new ReflectPacket(new PacketPlayOutEntityMetadata(entity.ae(), watcher, true)).sendPackets(recievers);
     }
 
+    @TestedNMS(version = "1.18")
+    public static int getEntityId(net.minecraft.world.entity.Entity entity) {
+        return entity.ae();
+    }
+
     public static int getNetEntityId(Object entity) {
-        return (int) invokeMethod(getNetMethod("Entity", "getId"), entity);
+        return getEntityId((net.minecraft.world.entity.Entity) entity);
     }
 
     public static int getCraftEntityId(Object entity) {
         return (int) invokeMethod(getCraftMethod("entity.CraftEntity", "getEntityId"), entity);
+    }
+
+    public static void setCollision(net.minecraft.world.entity.EntityLiving entity, UUID uuid, boolean flag) {
+        entity.collides = false;
+        if (!flag) {
+            entity.collidableExemptions.add(uuid);
+        }
+        else {
+            entity.collidableExemptions.remove(uuid);
+        }
+    }
+
+    public static void setCollision(net.minecraft.world.entity.EntityLiving entity, Entity collider, boolean flag) {
+        setCollision(entity, collider.getUniqueId(), flag);
     }
 
     public static Player[] insureViewers(Player... in) {
@@ -298,8 +318,8 @@ public final class Reflect {
         try {
             final Class<?> damageSource = getNetClass("DamageSource");
             getNetEntity(entity).getClass()
-                                .getMethod("damageEntity", damageSource, float.class)
-                                .invoke(entity, damageSource.getField("GENERIC").get(damageSource), (float) damage);
+                    .getMethod("damageEntity", damageSource, float.class)
+                    .invoke(entity, damageSource.getField("GENERIC").get(damageSource), (float) damage);
         } catch (Exception e) {
             e.printStackTrace();
         }
