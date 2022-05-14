@@ -1,0 +1,9 @@
+name: "EternaAPI"
+main: "kz.hapyl.spigotutils.EternaPlugin"
+version: ${version}
+author: "hapyl"
+description: ${description}
+prefix: "EternaAPI"
+api-version: 1.18
+depend:
+  - ProtocolLib
