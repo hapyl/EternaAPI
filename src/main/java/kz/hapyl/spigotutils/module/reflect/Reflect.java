@@ -337,7 +337,7 @@ public final class Reflect {
     }
 
     public static void sendPacket(Player player, Packet<?> packet) {
-        if (HumanNPC.byId.containsKey(player.getEntityId())) {
+        if (HumanNPC.isNPC(player.getEntityId())) {
             return;
         }
         final EntityPlayer mc = getMinecraftPlayer(player);

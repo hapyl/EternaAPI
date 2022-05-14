@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.reflect;
 
-import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
+import kz.hapyl.spigotutils.EternaRegistry;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -13,7 +13,7 @@ public class NPCRunnable implements Runnable {
 
     @Override
     public void run() {
-        HumanNPC.byId.forEach((id, npc) -> {
+        EternaRegistry.getNpcRegistry().getRegistered().forEach((id, npc) -> {
             if (npc.getFarAwayDist() > 0 && !npc.isPersistent()) {
                 npc.getViewers().forEach((player) -> {
                     if (!Objects.equals(player.getLocation().getWorld(), npc.getLocation().getWorld())) {

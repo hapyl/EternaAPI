@@ -8,88 +8,41 @@ import java.util.*;
 
 public class QuestManager {
 
-    private static final QuestManager classInstance = new QuestManager();
-    private static final QuestFormatter FORMATTER = new QuestFormatter() {
-
-        @Override
-        public void sendObjectiveNew(Player player, QuestObjective objective) {
-            Chat.sendMessage(player, "");
-            Chat.sendCenterMessage(player, "&e&lNEW OBJECTIVE!");
-            Chat.sendCenterMessage(player, "&6" + objective.getObjectiveName());
-            Chat.sendCenterMessage(player, "&7" + objective.getObjectiveShortInfo());
-            Chat.sendMessage(player, "");
-        }
-
-        @Override
-        public void sendObjectiveComplete(Player player, QuestObjective objective) {
-            Chat.sendMessage(player, "");
-            Chat.sendCenterMessage(player, "&2&lOBJECTIVE COMPLETE!");
-            Chat.sendCenterMessage(player, "&a✔ " + objective.getObjectiveName());
-            Chat.sendMessage(player, "");
-        }
-
-        @Override
-        public void sendObjectiveFailed(Player player, QuestObjective objective) {
-            Chat.sendMessage(player, "");
-            Chat.sendCenterMessage(player, "&c&lOBJECTIVE FAILED!");
-            Chat.sendCenterMessage(player, "&7It's ok! Try again.");
-            Chat.sendMessage(player, "");
-        }
-
-        @Override
-        public void sendQuestCompleteFormat(Player player, Quest quest) {
-            sendLine(player);
-            Chat.sendCenterMessage(player, "&6&lQUEST COMPLETE");
-            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
-            sendLine(player);
-        }
-
-        @Override
-        public void sendQuestStartedFormat(Player player, Quest quest) {
-            sendLine(player);
-            Chat.sendCenterMessage(player, "&6&lQuest Started");
-            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
-            Chat.sendCenterMessage(player, "");
-            Chat.sendCenterMessage(player, "&aCurrent Objective:");
-            Chat.sendCenterMessage(player, "&7&o" + quest.getCurrentObjective().getObjectiveName());
-            Chat.sendCenterMessage(player, "&7&o" + quest.getCurrentObjective().getObjectiveShortInfo());
-            sendLine(player);
-        }
-
-        @Override
-        public void sendQuestFailedFormat(Player player, Quest quest) {
-            sendLine(player);
-            Chat.sendCenterMessage(player, "&c&lQUEST FAILED");
-            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
-            sendLine(player);
-        }
-
-        private void sendLine(Player player) {
-            Chat.sendCenterMessage(player, "&e&m]                                      [");
-        }
-    };
-
     private final Map<UUID, Set<QuestProgress>> playerQuests;
-    private final Map<Integer, Quest> byIdQuests;
-
-    private int freeId = 0;
+    private final Map<String, Quest> byIdQuests;
 
     private QuestManager() {
         this.playerQuests = new HashMap<>();
         this.byIdQuests = new HashMap<>();
     }
 
+    /**
+     * Registers a quest.
+     *
+     * @param quest - Quest to register.
+     * @throws IllegalArgumentException - If Quest is already registered.
+     */
     public void registerQuest(Quest quest) {
-        quest.setQuestId(this.freeId++);
-        this.byIdQuests.put(quest.getQuestId(), quest);
+        final String questId = quest.getQuestId();
+        if (getById(questId) != null) {
+            throw new IllegalArgumentException("Quest with ID %s is already registered!".formatted(questId));
+        }
+        this.byIdQuests.put(questId, quest);
+    }
+
+    public void unregisterQuest(Quest quest) {
+        final String questId = quest.getQuestId();
+        if (getById(questId) != null) {
+            byIdQuests.remove(questId);
+        }
     }
 
     @Nullable
-    public Quest getById(int id) {
-        return this.byIdQuests.get(id);
+    public Quest getById(String id) {
+        return this.byIdQuests.get(id.toLowerCase(Locale.ROOT));
     }
 
-    public Map<Integer, Quest> getRegisteredQuests() {
+    public Map<String, Quest> getRegisteredQuests() {
         return byIdQuests;
     }
 
@@ -116,6 +69,22 @@ public class QuestManager {
         }
         hash.remove(quest);
         this.playerQuests.put(player.getUniqueId(), hash);
+    }
+
+    /**
+     * Adds a QuestProgress to player current quest progress if not present.
+     *
+     * @param player   - Player.
+     * @param progress - Progress.
+     */
+    public void addQuestProgress(Player player, QuestProgress progress) {
+        if (hasQuest(player, progress.getQuest())) {
+            return;
+        }
+
+        final Set<QuestProgress> set = getProgress(player);
+        set.add(progress);
+        playerQuests.put(player.getUniqueId(), set);
     }
 
     public Set<QuestProgress> getActiveQuests(Player player) {
@@ -189,4 +158,66 @@ public class QuestManager {
         }
         return false;
     }
+
+    private static final QuestManager classInstance = new QuestManager();
+    private static final QuestFormatter FORMATTER = new QuestFormatter() {
+
+        @Override
+        public void sendObjectiveNew(Player player, QuestObjective objective) {
+            Chat.sendMessage(player, "");
+            Chat.sendCenterMessage(player, "&e&lNEW OBJECTIVE!");
+            Chat.sendCenterMessage(player, "&6" + objective.getObjectiveName());
+            Chat.sendCenterMessage(player, "&7" + objective.getObjectiveShortInfo());
+            Chat.sendMessage(player, "");
+        }
+
+        @Override
+        public void sendObjectiveComplete(Player player, QuestObjective objective) {
+            Chat.sendMessage(player, "");
+            Chat.sendCenterMessage(player, "&2&lOBJECTIVE COMPLETE!");
+            Chat.sendCenterMessage(player, "&a✔ " + objective.getObjectiveName());
+            Chat.sendMessage(player, "");
+        }
+
+        @Override
+        public void sendObjectiveFailed(Player player, QuestObjective objective) {
+            Chat.sendMessage(player, "");
+            Chat.sendCenterMessage(player, "&c&lOBJECTIVE FAILED!");
+            Chat.sendCenterMessage(player, "&7It's ok! Try again.");
+            Chat.sendMessage(player, "");
+        }
+
+        @Override
+        public void sendQuestCompleteFormat(Player player, Quest quest) {
+            sendLine(player);
+            Chat.sendCenterMessage(player, "&6&lQUEST COMPLETE");
+            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
+            sendLine(player);
+        }
+
+        @Override
+        public void sendQuestStartedFormat(Player player, Quest quest) {
+            sendLine(player);
+            Chat.sendCenterMessage(player, "&6&lQuest Started");
+            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
+            Chat.sendCenterMessage(player, "");
+            Chat.sendCenterMessage(player, "&aCurrent Objective:");
+            Chat.sendCenterMessage(player, "&7&o" + quest.getCurrentObjective().getObjectiveName());
+            Chat.sendCenterMessage(player, "&7&o" + quest.getCurrentObjective().getObjectiveShortInfo());
+            sendLine(player);
+        }
+
+        @Override
+        public void sendQuestFailedFormat(Player player, Quest quest) {
+            sendLine(player);
+            Chat.sendCenterMessage(player, "&c&lQUEST FAILED");
+            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
+            sendLine(player);
+        }
+
+        private void sendLine(Player player) {
+            Chat.sendCenterMessage(player, "&e&m]                                      [");
+        }
+    };
+
 }

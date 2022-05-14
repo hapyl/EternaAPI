@@ -109,6 +109,26 @@ public class QuestProgress {
         return this.objectives;
     }
 
+    public static void fromData(Player player, String questId, long currentStage, double goalProgress) {
+        final Quest quest = QuestManager.current().getById(questId);
+        if (quest == null) {
+            Chat.sendMessage(player, "&cCould not load quest %s for you because it doesn't exist!", questId);
+            return;
+        }
+
+        final QuestProgress progress = new QuestProgress(player, quest);
+
+        // set progress
+        for (int i = 0; i < currentStage; i++) {
+            progress.objectives.poll();
+        }
+
+        progress.currentStage = currentStage;
+        progress.getCurrentObjective().incrementGoal(goalProgress, false);
+
+        QuestManager.current().addQuestProgress(player, progress);
+    }
+
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("QuestProgress{");

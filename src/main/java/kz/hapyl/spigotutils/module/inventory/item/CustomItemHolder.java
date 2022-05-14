@@ -2,6 +2,7 @@ package kz.hapyl.spigotutils.module.inventory.item;
 
 import com.google.common.collect.Maps;
 import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.Registry;
 import kz.hapyl.spigotutils.module.nbt.NBT;
 import org.bukkit.inventory.ItemStack;
 
@@ -9,9 +10,13 @@ import javax.annotation.Nullable;
 import java.util.Locale;
 import java.util.Map;
 
-public final class CustomItemHolder {
+public final class CustomItemHolder extends Registry<CustomItem> {
 
     public final Map<String, CustomItem> customItems = Maps.newConcurrentMap();
+
+    public CustomItemHolder(EternaPlugin plugin) {
+        super(plugin);
+    }
 
     @Nullable
     public CustomItem byId(String id) {
@@ -35,6 +40,7 @@ public final class CustomItemHolder {
         return in.toUpperCase(Locale.ROOT).replace(" ", "_");
     }
 
+    @Override
     public void register(CustomItem item) {
         final String id = item.getId();
         if (isItemExists(id)) {
@@ -43,6 +49,7 @@ public final class CustomItemHolder {
         this.customItems.put(formatId(id), item);
     }
 
+    @Override
     public void unregister(CustomItem item) {
         final String id = item.getId();
         if (!isItemExists(id)) {

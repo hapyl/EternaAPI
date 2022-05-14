@@ -1,6 +1,8 @@
 package kz.hapyl.spigotutils.module.parkour;
 
 import com.google.common.collect.Maps;
+import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.HashRegistry;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.event.parkour.*;
 import kz.hapyl.spigotutils.module.player.EffectType;
@@ -18,7 +20,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-public class ParkourManager {
+public class ParkourManager extends HashRegistry<Position, Parkour> {
 
     public final Map<Position, Parkour> byPosition = Maps.newHashMap();
 
@@ -27,8 +29,19 @@ public class ParkourManager {
 
     private final Map<Player, Data> parkourData;
 
-    public ParkourManager() {
+    public ParkourManager(EternaPlugin plugin) {
+        super(plugin);
         this.parkourData = Maps.newHashMap();
+    }
+
+    @Override
+    public void register(Position position, Parkour parkour) {
+        byPosition.put(position, parkour);
+    }
+
+    @Override
+    public void unregister(Position position, Parkour parkour) {
+        byPosition.remove(position);
     }
 
     public void startParkour(Player player, Parkour parkour) {
@@ -253,6 +266,7 @@ public class ParkourManager {
     }
 
     public void restoreAllData() {
+        getRegisteredParkours().forEach(Parkour::removeWorldEntities);
         parkourData.values().forEach(data -> data.getPlayerInfo().restore());
     }
 

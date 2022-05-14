@@ -2,9 +2,8 @@ package kz.hapyl.spigotutils;
 
 import kz.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
 import kz.hapyl.spigotutils.builtin.command.QuestCommand;
+import kz.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import kz.hapyl.spigotutils.module.command.CommandProcessor;
-import kz.hapyl.spigotutils.module.entity.Rope;
-import kz.hapyl.spigotutils.module.hologram.Hologram;
 import kz.hapyl.spigotutils.module.hologram.HologramRunnable;
 import kz.hapyl.spigotutils.module.inventory.ChestInventoryListener;
 import kz.hapyl.spigotutils.module.inventory.ItemBuilderListener;
@@ -13,7 +12,6 @@ import kz.hapyl.spigotutils.module.inventory.item.CustomItemHolder;
 import kz.hapyl.spigotutils.module.inventory.item.CustomItemListener;
 import kz.hapyl.spigotutils.module.listener.SimpleListener;
 import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
-import kz.hapyl.spigotutils.module.parkour.Parkour;
 import kz.hapyl.spigotutils.module.parkour.ParkourListener;
 import kz.hapyl.spigotutils.module.parkour.ParkourManager;
 import kz.hapyl.spigotutils.module.parkour.ParkourRunnable;
@@ -22,10 +20,10 @@ import kz.hapyl.spigotutils.module.quest.QuestListener;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingManager;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
-import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import kz.hapyl.spigotutils.module.reflect.protocol.GlowingListener;
 import kz.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
 import kz.hapyl.spigotutils.module.reflect.protocol.SignListener;
+import kz.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -41,10 +39,7 @@ public class EternaPlugin extends JavaPlugin {
 
     private static EternaPlugin plugin;
 
-    private SongPlayer songPlayer;
-    private CustomItemHolder itemHolder;
-    private GlowingManager glowingManager;
-    private ParkourManager parkourManager;
+    private EternaRegistry registry;
 
     @Override
     public void onEnable() {
@@ -59,11 +54,9 @@ public class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new TriggerManager(), this);
         manager.registerEvents(new QuestListener(), this);
         manager.registerEvents(new ParkourListener(), this);
+        manager.registerEvents(new PlayerConfigEvent(), this);
 
-        this.songPlayer = new SongPlayer(this);
-        this.glowingManager = new GlowingManager(this);
-        this.itemHolder = new CustomItemHolder();
-        this.parkourManager = new ParkourManager();
+        registry = new EternaRegistry(this);
 
         final BukkitScheduler scheduler = Bukkit.getScheduler();
 
@@ -94,47 +87,44 @@ public class EternaPlugin extends JavaPlugin {
             e.printStackTrace();
         }
 
+        // Load PlayerConfig for online players
+        Runnables.runLater(() -> Bukkit.getOnlinePlayers().forEach(player -> registry.configManager.getConfig(player).loadAll()), 10L);
+
         new Test().test();
 
     }
 
+    public EternaRegistry getRegistry() {
+        return registry;
+    }
+
+    // TODO: 014. 14/05/2022 - reduce static to 0!!
     @Override
     public void onDisable() {
-        // reset parkours
-        runSafe(() -> {
-            parkourManager.getRegisteredParkours().forEach(Parkour::removeWorldEntities);
-            parkourManager.restoreAllData();
-        }, "parkour manager reset");
-
-        // remove NPCs
-        runSafe(HumanNPC::removeAll, "human npc removal");
-        // remove holograms
-        runSafe(Hologram::removeAll, "hologram removal");
-        // remove ropes
-        runSafe(Rope::callThisOnDisable, "ropes removal");
+        registry.onDisable();
     }
 
     public CustomItemHolder getItemHolder() {
-        return itemHolder;
+        return registry.itemHolder;
     }
 
     public SongPlayer getSongPlayer() {
-        return songPlayer;
+        return registry.songPlayer;
     }
 
     public ParkourManager getParkourManager() {
-        return parkourManager;
+        return registry.parkourManager;
     }
 
     public GlowingManager getGlowingManager() {
-        return glowingManager;
+        return registry.glowingManager;
     }
 
-    private void runSafe(Runnable runnable, String name) {
+    private static void runSafe(Runnable runnable, String name) {
         try {
             runnable.run();
-        } catch (Error exception) {
-            Bukkit.getLogger().severe("Could not run " + name + " in onDisable(), did you /reload your server?");
+        } catch (Throwable exception) {
+            Bukkit.getLogger().severe("Could not run '" + name + "' in onDisable(), did you /reload your server?");
             Bukkit.getLogger().severe(exception.getMessage());
         }
     }

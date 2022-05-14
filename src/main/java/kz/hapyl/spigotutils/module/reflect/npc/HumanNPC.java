@@ -8,6 +8,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.EternaRegistry;
 import kz.hapyl.spigotutils.module.annotate.InsuredViewers;
 import kz.hapyl.spigotutils.module.annotate.TestedNMS;
 import kz.hapyl.spigotutils.module.chat.Chat;
@@ -58,7 +59,6 @@ import java.util.function.Consumer;
 public class HumanNPC implements Intractable {
 
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
-    public static final HashMap<Integer, HumanNPC> byId = new HashMap<>();
 
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
@@ -148,9 +148,13 @@ public class HumanNPC implements Intractable {
         this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getBukkitEntity()
                                                                                       .getEntityId()));
 
-        byId.put(this.bukkitEntity().getEntityId(), this);
+        EternaRegistry.getNpcRegistry().register(this);
         this.alive = true;
 
+    }
+
+    public static boolean isNPC(int entityId) {
+        return EternaRegistry.getNpcRegistry().isRegistered(entityId);
     }
 
     public void setFreezeTicks(int ticks) {
@@ -171,7 +175,7 @@ public class HumanNPC implements Intractable {
     }
 
     public static void hideAllNames(Scoreboard score) {
-        for (final HumanNPC value : byId.values()) {
+        for (final HumanNPC value : EternaRegistry.getNpcRegistry().getRegistered().values()) {
             value.hideTabListName();
         }
     }
@@ -368,7 +372,7 @@ public class HumanNPC implements Intractable {
     }
 
     public boolean exists() {
-        return byId.containsKey(this.bukkitEntity().getEntityId());
+        return EternaRegistry.getNpcRegistry().isRegistered(getId());
     }
 
     public String getName() {
@@ -753,7 +757,7 @@ public class HumanNPC implements Intractable {
         this.alive = false;
         this.hide();
         this.showingTo.clear();
-        byId.remove(this.getId());
+        EternaRegistry.getNpcRegistry().remove(getId());
     }
 
     @InsuredViewers
@@ -781,7 +785,7 @@ public class HumanNPC implements Intractable {
     }
 
     public int getId() {
-        return this.bukkitEntity().getEntityId();
+        return bukkitEntity().getEntityId();
     }
 
     @InsuredViewers
@@ -835,16 +839,9 @@ public class HumanNPC implements Intractable {
         }
     }
 
-    public static void removeAll() {
-        if (!byId.isEmpty()) {
-            byId.forEach((a, b) -> b.getViewers().forEach(b::hide));
-        }
-        byId.clear();
-    }
-
     @Nullable
     public static HumanNPC getById(int id) {
-        return byId.getOrDefault(id, null);
+        return EternaRegistry.getNpcRegistry().getById(id);
     }
 
 }

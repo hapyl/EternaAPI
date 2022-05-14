@@ -6,14 +6,11 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Creates a new quest.
- *
- * <b>Quest Progress isn't persistent on reloads.</b>
- * <b>Persistence will be implemented soon.</b>
  */
 public class Quest {
 
@@ -24,19 +21,20 @@ public class Quest {
 
     private QuestFormatter formatter;
 
-    private int questId;
+    private final String questId;
     private final boolean autoClaim;
     private boolean allowParallel;
 
-    public Quest(String displayName, boolean autoClaim) {
+    public Quest(String questId, String displayName, boolean autoClaim) {
+        this.questId = questId.toLowerCase(Locale.ROOT);
         this.displayName = displayName;
         this.objectives = new HashMap<>();
         this.autoClaim = autoClaim;
         this.formatter = QuestManager.formatter();
     }
 
-    public Quest(String displayName) {
-        this(displayName, true);
+    public Quest(String questId, String displayName) {
+        this(questId, displayName, true);
     }
 
     public void setFormatter(@Nonnull QuestFormatter formatter) {
@@ -86,16 +84,12 @@ public class Quest {
         this.sendQuestInfo(player);
     }
 
-    public void setQuestId(int questId) {
-        this.questId = questId;
-    }
-
-    public int getQuestId() {
+    public String getQuestId() {
         return questId;
     }
 
     public final boolean isValid() {
-        return !this.displayName.equalsIgnoreCase("") && this.objectives.size() != 0;
+        return !questId.isBlank() && !this.displayName.isBlank() && this.objectives.size() != 0;
     }
 
     /**
@@ -142,20 +136,15 @@ public class Quest {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (other == null || getClass() != other.getClass()) {
             return false;
         }
-        Quest quest = (Quest) o;
-        return questId == quest.questId && autoClaim == quest.autoClaim && Objects.equals(displayName, quest.displayName) &&
-                Objects.equals(objectives, quest.objectives) && Objects.equals(reward, quest.reward);
+        Quest quest = (Quest) other;
+        return questId.equalsIgnoreCase(quest.getQuestId()); // now using string id's to compare quests
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(displayName, objectives, reward, questId, autoClaim);
-    }
 }

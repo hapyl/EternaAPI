@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.module.entity;
 
+import kz.hapyl.spigotutils.EternaRegistry;
 import kz.hapyl.spigotutils.module.util.BukkitUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -7,17 +8,12 @@ import org.bukkit.World;
 import org.bukkit.entity.Bat;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 /**
  * This class allows to create ropes between two areas.
  */
 public class Rope {
-
-    private static final Map<Integer, Rope> byId = new HashMap<>();
-    private static int freeId = 0;
 
     private boolean removeAtServerRestart;
     private int id;
@@ -65,7 +61,8 @@ public class Rope {
                 bat.setLeashHolder(null);
             }
         }
-        byId.remove(this.id);
+
+        EternaRegistry.getRopeRegistry().unregister(this.id, this);
     }
 
     public void spawn() {
@@ -73,8 +70,7 @@ public class Rope {
         this.bats[0] = this.spawnBat(BukkitUtils.centerLocation(this.startPoint));
         this.bats[1] = this.spawnBat(BukkitUtils.centerLocation(this.endPoint));
         this.bats[0].setLeashHolder(this.bats[1]);
-        this.id = freeId++;
-        byId.put(this.id, this);
+        EternaRegistry.getRopeRegistry().register(this);
     }
 
     public Location getStartPoint() {
@@ -92,21 +88,7 @@ public class Rope {
     // static members
     @Nullable
     public static Rope getById(int id) {
-        return byId.getOrDefault(id, null);
-    }
-
-    public static Map<Integer, Rope> getRopes() {
-        return byId;
-    }
-
-    public static void callThisOnDisable() {
-        if (!byId.isEmpty()) {
-            byId.forEach((id, rope) -> {
-                if (rope.removeAtServerRestart) {
-                    rope.remove();
-                }
-            });
-        }
+        return EternaRegistry.getRopeRegistry().getById(id);
     }
 
     private Bat spawnBat(Location location) {
@@ -130,4 +112,11 @@ public class Rope {
         }
     }
 
+    public void setId(int freeId) {
+        id = freeId;
+    }
+
+    public boolean isRemoveAtRestart() {
+        return removeAtServerRestart;
+    }
 }

@@ -1,12 +1,14 @@
 package kz.hapyl.spigotutils.module.hologram;
 
+import kz.hapyl.spigotutils.EternaRegistry;
+
 import java.util.Objects;
 
 public class HologramRunnable implements Runnable {
 
     @Override
     public void run() {
-        Hologram.holograms.forEach(hologram -> {
+        EternaRegistry.getHologramRegistry().getHolograms().forEach(hologram -> {
             if (hologram.getRemoveWhenFarAway() > 0 && !hologram.isPersistent()) {
                 hologram.getShowingTo().forEach((player, status) -> {
                     if (!Objects.equals(player.getLocation().getWorld(), hologram.getLocation().getWorld())) {

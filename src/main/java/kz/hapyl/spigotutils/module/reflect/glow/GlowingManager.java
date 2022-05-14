@@ -2,21 +2,31 @@ package kz.hapyl.spigotutils.module.reflect.glow;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.HashRegistry;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
-public class GlowingManager {
+public class GlowingManager extends HashRegistry<Entity, Glowing> {
 
-    private final JavaPlugin plugin;
     private final Map<Entity, Set<Glowing>> glowing = Maps.newConcurrentMap();
 
-    public GlowingManager(JavaPlugin plugin) {
-        this.plugin = plugin;
+    public GlowingManager(EternaPlugin plugin) {
+        super(plugin);
+    }
+
+    @Override
+    public void register(Entity entity, Glowing glowing) {
+        addGlowing(entity, glowing);
+    }
+
+    @Override
+    public void unregister(Entity entity, Glowing glowing) {
+        removeGlowing(entity, glowing);
     }
 
     public void addGlowing(Entity entity, Glowing glowing) {

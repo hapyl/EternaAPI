@@ -1,11 +1,12 @@
 package kz.hapyl.spigotutils.module.player.song;
 
+import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.Registry;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -15,145 +16,155 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SongPlayer {
+// todo - convert this to registry of song players to allow multiple players
+public class SongPlayer extends Registry<SongPlayer> {
 
-	protected Song currentSong;
-	private boolean playing;
-	private boolean pause;
-	private long tick = 0L;
-	private BukkitTask task;
-	private Set<Player> listeners;
+    protected Song currentSong;
+    private boolean playing;
+    private boolean pause;
+    private long tick = 0L;
+    private BukkitTask task;
+    private Set<Player> listeners;
 
-	private final SongQueue queue;
-	private final JavaPlugin plugin;
+    private final SongQueue queue;
 
-	public SongPlayer(JavaPlugin plugin) {
-		this.plugin = plugin;
-		this.listeners = new HashSet<>();
-		this.queue = new SongPlayerQueue();
-	}
+    public SongPlayer(EternaPlugin plugin) {
+        super(plugin);
+        this.listeners = new HashSet<>();
+        this.queue = new SongPlayerQueue();
+    }
 
-	public SongQueue getQueue() {
-		return queue;
-	}
+    @Override
+    public void register(SongPlayer songPlayer) {
 
-	public void addListener(Player player) {
-		this.listeners.add(player);
-	}
+    }
 
-	public void removeListener(Player player) {
-		this.listeners.remove(player);
-	}
+    @Override
+    public void unregister(SongPlayer songPlayer) {
 
-	public boolean isPaused() {
-		return pause;
-	}
+    }
 
-	public boolean isListener(Player player) {
-		return this.listeners == null || this.listeners.contains(player);
-	}
+    public SongQueue getQueue() {
+        return queue;
+    }
 
-	public void everyoneIsListener() {
-		this.listeners = null;
-	}
+    public void addListener(Player player) {
+        this.listeners.add(player);
+    }
 
-	public void pausePlaying() {
-		this.pause = !this.pause;
-		sendMessage("%s Playing &l" + this.currentSong.getName(), this.pause ? "&ePaused" : "&aUnpause");
-	}
+    public void removeListener(Player player) {
+        this.listeners.remove(player);
+    }
 
-	public void stopPlaying() {
-		if (currentSong != null) {
-			sendMessage("&aFinished Playing &l" + this.currentSong.getName());
-			this.currentSong = null;
-		}
-		if (task != null) {
-			task.cancel();
-		}
-		this.playing = false;
-	}
+    public boolean isPaused() {
+        return pause;
+    }
 
-	public void setCurrentSong(Song song) {
-		this.stopPlaying();
-		this.currentSong = song;
-	}
+    public boolean isListener(Player player) {
+        return this.listeners == null || this.listeners.contains(player);
+    }
 
-	public boolean isPlaying() {
-		return playing;
-	}
+    public void everyoneIsListener() {
+        this.listeners = null;
+    }
 
-	@Nullable
-	public Song getCurrentSong() {
-		return currentSong;
-	}
+    public void pausePlaying() {
+        this.pause = !this.pause;
+        sendMessage("%s Playing &l" + this.currentSong.getName(), this.pause ? "&ePaused" : "&aUnpause");
+    }
 
-	public boolean hasSong() {
-		return currentSong != null;
-	}
+    public void stopPlaying() {
+        if (currentSong != null) {
+            sendMessage("&aFinished Playing &l" + this.currentSong.getName());
+            this.currentSong = null;
+        }
+        if (task != null) {
+            task.cancel();
+        }
+        this.playing = false;
+    }
 
-	public void startPlaying() {
-		if (playing) {
-			stopPlaying();
-		}
+    public void setCurrentSong(Song song) {
+        this.stopPlaying();
+        this.currentSong = song;
+    }
 
-		sendMessage("&aNow Playing &l" + this.currentSong.getName());
-		if (!currentSong.isOkOctave()) {
-			sendMessage("&eSome notes in this song aren't between F#0 and F#2, it might sound off!");
-		}
-		this.playing = true;
-		this.tick = 0;
-		this.task = new BukkitRunnable() {
+    public boolean isPlaying() {
+        return playing;
+    }
 
-			@Override
-			public void run() {
+    @Nullable
+    public Song getCurrentSong() {
+        return currentSong;
+    }
 
-				if (pause) {
-					return;
-				}
+    public boolean hasSong() {
+        return currentSong != null;
+    }
 
-				if (tick++ >= currentSong.getLength()) {
-					stopPlaying();
-					queue.playNext();
-					return;
-				}
+    public void startPlaying() {
+        if (playing) {
+            stopPlaying();
+        }
 
-				final List<SongNote> notes = currentSong.getNotes(tick);
+        sendMessage("&aNow Playing &l" + this.currentSong.getName());
+        if (!currentSong.isOkOctave()) {
+            sendMessage("&eSome notes in this song aren't between F#0 and F#2, it might sound off!");
+        }
+        this.playing = true;
+        this.tick = 0;
+        this.task = new BukkitRunnable() {
 
-				if (notes != null) {
-					for (final SongNote note : notes) {
-						note.play(getListeners());
-					}
-				}
+            @Override
+            public void run() {
 
-			}
-		}.runTaskTimer(plugin, 0, this.currentSong.getTempo());
-	}
+                if (pause) {
+                    return;
+                }
 
-	public long getCurrentFrame() {
-		return tick;
-	}
+                if (tick++ >= currentSong.getLength()) {
+                    stopPlaying();
+                    queue.playNext();
+                    return;
+                }
 
-	public long getMaxFrame() {
-		return this.currentSong == null ? 1 : this.currentSong.getLength();
-	}
+                final List<SongNote> notes = currentSong.getNotes(tick);
 
-	private Collection<? extends Player> getListeners() {
-		return this.listeners == null ? Bukkit.getOnlinePlayers() : this.listeners;
-	}
+                if (notes != null) {
+                    for (final SongNote note : notes) {
+                        note.play(getListeners());
+                    }
+                }
 
-	private final String prefix = "&b&lNBS> &7";
+            }
+        }.runTaskTimer(plugin, 0, this.currentSong.getTempo());
+    }
 
-	public void sendMessage(Player player, String msg, Object... dot) {
-		Chat.sendMessage(player, prefix + msg, dot);
-	}
+    public long getCurrentFrame() {
+        return tick;
+    }
 
-	public void sendMessage(Player player, BaseComponent[] components) {
-		player.spigot().sendMessage(new ComponentBuilder(Chat.format(prefix)).append(components).create());
-	}
+    public long getMaxFrame() {
+        return this.currentSong == null ? 1 : this.currentSong.getLength();
+    }
 
-	public void sendMessage(String msg, Object... dot) {
-		for (final Player player : getListeners()) {
-			Chat.sendMessage(player, prefix + msg, dot);
-		}
-	}
+    private Collection<? extends Player> getListeners() {
+        return this.listeners == null ? Bukkit.getOnlinePlayers() : this.listeners;
+    }
+
+    private final String prefix = "&b&lNBS> &7";
+
+    public void sendMessage(Player player, String msg, Object... dot) {
+        Chat.sendMessage(player, prefix + msg, dot);
+    }
+
+    public void sendMessage(Player player, BaseComponent[] components) {
+        player.spigot().sendMessage(new ComponentBuilder(Chat.format(prefix)).append(components).create());
+    }
+
+    public void sendMessage(String msg, Object... dot) {
+        for (final Player player : getListeners()) {
+            Chat.sendMessage(player, prefix + msg, dot);
+        }
+    }
 }

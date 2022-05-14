@@ -1,6 +1,7 @@
 package kz.hapyl.spigotutils.module.hologram;
 
 import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.EternaRegistry;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.reflect.Reflect;
 import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
@@ -26,8 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Hologram {
 
-    public static final Set<Hologram> holograms = new HashSet<>();
-
     /**
      * Vertical offset of the holograms.
      */
@@ -51,7 +50,7 @@ public class Hologram {
         this.lines = new ArrayList<>(size);
         this.packets = new HashMap<>();
         this.showingTo = new ConcurrentHashMap<>();
-        holograms.add(this);
+        EternaRegistry.getHologramRegistry().register(this);
     }
 
     public Hologram() {
@@ -126,15 +125,6 @@ public class Hologram {
         return this;
     }
 
-    public static void removeAll() {
-        if (!holograms.isEmpty()) {
-            for (Hologram hologram : holograms) {
-                hologram.removeStands();
-            }
-        }
-        holograms.clear();
-    }
-
     /**
      * If hologram is persistent it will not be removed when far away./
      *
@@ -177,10 +167,10 @@ public class Hologram {
             this.task.cancel();
         }
 
-        holograms.remove(this);
+        EternaRegistry.getHologramRegistry().unregister(this);
     }
 
-    private void removeStands() {
+    protected void removeStands() {
         this.showingTo.forEach((player, status) -> this.hide(player));
         this.packets.clear();
     }
