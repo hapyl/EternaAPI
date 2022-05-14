@@ -16,56 +16,54 @@ import java.util.function.Predicate;
 
 public class ItemBuilderListener implements Listener {
 
-	@EventHandler()
-	private void handleClick(PlayerInteractEvent ev) {
-		// I just don't like double clicking.
-		if (ev.getHand() == EquipmentSlot.OFF_HAND) {
-			return;
-		}
+    @EventHandler()
+    private void handleClick(PlayerInteractEvent ev) {
+        // I just don't like double clicking.
+        if (ev.getHand() == EquipmentSlot.OFF_HAND) {
+            return;
+        }
 
-		final Player player = ev.getPlayer();
-		final Action action = ev.getAction();
-		final ItemStack item = player.getInventory().getItemInMainHand();
-		final String itemId = ItemBuilder.getItemID(item);
+        final Player player = ev.getPlayer();
+        final Action action = ev.getAction();
+        final ItemStack item = player.getInventory().getItemInMainHand();
+        final String itemId = ItemBuilder.getItemID(item);
 
-		if (ItemBuilder.itemsWithEvents.isEmpty() || !ItemBuilder.itemsWithEvents.containsKey(itemId)) {
-			return;
-		}
+        if (ItemBuilder.itemsWithEvents.isEmpty() || !ItemBuilder.itemsWithEvents.containsKey(itemId)) {
+            return;
+        }
 
-		final ItemBuilder builder = ItemBuilder.itemsWithEvents.getOrDefault(itemId, null);
+        final ItemBuilder builder = ItemBuilder.itemsWithEvents.getOrDefault(itemId, null);
 
-		if (builder == null) {
-			return;
-		}
+        if (builder == null) {
+            return;
+        }
 
-		final Set<ItemAction> functions = builder.getFunctions();
-		functions.stream()
-				.filter(f -> f.hasAction(action))
-				.forEach(func -> {
-					// cooldown check
-					if (builder.getCd() > 0) {
-						final Predicate<Player> predicate = builder.getPredicate();
-						if (predicate != null && predicate.test(player)) {
-							final String error = builder.getError();
-							if (!error.isEmpty()) {
-								player.sendMessage(ChatColor.RED + error);
-							}
-							return;
-						}
+        final Set<ItemAction> functions = builder.getFunctions();
+        functions.stream().filter(f -> f.hasAction(action)).forEach(func -> {
+            // cooldown check
+            if (builder.getCd() > 0) {
+                final Predicate<Player> predicate = builder.getPredicate();
+                if (predicate != null && predicate.test(player)) {
+                    final String error = builder.getError();
+                    if (!error.isEmpty()) {
+                        player.sendMessage(ChatColor.RED + error);
+                    }
+                    return;
+                }
 
-						if (player.hasCooldown(builder.getItem().getType())) {
-							return;
-						}
+                if (player.hasCooldown(builder.getItem().getType())) {
+                    return;
+                }
 
-						player.setCooldown(builder.getItem().getType(), builder.getCd());
-					}
-					func.execute(player);
-					// Progress USE_CUSTOM_ITEM
-					QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, builder.getId());
+                player.setCooldown(builder.getItem().getType(), builder.getCd());
+            }
+            func.execute(player);
+            // Progress USE_CUSTOM_ITEM
+            QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, builder.getId());
 
-				});
+        });
 
-	}
+    }
 
 
 }

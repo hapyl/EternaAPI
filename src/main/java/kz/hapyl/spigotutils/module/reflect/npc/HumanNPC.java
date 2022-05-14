@@ -101,8 +101,18 @@ public class HumanNPC implements Intractable {
         this(location, npcName, npcName);
     }
 
+    /**
+     * Create instance of HumanNPC class.
+     *
+     * @param location  - Location of NPC.
+     * @param npcName   - Name of NPC.
+     *                  Null will convert NPC's name to "&e&lCLICK".
+     *                  Keep blank string to remove name.
+     * @param skinOwner - Skin owner.
+     *                  Leave empty or null to apply skin later.
+     *                  Only use online players names for this. See {@link HumanNPC#setSkinAsync(String)} disclaimer.
+     */
     public HumanNPC(Location location, @Nullable String npcName, @Nullable String skinOwner) {
-
         if (npcName == null) {
             npcName = "&e&lCLICK";
         }
@@ -128,25 +138,14 @@ public class HumanNPC implements Intractable {
             setSkin(skinOwner);
         }
 
-        this.human = new EntityPlayer(
-                Reflect.getMinecraftServer(),
-                (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
-                profile
-        );
+        this.human = new EntityPlayer(Reflect.getMinecraftServer(), (WorldServer) Reflect.getMinecraftWorld(location.getWorld()), profile);
 
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
-        this.packetAddPlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(
-                PacketPlayOutPlayerInfo.EnumPlayerInfoAction.a,
-                this.human
-        ));
-        this.packetRemovePlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(
-                PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e,
-                this.human
-        ));
+        this.packetAddPlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.a, this.human));
+        this.packetRemovePlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e, this.human));
         this.packetSpawn = new ReflectPacket(new PacketPlayOutNamedEntitySpawn(this.human));
-        this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getBukkitEntity()
-                                                                                      .getEntityId()));
+        this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getBukkitEntity().getEntityId()));
 
         EternaRegistry.getNpcRegistry().register(this);
         this.alive = true;
@@ -327,10 +326,7 @@ public class HumanNPC implements Intractable {
 
             // Material test
             if (quest.hasQuestsOfType(player, QuestObjectiveType.GIVE_ITEMS_TO_NPC)) {
-                for (final PlayerQuestObjective obj : quest.getActiveObjectivesOfType(
-                        player,
-                        QuestObjectiveType.GIVE_ITEMS_TO_NPC
-                )) {
+                for (final PlayerQuestObjective obj : quest.getActiveObjectivesOfType(player, QuestObjectiveType.GIVE_ITEMS_TO_NPC)) {
                     final int amount = item.getAmount();
                     // Check for the correct item
                     if (obj.testQuestCompletion(item.getType(), amount, this) >= 0.0d) {
@@ -412,7 +408,8 @@ public class HumanNPC implements Intractable {
         final String[] splits = entry.split(" ");
         final StringBuilder builder = new StringBuilder();
         for (String split : splits) {
-            split = split.replace(Placeholders.PLAYER.get(), player.getName())
+            split = split
+                    .replace(Placeholders.PLAYER.get(), player.getName())
                     .replace(Placeholders.NAME.get(), this.getName())
                     .replace(Placeholders.LOCATION.get(), BukkitUtils.locationToString(this.getLocation()));
             builder.append(split);
@@ -487,8 +484,7 @@ public class HumanNPC implements Intractable {
     @InsuredViewers
     public void setHeadRotation(float yaw, Player... viewers) {
         viewers = insureViewers(viewers);
-        new ReflectPacket(new PacketPlayOutEntityHeadRotation(this.human, (byte) ((yaw * 256) / 360))).sendPackets(
-                viewers);
+        new ReflectPacket(new PacketPlayOutEntityHeadRotation(this.human, (byte) ((yaw * 256) / 360))).sendPackets(viewers);
     }
 
     @InsuredViewers
@@ -541,20 +537,31 @@ public class HumanNPC implements Intractable {
     }
 
     /**
-     * This method grabs texture from an api with delay, which may cause some features not work correctly.
-     * <p>
-     * To prevent this, use {@link HumanNPC#setSkin(String, String)} to apply skin texture's raw data. (Must be applied before {@link HumanNPC#show(Player...)}) is called.
+     * <b>Warning, please read before using.</b>
+     * This method grabs texture from mojang api asynchronously,
+     * which will result in delay. After textures will be applied,
+     * NPC will reload, resetting all per-player packet changes
+     * applied before this, such as Pose, Equipment etc.
      *
-     * @param skinOwner - REAL minecraft account player name.
+     * You can either save the changes and reapply them upon callback,
+     * or, what I recommend use {@link HumanNPC#setSkin(String, String)}
+     * to apply textures and signature manually.
+     *
+     * You can use <a href="https://mineskin.org/gallery">https://mineskin.org/gallery</a>
+     * to grab textures and signature for skins that are permanent.
+     *
+     * Grabbing skin from players name also means that skin is not
+     * permanent and will change upon players changing it.
+     *
+     * <b>I strongly don't recommend using this method for NPCs.</b>
+     *
+     * @param skinOwner - Name (nick) of minecraft account.
      */
     public void setSkinAsync(String skinOwner) {
         runAsync(skinOwner, callback -> {
             this.setSkin(callback[0], callback[1]);
             this.reloadNpcData();
         });
-        EternaPlugin.logger()
-                .warning("Async skin grab called for (%s). It is not recommended to use API grab.".formatted(
-                        this.npcName));
     }
 
     private void runAsync(String str, Consumer<String[]> callback) {
@@ -575,7 +582,8 @@ public class HumanNPC implements Intractable {
                 final EntityPlayer nmsEntity = Reflect.getMinecraftPlayer(player);
                 final GameProfile profile = nmsEntity.fq();
 
-                final Property textures = profile.getProperties()
+                final Property textures = profile
+                        .getProperties()
                         .get("textures")
                         .stream()
                         .findFirst()
@@ -596,7 +604,8 @@ public class HumanNPC implements Intractable {
             final String uuid = new JsonParser().parse(reader).getAsJsonObject().get("id").getAsString();
             final URL sessionUrl = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
             final InputStreamReader sessionReader = new InputStreamReader(sessionUrl.openStream());
-            final JsonObject property = new JsonParser().parse(sessionReader)
+            final JsonObject property = new JsonParser()
+                    .parse(sessionReader)
                     .getAsJsonObject()
                     .get("properties")
                     .getAsJsonArray()
@@ -643,7 +652,7 @@ public class HumanNPC implements Intractable {
     private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
         final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
         list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
-        new ReflectPacket(new PacketPlayOutEntityEquipment(this.getId(), list)).sendPackets(players);
+        ReflectPacket.wrapAndSend(new PacketPlayOutEntityEquipment(this.getId(), list), players);
     }
 
     public NPCEquipment getEquipment() {
@@ -740,8 +749,6 @@ public class HumanNPC implements Intractable {
             final Team team = Helper.getNpcTeam(viewer.getScoreboard());
             team.setOption(Team.Option.COLLISION_RULE, flag ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
             team.addEntry(this.hexName);
-            //            final Team team = getTeamOrCreate(viewer.getScoreboard());
-            //            team.setOption(Team.Option.COLLISION_RULE, flag ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
         }
         return this;
     }
@@ -763,18 +770,12 @@ public class HumanNPC implements Intractable {
     @InsuredViewers
     public void hideTabListName(Player... players) {
         final Player[] finalPlayers = insureViewers(players);
-        Bukkit.getScheduler()
-                .runTaskLater(EternaPlugin.getPlugin(), () -> this.packetRemovePlayer.sendPackets(finalPlayers), 20);
+        Bukkit.getScheduler().runTaskLater(EternaPlugin.getPlugin(), () -> this.packetRemovePlayer.sendPackets(finalPlayers), 20);
     }
 
     @InsuredViewers
     public void updateSkin(Player... viewers) {
-        Reflect.setDataWatcherValue(
-                this.human,
-                DataWatcherType.BYTE,
-                17,
-                (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40)
-        );
+        Reflect.setDataWatcherValue(this.human, DataWatcherType.BYTE, 17, (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40));
         this.updateDataWatcher(viewers);
     }
 

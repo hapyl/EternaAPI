@@ -6,11 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target({ ElementType.METHOD, ElementType.FIELD })
+/**
+ * A note from developer.
+ */
 public @interface DevNote {
 
-	String comment() default "";
+    String comment() default "";
 
-	String warning() default "";
+    String warning() default "";
 
 }

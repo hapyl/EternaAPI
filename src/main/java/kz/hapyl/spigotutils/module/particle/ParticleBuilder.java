@@ -1,6 +1,5 @@
 package kz.hapyl.spigotutils.module.particle;
 
-import kz.hapyl.spigotutils.module.annotate.NOTNULL;
 import kz.hapyl.spigotutils.module.annotate.NotEmpty;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Color;
@@ -9,6 +8,8 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import javax.annotation.Nonnull;
 
 public class ParticleBuilder extends AbstractParticleBuilder {
 
@@ -43,27 +44,33 @@ public class ParticleBuilder extends AbstractParticleBuilder {
     @Override
     public void display(Location location) {
         super.worldNotNull(location);
-        location.getWorld().spawnParticle(this.getParticle(),
-                                          location,
-                                          this.getAmount(),
-                                          this.getOffX(),
-                                          this.getOffY(),
-                                          this.getOffZ(),
-                                          this.getSpeed());
+        location
+                .getWorld()
+                .spawnParticle(
+                        this.getParticle(),
+                        location,
+                        this.getAmount(),
+                        this.getOffX(),
+                        this.getOffY(),
+                        this.getOffZ(),
+                        this.getSpeed()
+                );
     }
 
     @Override
-    public void display(Location location, @NOTNULL @NotEmpty Player... players) {
+    public void display(Location location, @Nonnull @NotEmpty Player... players) {
         super.worldNotNull(location);
         super.viewersNotEmpty(players);
         for (final Player player : players) {
-            player.spawnParticle(this.getParticle(),
-                                 location,
-                                 this.getAmount(),
-                                 this.getOffX(),
-                                 this.getOffY(),
-                                 this.getOffZ(),
-                                 this.getSpeed());
+            player.spawnParticle(
+                    this.getParticle(),
+                    location,
+                    this.getAmount(),
+                    this.getOffX(),
+                    this.getOffY(),
+                    this.getOffZ(),
+                    this.getSpeed()
+            );
         }
     }
 

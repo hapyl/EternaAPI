@@ -8,6 +8,9 @@ import org.bukkit.event.player.PlayerEvent;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Root.
+ */
 public class ParkourEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
@@ -19,6 +22,11 @@ public class ParkourEvent extends PlayerEvent implements Cancellable {
         this.data = data;
     }
 
+    /**
+     * Data of parkour.
+     *
+     * @return data of parkour.
+     */
     public Data getData() {
         return data;
     }

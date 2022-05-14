@@ -2,6 +2,9 @@ package kz.hapyl.spigotutils.module.chat;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 
+/**
+ * Easy access click event builder.
+ */
 public enum LazyClickEvent {
 
     OPEN_URL(ClickEvent.Action.OPEN_URL),

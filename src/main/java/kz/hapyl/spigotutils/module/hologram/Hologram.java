@@ -85,11 +85,7 @@ public class Hologram {
      */
     public Hologram removeLine(int index) throws IndexOutOfBoundsException {
         if (this.lines.size() - 1 < index) {
-            throw new IndexOutOfBoundsException(String.format(
-                    "There is only %s lines, not %s.",
-                    this.lines.size(),
-                    index
-            ));
+            throw new IndexOutOfBoundsException(String.format("There is only %s lines, not %s.", this.lines.size(), index));
         }
         else {
             this.lines.remove(index);
@@ -126,7 +122,7 @@ public class Hologram {
     }
 
     /**
-     * If hologram is persistent it will not be removed when far away./
+     * If hologram is persistent it will not be removed when far away.
      *
      * @param persistent - flag.
      */
@@ -327,10 +323,7 @@ public class Hologram {
             return;
         }
 
-        EntityArmorStand armorStand = new EntityArmorStand(
-                EntityTypes.c,
-                Reflect.getMinecraftWorld(location.getWorld())
-        );
+        EntityArmorStand armorStand = new EntityArmorStand(EntityTypes.c, Reflect.getMinecraftWorld(location.getWorld()));
 
         final ArmorStand bukkit = (ArmorStand) armorStand.getBukkitEntity();
 
@@ -342,14 +335,11 @@ public class Hologram {
         bukkit.setCustomName(name);
         bukkit.setCustomNameVisible(true);
 
-        this.packets.put(
-                armorStand,
-                new ReflectPacket(
-                        new PacketPlayOutSpawnEntityLiving(armorStand),
-                        new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.ai(), true),
-                        new PacketPlayOutEntityDestroy(bukkit.getEntityId())
-                )
-        );
+        this.packets.put(armorStand, new ReflectPacket(
+                new PacketPlayOutSpawnEntityLiving(armorStand),
+                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.ai(), true),
+                new PacketPlayOutEntityDestroy(bukkit.getEntityId())
+        ));
 
     }
 

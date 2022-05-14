@@ -1,8 +1,24 @@
 package kz.hapyl.spigotutils.module.inventory.gui;
 
+/**
+ * Note that cancel type only cancels {@link org.bukkit.event.inventory.InventoryClickEvent}.
+ * Click Event will still fire.
+ */
 public enum CancelType {
-    GUI, // cancels only GUI's inventory
-    INVENTORY, // cancels only player's inventory clicks
-    EITHER, // cancels both player's inventory and gui inventory
-    NEITHER // doesn't cancel anything
+    /**
+     * Cancel only clicks inside GUI.
+     */
+    GUI,
+    /**
+     * Cancel only clicks outside GUI.
+     */
+    INVENTORY,
+    /**
+     * Cancel both clicks inside and outside of GUI.
+     */
+    EITHER,
+    /**
+     * Doesn't cancel any clicks.
+     */
+    NEITHER
 }

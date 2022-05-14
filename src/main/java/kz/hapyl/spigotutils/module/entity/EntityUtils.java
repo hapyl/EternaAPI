@@ -55,6 +55,13 @@ public class EntityUtils {
         Reflect.showEntity(entity, viewers);
     }
 
+    /**
+     * Changes collision of entity. This method uses scoreboards and will not work if scoreboard is changed.
+     *
+     * @param entity  - Entity to change collision for.
+     * @param flag    - if true, collision will be removed, added otherwise.
+     * @param viewers - Who will be affected by collision change.
+     */
     public static void setCollision(Entity entity, boolean flag, Collection<Player> viewers) {
         for (final Player viewer : viewers) {
             final Team team = Helper.getEntityTeam(viewer.getScoreboard());

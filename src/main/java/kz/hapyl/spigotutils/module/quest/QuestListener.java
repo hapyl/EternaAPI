@@ -50,7 +50,7 @@ public class QuestListener implements Listener {
 
     }
 
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGH)
     public void handleEntityBreed(EntityBreedEvent ev) {
         final LivingEntity breeder = ev.getBreeder();
         if (!(breeder instanceof final Player player)) {
@@ -68,7 +68,6 @@ public class QuestListener implements Listener {
         if (increment > 0) {
             if (stat == Statistic.JUMP) {
                 manager.checkActiveQuests(ev.getPlayer(), QuestObjectiveType.JUMP);
-                return;
             }
         }
 

@@ -12,6 +12,7 @@ import java.util.Set;
  *
  * @author hapyl
  */
+@Deprecated
 public class Vote {
 
     protected static final Set<Vote> storedVotes = new HashSet<>();

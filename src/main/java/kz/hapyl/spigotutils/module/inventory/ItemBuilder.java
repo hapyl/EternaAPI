@@ -39,7 +39,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public class ItemBuilder {
 
-    private static final transient String PLUGIN_ID_PATH = "ItemBuilderId";
+    private static final String PLUGIN_ID_PATH = "ItemBuilderId";
     protected static Map<String, ItemBuilder> itemsWithEvents = new HashMap<>();
 
     private final ItemStack item;
@@ -78,7 +78,6 @@ public class ItemBuilder {
     }
 
     // Static Members
-
     public static ItemBuilder playerHead(String texture) {
         return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
     }

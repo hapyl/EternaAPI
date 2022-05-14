@@ -7,20 +7,24 @@ import kz.hapyl.spigotutils.module.util.Validate;
 
 public class TravelDistance extends QuestObjective {
 
-	private final TravelType type;
+    private final TravelType type;
 
-	public TravelDistance(TravelType type, double distance) {
-		super(QuestObjectiveType.TRAVEL_DISTANCE, distance, "Traveller",
-				String.format("Travel %s blocks %s.", distance, type.getString()));
-		this.type = type;
-	}
+    public TravelDistance(TravelType type, double distance) {
+        super(
+                QuestObjectiveType.TRAVEL_DISTANCE,
+                distance,
+                "Traveller",
+                String.format("Travel %s blocks %s.", distance, type.getString())
+        );
+        this.type = type;
+    }
 
-	@Override
-	public double testQuestCompletion(Object... objects) {
-		// type , dist
-		if (objects[0].equals(type)) {
-			return Validate.getDouble(objects[1]);
-		}
-		return -1.0d;
-	}
+    @Override
+    public double testQuestCompletion(Object... objects) {
+        // type , dist
+        if (objects[0].equals(type)) {
+            return Validate.getDouble(objects[1]);
+        }
+        return -1.0d;
+    }
 }

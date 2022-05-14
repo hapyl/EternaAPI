@@ -244,6 +244,13 @@ public class Validate {
         return t;
     }
 
+    public static <T> T nonNull(T t, T def) {
+        if (t == null) {
+            return def;
+        }
+        return t;
+    }
+
     public static void isTrue(boolean mustBeTrue, String ifFalse) {
         if (!mustBeTrue) {
             throw new IllegalArgumentException(ifFalse);

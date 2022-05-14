@@ -11,42 +11,46 @@ import org.bukkit.inventory.ItemStack;
 
 public class GiveItemsToNpc extends QuestObjective {
 
-	private final Material material;
-	private final HumanNPC npc;
+    private final Material material;
+    private final HumanNPC npc;
 
-	public GiveItemsToNpc(Material material, int amount, HumanNPC npc) {
-		super(QuestObjectiveType.GIVE_ITEMS_TO_NPC, amount, "Giver",
-				String.format("Give x%s %s to %s.", amount, Chat.capitalize(material), npc.getName()));
-		this.material = material;
-		this.npc = npc;
-	}
+    public GiveItemsToNpc(Material material, int amount, HumanNPC npc) {
+        super(
+                QuestObjectiveType.GIVE_ITEMS_TO_NPC,
+                amount,
+                "Giver",
+                String.format("Give x%s %s to %s.", amount, Chat.capitalize(material), npc.getName())
+        );
+        this.material = material;
+        this.npc = npc;
+    }
 
-	public void setNpcLineFinished(String npcLineFinished) {
-		this.npc.getNPCResponses().setQuestGiveItemsFinish(npcLineFinished);
-	}
+    public void setNpcLineFinished(String npcLineFinished) {
+        this.npc.getNPCResponses().setQuestGiveItemsFinish(npcLineFinished);
+    }
 
-	public void setNpcLineIncrement(String npcLineIncrement) {
-		this.npc.getNPCResponses().setQuestGiveItemsNeedMore(npcLineIncrement);
-	}
+    public void setNpcLineIncrement(String npcLineIncrement) {
+        this.npc.getNPCResponses().setQuestGiveItemsNeedMore(npcLineIncrement);
+    }
 
-	public void setNpcLineInvalidItem(String npcLineInvalidItem) {
-		this.npc.getNPCResponses().setQuestGiveItemsInvalidItem(npcLineInvalidItem);
-	}
+    public void setNpcLineInvalidItem(String npcLineInvalidItem) {
+        this.npc.getNPCResponses().setQuestGiveItemsInvalidItem(npcLineInvalidItem);
+    }
 
-	@Override
-	public void afterObjectiveIncrement(Player player, double a) {
-		final ItemStack mainHand = player.getInventory().getItemInMainHand();
-		mainHand.setAmount(mainHand.getAmount() - (int)a);
-	}
+    @Override
+    public void afterObjectiveIncrement(Player player, double a) {
+        final ItemStack mainHand = player.getInventory().getItemInMainHand();
+        mainHand.setAmount(mainHand.getAmount() - (int) a);
+    }
 
-	@Override
-	public double testQuestCompletion(Object... objects) {
-		if (objects.length == 3) {
-			final int amount = Validate.getInt(objects[1]);
-			if (objects[0].equals(material) && amount > 0 && objects[2].equals(this.npc)) {
-				return amount;
-			}
-		}
-		return -1.0d;
-	}
+    @Override
+    public double testQuestCompletion(Object... objects) {
+        if (objects.length == 3) {
+            final int amount = Validate.getInt(objects[1]);
+            if (objects[0].equals(material) && amount > 0 && objects[2].equals(this.npc)) {
+                return amount;
+            }
+        }
+        return -1.0d;
+    }
 }

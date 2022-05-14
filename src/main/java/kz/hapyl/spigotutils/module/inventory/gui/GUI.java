@@ -23,6 +23,7 @@ public class GUI {
 
     public static final char ARROW_FORWARD = '➜';
 
+    // todo: move to registry
     private static final Map<UUID, GUI> playerInventory = new HashMap<>();
 
     private final String name;
@@ -51,22 +52,55 @@ public class GUI {
         this.inventory = Bukkit.createInventory(null, this.size, name);
     }
 
+    /**
+     * Sets a new cancel type for this GUI.
+     *
+     * @param cancelType - CancelType.
+     */
     public void setCancelType(CancelType cancelType) {
         this.cancelType = cancelType;
     }
 
+    /**
+     * Returns current GUI's cancel type.
+     *
+     * @return current cancel type.
+     */
     public CancelType getCancelType() {
         return cancelType;
     }
 
+    /**
+     * Returns if only GUI clicks should be cancelled.
+     *
+     * @return if only GUI clicks should be cancelled.
+     */
     public final boolean onlyCancelGUI() {
         return cancelType == CancelType.GUI;
     }
 
-    public final void setEventListener(EventListener listener) {
+    /**
+     * Sets a custom event listener for this GUI.
+     *
+     * @param listener - New Listener. Null to remove listener.
+     */
+    public final void setEventListener(@Nullable EventListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Removes current event listener for this GUI.
+     */
+    public final void removeEventListener() {
+        setEventListener(null);
+    }
+
+    /**
+     * Returns current custom event listener.
+     *
+     * @return current custom event listener.
+     */
+    @Nullable
     public EventListener getListener() {
         return listener;
     }
@@ -87,10 +121,23 @@ public class GUI {
         setCancelType(flag ? CancelType.GUI : CancelType.EITHER);
     }
 
-    protected final boolean isIgnoredSlot(int slot) {
+    /**
+     * Return is provided slot is ignored by {@link org.bukkit.event.inventory.InventoryClickEvent}
+     * and should not be cancelled no matter what {@link CancelType} is.
+     *
+     * @param slot - Slot.
+     * @return if slot is ignored.
+     */
+    public final boolean isIgnoredSlot(int slot) {
         return this.ignoredClicks.contains(slot);
     }
 
+    /**
+     * Adds ignored slots.
+     * <b>Clicks at ignored slots are NOT cancelled no matter what CancelType is.</b>
+     *
+     * @param slots - Slots to ignore. Keep null to ignore all slots.
+     */
     public final void addIgnoredSlots(Integer... slots) {
         // add all slots
         if (slots.length == 0) {
@@ -102,6 +149,11 @@ public class GUI {
         Collections.addAll(this.ignoredClicks, slots);
     }
 
+    /**
+     * Removes ignored slots.
+     *
+     * @param slots - Slots to remove.
+     */
     public final void removeIgnoredSlots(Integer... slots) {
         // remove all
         if (slots.length == 0) {
@@ -113,29 +165,74 @@ public class GUI {
         }
     }
 
+    /**
+     * Clears item in provided slot.
+     *
+     * @param slot - Slot to clear item at.
+     */
     public final void resetItem(int slot) {
         this.setItem(slot, null);
     }
 
+    /**
+     * Clears click event on provided slot.
+     *
+     * @param slot - Slot to clear event at.
+     */
     public final void resetClick(int slot) {
-        this.setItem(slot, null);
+        this.setItem(slot, getItem(slot), (Action) null);
     }
 
+    /**
+     * Clears both item and event at provided slot.
+     *
+     * @param slot - Slot to clear at.
+     */
     public final void reset(int slot) {
         this.setItem(slot, null, (Action) null);
     }
 
+    /**
+     * Returns an item on provided slot.
+     *
+     * @param slot - Slot.
+     * @return an item on provided slot.
+     */
+    @Nullable
+    public final ItemStack getItem(int slot) {
+        return inventory.getItem(slot);
+    }
+
+    /**
+     * Clears events, such as clicks events, close and open events.
+     */
     public final void clearClickEvents() {
         bySlot.clear();
         closeEvent = null;
         openEvent = null;
     }
 
-    // Set Item
+    /**
+     * Sets an item to provided slot.
+     *
+     * @param slot   - Slot to put item at.
+     * @param item   - Item to set.
+     * @param action - Click action of provided slot.
+     * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
+     */
     public final void setItem(int slot, @Nullable ItemStack item, Action action) {
         this.setItem(slot, item, new GUIClick(action));
     }
 
+    /**
+     * Sets an item to provided slot.
+     *
+     * @param slot   - Slot to put item at.
+     * @param item   - Item to set.
+     * @param action - Click action of provided slot.
+     * @param types  - Click Types action is applied to.
+     * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
+     */
     public final void setItem(int slot, @Nullable ItemStack item, Action action, ClickType... types) {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
         final GUIClick guiClick = getOrNew(slot, action);
@@ -145,16 +242,40 @@ public class GUI {
         this.setItem(slot, item, guiClick);
     }
 
+    /**
+     * Sets an item to provided slot.
+     *
+     * @param slot - Slot to put item at.
+     * @param item - Item to set.
+     * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
+     */
     public final void setItem(int slot, @Nullable ItemStack item) {
         this.setItem(slot, item, (Action) null);
     }
 
+    /**
+     * Sets an item to provided slot if condition is true.
+     *
+     * @param condition - Condition to check before setting the item.
+     * @param slot      - Slot to put item at.
+     * @param item      - Item to set.
+     * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
+     */
     public final void setItemIf(boolean condition, int slot, @Nullable ItemStack item) {
         if (condition) {
             this.setItem(slot, item);
         }
     }
 
+    /**
+     * Sets an item to provided slot if condition is true.
+     *
+     * @param condition - Condition to check before setting the item.
+     * @param slot      - Slot to put item at.
+     * @param item      - Item to set.
+     * @param action-   Click action.
+     * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
+     */
     public final void setItemIf(boolean condition, int slot, @Nullable ItemStack item, @Nullable Action action) {
         if (condition) {
             this.setItem(slot, item, action);
@@ -173,15 +294,34 @@ public class GUI {
         this.inventory.setItem(slot, item);
     }
 
-    // Set Click
+    /**
+     * Sets a click action on provided slot.
+     *
+     * @param slot   - Slot to put click at.
+     * @param action - Action.
+     */
     public final void setClick(int slot, Action action) {
         this.setClick(slot, new GUIClick(action));
     }
 
+    /**
+     * Sets a click action on provided slot for provided ClickTypes.
+     *
+     * @param slot   - Slot to put click at.
+     * @param action - Action.
+     * @param types  - ClickType action will be applied to.
+     */
     public final void addClick(int slot, Action action, ClickType... types) {
         this.setClick(slot, action, types);
     }
 
+    /**
+     * Sets a click action on provided slot for provided ClickTypes.
+     *
+     * @param slot   - Slot to put click at.
+     * @param action - Action.
+     * @param types  - ClickType action will be applied to.
+     */
     public final void setClick(int slot, Action action, ClickType... types) {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
         final GUIClick guiClick = getOrNew(slot, action);
@@ -198,27 +338,44 @@ public class GUI {
         }
     }
 
+    /**
+     * Puts a preset item that bring to provided
+     * menu upon clicks.
+     *
+     * @param guiTo - GUI to locate upon click.
+     * @apiNote Default slot is (size - 5)
+     */
     public final void setArrowBack(GUI guiTo) {
         this.setArrowBack(this.getSize() - 5, guiTo);
     }
 
+    /**
+     * Puts a preset item that executes action upon a click.
+     *
+     * @param to     - Lore of the arrow. (Go back to %s)
+     * @param action - Click.
+     */
     public final void setArrowBack(String to, Action action) {
         this.setArrowBack(this.getSize() - 5, to, action);
     }
 
-    public final void setCloseMenuItem(int slot) {
-        this.setItem(slot, new ItemBuilder(Material.BARRIER).setName("&cClose Menu").toItemStack());
-        this.setClick(slot, HumanEntity::closeInventory);
-    }
-
-    public final void setCloseMenuItem() {
-        this.setCloseMenuItem(this.getSize() - 4);
-    }
-
+    /**
+     * Puts a preset item that executes action upon click at provided slot.
+     *
+     * @param slot   - Slot to put at.
+     * @param to     - Lore of the arrow. (Go back to %s)
+     * @param action - Click.
+     */
     public final void setArrowBack(int slot, String to, Action action) {
         this.setItem(slot, new ItemBuilder(Material.ARROW).setName("&aGo Back").addLore("To " + to).toItemStack(), action);
     }
 
+    /**
+     * Puts a preset item that bring to provided menu upon click.
+     *
+     * @param slot  - Slot to put at.
+     * @param guiTo - GUI to navigate upon click.
+     */
     public final void setArrowBack(int slot, GUI guiTo) {
         this.setItem(
                 slot,
@@ -227,6 +384,30 @@ public class GUI {
         );
     }
 
+    /**
+     * Puts a preset item that closes menu upon click.
+     *
+     * @param slot - Slot to put item at.
+     */
+    public final void setCloseMenuItem(int slot) {
+        this.setItem(slot, new ItemBuilder(Material.BARRIER).setName("&cClose Menu").toItemStack());
+        this.setClick(slot, HumanEntity::closeInventory);
+    }
+
+    /**
+     * Puts a preset item that closes menu upon click at (size - 4) slot.
+     */
+    public final void setCloseMenuItem() {
+        this.setCloseMenuItem(this.getSize() - 4);
+    }
+
+    /**
+     * Create a hierarchy of string separated by {@link GUI#ARROW_FORWARD}.
+     * Useful for sub menu creations.
+     *
+     * @param strings - Titles.
+     * @return strings separated by {@link GUI#ARROW_FORWARD}.
+     */
     public static String menuArrowSplit(String... strings) {
         if (strings.length == 0) {
             return "Default Name";
@@ -244,26 +425,26 @@ public class GUI {
         return builder.toString();
     }
 
-    private GUIClick getOrNew(int slot, Action action) {
-        return this.bySlot.getOrDefault(slot, new GUIClick(action));
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Action getOpenEvent() {
-        return openEvent;
-    }
-
-    public Action getCloseEvent() {
-        return closeEvent;
-    }
-
+    /**
+     * Fills items from start to end inside the gui.
+     *
+     * @param start - Start index.
+     * @param end   - End index, inclusive.
+     * @param item  - Item to fill.
+     */
     public final void fillItem(int start, int end, ItemStack item) {
         this.fillItem(start, end, item, null);
     }
 
+    /**
+     * Fills items from start to end inside the gui
+     * and sets a click event.
+     *
+     * @param start  - Start index.
+     * @param end    - End index, inclusive.
+     * @param item   - Item to fill.
+     * @param action - Click.
+     */
     public final void fillItem(int start, int end, ItemStack item, Action action) {
         for (int i = start; i <= end; i++) {
             this.setItem(i, item);
@@ -275,6 +456,9 @@ public class GUI {
 
     /**
      * Fills a line (9 horizontal slots) of the GUI.
+     *
+     * @param line  - Line to fill.
+     * @param stack - Item to fill.
      */
     public GUI fillLine(int line, ItemStack stack) {
         line = Validate.ifTrue(line < 0, 0, line);
@@ -290,9 +474,11 @@ public class GUI {
 
     /**
      * Fill a column (n of vertical slots) of the GUI.
+     *
+     * @param column - Column to fill.
+     * @param stack  - Item to fill.
      */
     public GUI fillColumn(int column, ItemStack stack) {
-        Validate.notNullItemStack(stack);
         column = Validate.ifTrue(column > 8, 8, column);
 
         for (int i = 0; i < this.getSize(); ++i) {
@@ -305,6 +491,8 @@ public class GUI {
 
     /**
      * Fills the outer layer of the GUI.
+     *
+     * @param item - Item to fill.
      */
     public GUI fillOuter(ItemStack item) {
         Validate.notNullItemStack(item);
@@ -319,6 +507,8 @@ public class GUI {
 
     /**
      * Fills the inner layer of the GUI.
+     *
+     * @param item - Item to fill.
      */
     public GUI fillInner(ItemStack item) {
         Validate.notNullItemStack(item);
@@ -332,10 +522,42 @@ public class GUI {
         return this;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public Action getOpenEvent() {
+        return openEvent;
+    }
+
+    public Action getCloseEvent() {
+        return closeEvent;
+    }
+
+    private GUIClick getOrNew(int slot, Action action) {
+        return this.bySlot.getOrDefault(slot, new GUIClick(action));
+    }
+
+    /**
+     * Fills smart component with provided pattern.
+     * <b>Smart Component will automatically put item on slots based on pattern.</b>
+     *
+     * @param component - Component.
+     * @param pattern   - Pattern.
+     * @param startLine - Starting line of the GUI.
+     */
     public final void fillItems(SmartComponent component, SlotPattern pattern, int startLine) {
         fillItems(component.getMap(), pattern, startLine);
     }
 
+    /**
+     * Fills item stacks with provided pattern.
+     * <b>Smart Component will automatically put item on slots based on pattern.</b>
+     *
+     * @param items     - Item to fill.
+     * @param pattern   - Pattern.
+     * @param startLine - Starting line of the GUI.
+     */
     public final void fillItems(List<ItemStack> items, SlotPattern pattern, int startLine) {
         final HashMap<ItemStack, GUIClick> map = new HashMap<>();
         for (ItemStack item : items) {
@@ -357,6 +579,24 @@ public class GUI {
             final ItemStack item = iterator.next();
             setItem(slot, item, items.get(item));
         }
+    }
+
+    /**
+     * Returns a smart component to add items to.
+     *
+     * @return a smart component to add items to.
+     */
+    public final SmartComponent fillItems() {
+        return this.newSmartComponent();
+    }
+
+    /**
+     * Returns a smart component to add items to.
+     *
+     * @return a smart component to add items to.
+     */
+    public final SmartComponent newSmartComponent() {
+        return new SmartComponent();
     }
 
     /**
@@ -385,31 +625,48 @@ public class GUI {
         fillItems(hashMap, 1);
     }
 
-    public final SmartComponent fillItems() {
-        return this.newSmartComponent();
-    }
-
-    public final SmartComponent newSmartComponent() {
-        return new SmartComponent();
-    }
-
+    /**
+     * Returns a minimum GUI size required to put items to.
+     *
+     * @param collection - Collection of items.
+     */
     public static int getSmartMenuSize(Collection<?> collection) {
         return (int) Math.ceil((float) collection.size() / 5);
     }
 
+    /**
+     * Returns a minimum GUI size required to put items to.
+     *
+     * @param collection - Array of items.
+     */
     public static <T> int getSmartMenuSize(T[] collection) {
         return (int) Math.ceil((float) collection.length / 5);
     }
 
+    /**
+     * Returns BukkitInventory of this GUI.
+     *
+     * @return BukkitInventory of this GUI.
+     */
     public Inventory getInventory() {
         return inventory;
     }
 
+    /**
+     * Closes inventory. This will remove instance of players GUI instantly.
+     *
+     * @param player - Player to close inventory for.
+     */
     public final void closeInventory(Player player) {
         removePlayerGUI(player);
         player.closeInventory();
     }
 
+    /**
+     * Opens this GUI to player. This creates GUI instance.
+     *
+     * @param player - Player to open inventory.
+     */
     public final void openInventory(Player player) {
         setPlayerGUI(player, this);
         player.openInventory(this.inventory);

@@ -1,9 +1,9 @@
 package kz.hapyl.spigotutils.module.command;
 
-import kz.hapyl.spigotutils.module.annotate.NOTNULL;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.command.CommandSender;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -40,7 +40,7 @@ public abstract class SimpleCommand {
      *
      * @param name - Name of the command.
      */
-    public SimpleCommand(@NOTNULL String name) {
+    public SimpleCommand(@Nonnull String name) {
         this.name = name;
         this.aliases = new String[] {};
         this.permission = "";
@@ -84,11 +84,21 @@ public abstract class SimpleCommand {
         this.allowOnlyPlayer = flag;
     }
 
+    /**
+     * Sets cooldown of command in ticks.
+     *
+     * @param cooldownTick - cooldown.
+     */
     public void setCooldownTick(int cooldownTick) {
         this.cooldownTick = cooldownTick;
         this.cooldown = new CommandCooldown(this);
     }
 
+    /**
+     * If command has cooldown.
+     *
+     * @return true if command has cooldown, else otherwise.
+     */
     public boolean hasCooldown() {
         return this.cooldownTick > 0 && this.cooldown != null;
     }
@@ -97,32 +107,34 @@ public abstract class SimpleCommand {
         return cooldown;
     }
 
+    /**
+     * Returns cooldown in ticks or 0 if no cooldown.
+     *
+     * @return cooldown in ticks or 0 if no cooldown.
+     */
     public int getCooldownTick() {
         return cooldownTick;
     }
 
-    public ArgumentProcessor newArgumentProcessor() {
-        this.post = new ArgumentProcessor(this);
-        return this.post;
-    }
-
-    public void setUsage(String usageWithoutSlash) {
-        if (usageWithoutSlash.startsWith("/")) {
-            usageWithoutSlash = usageWithoutSlash.replace("/", "");
+    /**
+     * Sets command usage.
+     *
+     * @param usage - New usage, slash will be removed.
+     */
+    public void setUsage(String usage) {
+        if (usage.startsWith("/")) {
+            usage = usage.replace("/", "");
         }
-        this.usage = "/" + usageWithoutSlash;
+        this.usage = "/" + usage;
     }
 
-    public void tabCompleteArgumentProcessor(boolean bool) {
-        this.tabCompleteArgumentProcessor = bool;
-    }
-
+    /**
+     * Sets if this command is only allowed to be run by sever operators.
+     *
+     * @param bool - New value.
+     */
     public void setAllowOnlyOp(boolean bool) {
         this.allowOnlyOp = bool;
-    }
-
-    public ArgumentProcessor getPost() {
-        return post;
     }
 
     /**
@@ -150,6 +162,19 @@ public abstract class SimpleCommand {
      */
     public void setPermission(String permission) {
         this.permission = permission;
+    }
+
+    public ArgumentProcessor newArgumentProcessor() {
+        this.post = new ArgumentProcessor(this);
+        return this.post;
+    }
+
+    public void tabCompleteArgumentProcessor(boolean bool) {
+        this.tabCompleteArgumentProcessor = bool;
+    }
+
+    public ArgumentProcessor getPost() {
+        return post;
     }
 
     // Some useful utilities for ya.

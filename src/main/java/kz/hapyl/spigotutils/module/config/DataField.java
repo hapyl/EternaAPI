@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Fields annotated with {@link DataField} will be written into config upon
  * calling {@link Config#saveDataFields()}.
- * <p>
+ *
  * <b>Keep in mind that DataField is not a replacement for writing and loading
  * values and should only be used with supported types, which are mostly primitives!</b>
  */
@@ -21,12 +21,4 @@ public @interface DataField {
      * @return path.
      */
     String path();
-
-    /**
-     * This insures proper saves and loads for non-generic types, such as UUID.
-     *
-     * @return type.
-     * @deprecated added hard coded convert to prevent file breaking.f
-     */
-    @Deprecated Type type() default Type.GENERIC;
 }

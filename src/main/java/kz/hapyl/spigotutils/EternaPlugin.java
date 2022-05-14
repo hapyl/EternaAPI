@@ -2,6 +2,7 @@ package kz.hapyl.spigotutils;
 
 import kz.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
 import kz.hapyl.spigotutils.builtin.command.QuestCommand;
+import kz.hapyl.spigotutils.builtin.command.ReloadPlayerConfigCommand;
 import kz.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import kz.hapyl.spigotutils.module.command.CommandProcessor;
 import kz.hapyl.spigotutils.module.hologram.HologramRunnable;
@@ -75,6 +76,7 @@ public class EternaPlugin extends JavaPlugin {
         final CommandProcessor commandProcessor = new CommandProcessor(this);
         commandProcessor.registerCommand(new QuestCommand("quest"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
+        commandProcessor.registerCommand(new ReloadPlayerConfigCommand("reloadplayerconfig"));
 
         // Load configuration file
         this.getConfig().options().copyDefaults(true);
@@ -98,7 +100,6 @@ public class EternaPlugin extends JavaPlugin {
         return registry;
     }
 
-    // TODO: 014. 14/05/2022 - reduce static to 0!!
     @Override
     public void onDisable() {
         registry.onDisable();
@@ -118,15 +119,6 @@ public class EternaPlugin extends JavaPlugin {
 
     public GlowingManager getGlowingManager() {
         return registry.glowingManager;
-    }
-
-    private static void runSafe(Runnable runnable, String name) {
-        try {
-            runnable.run();
-        } catch (Throwable exception) {
-            Bukkit.getLogger().severe("Could not run '" + name + "' in onDisable(), did you /reload your server?");
-            Bukkit.getLogger().severe(exception.getMessage());
-        }
     }
 
     public static void runTaskLater(Consumer<BukkitTask> runnable, int later) {

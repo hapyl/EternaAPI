@@ -37,6 +37,10 @@ public abstract class PlayerQuestObjective extends QuestObjective {
         this.incrementGoal(1.0d, checkCompletion);
     }
 
+    public void incrementGoalSilent(double amount) {
+        this.goalCurrent += amount;
+    }
+
     public void incrementGoal(double amount, boolean checkCompletion) {
         this.goalCurrent += amount;
         this.afterObjectiveIncrement(this.getPlayer(), amount);

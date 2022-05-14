@@ -7,15 +7,15 @@ import java.util.function.Consumer;
 
 public class ActionEntry extends NPCEntry {
 
-	private final Consumer<Player> action;
+    private final Consumer<Player> action;
 
-	public ActionEntry(Consumer<Player> action, int delay) {
-		super(delay);
-		this.action = action;
-	}
+    public ActionEntry(Consumer<Player> action, int delay) {
+        super(delay);
+        this.action = action;
+    }
 
-	@Override
-	public void invokeEntry(HumanNPC npc, Player player) {
-		this.action.accept(player);
-	}
+    @Override
+    public void invokeEntry(HumanNPC npc, Player player) {
+        this.action.accept(player);
+    }
 }

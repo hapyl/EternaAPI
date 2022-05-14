@@ -1,7 +1,6 @@
 package kz.hapyl.spigotutils.module.command;
 
 import kz.hapyl.spigotutils.EternaPlugin;
-import kz.hapyl.spigotutils.module.annotate.NOTNULL;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.util.BukkitUtils;
@@ -15,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,18 +25,40 @@ public class CommandProcessor {
 
     private final JavaPlugin plugin;
 
+    /**
+     * Creates a CommandProcessor with plugin owner of EternaAPI.
+     * This is not recommended to avoid IllegalArgumentException from {@link CommandProcessor#registerCommand0(SimpleCommand[])}
+     */
     public CommandProcessor() {
         this(EternaPlugin.getPlugin());
     }
 
+    /**
+     * Creates a CommandProcessor with provided plugin owner.
+     * Plugins will have provided plugins' signature. Ex: /plugin_name:command_name
+     *
+     * @param plugin - Plugin to register command for.
+     */
     public CommandProcessor(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
+    /**
+     * Registers a command.
+     *
+     * @param simpleCommand - Command to register.
+     * @throws IllegalArgumentException - If command is already registered for this plugin.
+     */
     public void registerCommand(SimpleCommand simpleCommand) {
         this.registerCommand0(new SimpleCommand[] { simpleCommand });
     }
 
+    /**
+     * Registers multiple commands.
+     *
+     * @param commands - Array of commands to register.
+     * @throws IllegalArgumentException - If command is already registered for this plugin.
+     */
     public void registerCommands(SimpleCommand... commands) {
         this.registerCommand0(commands);
     }
@@ -44,7 +66,7 @@ public class CommandProcessor {
     // 1.1 - reduced reflection call for array commands registration
     // Pretty sure you still have to use reflection to do so
     // if not, feel free to modify this code without ooflection
-    private void registerCommand0(@NOTNULL SimpleCommand[] array) {
+    private void registerCommand0(@Nonnull SimpleCommand[] array) {
         try {
             if (array.length == 0) {
                 throw new IllegalArgumentException("There must be at least one command!");

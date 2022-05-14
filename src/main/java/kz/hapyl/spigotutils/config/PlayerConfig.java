@@ -61,7 +61,7 @@ public class PlayerConfig extends Config {
         for (String key : keys) {
             final long objective = config.getLong(pathQuestObjective.formatted(key));
             final double progress = config.getDouble(pathQuestProgress.formatted(key));
-            QuestProgress.fromData(player, key, objective, progress);
+            QuestProgress.loadFromData(player, key, objective, progress);
         }
     }
 

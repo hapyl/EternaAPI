@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+/**
+ * Indicates that this method is safe to use async.
+ */
 public @interface AsyncSafe {
-	/**
-	 * Annotates that method is safe to use async
-	 */
 }

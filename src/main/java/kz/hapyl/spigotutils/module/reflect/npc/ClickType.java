@@ -5,9 +5,9 @@ import kz.hapyl.spigotutils.module.util.Validate;
 
 public enum ClickType {
 
-    ATTACK,
-    INTERACT,
-    INTERACT_AT;
+    ATTACK, // Left click at entity
+    INTERACT, // Right click at entity
+    INTERACT_AT; // Also right-click on entity?
 
     public static ClickType of(String str) {
         return Validate.getEnumValue(ClickType.class, str, INTERACT_AT);

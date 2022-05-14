@@ -35,10 +35,23 @@ public class Glowing implements Ticking, GlowingListener {
     private final Map<Player, ChatColor> oldColor = Maps.newHashMap();
     private final Entity entity;
 
+    /**
+     * Creates a glowing object.
+     *
+     * @param entity   - Entity to glow.
+     * @param duration - Glow duration.
+     */
     public Glowing(Entity entity, int duration) {
         this(entity, ChatColor.WHITE, duration);
     }
 
+    /**
+     * Creates a glowing object.
+     *
+     * @param entity   - Entity to glow.
+     * @param color    - Glowing color.
+     * @param duration - Glow duration.
+     */
     public Glowing(Entity entity, ChatColor color, int duration) {
         this.entity = entity;
         this.duration = duration;
@@ -65,6 +78,11 @@ public class Glowing implements Ticking, GlowingListener {
 
     }
 
+    /**
+     * Changes glowing color.
+     *
+     * @param color - New Color.
+     */
     public final void setColor(ChatColor color) {
         Validate.isTrue(color.isColor(), "color must be color, not formatter!");
         this.color = color;
@@ -136,22 +154,49 @@ public class Glowing implements Ticking, GlowingListener {
         return everyoneIsListener;
     }
 
-    public final void setEveryoneIsListener(boolean everyoneIsListener) {
-        this.everyoneIsListener = everyoneIsListener;
+    /**
+     * Makes every online player a viewer.
+     *
+     * @param flag - true to make everyone a viewer.
+     */
+    public final void setEveryoneIsListener(boolean flag) {
+        this.everyoneIsListener = flag;
     }
 
+    /**
+     * Adds a viewer for this glowing.
+     * <b>Glowing viewers must be assigned BEFORE {@link Glowing#glow()} is called!</b>
+     *
+     * @param player - Player.
+     */
     public final void addViewer(Player player) {
         this.viewers.add(player);
     }
 
+    /**
+     * Removes a viewer for this glowing.
+     *
+     * @param player - Player.
+     */
     public final void removeViewer(Player player) {
         this.viewers.remove(player);
     }
 
+    /**
+     * Returns true is player can see the glowing.
+     *
+     * @param player - Player.
+     * @return true is player can see the glowing.
+     */
     public final boolean isViewer(Player player) {
         return this.viewers.contains(player);
     }
 
+    /**
+     * Returns duration of glowing.
+     *
+     * @return duration of glowing.
+     */
     public final int getDuration() {
         return duration;
     }

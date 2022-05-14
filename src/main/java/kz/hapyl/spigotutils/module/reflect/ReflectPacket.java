@@ -14,6 +14,10 @@ public class ReflectPacket {
         this.packets = packet;
     }
 
+    public static void wrapAndSend(Packet<?> packets, Player... players) {
+        new ReflectPacket(packets).sendPackets(players);
+    }
+
     public void sendPackets(Player player) {
         if (this.packets.length == 1) {
             Reflect.sendPacket(this.packets[0], player);

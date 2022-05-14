@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.function.BiConsumer;
 
+/**
+ * Creates config file.
+ */
 public class Config {
 
     private final String path;
@@ -185,8 +188,19 @@ public class Config {
         }
     }
 
+    /**
+     * This forces config file to load from the disk, WITHOUT saving current config file.
+     *
+     * @param confirm - Confirm that you are aware that file will NOT be saved.
+     */
+    public void forceLoad(boolean confirm) {
+        if (!confirm) {
+            throw new IllegalArgumentException("must be confirmed");
+        }
+        loadFile();
+    }
+
     private String getPath() {
         return plugin.getDataFolder() + (path == null ? "" : path);
     }
-
 }

@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This class allows to summon entities easier and caches saved entities. (Unless said not to)
+ * This class allows to summon entities easier
+ * and saves them into a hash set. Unless set not to.
  *
  * @param <T> - Type of the entity.
  * @author hapyl
@@ -22,7 +23,7 @@ import java.util.Set;
 public final class Entities<T extends Entity> {
 
     // Saved all spawned entities.
-    protected static final Set<Entity> spawned = Sets.newConcurrentHashSet();
+    private static final Set<Entity> spawned = Sets.newConcurrentHashSet();
 
     // All types by name.
     private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
@@ -134,34 +135,85 @@ public final class Entities<T extends Entity> {
     public static final Entities<Goat> GOAT = new Entities<>(Goat.class);
     public static final Entities<Marker> MARKER = new Entities<>(Marker.class);
 
-    private final Class<T> entityClass;
+    // custom entities with root consumer
+    public static final Entities<ArmorStand> ARMOR_STAND_MARKER = new Entities<>(ArmorStand.class, self -> self.setMarker(true));
 
-    private Entities(Class<T> entityClass) {
+    private final Class<T> entityClass;
+    private final Consumer<T> rootConsumer;
+
+    private Entities(Class<T> entityClass, Consumer<T> rootConsumer) {
         this.entityClass = entityClass;
+        this.rootConsumer = rootConsumer;
         byName.put(this.entityClass.getSimpleName().toLowerCase(Locale.ROOT), this);
     }
 
-    public final T spawn(Location location) {
+    private Entities(Class<T> entityClass) {
+        this(entityClass, null);
+    }
+
+    /**
+     * Spawn entity at provided location.
+     *
+     * @param location - Location to spawn at.
+     * @return spawned entity.
+     * @throws NullPointerException if location's world is null
+     */
+    public T spawn(Location location) {
         return this.spawn(location, null);
     }
 
-    public final T spawn(Location location, boolean cache) {
+    /**
+     * Spawn entity at provided location.
+     *
+     * @param location - Location to spawn at.
+     * @param cache    - if true, entity will be cached into a hash set.
+     * @return spawned entity.
+     * @throws NullPointerException if location's world is null.
+     */
+    public T spawn(Location location, boolean cache) {
         return spawn(location, null, cache);
     }
 
-    public final T spawn(Location location, Consumer<T> beforeSpawn) {
+    /**
+     * Spawn entity at provided location.
+     *
+     * @param location    - Location to spawn at.
+     * @param beforeSpawn - Consumer to apply to entity before it spawns.
+     * @return spawned entity.
+     * @throws NullPointerException if location's world is null
+     */
+    public T spawn(Location location, @Nullable Consumer<T> beforeSpawn) {
         return spawn(location, beforeSpawn, true);
     }
 
-    public final T spawn(Location location, Consumer<T> beforeSpawn, boolean cache) {
+    /**
+     * Spawn entity at provided location.
+     *
+     * @param location    - Location to spawn at.
+     * @param cache       - if true, entity will be cached into a hash set.
+     * @param beforeSpawn - Consumer to apply to entity before it spawns.
+     * @return spawned entity.
+     * @throws NullPointerException if location's world is null
+     */
+    public T spawn(Location location, @Nullable Consumer<T> beforeSpawn, boolean cache) {
         Validate.notNull(location.getWorld(), "world cannot be null");
-        final T entity = location.getWorld().spawn(location, this.entityClass, beforeSpawn);
+        final T entity = location.getWorld().spawn(location, this.entityClass, self -> {
+            if (rootConsumer != null) {
+                rootConsumer.accept(self);
+            }
+            if (beforeSpawn != null) {
+                beforeSpawn.accept(self);
+            }
+        });
         if (cache) {
             spawned.add(entity);
         }
         return entity;
     }
 
+    /**
+     * Removes all spawned (in hashset) entities.
+     */
     public static void killSpawned() {
         for (final Entity entity : spawned) {
             entity.remove();
@@ -173,21 +225,13 @@ public final class Entities<T extends Entity> {
         return spawned;
     }
 
+    public static Set<Entity> getSpawned() {
+        return spawned;
+    }
+
     @Nullable
     public static Entities<? extends Entity> byName(String name) {
         return byName.getOrDefault(name.toLowerCase(Locale.ROOT), null);
-    }
-
-    // Get all spawnable entities
-    public static void main(String[] args) {
-        for (final EntityType value : EntityType.values()) {
-            if (!value.isSpawnable()) {
-                continue;
-            }
-            final String name = value.name().toUpperCase(Locale.ROOT);
-            final String entityClass = value.getEntityClass().getSimpleName();
-            System.out.println("public static final Entities<" + entityClass + "> " + name + " = new Entities<>(" + entityClass + ".class);");
-        }
     }
 
 

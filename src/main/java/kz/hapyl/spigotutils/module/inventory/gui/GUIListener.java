@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class GUIListener implements Listener {
 
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handleGUIDrag(InventoryDragEvent ev) {
         final Player player = (Player) ev.getWhoClicked();
         final GUI gui = GUI.getPlayerGUI(player);

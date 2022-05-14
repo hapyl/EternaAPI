@@ -3,6 +3,9 @@ package kz.hapyl.spigotutils.module.chat;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
+/**
+ * Easy access hover event builder.
+ */
 public enum LazyHoverEvent {
 
     TEXT(HoverEvent.Action.SHOW_TEXT),

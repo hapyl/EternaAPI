@@ -1,6 +1,7 @@
 package kz.hapyl.spigotutils.module.quest;
 
 import kz.hapyl.spigotutils.module.chat.Chat;
+import kz.hapyl.spigotutils.module.quest.objectives.Objectives;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -101,6 +102,11 @@ public class Quest {
         this.objectives.put(this.objectives.size(), questObjective);
     }
 
+    /**
+     * Adds a next objective for this quest.
+     *
+     * @param questObjective - Objective. {@link Objectives}
+     */
     public void addObjective(QuestObjective questObjective) {
         addStage(questObjective);
     }

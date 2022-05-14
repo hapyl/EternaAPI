@@ -6,15 +6,15 @@ import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 
 public class TalkToNpc extends QuestObjective {
 
-	private final HumanNPC npc;
+    private final HumanNPC npc;
 
-	public TalkToNpc(HumanNPC npc, int times) {
-		super(QuestObjectiveType.TALK_TO_NPC, times, "Talker", String.format("Talk to %s.", npc.getName()));
-		this.npc = npc;
-	}
+    public TalkToNpc(HumanNPC npc, int times) {
+        super(QuestObjectiveType.TALK_TO_NPC, times, "Talker", String.format("Talk to %s.", npc.getName()));
+        this.npc = npc;
+    }
 
-	@Override
-	public double testQuestCompletion(Object... objects) {
-		return super.validateArgument(0, this.npc, objects);
-	}
+    @Override
+    public double testQuestCompletion(Object... objects) {
+        return super.validateArgument(0, this.npc, objects);
+    }
 }

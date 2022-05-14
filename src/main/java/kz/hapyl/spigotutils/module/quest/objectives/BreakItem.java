@@ -7,17 +7,22 @@ import org.bukkit.Material;
 
 public class BreakItem extends QuestObjective {
 
-	private final Material material;
+    private final Material material;
 
-	public BreakItem(Material material) {
-		super(QuestObjectiveType.BREAK_ITEM, 1,
-				"I didn't mean to, I swear!",
-				String.format("Break %s.", Chat.capitalize(material)));
-		this.material = material;
-	}
+    public BreakItem(Material material) {
+        this(material, 1);
+    }
 
-	@Override
-	public double testQuestCompletion(Object... objects) {
-		return super.validateArgument(0, this.material, objects);
-	}
+    public BreakItem(Material material, int times) {
+        super(QuestObjectiveType.BREAK_ITEM, times,
+              "I didn't mean to, I swear!",
+              String.format("Break %s.", Chat.capitalize(material))
+        );
+        this.material = material;
+    }
+
+    @Override
+    public double testQuestCompletion(Object... objects) {
+        return super.validateArgument(0, this.material, objects);
+    }
 }

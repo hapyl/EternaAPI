@@ -55,12 +55,11 @@ public final class Exceptions {
             runnable.run();
         } catch (Exception e) {
             if (executor != null) {
-                executor.spigot()
-                        .sendMessage(new ComponentBuilder(Chat.format(
-                                "&cAn error occurred, please report this! &e(\"%s\")",
-                                e.getMessage()
-                        )).event(LazyClickEvent.COPY_TO_CLIPBOARD
-                                         .of(Arrays.toString(e.getStackTrace()))).create());
+                executor
+                        .spigot()
+                        .sendMessage(new ComponentBuilder(Chat.format("&cAn error occurred, please report this! &e(\"%s\")", e.getMessage()))
+                                             .event(LazyClickEvent.COPY_TO_CLIPBOARD.of(Arrays.toString(e.getStackTrace())))
+                                             .create());
             }
             e.printStackTrace();
         }

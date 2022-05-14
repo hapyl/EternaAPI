@@ -9,6 +9,9 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.Collection;
 
+/**
+ * Tiny player library to make player methods easier.
+ */
 public class PlayerLib {
 
     public static final SoundCategory defaultCategory = SoundCategory.RECORDS;

@@ -1,6 +1,8 @@
 package kz.hapyl.spigotutils.module.quest;
 
 import kz.hapyl.spigotutils.module.chat.Chat;
+import kz.hapyl.spigotutils.module.chat.LazyClickEvent;
+import kz.hapyl.spigotutils.module.chat.LazyHoverEvent;
 import org.bukkit.entity.Player;
 
 import java.util.LinkedList;
@@ -109,24 +111,34 @@ public class QuestProgress {
         return this.objectives;
     }
 
-    public static void fromData(Player player, String questId, long currentStage, double goalProgress) {
+    public static void loadFromData(Player player, String questId, long objective, double progress /*note that progress is not a 0.0 - 1.0 value*/) {
         final Quest quest = QuestManager.current().getById(questId);
         if (quest == null) {
-            Chat.sendMessage(player, "&cCould not load quest %s for you because it doesn't exist!", questId);
+            Chat.sendClickableHoverableMessage(
+                    player,
+                    LazyClickEvent.SUGGEST_COMMAND.of("QuestProgress={id=%s, objective=%s, progress=%s}".formatted(
+                            questId,
+                            objective,
+                            progress
+                    )),
+                    LazyHoverEvent.SHOW_TEXT.of("&7Click to copy debug data."),
+                    "&cCould not load progress for quest '%s' because it no longer exists!",
+                    questId
+            );
             return;
         }
 
-        final QuestProgress progress = new QuestProgress(player, quest);
+        final QuestProgress questProgress = new QuestProgress(player, quest);
 
         // set progress
-        for (int i = 0; i < currentStage; i++) {
-            progress.objectives.poll();
+        for (int i = 0; i < objective; i++) {
+            questProgress.objectives.poll();
         }
 
-        progress.currentStage = currentStage;
-        progress.getCurrentObjective().incrementGoal(goalProgress, false);
+        questProgress.currentStage = objective;
+        questProgress.getCurrentObjective().incrementGoalSilent(progress);
 
-        QuestManager.current().addQuestProgress(player, progress);
+        QuestManager.current().addQuestProgress(player, questProgress);
     }
 
     @Override

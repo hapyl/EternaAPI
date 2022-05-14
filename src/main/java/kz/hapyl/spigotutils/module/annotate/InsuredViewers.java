@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+/**
+ * Indicates that viewers (usually players) are insured and always will be present even if not provided via parameter.
+ */
 public @interface InsuredViewers {
-
 }

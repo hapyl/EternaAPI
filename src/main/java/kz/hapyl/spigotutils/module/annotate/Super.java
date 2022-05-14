@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
+@Target({ ElementType.METHOD, ElementType.CONSTRUCTOR })
+/**
+ * Indicates that this method is super in hierarchy of overloads.
+ */
 public @interface Super {
-	/**
-	 * Indicates that this method is super in hierarchy overloads
-	 */
 }
