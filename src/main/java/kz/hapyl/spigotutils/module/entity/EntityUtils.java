@@ -6,6 +6,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -62,12 +63,21 @@ public class EntityUtils {
      * @param flag    - if true, collision will be removed, added otherwise.
      * @param viewers - Who will be affected by collision change.
      */
-    public static void setCollision(Entity entity, boolean flag, Collection<Player> viewers) {
+    public static void setCollision(Entity entity, Collision flag, Collection<Player> viewers) {
         for (final Player viewer : viewers) {
             final Team team = Helper.getEntityTeam(viewer.getScoreboard());
-            team.setOption(Team.Option.COLLISION_RULE, flag ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
+            team.setOption(Team.Option.COLLISION_RULE, flag == Collision.ALLOW ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
             team.addEntry(entity.getUniqueId().toString());
         }
+    }
+
+    public static void setCollision(Entity entity, Collision flag, Player... players) {
+        setCollision(entity, flag, Arrays.stream(players).toList());
+    }
+
+    public enum Collision {
+        ALLOW,
+        DENY
     }
 
 }

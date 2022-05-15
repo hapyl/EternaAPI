@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.module.reflect;
 
+import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
@@ -8,7 +9,9 @@ import kz.hapyl.spigotutils.module.annotate.Super;
 import kz.hapyl.spigotutils.module.annotate.TestedNMS;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.error.EternaException;
+import kz.hapyl.spigotutils.module.math.Numbers;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
+import kz.hapyl.spigotutils.module.util.ThreadRandom;
 import kz.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.Packet;
@@ -221,15 +224,11 @@ public final class Reflect {
      * @param flag   - true to enable collision with collider, false to remove.
      */
     public static void setCollision(net.minecraft.world.entity.EntityLiving entity, UUID uuid, boolean flag) {
-        if (!flag) {
-            entity.collides = false;
+        if (entity.collides && flag) {
             entity.collidableExemptions.add(uuid);
         }
         else {
             entity.collidableExemptions.remove(uuid);
-            if (entity.collidableExemptions.isEmpty()) {
-                entity.collides = true;
-            }
         }
     }
 
@@ -386,6 +385,21 @@ public final class Reflect {
     public static BlockPosition getBlockPosition(Block block) {
         final Location location = block.getLocation();
         return new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    public static void showBlockBreakAnimation(Block block, int stage, Player... players) {
+        final PacketContainer packet = new PacketContainer(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
+        final Location location = block.getLocation();
+
+        packet.getIntegers().write(0, ThreadRandom.nextInt(10000, Integer.MAX_VALUE));
+        packet
+                .getBlockPositionModifier()
+                .write(
+                        0,
+                        new com.comphenix.protocol.wrappers.BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ())
+                );
+        packet.getBytes().write(0, (byte) Numbers.clamp(stage, 0, 9));
+        sendPacket(packet, players);
     }
 
     /**
