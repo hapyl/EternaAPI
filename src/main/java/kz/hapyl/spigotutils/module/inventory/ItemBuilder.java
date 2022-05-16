@@ -25,6 +25,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -108,6 +109,10 @@ public class ItemBuilder {
 
     private static boolean isIdRegistered(String id) {
         return id != null && itemsWithEvents.containsKey(id);
+    }
+
+    public static ItemBuilder of(Material material) {
+        return new ItemBuilder(material);
     }
 
     @Nullable
@@ -647,6 +652,10 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder addEnchant(Enchant enchant, int lvl) {
+        return addEnchant(enchant.getAsBukkit(), lvl);
+    }
+
     public ItemBuilder addEnchant(Enchantment ench, int lvl) {
         this.meta.addEnchant(ench, lvl, true);
         return this;
@@ -800,16 +809,32 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setType(Material icon) {
-        this.item.setType(icon);
+    /**
+     * Changes type of the ItemStack.
+     *
+     * @param material - New type.
+     */
+    public ItemBuilder setType(Material material) {
+        this.item.setType(material);
         return this;
     }
 
+    /**
+     * Skips {@link ItemBuilder#build(boolean)} ID checks and only applies item meta, then returns ItemStack.
+     *
+     * @return ItemStack.
+     */
     public ItemStack toItemStack() {
         this.item.setItemMeta(this.meta);
         return this.item;
     }
 
+    /**
+     * Clears Item flags, name, lore and makes it unbreakable before returning ItemStack.
+     * Used to make empty icons items.
+     *
+     * @return cleaned ItemStack.
+     */
     public ItemStack cleanToItemSack() {
         this.hideFlags();
         this.setName("&0");
@@ -818,7 +843,15 @@ public class ItemBuilder {
         return this.toItemStack();
     }
 
-
+    /**
+     * Finalizes item meta and returns an ItemStack.
+     *
+     * @param overrideIfExists - if true, item has ID and item with that ID is already
+     *                         registered it will override the stored item, else error
+     *                         will be throws if 2 conditions were met.
+     * @return finalized ItemStack.
+     * @throws ItemBuilderException if item has ID which is already registered, unless {@param overrideIfExists} if true.
+     */
     public ItemStack build(boolean overrideIfExists) {
         if (this.id != null) {
             if (isIdRegistered(this.id) && !overrideIfExists) {
@@ -846,21 +879,32 @@ public class ItemBuilder {
 
     }
 
+    /**
+     * Finalizes item meta and returns an ItemStack.
+     *
+     * @return finalized ItemStack.
+     * @throws ItemBuilderException if item has ID which is already registered.
+     */
+    public ItemStack build() {
+        return this.build(false);
+    }
+
     private void sendErrorMessage(String msg, Object... dot) {
         final String message = Chat.format(msg, dot);
         Bukkit.getLogger().log(Level.SEVERE, message);
         new ItemBuilderException(message).printStackTrace();
     }
 
-    public ItemStack build() {
-        return this.build(false);
-    }
-
+    @Nonnull
     public String getName() {
         return this.meta.getDisplayName();
     }
 
-
+    /**
+     * Returns current list of lore, or null if no lore.
+     *
+     * @return current list of lore, or null if no lore.
+     */
     @Nullable
     public List<String> getLore() {
         return this.meta.getLore();

@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.module.quest;
 
+import com.google.common.collect.Sets;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.entity.Player;
 
@@ -51,17 +52,18 @@ public class QuestManager {
     }
 
     public void completeQuest(QuestProgress quest) {
-        // TODO: 023. 03/23/2021 - Add ability to claiming quests instead of auto claiming when finishing (configurable)
-        removeQuest(quest);
+        if (quest.isAutoClaimReward() || quest.isClaimedReward()) {
+            removeQuest(quest);
+        }
     }
 
-    private void addQuest(Player player, Quest quest) {
+    protected void addQuest(Player player, Quest quest) {
         final Set<QuestProgress> hash = getProgress(player);
         hash.add(new QuestProgress(player, quest));
         this.playerQuests.put(player.getUniqueId(), hash);
     }
 
-    private void removeQuest(QuestProgress quest) {
+    protected void removeQuest(QuestProgress quest) {
         final Player player = quest.getPlayer();
         final Set<QuestProgress> hash = getProgress(player);
         if (hash.isEmpty()) {
@@ -137,7 +139,7 @@ public class QuestManager {
     }
 
     private Set<QuestProgress> getProgress(Player player) {
-        return this.playerQuests.getOrDefault(player.getUniqueId(), new HashSet<>());
+        return this.playerQuests.getOrDefault(player.getUniqueId(), Sets.newConcurrentHashSet());
     }
 
     public static QuestFormatter formatter() {
@@ -192,6 +194,12 @@ public class QuestManager {
             sendLine(player);
             Chat.sendCenterMessage(player, "&6&lQUEST COMPLETE");
             Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
+
+            if (!quest.isAutoClaim()) {
+                Chat.sendMessage(player, "");
+                Chat.sendCenterMessage(player, "&7Navitage to Quest Journal to claim reward!");
+            }
+
             sendLine(player);
         }
 

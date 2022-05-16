@@ -93,7 +93,6 @@ public class EternaPlugin extends JavaPlugin {
         Runnables.runLater(() -> Bukkit.getOnlinePlayers().forEach(player -> registry.configManager.getConfig(player).loadAll()), 10L);
 
         new Test().test();
-
     }
 
     public EternaRegistry getRegistry() {

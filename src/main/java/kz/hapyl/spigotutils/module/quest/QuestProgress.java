@@ -3,7 +3,11 @@ package kz.hapyl.spigotutils.module.quest;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.chat.LazyClickEvent;
 import kz.hapyl.spigotutils.module.chat.LazyHoverEvent;
+import kz.hapyl.spigotutils.module.event.quest.QuestFinishEvent;
+import kz.hapyl.spigotutils.module.event.quest.QuestProgressEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginManager;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -14,6 +18,8 @@ public class QuestProgress {
     private final Quest quest;
     private final long totalStages;
     private final boolean autoClaimReward;
+
+    private boolean claimedReward;
 
     private final Queue<PlayerQuestObjective> objectives;
 
@@ -30,7 +36,7 @@ public class QuestProgress {
     }
 
     public boolean isAutoClaimReward() {
-        return this.autoClaimReward;
+        return autoClaimReward && quest.hasReward();
     }
 
     public Player getPlayer() {
@@ -42,6 +48,14 @@ public class QuestProgress {
     }
 
     public void nextObjective() {
+        final PluginManager pluginManager = Bukkit.getPluginManager();
+        final QuestProgressEvent eventProgress = new QuestProgressEvent(player, this);
+        pluginManager.callEvent(eventProgress);
+
+        if (eventProgress.isCancelled()) {
+            return;
+        }
+
         final PlayerQuestObjective completedObjective = this.objectives.poll();
         final PlayerQuestObjective nextObjective = this.objectives.peek();
         ++this.currentStage;
@@ -51,7 +65,7 @@ public class QuestProgress {
                     player,
                     "&cThere was an error whilst trying to complete Quest objective! Quest rewards were saved and granted."
             );
-            this.quest.grantRewardIfExist(player);
+            grantRewardIfExists();
             return;
         }
 
@@ -59,9 +73,15 @@ public class QuestProgress {
 
         // check quest completion
         if (this.isComplete()) {
-            this.sendQuestCompleteInfo(player);
+            final QuestFinishEvent eventFinish = new QuestFinishEvent(player, this);
+            pluginManager.callEvent(eventFinish);
+
+            if (eventFinish.isCancelled()) {
+                return;
+            }
+            this.sendQuestCompleteInfo();
             if (this.isAutoClaimReward()) {
-                this.quest.grantRewardIfExist(this.player);
+                grantRewardIfExists();
                 QuestManager.current().completeQuest(this);
             }
         }
@@ -73,14 +93,26 @@ public class QuestProgress {
                         player,
                         "&cThere was an error whilst trying to complete Quest objective! Quest rewards were saved and granted."
                 );
-                this.quest.grantRewardIfExist(player);
+                grantRewardIfExists();
                 return;
             }
             nextObjective.sendMessage(PlayerQuestObjective.Type.STARTED);
         }
     }
 
-    private void sendQuestCompleteInfo(Player player) {
+    public void grantRewardIfExists() {
+        final QuestReward reward = quest.getReward();
+        if (reward != null) {
+            reward.grantReward(player);
+            claimedReward = true;
+        }
+    }
+
+    public boolean isClaimedReward() {
+        return claimedReward;
+    }
+
+    private void sendQuestCompleteInfo() {
         getQuest().getFormatter().sendQuestCompleteFormat(player, quest);
     }
 
@@ -139,6 +171,10 @@ public class QuestProgress {
         questProgress.getCurrentObjective().incrementGoalSilent(progress);
 
         QuestManager.current().addQuestProgress(player, questProgress);
+    }
+
+    public final void abandon() {
+        QuestManager.current().removeQuest(this);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package kz.hapyl.spigotutils.module.inventory.gui;
 
+import kz.hapyl.spigotutils.module.annotate.ArraySize;
 import kz.hapyl.spigotutils.module.annotate.Super;
 import kz.hapyl.spigotutils.module.inventory.ChestInventory;
 import kz.hapyl.spigotutils.module.inventory.ItemBuilder;
@@ -13,6 +14,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -166,7 +168,8 @@ public class GUI {
     }
 
     /**
-     * Clears item in provided slot.
+     * Clears item in provided slot. <b>Keep in mind that this does NOT reset click event.
+     * To avoid ghost clicks use {@link GUI#resetClick(int)} to reset click or {@link GUI#clearEverything()} to clear this GUi.</b>
      *
      * @param slot - Slot to clear item at.
      */
@@ -180,7 +183,7 @@ public class GUI {
      * @param slot - Slot to clear event at.
      */
     public final void resetClick(int slot) {
-        this.setItem(slot, getItem(slot), (Action) null);
+        bySlot.remove(slot);
     }
 
     /**
@@ -189,7 +192,8 @@ public class GUI {
      * @param slot - Slot to clear at.
      */
     public final void reset(int slot) {
-        this.setItem(slot, null, (Action) null);
+        resetItem(slot);
+        resetClick(slot);
     }
 
     /**
@@ -204,10 +208,16 @@ public class GUI {
     }
 
     /**
-     * Clears events, such as clicks events, close and open events.
+     * Clears clicks events.
      */
     public final void clearClickEvents() {
         bySlot.clear();
+    }
+
+    /**
+     * Clears close and open events.
+     */
+    public final void clearEvents() {
         closeEvent = null;
         openEvent = null;
     }
@@ -220,8 +230,8 @@ public class GUI {
      * @param action - Click action of provided slot.
      * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
      */
-    public final void setItem(int slot, @Nullable ItemStack item, Action action) {
-        this.setItem(slot, item, new GUIClick(action));
+    public final void setItem(int slot, @Nullable ItemStack item, @Nullable Action action) {
+        setItem(slot, item, action == null ? null : new GUIClick(action));
     }
 
     /**
@@ -233,7 +243,7 @@ public class GUI {
      * @param types  - Click Types action is applied to.
      * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
      */
-    public final void setItem(int slot, @Nullable ItemStack item, Action action, ClickType... types) {
+    public final void setItem(int slot, @Nullable ItemStack item, @Nonnull Action action, @ArraySize(min = 1) ClickType... types) {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
         final GUIClick guiClick = getOrNew(slot, action);
         for (final ClickType type : types) {
@@ -250,7 +260,7 @@ public class GUI {
      * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
      */
     public final void setItem(int slot, @Nullable ItemStack item) {
-        this.setItem(slot, item, (Action) null);
+        setItem(slot, item, (Action) null);
     }
 
     /**
@@ -776,9 +786,8 @@ public class GUI {
      */
     public final void clearEverything() {
         clearClickEvents();
-        for (int i = 0; i < this.getSize(); i++) {
-            this.setItem(i, null);
-        }
+        clearEvents();
+        clearItems();
     }
 
 }

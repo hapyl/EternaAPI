@@ -29,7 +29,7 @@ public class QuestJournal extends PlayerGUI {
     }
 
     private void setUpItems() {
-        this.clearEverything();
+        clearEverything();
 
         this.setItem(4, new ItemBuilder(Material.PAINTING).setName("&aQuest Journal").toItemStack());
         this.setItem(40, new ItemBuilder(Material.BARRIER).setName("&cClose Menu").toItemStack(), this::closeInventory);
@@ -82,24 +82,18 @@ public class QuestJournal extends PlayerGUI {
                     }
                 });
 
-                // admin
-                if (getPlayer().isOp()) {
-                    builder.addLore("").addLore("&cDebug:");
-                    builder.addLore("&bId: " + progress.getQuest().getQuestId());
-                }
-
-                this.setItem(slot, builder.toItemStack());
-
                 if (progress.isComplete()) {
-                    this.setClick(slot, player -> {
-                        progress.getQuest().grantRewardIfExist(player);
+                    builder.addLore().addLore("&eClick to claim rewards!");
+                    setClick(slot, player -> {
+                        progress.grantRewardIfExists();
                         Chat.sendMessage(player, "&a&lQUEST CLAIMED &7" + progress.getQuest().getQuestName());
                         QuestManager.current().completeQuest(progress);
                         PlayerLib.plingNote(player, 2.0f);
-                        this.setUpItems();
+                        setUpItems();
                     });
                 }
 
+                setItem(slot, builder.toItemStack());
                 slot += (slot % 9 == 8) ? 2 : 1;
             }
         }

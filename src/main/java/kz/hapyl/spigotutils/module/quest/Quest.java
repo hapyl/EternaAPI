@@ -1,7 +1,9 @@
 package kz.hapyl.spigotutils.module.quest;
 
 import kz.hapyl.spigotutils.module.chat.Chat;
+import kz.hapyl.spigotutils.module.event.quest.QuestStartEvent;
 import kz.hapyl.spigotutils.module.quest.objectives.Objectives;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -23,8 +25,7 @@ public class Quest {
     private QuestFormatter formatter;
 
     private final String questId;
-    private final boolean autoClaim;
-    private boolean allowParallel;
+    private boolean autoClaim;
 
     public Quest(String questId, String displayName, boolean autoClaim) {
         this.questId = questId.toLowerCase(Locale.ROOT);
@@ -46,27 +47,32 @@ public class Quest {
         this.reward = reward;
     }
 
-    public void allowParallel(boolean allowParallel) {
-        this.allowParallel = allowParallel;
-    }
-
     public QuestFormatter getFormatter() {
         return formatter;
     }
 
-    public boolean isAllowParallel() {
-        return allowParallel;
+    public boolean hasReward() {
+        return reward != null;
     }
 
-    public void grantRewardIfExist(Player player) {
-        if (this.reward == null) {
-            return;
-        }
-        this.reward.grantReward(player);
+    @Nullable
+    public QuestReward getReward() {
+        return reward;
     }
 
     public final boolean isAutoClaim() {
         return autoClaim;
+    }
+
+    /**
+     * Returns if quest rewards will be instantly gives upon completing this quest.
+     * <b>Note that if {@param autoClaim} is false, plugin must implement a way to
+     * grant rewards if {@link kz.hapyl.spigotutils.builtin.gui.QuestJournal} is disabled.</b>
+     *
+     * @param autoClaim - Should auto claim. Default is true.
+     */
+    public final void setAutoClaim(boolean autoClaim) {
+        this.autoClaim = autoClaim;
     }
 
     public final void startQuest(Player player) {
@@ -76,13 +82,20 @@ public class Quest {
             return;
         }
 
-        if (!isAllowParallel() && manager.hasQuest(player, this)) {
+        if (manager.hasQuest(player, this)) {
             Chat.sendMessage(player, "&cYou already started this quest!");
             return;
         }
 
+        final QuestStartEvent event = new QuestStartEvent(player, this);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         manager.startQuest(player, this);
-        this.sendQuestInfo(player);
+        sendQuestInfo(player);
     }
 
     public String getQuestId() {

@@ -3,6 +3,9 @@ package test;
 import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.command.CommandProcessor;
 import kz.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
+import kz.hapyl.spigotutils.module.quest.Quest;
+import kz.hapyl.spigotutils.module.quest.QuestManager;
+import kz.hapyl.spigotutils.module.quest.QuestProgress;
 import org.bukkit.entity.Player;
 import org.bukkit.util.NumberConversions;
 
@@ -30,6 +33,18 @@ public class Commands {
 
         registerCommand("testlaser", (p, a) -> LaserTest.test(p.getPlayer()));
         registerCommand("testgui", (p, a) -> GUITest.test(p));
+        registerCommand("testabandonallquests", (player, args) -> {
+            for (QuestProgress progress : QuestManager.current().getActiveQuests(player)) {
+                progress.abandon();
+            }
+        });
+        registerCommand("testquestautoclaim", (player, args) -> {
+            final Quest quest = QuestManager.current().getById("start_quest");
+            if (quest == null) {
+                return;
+            }
+            quest.startQuest(player);
+        });
 
     }
 
