@@ -2,7 +2,6 @@ package kz.hapyl.spigotutils.module.parkour;
 
 import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.module.event.parkour.ParkourCheckpointEvent;
-import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.util.cd.InternalCooldownStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -11,6 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -22,7 +22,7 @@ public class ParkourListener implements Listener {
         return EternaPlugin.getPlugin().getParkourManager();
     }
 
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerJoin(PlayerJoinEvent ev) {
         manager().getRegisteredParkours().forEach(p -> {
             p.showHolograms(ev.getPlayer());
@@ -43,7 +43,7 @@ public class ParkourListener implements Listener {
     }
 
     // Brain
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerInteractEvent(PlayerInteractEvent ev) {
         final Block clickedBlock = ev.getClickedBlock();
         final Action action = ev.getAction();
@@ -79,8 +79,7 @@ public class ParkourListener implements Listener {
             // Finish
             if (parkour.getFinish().compare(clickedBlockLocation)) {
                 if (data == null) {
-                    manager().sendParkourMessage(player, "&cYou must first start this parkour!");
-                    PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+                    parkour.getFormatter().sendErrorParkourNotStarted(player, parkour);
                     return;
                 }
 
@@ -89,7 +88,7 @@ public class ParkourListener implements Listener {
                     if (data.hasNextCheckpoint()) {
                         manager().teleportToCheckpoint(player);
                     }
-                    manager().sendParkourMessage(player, "&cYou missed &l%s&c checkpoints!", data.missedCheckpointsCount());
+                    parkour.getFormatter().sendErrorMissedCheckpointCannotFinish(data);
                     return;
                 }
 
@@ -127,31 +126,30 @@ public class ParkourListener implements Listener {
             }
             // If any other checkpoint besides that we're standing right now say that we missed a checkpoint.
             else if (data.isFutureCheckpoint(clickedBlockLocation)) {
-                manager().sendParkourMessage(player, "&cYou missed a checkpoint!");
-                PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+                data.getParkour().getFormatter().sendErrorMissedCheckpoint(data);
             }
         }
     }
 
     // Fail detection
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerTeleportEvent(PlayerTeleportEvent ev) {
         if (ev.getCause() != PlayerTeleportEvent.TeleportCause.UNKNOWN) {
             testFail(ev.getPlayer(), FailType.TELEPORT);
         }
     }
 
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerGameModeChangeEvent(PlayerGameModeChangeEvent ev) {
         testFail(ev.getPlayer(), FailType.GAMEMODE_CHANGE);
     }
 
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerToggleFlightEvent(PlayerToggleFlightEvent ev) {
         testFail(ev.getPlayer(), FailType.FLIGHT);
     }
 
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handleParkourBlockBreak(BlockBreakEvent ev) {
         final Material type = ev.getBlock().getType();
         if (type == Position.Type.START_OR_FINISH.material() || type == Position.Type.CHECKPOINT.material()) {

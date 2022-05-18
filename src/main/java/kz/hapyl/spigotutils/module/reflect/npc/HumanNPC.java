@@ -13,8 +13,8 @@ import kz.hapyl.spigotutils.module.annotate.InsuredViewers;
 import kz.hapyl.spigotutils.module.annotate.TestedNMS;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.hologram.Hologram;
-import kz.hapyl.spigotutils.module.math.IntInt;
 import kz.hapyl.spigotutils.module.math.Numbers;
+import kz.hapyl.spigotutils.module.math.nn.IntInt;
 import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.quest.PlayerQuestObjective;
 import kz.hapyl.spigotutils.module.quest.QuestManager;
@@ -473,7 +473,7 @@ public class HumanNPC implements Intractable, Human {
         players = insureViewers(players);
         this.location.setDirection(location.clone().subtract(this.location).toVector());
         this.setHeadRotation(this.location.getYaw(), players);
-        ReflectPacket.wrapAndSend(new PacketPlayOutEntity.PacketPlayOutEntityLook(
+        ReflectPacket.send(new PacketPlayOutEntity.PacketPlayOutEntityLook(
                 this.getId(),
                 (byte) (this.location.getYaw() * 256 / 360),
                 (byte) (this.location.getPitch() * 256 / 360),
@@ -670,7 +670,7 @@ public class HumanNPC implements Intractable, Human {
     private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
         final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
         list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
-        ReflectPacket.wrapAndSend(new PacketPlayOutEntityEquipment(this.getId(), list), players);
+        ReflectPacket.send(new PacketPlayOutEntityEquipment(this.getId(), list), players);
     }
 
     public NPCEquipment getEquipment() {
@@ -757,13 +757,13 @@ public class HumanNPC implements Intractable, Human {
     @Override
     @InsuredViewers
     public void playAnimation(NPCAnimation animation, @Nullable Player... players) {
-        ReflectPacket.wrapAndSend(new PacketPlayOutAnimation(this.getHuman(), animation.getPos()), insureViewers(players));
+        ReflectPacket.send(new PacketPlayOutAnimation(this.getHuman(), animation.getPos()), insureViewers(players));
     }
 
     @Override
     @InsuredViewers
     public void updateDataWatcher(@Nullable Player... players) {
-        ReflectPacket.wrapAndSend(new PacketPlayOutEntityMetadata(this.getId(), this.human.ai(), true), insureViewers(players));
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(this.getId(), this.human.ai(), true), insureViewers(players));
     }
 
     /**

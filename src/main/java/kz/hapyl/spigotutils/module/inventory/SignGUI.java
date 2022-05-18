@@ -129,11 +129,11 @@ public abstract class SignGUI {
     private void createPacketAndSend() {
         player.sendBlockChange(location, Material.OAK_SIGN.createBlockData());
         player.sendSignChange(location, this.lines);
-        new ReflectPacket(new PacketPlayOutOpenSignEditor(new BlockPosition(
+        ReflectPacket.send(new PacketPlayOutOpenSignEditor(new BlockPosition(
                 location.getBlockX(),
                 location.getBlockY(),
                 location.getBlockZ()
-        ))).sendPackets(player);
+        )), player);
         saved.put(player, this);
     }
 

@@ -1,48 +1,57 @@
 package kz.hapyl.spigotutils.module.reflect.border;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
+import kz.hapyl.spigotutils.module.EternaModule;
+import kz.hapyl.spigotutils.module.annotate.TestedNMS;
+import kz.hapyl.spigotutils.module.math.Numbers;
 import kz.hapyl.spigotutils.module.reflect.Reflect;
-import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
 import kz.hapyl.spigotutils.module.util.Holder;
-import net.minecraft.network.protocol.game.ClientboundInitializeBorderPacket;
-import net.minecraft.world.level.border.WorldBorder;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 
-// TODO: 003. 03/05/2022 - Idk whats happening here. Test and rework using Protocol
+@EternaModule
+@TestedNMS(version = "1.18.2")
 public class PlayerBorder extends Holder<Player> {
 
-    private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+    private final WorldBorder border;
 
     public PlayerBorder(Player player) {
         super(player);
+        border = Bukkit.createWorldBorder();
+        border.setWarningTime(0);
+    }
+
+    public void update(Operation operation) {
+        update(operation, 1000);
     }
 
     public void update(Operation operation, double size) {
-        final WorldBorder border = new WorldBorder();
-        final Location location = getPlayer().getLocation();
+        final Player player = getPlayer();
+        final Location location = player.getLocation();
 
-        border.world = Reflect.getMinecraftWorld(location.getWorld()).getMinecraftWorld();
-        //		border.setCenter(location.getX(), location.getZ());
-        //		border.setWarningTime(0);
+        size = Numbers.clamp(size, 2.0d, Double.MAX_VALUE);
+        border.setCenter(location.getX(), location.getZ());
 
         if (operation == Operation.REMOVE) {
-            //			border.setSize(Integer.MAX_VALUE);
-            //			border.setWarningDistance(0);
+            player.setWorldBorder(player.getWorld().getWorldBorder());
+            return;
         }
-        else {
-            //			border.setSize(size);
-            //			border.setWarningDistance(Integer.MAX_VALUE);
-        }
+
+        border.setSize(size);
+        border.setWarningDistance(Integer.MAX_VALUE);
 
         switch (operation) {
-            //			case BORDER_RED -> border.transitionSizeBetween(size, size - 1.0d, 20000000L);
-            //			case BORDER_GREEN -> border.transitionSizeBetween(size - 0.1d, size, 20000000L);
+            case BORDER_RED -> border.setSize(size - 1.0d, Long.MAX_VALUE);
+            case BORDER_GREEN -> {
+                final net.minecraft.world.level.border.WorldBorder netBorder = Reflect.getNetWorldBorder(border);
+                if (netBorder != null) {
+                    netBorder.a(size - 0.1d, size, Long.MAX_VALUE);
+                }
+            }
         }
 
-        new ReflectPacket(new ClientboundInitializeBorderPacket(border)).sendPackets(getPlayer());
-
+        player.setWorldBorder(border);
     }
 
     public static void reset(Player player) {
@@ -50,7 +59,7 @@ public class PlayerBorder extends Holder<Player> {
     }
 
     public static void showRedOutline(Player player) {
-        new PlayerBorder(player).update(Operation.BORDER_RED, 1000);
+        new PlayerBorder(player).update(Operation.BORDER_RED);
     }
 
     public Player getPlayer() {
@@ -58,11 +67,18 @@ public class PlayerBorder extends Holder<Player> {
     }
 
     public enum Operation {
-
+        /**
+         * Removes players border.
+         */
         REMOVE,
+        /**
+         * Changes border color to green.
+         */
         BORDER_GREEN,
+        /**
+         * Changes border color to red.
+         */
         BORDER_RED
-
     }
 
 }

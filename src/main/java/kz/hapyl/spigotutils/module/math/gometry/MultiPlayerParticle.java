@@ -5,6 +5,9 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
+/**
+ * Displays one particle for player A and other for everyone else.
+ */
 public class MultiPlayerParticle extends PlayerParticle {
 
     private final Particle forOthers;

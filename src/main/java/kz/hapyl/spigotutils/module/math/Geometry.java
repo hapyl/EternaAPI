@@ -8,17 +8,31 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 
+/**
+ * A geometry class that allows to draw simple stuff.
+ */
 public class Geometry {
 
     public static final Location CENTER = new Location(Bukkit.getWorlds().get(0), 0, Bukkit.getWorlds().get(0).getHighestBlockYAt(0, 0), 0);
     protected static final double TWO_PI = (Math.PI * 2);
 
+    /**
+     * Draws a circle around center.
+     *
+     * @param center  - Center of the circle.
+     * @param radius  - Radius of the circle.
+     * @param quality - Quality of the circle.
+     * @param draw    - Drawable.
+     * @throws NullPointerException if location, quality or drawable is null.
+     */
     @AsyncSafe
-    public static void drawCircle(Location center, double radius, Quality quality, Draw draw) {
+    public static void drawCircle(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Draw draw) {
         Validate.notNull(center, "location cannot be null");
         Validate.notNull(draw, "draw particle cannot be null");
+        Validate.notNull(quality, "quality cannot be null");
 
         for (double i = 0.0d; i < TWO_PI; i += quality.getStep()) {
             double x = (radius * Math.sin(i));
@@ -27,11 +41,20 @@ public class Geometry {
             draw.draw(center);
             center.subtract(x, 0, z);
         }
-
     }
 
+    /**
+     * Draws a line between two points.
+     *
+     * @param start - Start of the line.
+     * @param end   - End of the line.
+     * @param step  - How much to move each move; smaller values results in higher quality.
+     * @param draw  - Drawable.
+     * @throws NullPointerException     if start, end or drawable is null.
+     * @throws IllegalArgumentException if start and end is not in the same world.
+     */
     @AsyncSafe
-    public static void drawLine(Location start, Location end, double step, Draw draw) {
+    public static void drawLine(@Nonnull Location start, @Nonnull Location end, double step, @Nonnull Draw draw) {
         Validate.notNull(start);
         Validate.notNull(end);
         Validate.notNull(draw);
@@ -46,11 +69,20 @@ public class Geometry {
             dynamic.add(vector);
             draw.draw(dynamic);
         }
-
     }
 
+    /**
+     * Draws a sphere around center.
+     *
+     * @param center      - Center of the sphere.
+     * @param rings       - Amount of 'rings' sphere will have; higher value returns in higher quality. Usually (radius / 2) results in good quality.
+     * @param radius      - Radius of the sphere.
+     * @param draw        - Drawable.
+     * @param drawOnlyTop - If true, only top of the sphere will be drawn to save on resources.
+     * @throws NullPointerException if center or draw is null.
+     */
     @AsyncSafe
-    public static void drawSphere(Location center, double rings, double radius, Draw draw, boolean drawOnlyTop) {
+    public static void drawSphere(@Nonnull Location center, double rings, double radius, @Nonnull Draw draw, boolean drawOnlyTop) {
         Validate.notNull(center);
         Validate.notNull(draw);
 
@@ -70,12 +102,31 @@ public class Geometry {
         }
     }
 
+    /**
+     * Draws a sphere around center.
+     *
+     * @param center - Center of the sphere.
+     * @param rings  - Amount of 'rings' sphere will have; higher value returns in higher quality. Usually (radius / 2) results in good quality.
+     * @param radius - Radius of the sphere.
+     * @param draw   - Drawable.
+     * @throws NullPointerException if center or draw is null.
+     */
     @AsyncSafe
     public static void drawSphere(Location center, double rings, double radius, Draw draw) {
         drawSphere(center, rings, radius, draw, false);
     }
 
-    public static void drawPolygon(Location center, int points, double radius, Draw draw) {
+    /**
+     * Draws a polygon around the center.
+     *
+     * @param center - Center of polygon.
+     * @param points - How many points' polygon will have.
+     * @param radius - Radius from the center to each point.
+     * @param draw   - Drawable.
+     * @throws NullPointerException     if center or draw is null.
+     * @throws IllegalArgumentException if radius is negative.
+     */
+    public static void drawPolygon(@Nonnull Location center, int points, double radius, @Nonnull Draw draw) {
         Validate.notNull(center);
         Validate.notNull(draw);
         Validate.isTrue(radius > 0, "radius must be positive");
@@ -108,7 +159,16 @@ public class Geometry {
         }
     }
 
-    public static void drawDonut(Location center, int layers, double radius, Draw draw) {
+    /**
+     * Draws a donut around center.
+     *
+     * @param center - Center of the donut.
+     * @param layers - Amount of layers of the donut.
+     * @param radius - Radius from the center.
+     * @param draw   - Drawable.
+     * @throws NullPointerException if center or draw is null.
+     */
+    public static void drawDonut(@Nonnull Location center, int layers, double radius, @Nonnull Draw draw) {
         Validate.notNull(center);
         Validate.notNull(draw);
 

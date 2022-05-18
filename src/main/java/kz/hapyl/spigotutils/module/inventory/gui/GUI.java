@@ -19,13 +19,13 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * Create ChestGUI
+ * A powerful GUI creator class.
+ * Allows to add items, click events, close and open events or even add your own listener.
  */
 public class GUI {
 
     public static final char ARROW_FORWARD = '➜';
 
-    // todo: move to registry
     private static final Map<UUID, GUI> playerInventory = new HashMap<>();
 
     private final String name;

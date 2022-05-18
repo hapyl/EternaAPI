@@ -4,6 +4,9 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
+/**
+ * Displays particle for specific player.
+ */
 public class PlayerParticle extends Draw {
     private final Player player;
 

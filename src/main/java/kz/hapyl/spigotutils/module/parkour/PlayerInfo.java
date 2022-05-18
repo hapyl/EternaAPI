@@ -9,6 +9,10 @@ import org.bukkit.potion.PotionEffect;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Stores all player info BEFORE starting the parkour
+ * to further restore.
+ */
 public class PlayerInfo extends Holder<Player> {
 
     private final GameMode gamemode;

@@ -1,11 +1,13 @@
 package kz.hapyl.spigotutils.module.parkour;
 
 import kz.hapyl.spigotutils.EternaPlugin;
-import kz.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
 
+/**
+ * This sends actionbar update every 2 ticks.
+ */
 public class ParkourRunnable implements Runnable {
     @Override
     public void run() {
@@ -14,11 +16,8 @@ public class ParkourRunnable implements Runnable {
 
         for (Data data : hashMap.values()) {
             final Parkour parkour = data.getParkour();
-            if (parkour.isSilent()) {
-                continue;
-            }
 
-            Chat.sendActionbar(data.get(), "&a&l%s: &b%ss", parkour.getName(), data.getTimePassedFormatted());
+            parkour.getFormatter().sendTickActionbar(data);
         }
     }
 }

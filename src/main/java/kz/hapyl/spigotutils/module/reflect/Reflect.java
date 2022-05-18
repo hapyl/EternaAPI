@@ -24,6 +24,8 @@ import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.border.WorldBorder;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -91,7 +93,7 @@ public final class Reflect {
      * @param players - Players to update location for.
      */
     public static void updateEntityLocation(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.wrapAndSend(new PacketPlayOutEntityTeleport(entity), players);
+        ReflectPacket.send(new PacketPlayOutEntityTeleport(entity), players);
     }
 
     /**
@@ -114,7 +116,7 @@ public final class Reflect {
      * @param players - Players.
      */
     public static void destroyEntity(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.wrapAndSend(new PacketPlayOutEntityDestroy(entity.getBukkitEntity().getEntityId()), players);
+        ReflectPacket.send(new PacketPlayOutEntityDestroy(entity.getBukkitEntity().getEntityId()), players);
     }
 
     /**
@@ -172,7 +174,7 @@ public final class Reflect {
      * @param players - Players who will see the update.
      */
     public static void updateMetadata(net.minecraft.world.entity.Entity entity, DataWatcher watcher, Player... players) {
-        ReflectPacket.wrapAndSend(new PacketPlayOutEntityMetadata(entity.ae(), watcher, true), players);
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(entity.ae(), watcher, true), players);
     }
 
     /**
@@ -184,6 +186,16 @@ public final class Reflect {
     @TestedNMS(version = "1.18")
     public static int getEntityId(net.minecraft.world.entity.Entity entity) {
         return entity.ae();
+    }
+
+    @Nullable
+    public static WorldBorder getNetWorldBorder(org.bukkit.WorldBorder bukkitWorldBorder) {
+        try {
+            return (WorldBorder) MethodUtils.invokeMethod(bukkitWorldBorder, "getHandle", null);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -430,7 +442,7 @@ public final class Reflect {
      * @param players - Who entity will be hidden for.
      */
     public static void hideEntity(Entity entity, Player... players) {
-        ReflectPacket.wrapAndSend(new PacketPlayOutEntityDestroy(entity.getEntityId()), players);
+        ReflectPacket.send(new PacketPlayOutEntityDestroy(entity.getEntityId()), players);
     }
 
     /**
@@ -465,7 +477,7 @@ public final class Reflect {
         if (netEntity == null) {
             return;
         }
-        ReflectPacket.wrapAndSend(new PacketPlayOutSpawnEntity(netEntity), viewers);
+        ReflectPacket.send(new PacketPlayOutSpawnEntity(netEntity), viewers);
     }
 
     /**
@@ -667,6 +679,14 @@ public final class Reflect {
         for (final Player receiver : receivers) {
             getMinecraftPlayer(receiver).b.a.a(packet);
         }
+    }
+
+    public static ItemStack bukkitItemToNMS(org.bukkit.inventory.ItemStack bukkitItem) {
+        return (ItemStack) invokeMethod(
+                getCraftMethod("inventory.CraftItemStack", "asNMSCopy", org.bukkit.inventory.ItemStack.class),
+                null,
+                bukkitItem
+        );
     }
 
     public static void sendPacket(PacketContainer packet, Player... receivers) {

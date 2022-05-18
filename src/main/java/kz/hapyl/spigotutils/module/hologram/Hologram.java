@@ -312,9 +312,9 @@ public class Hologram {
         return this;
     }
 
-    private void teleportAndSync(EntityArmorStand stand, double x, double y, double z, Player... receivers) {
+    private void teleportAndSync(EntityArmorStand stand, double x, double y, double z, Player... players) {
         stand.a(x, y, z);
-        new ReflectPacket(new PacketPlayOutEntityTeleport(stand)).sendPackets(receivers);
+        ReflectPacket.send(new PacketPlayOutEntityTeleport(stand), players);
     }
 
     private void createStand(Location location, String name) {

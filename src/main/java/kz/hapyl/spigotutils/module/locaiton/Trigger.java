@@ -45,7 +45,7 @@ public abstract class Trigger {
     }
 
     /**
-     * Triggers once upon players' first time entering the trigger.
+     * Triggers once upon players' first time entering the trigger. (Not persistent)
      *
      * @param player - Player.
      */

@@ -5,6 +5,7 @@ import net.minecraft.network.protocol.Packet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class ReflectPacket {
@@ -14,8 +15,13 @@ public class ReflectPacket {
         this.packets = packet;
     }
 
-    public static void wrapAndSend(Packet<?> packets, Player... players) {
-        new ReflectPacket(packets).sendPackets(players);
+    // use this for single packet sending
+    public static void send(Packet<?> packet, Player... players) {
+        Reflect.sendPacket(packet, players);
+    }
+
+    public static void wrapAndSend(Packet<?> packet, Player... players) {
+        send(packet, players);
     }
 
     public void sendPackets(Player player) {
@@ -36,12 +42,17 @@ public class ReflectPacket {
         Reflect.sendPacket(this.packets[packet], player);
     }
 
+    @Nullable
     public Packet<?> getPacket(int packet) {
         return packet >= this.packets.length ? null : this.packets[packet];
     }
 
     public Packet<?>[] getPackets() {
         return packets;
+    }
+
+    public boolean hasPacket(int packet) {
+        return packets.length >= packet;
     }
 
     public void sendPacket(int packet, Player... players) {

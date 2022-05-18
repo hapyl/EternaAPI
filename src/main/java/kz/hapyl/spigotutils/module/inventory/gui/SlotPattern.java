@@ -8,6 +8,35 @@ import java.util.List;
 
 public final class SlotPattern {
 
+    /**
+     * Fills inner layer left to right.
+     */
+    public static final SlotPattern INNER_LEFT_TO_RIGHT = new SlotPattern(new byte[][] {
+            { 0, 1, 0, 0, 0, 0, 0, 0, 0 }, // 1
+            { 0, 1, 1, 0, 0, 0, 0, 0, 0 }, // 2
+            { 0, 1, 1, 1, 0, 0, 0, 0, 0 }, // 3
+            { 0, 1, 1, 1, 1, 0, 0, 0, 0 }, // 4
+            { 0, 1, 1, 1, 1, 1, 0, 0, 0 }, // 5
+            { 0, 1, 1, 1, 1, 1, 1, 0, 0 }, // 6
+            { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 7
+    });
+
+    /**
+     * Fills inner layer right to left.
+     */
+    public static final SlotPattern INNER_RIGHT_TO_LEFT = new SlotPattern(new byte[][] {
+            { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, // 1
+            { 0, 0, 0, 0, 0, 0, 1, 1, 0 }, // 2
+            { 0, 0, 0, 0, 0, 1, 1, 1, 0 }, // 3
+            { 0, 0, 0, 0, 1, 1, 1, 1, 0 }, // 4
+            { 0, 0, 0, 1, 1, 1, 1, 1, 0 }, // 5
+            { 0, 0, 1, 1, 1, 1, 1, 1, 0 }, // 6
+            { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 7
+    });
+
+    /**
+     * More chunky version of default pattern.
+     */
     public static final SlotPattern CHUNKY = new SlotPattern(new byte[][] {
             { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // 1
             { 0, 0, 0, 1, 0, 1, 0, 0, 0 }, // 2
@@ -17,9 +46,12 @@ public final class SlotPattern {
             { 0, 1, 1, 1, 0, 1, 1, 1, 0 }, // 6
             { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 7
             { 1, 1, 1, 1, 0, 1, 1, 1, 1 }, // 8
-            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }  // 8
+            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }  // 9
     });
 
+    /**
+     * Standard pattern.
+     */
     public static final SlotPattern DEFAULT = new SlotPattern(new byte[][] {
             { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // 1
             { 0, 0, 0, 1, 0, 1, 0, 0, 0 }, // 2
@@ -36,17 +68,18 @@ public final class SlotPattern {
     public SlotPattern(byte[][] pattern) {
         for (byte[] bytes : pattern) {
             if (bytes.length != 9) {
-                throw new IllegalArgumentException("pattern length must be 8, not " + bytes.length);
+                throw new IllegalArgumentException("pattern length must be 9, not " + bytes.length);
             }
         }
         this.pattern = pattern;
     }
 
+    // Converts Collection of ItemStack to slots depending on items size.
     public List<Integer> getSlots(Collection<ItemStack> items, int startLine) {
         return getSlots(calculateBytes(items), startLine);
     }
 
-    // converts bytes into list of slots to put items to
+    // Converts bytes into list of slots to put items to.
     public List<Integer> getSlots(byte[][] bytes, int startLine) {
         final List<Integer> slots = new ArrayList<>();
 
@@ -60,6 +93,7 @@ public final class SlotPattern {
         return slots;
     }
 
+    // Calculates Collection of ItemStack to byte based on current pattern.
     public byte[][] calculateBytes(Collection<ItemStack> items) {
         final int size = items.size();
         final int sizeScaled = (int) Math.ceil(size / 5.0f);

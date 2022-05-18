@@ -117,7 +117,6 @@ public class SongPlayer extends Registry<SongPlayer> {
 
             @Override
             public void run() {
-
                 if (pause) {
                     return;
                 }

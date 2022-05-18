@@ -1,5 +1,8 @@
 package kz.hapyl.spigotutils.module.parkour;
 
+/**
+ * Used to display parkour difficulty, doesn't actually affect parkour course in any way.
+ */
 public class Difficulty {
 
     public static final Difficulty VERY_EASY = new Difficulty("&aVery Easy");
@@ -18,4 +21,9 @@ public class Difficulty {
     public String getName() {
         return name;
     }
+
+    public static Difficulty custom(String name) {
+        return new Difficulty(name);
+    }
+
 }

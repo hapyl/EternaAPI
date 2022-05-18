@@ -27,8 +27,7 @@ public interface Traceable {
                 radius,
                 radius,
                 radius,
-                entity -> entity instanceof LivingEntity living && (predicate == null || predicate.test(
-                        living))
+                entity -> entity instanceof LivingEntity living && (predicate == null || predicate.test(living))
         ).forEach(living -> entities.add((LivingEntity) living));
 
         return entities;

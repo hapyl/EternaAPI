@@ -3,14 +3,12 @@ package kz.hapyl.spigotutils.module.parkour;
 import com.google.common.collect.Maps;
 import kz.hapyl.spigotutils.EternaPlugin;
 import kz.hapyl.spigotutils.HashRegistry;
-import kz.hapyl.spigotutils.module.chat.Chat;
 import kz.hapyl.spigotutils.module.event.parkour.*;
 import kz.hapyl.spigotutils.module.player.EffectType;
 import kz.hapyl.spigotutils.module.player.PlayerLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
@@ -25,7 +23,6 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
     public final Map<Position, Parkour> byPosition = Maps.newHashMap();
 
     public final ParkourItemStorage parkourItemStorage = new ParkourItemStorage(this);
-    public final String PARKOUR_MESSAGE_FORMAT = "&6&lPARKOUR! &7";
 
     private final Map<Player, Data> parkourData;
 
@@ -57,10 +54,7 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
                 data.resetTime();
                 data.resetCheckpoints();
 
-                if (!parkour.isSilent()) {
-                    sendParkourMessage(player, "Reset time for %s!", parkour.getName());
-                    PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
-                }
+                parkour.getFormatter().sendResetTime(player, parkour);
             }
         }
         else {
@@ -82,10 +76,7 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
             PlayerLib.addEffect(player, EffectType.INVISIBILITY, Integer.MAX_VALUE, 1);
             parkourData.put(player, newData);
 
-            if (!parkour.isSilent()) {
-                sendParkourMessage(player, "Started %s!", parkour.getName());
-                PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
-            }
+            parkour.getFormatter().sendParkourStarted(player, parkour);
         }
 
     }
@@ -106,14 +97,7 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
         data.getPlayerInfo().restore();
         player.teleport(data.getParkour().getQuitLocation());
 
-        if (!data.getParkour().isSilent()) {
-            sendParkourMessage(
-                    player,
-                    "Finished &a%s&7 in &b%ss&7!",
-                    data.getParkour().getName(),
-                    data.getTimePassedFormatted()
-            );
-        }
+        data.getParkour().getFormatter().sendParkourFinished(data);
     }
 
     public void failParkour(Player player, FailType type) {
@@ -132,10 +116,7 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
 
         PlayerLib.removeEffect(player, EffectType.INVISIBILITY);
 
-        if (!data.getParkour().isSilent()) {
-            sendParkourMessage(player, "&cParkour failed, &l%s&c!", type.getReason());
-            PlayerLib.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0f);
-        }
+        data.getParkour().getFormatter().sendParkourFailed(data, type);
     }
 
     public void teleportToCheckpoint(Player player) {
@@ -144,28 +125,17 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
             return;
         }
 
-        final boolean silent = data.getParkour().isSilent();
         final Position checkpoint = data.getPreviousCheckpoint();
         if (checkpoint == null) {
-            if (!silent) {
-                sendParkourMessage(player, "You haven't passed any checkpoints yet!");
-                PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
-            }
+            data.getParkour().getFormatter().sendHaventPassedCheckpoint(data);
         }
         else {
-            if (tryEventCheckCancel(new ParkourCheckpointEvent(
-                    player,
-                    data,
-                    checkpoint,
-                    ParkourCheckpointEvent.Type.TELEPORT_TO
-            ))) {
+            if (tryEventCheckCancel(new ParkourCheckpointEvent(player, data, checkpoint, ParkourCheckpointEvent.Type.TELEPORT_TO))) {
                 return;
             }
             player.teleport(checkpoint.toLocationCentered(), PlayerTeleportEvent.TeleportCause.UNKNOWN);
             data.getStats().increment(Stats.Type.CHECKPOINT_TELEPORT, 1);
-            if (!silent) {
-                PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 1.25f);
-            }
+            data.getParkour().getFormatter().sendCheckpointTeleport(data);
         }
     }
 
@@ -200,9 +170,7 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
         player.removePotionEffect(PotionEffectType.INVISIBILITY);
         data.getPlayerInfo().restore();
 
-        if (!parkour.isSilent()) {
-            sendParkourMessage(player, "Quit %s!", parkour.getName());
-        }
+        parkour.getFormatter().sendQuit(data);
     }
 
     public Collection<Parkour> getRegisteredParkours() {
@@ -277,14 +245,6 @@ public class ParkourManager extends HashRegistry<Position, Parkour> {
     @Nullable
     public Data getData(Player player) {
         return parkourData.get(player);
-    }
-
-    public void sendParkourMessage(Player player, String message, Object... objects) {
-        Chat.sendMessage(player, PARKOUR_MESSAGE_FORMAT + message, objects);
-    }
-
-    public void broadcastParkourMessage(String message, Object... objects) {
-        Chat.broadcast(PARKOUR_MESSAGE_FORMAT + message, objects);
     }
 
 }

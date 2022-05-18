@@ -1,7 +1,10 @@
 package kz.hapyl.spigotutils.module.player.song;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Song {
 
@@ -43,7 +46,7 @@ public class Song {
 	}
 
 	public void addNote(SongNote note) {
-		this.notes.put((long) this.notes.size(), Arrays.asList(note));
+		this.notes.put((long) this.notes.size(), List.of(note));
 	}
 
 	public void putNote(long index, SongNote note) {

@@ -18,7 +18,9 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 /**
- * Advanced Chest Inventory builder
+ * Advanced Chest Inventory builder.
+ *
+ * @deprecated {@link kz.hapyl.spigotutils.module.inventory.gui.GUI}
  */
 @Deprecated(since = "2.1")
 public final class ChestInventory {

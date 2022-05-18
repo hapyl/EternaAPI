@@ -60,7 +60,6 @@ public class ItemBuilderListener implements Listener {
             func.execute(player);
             // Progress USE_CUSTOM_ITEM
             QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, builder.getId());
-
         });
 
     }

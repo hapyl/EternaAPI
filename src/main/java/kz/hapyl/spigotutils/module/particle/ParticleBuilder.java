@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 
+// TODO: 018. 18/05/2022 - Rework this maybe?
 public class ParticleBuilder extends AbstractParticleBuilder {
 
     public ParticleBuilder(Particle particle) {

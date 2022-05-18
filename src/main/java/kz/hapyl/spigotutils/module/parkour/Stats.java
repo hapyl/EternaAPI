@@ -6,6 +6,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Map;
 
+/**
+ * Holds stats of parkour.
+ */
 public class Stats extends Holder<Player> {
 
     private final Map<Type, Long> valueMap;

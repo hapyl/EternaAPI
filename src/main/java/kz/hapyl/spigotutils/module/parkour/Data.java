@@ -1,10 +1,7 @@
 package kz.hapyl.spigotutils.module.parkour;
 
-import kz.hapyl.spigotutils.EternaPlugin;
-import kz.hapyl.spigotutils.module.player.PlayerLib;
 import kz.hapyl.spigotutils.module.util.Holder;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
@@ -13,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Stored all player's parkour-related data.
+ */
 public class Data extends Holder<Player> {
 
     private final Parkour parkour;
@@ -105,18 +105,8 @@ public class Data extends Holder<Player> {
         previousCheckpoint = currentCheckpoint;
         checkpoints.remove(currentCheckpoint);
 
-        if (sendMessage && !parkour.isSilent()) {
-            EternaPlugin
-                    .getPlugin()
-                    .getParkourManager()
-                    .sendParkourMessage(
-                            get(),
-                            "Checkpoint! (%s/%s)",
-                            passedCheckpointsCount(),
-                            parkour.getCheckpoints().size()
-                    );
-
-            PlayerLib.playSound(get(), Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f);
+        if (sendMessage) {
+            getParkour().getFormatter().sendCheckpointPassed(this);
         }
     }
 

@@ -1,7 +1,8 @@
 package kz.hapyl.spigotutils.module.reflect;
 
 import kz.hapyl.spigotutils.module.annotate.TestedNMS;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving;
+import kz.hapyl.spigotutils.module.entity.EntityUtils;
+import kz.hapyl.spigotutils.module.reflect.packet.Packets;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.EntitySquid;
 import net.minecraft.world.entity.monster.EntityGuardian;
@@ -31,26 +32,28 @@ public class Laser {
     /**
      * Spawns laser for players.
      *
-     * @param viewers - Players who will see the laser. <b>Keep null to make everyone a viewer.</b>
+     * @param players - Players who will see the laser. <b>Keep null to make everyone a viewer.</b>
      */
-    public void spawn(@Nullable Player... viewers) {
-        viewers = insureViewers(viewers);
+    public void spawn(@Nullable Player... players) {
+        players = insureViewers(players);
         create();
 
         // spawn entity
-        new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.guardian)).sendPackets(viewers);
-        new ReflectPacket(new PacketPlayOutSpawnEntityLiving(this.squid)).sendPackets(viewers);
+        Packets.Server.spawnEntityLiving(guardian, players);
+        Packets.Server.spawnEntityLiving(squid, players);
+
+        // guardian-squid collision
+        guardian.collidableExemptions.add(squid.getBukkitEntity().getUniqueId());
+        squid.collidableExemptions.add(guardian.getBukkitEntity().getUniqueId());
 
         // remove player collision
-        for (Player player : viewers) {
-            Reflect.setCollision(squid, player, false);
-            Reflect.setCollision(guardian, player, false);
-        }
+        EntityUtils.setCollision(squid.getBukkitEntity(), EntityUtils.Collision.DENY, players);
+        EntityUtils.setCollision(guardian.getBukkitEntity(), EntityUtils.Collision.DENY, players);
 
         // make entities invisible and set guardian's beam target
-        Reflect.setDataWatcherValue(squid, DataWatcherType.BYTE, 0, (byte) 0x20, viewers);
-        Reflect.setDataWatcherValue(guardian, DataWatcherType.BYTE, 0, (byte) 0x20, viewers);
-        Reflect.setDataWatcherValue(guardian, DataWatcherType.INT, 17, Reflect.getEntityId(squid), viewers);
+        Reflect.setDataWatcherValue(squid, DataWatcherType.BYTE, 0, (byte) 0x20, players);
+        Reflect.setDataWatcherValue(guardian, DataWatcherType.BYTE, 0, (byte) 0x20, players);
+        Reflect.setDataWatcherValue(guardian, DataWatcherType.INT, 17, Reflect.getEntityId(squid), players);
     }
 
     /**

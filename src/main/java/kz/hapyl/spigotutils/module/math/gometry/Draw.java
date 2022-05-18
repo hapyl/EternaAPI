@@ -5,16 +5,16 @@ import org.bukkit.Particle;
 
 public abstract class Draw {
 
-	private final Particle particle;
+    private final Particle particle;
 
-	public Draw(Particle particle) {
-		this.particle = particle;
-	}
+    public Draw(Particle particle) {
+        this.particle = particle;
+    }
 
-	public abstract void draw(Location location);
+    public abstract void draw(Location location);
 
-	public Particle getParticle() {
-		return particle;
-	}
+    public Particle getParticle() {
+        return particle;
+    }
 
 }

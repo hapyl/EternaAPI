@@ -135,11 +135,11 @@ public class Chat {
      */
     public static void sendIChatMessage(Player player, String iChat, Object... replacements) {
         iChat = String.format(iChat, replacements);
-        new ReflectPacket(new PacketPlayOutChat(
+        ReflectPacket.send(new PacketPlayOutChat(
                 IChatBaseComponent.a(iChat),
                 net.minecraft.network.chat.ChatMessageType.b,
                 UUID.randomUUID()
-        )).sendPackets(player);
+        ), player);
     }
 
     /**

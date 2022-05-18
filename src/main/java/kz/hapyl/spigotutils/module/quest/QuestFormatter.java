@@ -1,8 +1,9 @@
 package kz.hapyl.spigotutils.module.quest;
 
+import kz.hapyl.spigotutils.module.util.Formatter;
 import org.bukkit.entity.Player;
 
-public interface QuestFormatter {
+public interface QuestFormatter extends Formatter {
 
     void sendObjectiveNew(Player player, QuestObjective quest);
 
