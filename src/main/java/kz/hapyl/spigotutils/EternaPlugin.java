@@ -92,6 +92,9 @@ public class EternaPlugin extends JavaPlugin {
         // Load PlayerConfig for online players
         Runnables.runLater(() -> Bukkit.getOnlinePlayers().forEach(player -> registry.configManager.getConfig(player).loadAll()), 10L);
 
+        // Load dependencies
+        EternaAPI.loadAll();
+
         new Test().test();
     }
 

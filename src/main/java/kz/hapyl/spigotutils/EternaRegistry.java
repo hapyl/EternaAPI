@@ -9,6 +9,7 @@ import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingManager;
 import kz.hapyl.spigotutils.module.reflect.npc.HumanNPCRegistry;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public final class EternaRegistry {
 
@@ -64,6 +65,10 @@ public final class EternaRegistry {
 
     public static SongPlayer getSongPlayer() {
         return current().songPlayer;
+    }
+
+    public static SongPlayer getNewSongPlayer(JavaPlugin plugin) {
+        return new SongPlayer(plugin);
     }
 
     public static CustomItemHolder getItemHolder() {

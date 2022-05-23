@@ -18,6 +18,7 @@ public class QuestProgress {
     private final Quest quest;
     private final long totalStages;
     private final boolean autoClaimReward;
+    private final long startedAt;
 
     private boolean claimedReward;
 
@@ -28,6 +29,7 @@ public class QuestProgress {
     public QuestProgress(Player player, Quest quest) {
         this.player = player;
         this.quest = quest;
+        this.startedAt = System.currentTimeMillis();
         this.totalStages = quest.getObjectives().size();
         this.currentStage = 0;
         this.objectives = new LinkedList<>();
@@ -45,6 +47,10 @@ public class QuestProgress {
 
     public long getTotalStages() {
         return this.totalStages;
+    }
+
+    public long getStartedAt() {
+        return startedAt;
     }
 
     public void nextObjective() {
@@ -110,6 +116,16 @@ public class QuestProgress {
 
     public boolean isClaimedReward() {
         return claimedReward;
+    }
+
+    public final void checkTimeLimit() {
+        if (!quest.hasTimeLimit()) {
+            return;
+        }
+
+        if ((System.currentTimeMillis() - startedAt) >= quest.getTimeLimit()) {
+
+        }
     }
 
     private void sendQuestCompleteInfo() {

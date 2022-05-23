@@ -1,12 +1,12 @@
 package kz.hapyl.spigotutils.module.player.song;
 
-import kz.hapyl.spigotutils.EternaPlugin;
-import kz.hapyl.spigotutils.Registry;
 import kz.hapyl.spigotutils.module.chat.Chat;
+import kz.hapyl.spigotutils.module.util.Holder;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -16,8 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-// todo - convert this to registry of song players to allow multiple players
-public class SongPlayer extends Registry<SongPlayer> {
+public class SongPlayer extends Holder<JavaPlugin> {
 
     protected Song currentSong;
     private boolean playing;
@@ -28,20 +27,14 @@ public class SongPlayer extends Registry<SongPlayer> {
 
     private final SongQueue queue;
 
-    public SongPlayer(EternaPlugin plugin) {
+    public SongPlayer(JavaPlugin plugin) {
         super(plugin);
         this.listeners = new HashSet<>();
         this.queue = new SongPlayerQueue();
     }
 
-    @Override
-    public void register(SongPlayer songPlayer) {
-
-    }
-
-    @Override
-    public void unregister(SongPlayer songPlayer) {
-
+    public JavaPlugin getOwningPlugin() {
+        return get();
     }
 
     public SongQueue getQueue() {
@@ -136,7 +129,7 @@ public class SongPlayer extends Registry<SongPlayer> {
                 }
 
             }
-        }.runTaskTimer(plugin, 0, this.currentSong.getTempo());
+        }.runTaskTimer(getOwningPlugin(), 0, this.currentSong.getTempo());
     }
 
     public long getCurrentFrame() {

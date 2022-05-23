@@ -1,5 +1,7 @@
 package kz.hapyl.spigotutils.module.command;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import kz.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.command.CommandSender;
 
@@ -18,6 +20,7 @@ public abstract class SimpleCommand {
     }
 
     private final String name;
+    private final Map<Integer, List<String>> completerValues;
 
     private String permission;
     private String description;
@@ -25,9 +28,6 @@ public abstract class SimpleCommand {
 
     private String[] aliases;
 
-    private ArgumentProcessor post;
-
-    private boolean tabCompleteArgumentProcessor;
     private boolean allowOnlyOp;
     private boolean allowOnlyPlayer;
 
@@ -50,6 +50,51 @@ public abstract class SimpleCommand {
         this.allowOnlyOp = false;
         this.cooldownTick = 0;
         this.cooldown = null;
+        this.completerValues = Maps.newHashMap();
+    }
+
+    /**
+     * Adds a value to index of tab completer.
+     * Note that completer values will be automatically sorted
+     * using {@link this#completerSort(List, String[])} AFTER
+     * {@link this#tabComplete(CommandSender, String[])} is called.
+     *
+     * @param index - Index. (Length of arguments).
+     * @param value - Value to add. Will be forced to lower case.
+     */
+    public void addCompleterValue(int index, String value) {
+        final List<String> values = getCompleterValues(index);
+        values.add(value.toLowerCase());
+        completerValues.put(index, values);
+    }
+
+    /**
+     * Returns a list of strings of tab completer if present or empty list is not.
+     *
+     * @param index - Index. (Length of arguments)
+     * @return a list of strings of tab completer if present or empty list is not.
+     */
+    public List<String> getCompleterValues(int index) {
+        return completerValues.computeIfAbsent(index, (s) -> Lists.newArrayList());
+    }
+
+    /**
+     * Returns true if completer values are present on index.
+     *
+     * @param index - Index or arguments length.
+     * @return true if completer values are present on index.
+     */
+    public boolean hasCompleterValues(int index) {
+        return completerValues.get(index) != null;
+    }
+
+    /**
+     * Returns mapped index-value completer values.
+     *
+     * @return mapped index-value completer values.
+     */
+    protected Map<Integer, List<String>> getCompleterValues() {
+        return completerValues;
     }
 
     /**
@@ -69,10 +114,6 @@ public abstract class SimpleCommand {
      */
     protected List<String> tabComplete(CommandSender sender, String[] args) {
         return Collections.emptyList();
-    }
-
-    protected int smartTabComplete(CommandSender sender, String[] args) {
-        return -1;
     }
 
     /**
@@ -164,19 +205,6 @@ public abstract class SimpleCommand {
         this.permission = permission;
     }
 
-    public ArgumentProcessor newArgumentProcessor() {
-        this.post = new ArgumentProcessor(this);
-        return this.post;
-    }
-
-    public void tabCompleteArgumentProcessor(boolean bool) {
-        this.tabCompleteArgumentProcessor = bool;
-    }
-
-    public ArgumentProcessor getPost() {
-        return post;
-    }
-
     // Some useful utilities for ya.
 
     /**
@@ -190,30 +218,59 @@ public abstract class SimpleCommand {
         return Chat.tabCompleterSort(list, args, forceLowerCase);
     }
 
-    protected boolean matchArgs(String[] args, int index, String string) {
-        return index < args.length && args[index].equalsIgnoreCase(string);
-    }
-
+    // see above
     protected List<String> completerSort(List<String> list, String[] args) {
         return completerSort(list, args, true);
     }
 
+    // see above
     protected <E> List<String> completerSort(E[] array, String[] args) {
         return completerSort(arrayToList(array), args);
     }
 
+    // see above
     protected <E> List<String> completerSort(Collection<E> list, String[] args) {
         return Chat.tabCompleterSort(eToString(list), args);
     }
 
+    /**
+     * Returns true if argument of provided index is present and is equals to string.
+     *
+     * @param args   - Array of strings to check.
+     * @param index  - Index of argument to match.
+     * @param string - String to match.
+     * @return true if argument of provided index is present and is equals to string.
+     */
+    protected boolean matchArgs(String[] args, int index, String string) {
+        return index < args.length && args[index].equalsIgnoreCase(string);
+    }
+
+    /**
+     * Converts set of strings to list of strings.
+     *
+     * @param set - Set to convert.
+     * @return List of strings with set values.
+     */
     protected List<String> setToList(Set<String> set) {
         return new ArrayList<>(set);
     }
 
+    /**
+     * Converts array to list of strings.
+     *
+     * @param array - Array to convert.
+     * @return List of strings with array values.
+     */
     protected <T> List<String> arrayToList(T[] array) {
         return Chat.arrayToList(array);
     }
 
+    /**
+     * Sends 'Invalid Usage!' message with correct usage of this command
+     * to the sender.
+     *
+     * @param sender - Receiver actually.
+     */
     protected void sendInvalidUsageMessage(CommandSender sender) {
         Chat.sendMessage(sender, "&cInvalid Usage! &e%s.", this.usage);
     }
@@ -228,34 +285,69 @@ public abstract class SimpleCommand {
 
     // end of utils
 
+    /**
+     * Returns true if this command can only be called by players, false otherwise.
+     *
+     * @return true if this command can only be called by players, false otherwise.
+     */
     public boolean isOnlyForPlayers() {
         return allowOnlyPlayer;
     }
 
+    /**
+     * Returns description of this command if present, 'Made using SimpleCommand by EternaAPI.' otherwise.
+     *
+     * @return Returns description of this command if present, 'Made using SimpleCommand by EternaAPI.' otherwise.
+     */
+    @Nonnull
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Returns name of this command, aka the actual command.
+     *
+     * @return name of this command.
+     */
+    @Nonnull
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns permission for this command.
+     *
+     * @return permission for this command.
+     */
+    @Nonnull
     public String getPermission() {
         return permission;
     }
 
+    /**
+     * Returns aliases of this command.
+     *
+     * @return aliases of this command.
+     */
+    @Nonnull
     public String[] getAliases() {
         return aliases;
     }
 
+    /**
+     * Returns true if this command can only be used by sever operators, false otherwise.
+     *
+     * @return true if this command can only be used by sever operators, false otherwise.
+     */
     public boolean isAllowOnlyOp() {
         return allowOnlyOp;
     }
 
-    public boolean isTabCompleteArgumentProcessor() {
-        return tabCompleteArgumentProcessor;
-    }
-
+    /**
+     * Returns usage of this command, which is '/(CommandName)' by default.
+     *
+     * @return usage of this command, which is '/(CommandName)' by default.
+     */
     public String getUsage() {
         return usage;
     }

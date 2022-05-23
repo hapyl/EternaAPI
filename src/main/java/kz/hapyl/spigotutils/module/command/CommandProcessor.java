@@ -126,11 +126,6 @@ public class CommandProcessor {
 
                                 cmd.execute(sender, args);
 
-                                // check post processor
-                                if (cmd.getPost() != null && args != null) {
-                                    cmd.getPost().compareAndInvoke(sender, args);
-                                }
-
                                 return true;
                             }
 
@@ -140,10 +135,13 @@ public class CommandProcessor {
                                 if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
                                     return Collections.emptyList();
                                 }
+
                                 final List<String> strings = cmd.tabComplete(sender, args);
-                                if (cmd.isTabCompleteArgumentProcessor()) {
-                                    cmd.getPost().tabComplete(strings, args);
+
+                                if (cmd.hasCompleterValues(args.length)) {
+                                    strings.addAll(cmd.completerSort(cmd.getCompleterValues(args.length), args));
                                 }
+
                                 return strings == null ? defaultCompleter() : strings;
                             }
                         }

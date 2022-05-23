@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Represents command cooldown.
+ */
 public class CommandCooldown {
 
     private final SimpleCommand command;
@@ -20,12 +23,23 @@ public class CommandCooldown {
         this.usedAt = new HashMap<>();
     }
 
+    /**
+     * Adds permission to cooldown ignore list.
+     *
+     * @param permission - Permission to add.
+     */
     public void addIgnoreCooldownPermission(String permission) {
         ignoreCooldownPermissions.add(permission);
     }
 
-    public void removeIgnoreCooldownPermission(String permission) {
-        ignoreCooldownPermissions.remove(permission);
+    /**
+     * Removes permission from cooldown ignore list.
+     *
+     * @param permission - Permissions to remove.
+     * @return if permission was removed.
+     */
+    public boolean removeIgnoreCooldownPermission(String permission) {
+        return ignoreCooldownPermissions.remove(permission);
     }
 
     /**

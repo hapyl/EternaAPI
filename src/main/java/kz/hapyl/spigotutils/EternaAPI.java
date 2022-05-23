@@ -1,79 +1,93 @@
 package kz.hapyl.spigotutils;
 
+import com.google.common.collect.Lists;
 import kz.hapyl.spigotutils.module.chat.Chat;
-import kz.hapyl.spigotutils.module.error.EternaException;
+import kz.hapyl.spigotutils.module.util.Runnables;
+import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
+
+import javax.annotation.Nonnull;
+import java.util.List;
 
 public final class EternaAPI {
 
+    private static final List<EternaAPI> plugins = Lists.newArrayList();
     private static final String PREFIX = "&b&lEternaAPI&b> &a";
-    private final JavaPlugin plugin;
 
-    public EternaAPI(JavaPlugin init) {
-        this(init, false);
+    private final JavaPlugin plugin;
+    private final EternaLibrary library;
+    private final boolean silent;
+
+    public EternaAPI(@Nonnull JavaPlugin plugin) {
+        this(plugin, false);
     }
 
-    public EternaAPI(JavaPlugin init, boolean broadcastMessageOnlyToConsole) {
+    public EternaAPI(@Nonnull JavaPlugin plugin, boolean silent) {
+        this.plugin = plugin;
+        this.silent = silent;
 
-        if (init == null) {
-            throw new EternaException("Could not load EternaAPI since provided plugin is null!");
-        }
-
-        if (!isDepends(init)) {
-            throw new EternaException(String.format(
-                    "Could not load EternaAPI for %s since it's doesn't depend nor soft-depends the API!",
-                    init.getName()
-            ));
-        }
-
-        this.plugin = init;
-        final String formattedMessage = String.format(
-                "%s implements EternaAPI v%s.",
-                plugin.getName(),
-                getPluginVersion()
+        Validate.notNull(plugin, "Could not load %s because plugin is null!".formatted(getAPIName()));
+        Validate.isTrue(
+                isDepends(),
+                "Could not load %s for %s since it doesn't depend nor soft-depend the API!".formatted(getAPIName(), plugin.getName())
         );
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        this.library = new EternaLibrary(this);
 
-                // broadcast to console
-                Bukkit.getConsoleSender().sendMessage(formattedMessage);
-
-                if (broadcastMessageOnlyToConsole) {
-                    return;
-                }
-
-                // broadcast to admins
-                broadcastAPIMessage(formattedMessage);
-            }
-        }.runTaskLater(plugin, 20);
-    }
-
-    private boolean isDepends(JavaPlugin plugin) {
-        final PluginDescriptionFile description = plugin.getDescription();
-        final String pluginName = EternaPlugin.getPlugin().getName();
-        return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
-    }
-
-    public String getPluginVersion() {
-        return EternaPlugin.getPlugin().getDescription().getVersion();
+        plugins.add(this);
     }
 
     public JavaPlugin getPlugin() {
         return plugin;
     }
 
-    public static void broadcastAPIMessage(String string) {
-        Chat.broadcastOp(PREFIX + string);
+    public EternaLibrary getLibrary() {
+        return library;
     }
 
-    public static void sendAPIMessage(CommandSender receiver, String string, Object... replacements) {
-        Chat.sendMessage(receiver, PREFIX + string, replacements);
+    public boolean isDepends() {
+        final PluginDescriptionFile description = plugin.getDescription();
+        final String pluginName = getAPIName();
+        return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
+    }
+
+    public static String getAPIVersion() {
+        return EternaPlugin.getPlugin().getDescription().getVersion();
+    }
+
+    public static String getAPIName() {
+        return EternaPlugin.getPlugin().getName();
+    }
+
+    public static void loadAll() {
+        Runnables.runLater(() -> {
+            if (plugins.isEmpty()) {
+                return;
+            }
+            broadcastAPIMessageOP("&eAPI version is %s. Loading plugins...", getAPIVersion());
+            plugins.forEach(plugin -> {
+                final JavaPlugin javaPlugin = plugin.getPlugin();
+                final String string = "Loaded %s v%s.".formatted(javaPlugin.getName(), javaPlugin.getDescription().getVersion());
+                if (!plugin.silent) {
+                    broadcastAPIMessageOP(string);
+                }
+                broadcastAPIMessageConsole(string);
+            });
+        }, 20L);
+    }
+
+    public static List<EternaAPI> getPlugins() {
+        return plugins;
+    }
+
+    public static void broadcastAPIMessageOP(String string, Object... objects) {
+        Chat.broadcastOp(PREFIX + string, objects);
+    }
+
+    public static void broadcastAPIMessageConsole(String string, Object... replacements) {
+        Chat.sendMessage(Bukkit.getConsoleSender(), PREFIX + string, replacements);
     }
 
 }

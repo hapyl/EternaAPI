@@ -27,16 +27,39 @@ public class Quest {
     private final String questId;
     private boolean autoClaim;
 
+    private long timeLimit;
+
     public Quest(String questId, String displayName, boolean autoClaim) {
         this.questId = questId.toLowerCase(Locale.ROOT);
         this.displayName = displayName;
         this.objectives = new HashMap<>();
         this.autoClaim = autoClaim;
+        this.timeLimit = 0;
         this.formatter = QuestManager.formatter();
     }
 
     public Quest(String questId, String displayName) {
         this(questId, displayName, true);
+    }
+
+    public long getTimeLimit() {
+        return timeLimit;
+    }
+
+    public boolean hasTimeLimit() {
+        return timeLimit > 0;
+    }
+
+    public void setNoTimeLimit() {
+        setTimeLimit(0);
+    }
+
+    public void setTimeLimit(long millis) {
+        this.timeLimit = millis;
+    }
+
+    public void setTimeLimitTicks(long ticks) {
+        setTimeLimit(ticks * 50L);
     }
 
     public void setFormatter(@Nonnull QuestFormatter formatter) {

@@ -17,7 +17,7 @@ public abstract class SimplePlayerCommand extends SimpleCommand {
     protected abstract void execute(Player player, String[] args);
 
     @Override
-    protected void execute(CommandSender sender, String[] args) {
+    protected final void execute(CommandSender sender, String[] args) {
         execute((Player) sender, args);
     }
 }

@@ -49,6 +49,17 @@ public class BukkitUtils {
         }
     }
 
+    public <T> T arrayItemOr(T[] array, int index, T def) {
+        if (index >= array.length) {
+            return def;
+        }
+        return array[index];
+    }
+
+    public <T> T arrayItemOrNull(T[] array, int index) {
+        return arrayItemOr(array, index, (T) null);
+    }
+
     public static Location centerLocation(Location location) {
         return new Location(location.getWorld(), location.getBlockX() + 0.5d, location.getBlockY() + 0.5d, location.getBlockZ() + 0.5d);
     }

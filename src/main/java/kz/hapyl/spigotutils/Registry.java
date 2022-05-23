@@ -1,10 +1,12 @@
 package kz.hapyl.spigotutils;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
 public abstract class Registry<T> {
 
-    protected final EternaPlugin plugin;
+    protected final JavaPlugin plugin;
 
-    public Registry(EternaPlugin plugin) {
+    public Registry(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -12,7 +14,7 @@ public abstract class Registry<T> {
 
     public abstract void unregister(T t);
 
-    public final EternaPlugin getPlugin() {
+    public final JavaPlugin getPlugin() {
         return plugin;
     }
 }
