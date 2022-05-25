@@ -184,4 +184,7 @@ public interface Human {
      * @param players - Players who display name will be hidden for.
      */
     void hideDisplayName(@Nullable Player... players);
+
+    Player bukkitEntity();
+
 }

@@ -1,10 +1,12 @@
 package kz.hapyl.spigotutils.module.inventory.gui;
 
+import com.google.common.collect.Maps;
 import kz.hapyl.spigotutils.module.annotate.ArraySize;
 import kz.hapyl.spigotutils.module.annotate.Super;
 import kz.hapyl.spigotutils.module.inventory.ChestInventory;
 import kz.hapyl.spigotutils.module.inventory.ItemBuilder;
 import kz.hapyl.spigotutils.module.math.Numbers;
+import kz.hapyl.spigotutils.module.util.Nulls;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -39,6 +41,7 @@ public class GUI {
 
     private boolean allowDrag;
     private boolean allowShiftClick;
+    private boolean respectItemClick;
 
     private CancelType cancelType;
 
@@ -51,6 +54,7 @@ public class GUI {
         this.bySlot = new HashMap<>();
         this.cancelType = CancelType.EITHER;
         this.ignoredClicks = new HashSet<>();
+        this.respectItemClick = false;
         this.inventory = Bukkit.createInventory(null, this.size, name);
     }
 
@@ -135,6 +139,20 @@ public class GUI {
     }
 
     /**
+     * Sets if click events should respect items on their slot,
+     * meaning the event will fire only if item is not null nor air on provided slot.
+     *
+     * @param respectItemClick - boolean.
+     */
+    public void setRespectItemClick(boolean respectItemClick) {
+        this.respectItemClick = respectItemClick;
+    }
+
+    public boolean isRespectItemClick() {
+        return respectItemClick;
+    }
+
+    /**
      * Adds ignored slots.
      * <b>Clicks at ignored slots are NOT cancelled no matter what CancelType is.</b>
      *
@@ -207,11 +225,25 @@ public class GUI {
         return inventory.getItem(slot);
     }
 
+    @Nullable
+    public final GUIClick getClick(int slot) {
+        return bySlot.get(slot);
+    }
+
     /**
      * Clears clicks events.
      */
     public final void clearClickEvents() {
         bySlot.clear();
+    }
+
+    /**
+     * Returns a copy of current by slot map.
+     *
+     * @return a copy of current by slot map.
+     */
+    public Map<Integer, GUIClick> getBySlot() {
+        return Maps.newHashMap(bySlot);
     }
 
     /**
@@ -263,6 +295,19 @@ public class GUI {
         setItem(slot, item, (Action) null);
     }
 
+    // Private Set Item (super)
+
+    private void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
+        if (slot > this.size) {
+            throw new IndexOutOfBoundsException(String.format("There are only %s slots, given %s.", this.size, slot));
+        }
+        if (action != null) {
+            this.bySlot.put(slot, action);
+        }
+        item = notNull(item);
+        this.inventory.setItem(slot, item);
+    }
+
     /**
      * Sets an item to provided slot if condition is true.
      *
@@ -290,18 +335,6 @@ public class GUI {
         if (condition) {
             this.setItem(slot, item, action);
         }
-    }
-
-    // Private Set Item (super)
-    private void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
-        if (slot > this.size) {
-            throw new IndexOutOfBoundsException(String.format("There are only %s slots, given %s.", this.size, slot));
-        }
-        if (action != null) {
-            this.bySlot.put(slot, action);
-        }
-        item = notNull(item);
-        this.inventory.setItem(slot, item);
     }
 
     /**
@@ -685,22 +718,20 @@ public class GUI {
     public final void acceptEvent(int slot, Player player, ClickType type) {
         final Map<ClickType, Action> events = bySlot.get(slot).getEvents();
 
+        if (respectItemClick && getItem(slot) == null) {
+            return;
+        }
+
         // only 1 action
         if (events.size() == 1) {
             final Action action = events.get(ClickType.UNKNOWN);
-            if (action == null) {
-                return;
-            }
-            action.invoke(player);
+            Nulls.runIfNotNull(action, a -> action.invoke(player));
             return;
         }
 
         events.forEach((click, action) -> {
-            if (action == null) {
-                return;
-            }
             if (click == type) {
-                action.invoke(player);
+                Nulls.runIfNotNull(action, a -> action.invoke(player));
             }
         });
 
@@ -783,6 +814,7 @@ public class GUI {
 
     /**
      * Clears everything this GUI has to offer, such as items, click, close and open events.
+     * Recommended to use if updating menus to clear old items and clicks.
      */
     public final void clearEverything() {
         clearClickEvents();

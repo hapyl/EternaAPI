@@ -136,7 +136,7 @@ public class ItemBuilder {
     public static String getItemID(ItemStack item) {
         final ItemMeta iMeta = item.getItemMeta();
         if (iMeta == null) {
-            return "null";
+            return "";
         }
         return iMeta
                 .getPersistentDataContainer()
@@ -144,11 +144,13 @@ public class ItemBuilder {
     }
 
     public static boolean itemHasID(ItemStack item, String id) {
-        return itemHasID(item) && getItemID(item).equalsIgnoreCase(id.toLowerCase());
+        final String itemId = getItemID(item);
+        return itemHasID(item) && itemId != null && itemId.equalsIgnoreCase(id);
     }
 
     public static boolean itemContainsId(ItemStack item, String id) {
-        return itemHasID(item) && getItemID(item).contains(id.toLowerCase());
+        final String itemId = getItemID(item);
+        return itemHasID(item) && itemId != null && itemId.contains(id);
     }
 
     public static boolean itemHasID(ItemStack item) {

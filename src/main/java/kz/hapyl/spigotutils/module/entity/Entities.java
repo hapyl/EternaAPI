@@ -1,10 +1,14 @@
 package kz.hapyl.spigotutils.module.entity;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import kz.hapyl.spigotutils.EternaPlugin;
+import kz.hapyl.spigotutils.module.util.Nulls;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.*;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Consumer;
 
 import javax.annotation.Nullable;
@@ -20,10 +24,13 @@ import java.util.Set;
  * @param <T> - Type of the entity.
  * @author hapyl
  */
+@SuppressWarnings("unused" /*utility class*/)
 public final class Entities<T extends Entity> {
 
-    // Saved all spawned entities.
-    private static final Set<Entity> spawned = Sets.newConcurrentHashSet();
+    private static final EternaPlugin ETERNA_PLUGIN = EternaPlugin.getPlugin();
+
+    // Saved all spawned entities per plugin.
+    private static final Map<JavaPlugin, Set<Entity>> spawnedByPlugin = Maps.newConcurrentMap();
 
     // All types by name.
     private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
@@ -196,37 +203,71 @@ public final class Entities<T extends Entity> {
      * @throws NullPointerException if location's world is null
      */
     public T spawn(Location location, @Nullable Consumer<T> beforeSpawn, boolean cache) {
+        return spawn(location, beforeSpawn, cache ? ETERNA_PLUGIN : null);
+    }
+
+    /**
+     * Spawn entity at provided location.
+     *
+     * @param location    - Location to spawn at.
+     * @param plugin      - Plugin owner of the cached entities. {@link this#getSpawned(JavaPlugin)}
+     * @param beforeSpawn - Consumer to apply to entity before it spawns.
+     * @return spawned entity.
+     * @throws NullPointerException if location's world is null
+     */
+    public T spawn(Location location, @Nullable Consumer<T> beforeSpawn, @Nullable JavaPlugin plugin) {
         Validate.notNull(location.getWorld(), "world cannot be null");
         final T entity = location.getWorld().spawn(location, this.entityClass, self -> {
-            if (rootConsumer != null) {
-                rootConsumer.accept(self);
-            }
-            if (beforeSpawn != null) {
-                beforeSpawn.accept(self);
-            }
+            Nulls.runIfNotNull(rootConsumer, r -> r.accept(self));
+            Nulls.runIfNotNull(beforeSpawn, r -> r.accept(self));
         });
-        if (cache) {
-            spawned.add(entity);
+
+        // cache
+        if (plugin != null) {
+            addSpawned(plugin, entity);
         }
         return entity;
     }
 
     /**
-     * Removes all spawned (in hashset) entities.
+     * Removes all spawned entities for Eterna plugin.
+     *
+     * @deprecated {@link this#killSpawned(JavaPlugin)}
      */
+    @Deprecated
     public static void killSpawned() {
-        for (final Entity entity : spawned) {
+        killSpawned(EternaPlugin.getPlugin());
+    }
+
+    /**
+     * @deprecated {@link this#getSpawned(JavaPlugin)}
+     */
+    @Deprecated
+    public static Set<Entity> getEntities() {
+        return getSpawned(ETERNA_PLUGIN);
+    }
+
+    /**
+     * @deprecated {@link this#getSpawned(JavaPlugin)}
+     */
+    public static Set<Entity> getSpawned() {
+        return getSpawned(ETERNA_PLUGIN);
+    }
+
+    public static Set<Entity> getSpawned(JavaPlugin plugin) {
+        return spawnedByPlugin.computeIfAbsent(plugin, s -> Sets.newHashSet());
+    }
+
+    private static void addSpawned(JavaPlugin plugin, Entity entity) {
+        getSpawned(plugin).add(entity);
+    }
+
+    public static void killSpawned(JavaPlugin plugin) {
+        final Set<Entity> set = getSpawned(plugin);
+        for (Entity entity : set) {
             entity.remove();
         }
-        spawned.clear();
-    }
-
-    public static Set<Entity> getEntities() {
-        return spawned;
-    }
-
-    public static Set<Entity> getSpawned() {
-        return spawned;
+        set.clear();
     }
 
     @Nullable

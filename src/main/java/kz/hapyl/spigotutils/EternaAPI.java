@@ -66,6 +66,7 @@ public final class EternaAPI {
             if (plugins.isEmpty()) {
                 return;
             }
+            broadcastAPIMessageConsole("&eAPI version is %s. Loading plugins...", getAPIVersion());
             broadcastAPIMessageOP("&eAPI version is %s. Loading plugins...", getAPIVersion());
             plugins.forEach(plugin -> {
                 final JavaPlugin javaPlugin = plugin.getPlugin();

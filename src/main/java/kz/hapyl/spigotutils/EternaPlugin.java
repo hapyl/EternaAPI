@@ -18,6 +18,7 @@ import kz.hapyl.spigotutils.module.parkour.ParkourManager;
 import kz.hapyl.spigotutils.module.parkour.ParkourRunnable;
 import kz.hapyl.spigotutils.module.player.song.SongPlayer;
 import kz.hapyl.spigotutils.module.quest.QuestListener;
+import kz.hapyl.spigotutils.module.record.ReplayListener;
 import kz.hapyl.spigotutils.module.reflect.NPCRunnable;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingManager;
 import kz.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
@@ -56,6 +57,7 @@ public class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new QuestListener(), this);
         manager.registerEvents(new ParkourListener(), this);
         manager.registerEvents(new PlayerConfigEvent(), this);
+        manager.registerEvents(new ReplayListener(), this);
 
         registry = new EternaRegistry(this);
 

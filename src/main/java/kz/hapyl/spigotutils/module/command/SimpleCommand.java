@@ -63,9 +63,17 @@ public abstract class SimpleCommand {
      * @param value - Value to add. Will be forced to lower case.
      */
     public void addCompleterValue(int index, String value) {
-        final List<String> values = getCompleterValues(index);
-        values.add(value.toLowerCase());
-        completerValues.put(index, values);
+        final List<String> list = getCompleterValues(index);
+        list.add(value.toLowerCase());
+        completerValues.put(index, list);
+    }
+
+    public void addCompleterValues(int index, String... values) {
+        final List<String> list = getCompleterValues(index);
+        for (String value : values) {
+            list.add(value.toLowerCase());
+        }
+        completerValues.put(index, list);
     }
 
     /**
@@ -113,7 +121,7 @@ public abstract class SimpleCommand {
      * @return Sorted list with valid arguments
      */
     protected List<String> tabComplete(CommandSender sender, String[] args) {
-        return Collections.emptyList();
+        return Lists.newArrayList();
     }
 
     /**

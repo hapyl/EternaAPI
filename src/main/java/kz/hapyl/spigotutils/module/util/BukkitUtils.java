@@ -8,6 +8,8 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,6 +40,19 @@ public class BukkitUtils {
 
     public static String locationToString(Location location, boolean includeRotation) {
         return locationToString(location, "%s, %s, %s (%s, %s)", includeRotation);
+    }
+
+    public static void callEvent(Event event) {
+        callCancellableEvent(event);
+    }
+
+    // returns if even was cancelled
+    public static boolean callCancellableEvent(Event event) {
+        Bukkit.getServer().getPluginManager().callEvent(event);
+        if (event instanceof Cancellable cancellable) {
+            return cancellable.isCancelled();
+        }
+        return false;
     }
 
     public static String locationToString(Location location, String format, boolean includeRotation) {

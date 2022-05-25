@@ -7,6 +7,8 @@ import kz.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import kz.hapyl.spigotutils.module.quest.Quest;
 import kz.hapyl.spigotutils.module.quest.QuestManager;
 import kz.hapyl.spigotutils.module.quest.QuestProgress;
+import kz.hapyl.spigotutils.module.record.Record;
+import kz.hapyl.spigotutils.module.record.Replay;
 import kz.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.util.NumberConversions;
@@ -71,6 +73,56 @@ public class Commands {
                 Chat.sendMessage(player, "/{} (operation) (size)");
             }
         }));
+
+        registerCommand("testrecording", (player, args) -> {
+            // replay start
+            // replay play
+            // replay pause
+            if (args.length != 1) {
+                return;
+            }
+
+            final Record record = Record.getReplay(player);
+            final String arg0 = args[0].toLowerCase();
+
+            switch (arg0) {
+                case "new" -> {
+                    new Record(player);
+                    Chat.sendMessage(player, "&aForced new recording...");
+                }
+                case "start" -> {
+                    if (record == null) {
+                        new Record(player);
+                        Chat.sendMessage(player, "&aStarted recording...");
+                        return;
+                    }
+
+                    record.stopRecording();
+                    Chat.sendMessage(player, "&aStopped recording.");
+                }
+                case "play" -> {
+                    if (record != null) {
+                        final Replay rp = record.getReplay();
+                        if (rp.isPlaying()) {
+                            rp.stop();
+                            Chat.sendMessage(player, "&bStopped replay.");
+                            return;
+                        }
+
+                        rp.setGlobalReplay(true);
+                        rp.start();
+                        Chat.sendMessage(player, "&bStarted replay.");
+                    }
+                }
+                case "pause" -> {
+                    if (record != null) {
+                        record.getReplay().pause();
+                        Chat.sendMessage(player, "&e%s replay.", record.getReplay().isPaused() ? "Paused" : "Unpaused");
+                    }
+                }
+            }
+
+        });
 
     }
 
