@@ -1,7 +1,6 @@
 package kz.hapyl.spigotutils.module.particle;
 
-import kz.hapyl.spigotutils.module.annotate.NotEmpty;
-import org.apache.commons.lang.NotImplementedException;
+import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,7 +10,9 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 
-// TODO: 018. 18/05/2022 - Rework this maybe?
+/**
+ * -> {@link kz.hapyl.spigotutils.module.particle.wrapped.Particles}
+ */
 public class ParticleBuilder extends AbstractParticleBuilder {
 
     public ParticleBuilder(Particle particle) {
@@ -43,10 +44,10 @@ public class ParticleBuilder extends AbstractParticleBuilder {
     }
 
     @Override
-    public void display(Location location) {
-        super.worldNotNull(location);
-        location
-                .getWorld()
+    public void display(@Nonnull Location location) {
+        Validate.notNull(location.getWorld());
+
+        location.getWorld()
                 .spawnParticle(
                         this.getParticle(),
                         location,
@@ -59,9 +60,10 @@ public class ParticleBuilder extends AbstractParticleBuilder {
     }
 
     @Override
-    public void display(Location location, @Nonnull @NotEmpty Player... players) {
-        super.worldNotNull(location);
-        super.viewersNotEmpty(players);
+    public void display(@Nonnull Location location, @Nonnull Player... players) {
+        Validate.notNull(location);
+        Validate.notNull(players);
+
         for (final Player player : players) {
             player.spawnParticle(
                     this.getParticle(),
@@ -73,11 +75,6 @@ public class ParticleBuilder extends AbstractParticleBuilder {
                     this.getSpeed()
             );
         }
-    }
-
-    @Override
-    public void displayAsync(Player... players) {
-        throw new NotImplementedException("not yet implemented");
     }
 
 }

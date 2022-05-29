@@ -2,6 +2,7 @@ package kz.hapyl.spigotutils.module.reflect.npc;
 
 import net.minecraft.world.entity.EnumItemSlot;
 
+// ItemSlot >> EnumItemSlot
 public enum ItemSlot {
 
     MAINHAND(EnumItemSlot.a),

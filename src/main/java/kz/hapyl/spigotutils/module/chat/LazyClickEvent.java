@@ -2,6 +2,9 @@ package kz.hapyl.spigotutils.module.chat;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Easy access click event builder.
  */
@@ -20,8 +23,9 @@ public enum LazyClickEvent {
         this.action = action;
     }
 
-    public ClickEvent of(Object value) {
-        return new ClickEvent(this.action, Chat.format(value));
+    @Nonnull
+    public ClickEvent of(Object value, @Nullable Object... replacements) {
+        return new ClickEvent(this.action, Chat.format(value, replacements));
     }
 
 }

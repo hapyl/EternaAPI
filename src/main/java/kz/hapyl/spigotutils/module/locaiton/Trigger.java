@@ -41,7 +41,7 @@ public abstract class Trigger {
     }
 
     public Trigger(Location startPoint, Location endPoint) {
-        this("Anonymous Trigger", startPoint, endPoint);
+        this("", startPoint, endPoint);
     }
 
     /**
@@ -71,13 +71,13 @@ public abstract class Trigger {
     }
 
     public final void broadcastEnterIfEnabled(Player player) {
-        if (this.broadcastEnter && !this.name.equals("Anonymous Trigger")) {
+        if (isBroadcastEnter()) {
             Chat.sendTitle(player, "&7Entering", ChatColor.GREEN + this.name, 10, 30, 10);
         }
     }
 
     public final void broadcastLeaveIfEnabled(Player player) {
-        if (this.broadcastLeave && !this.name.equals("Anonymous Trigger")) {
+        if (isBroadcastLeave()) {
             Chat.sendTitle(player, "&7Leaving", ChatColor.GREEN + this.name, 10, 30, 10);
         }
     }
@@ -93,6 +93,14 @@ public abstract class Trigger {
         else {
             this.enteredSet.remove(player.getUniqueId());
         }
+    }
+
+    public boolean isBroadcastEnter() {
+        return broadcastEnter && !name.isBlank();
+    }
+
+    public boolean isBroadcastLeave() {
+        return broadcastLeave && !name.isBlank();
     }
 
     // not implemented yet

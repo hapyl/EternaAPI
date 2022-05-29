@@ -43,4 +43,8 @@ public class Numbers {
         return Validate.isFloat(obj);
     }
 
+    public static int getInt(Object obj, int def) {
+        return isInt(obj) ? Validate.getInt(obj) : def;
+    }
+
 }

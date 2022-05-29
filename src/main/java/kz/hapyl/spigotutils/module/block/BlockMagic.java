@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
 
 /**
@@ -138,40 +137,6 @@ public class BlockMagic {
         }
         this.blocks.clear();
         allAffected.remove(this);
-    }
-
-    // This class is used to keep track of a block original states.
-    private static class Origin {
-
-        private final Block block;
-        private final BlockData blockData;
-        private final Material type;
-        private boolean packetAffected;
-
-        private Origin(Block block) {
-            this.block = block;
-            this.blockData = block.getBlockData();
-            this.type = block.getType();
-            this.packetAffected = false;
-        }
-
-        private void markAffected() {
-            this.packetAffected = true;
-        }
-
-        private Block getBlock() {
-            return block;
-        }
-
-        private void restore() {
-            this.block.setType(type, false);
-            this.block.setBlockData(blockData, false);
-            // Update state if was affected
-            if (this.packetAffected) {
-                this.block.getState().update(false, false);
-            }
-        }
-
     }
 
     /**

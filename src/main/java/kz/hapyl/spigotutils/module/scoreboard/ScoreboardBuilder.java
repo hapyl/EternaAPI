@@ -35,7 +35,7 @@ public class ScoreboardBuilder {
         }
 
         this.score = Bukkit.getScoreboardManager().getNewScoreboard();
-        // If this won't work I don't know what will
+        // If this doesn't work I don't know what will
         HumanNPC.hideAllNames(this.score);
         this.obj = this.score.registerNewObjective(scoreName, "dummy", "def");
         this.obj.setDisplayName(format(displayName));

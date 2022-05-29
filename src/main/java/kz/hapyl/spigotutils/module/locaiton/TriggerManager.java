@@ -1,6 +1,5 @@
 package kz.hapyl.spigotutils.module.locaiton;
 
-import kz.hapyl.spigotutils.module.annotate.DevNote;
 import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -117,7 +116,6 @@ public class TriggerManager implements Listener {
         return null;
     }
 
-    @DevNote(comment = "Triggers locations can intersect")
     public Set<Trigger> getByLocation(Location location) {
         final Set<Trigger> triggers = new HashSet<>();
         for (final Trigger value : byId.values()) {

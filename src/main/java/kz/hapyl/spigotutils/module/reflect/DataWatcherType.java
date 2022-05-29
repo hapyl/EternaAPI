@@ -4,6 +4,7 @@ import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.network.syncher.DataWatcherSerializer;
 
 public class DataWatcherType<T> {
+
     public static final DataWatcherType<Byte> BYTE = new DataWatcherType<>(Byte.class, DataWatcherRegistry.a);
     public static final DataWatcherType<Integer> INT = new DataWatcherType<>(Integer.class, DataWatcherRegistry.b);
     public static final DataWatcherType<Float> FLOAT = new DataWatcherType<>(Float.class, DataWatcherRegistry.c);

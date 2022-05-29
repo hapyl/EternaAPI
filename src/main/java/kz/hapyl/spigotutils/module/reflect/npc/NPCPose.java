@@ -4,23 +4,47 @@ import net.minecraft.world.entity.EntityPose;
 
 public enum NPCPose {
 
-	STANDING(EntityPose.a),
-	FALL_FLYING(EntityPose.b),
-	SLEEPING(EntityPose.c),
-	SWIMMING(EntityPose.d),
-	SPIN_ATTACK(EntityPose.e),
-	CROUCHING(EntityPose.f),
-	LONG_JUMPING(EntityPose.g),
-	DYING(EntityPose.h);
+    /**
+     * Standing.
+     */
+    STANDING(EntityPose.a),
+    /**
+     * Flying in creative.
+     */
+    FALL_FLYING(EntityPose.b),
+    /**
+     * Sleeping in the bed.
+     */
+    SLEEPING(EntityPose.c),
+    /**
+     * Swimming in a liquid.
+     */
+    SWIMMING(EntityPose.d),
+    /**
+     * Idk
+     */
+    SPIN_ATTACK(EntityPose.e),
+    /**
+     * Crunching (Sneaking)
+     */
+    CROUCHING(EntityPose.f),
+    /**
+     * Idk
+     */
+    LONG_JUMPING(EntityPose.g),
+    /**
+     * Idk
+     */
+    DYING(EntityPose.h);
 
-	private final EntityPose nms;
+    private final EntityPose nms;
 
-	NPCPose(EntityPose nms) {
-		this.nms = nms;
-	}
+    NPCPose(EntityPose nms) {
+        this.nms = nms;
+    }
 
-	public EntityPose getNMSValue() {
-		return this.nms;
-	}
+    public EntityPose getNMSValue() {
+        return this.nms;
+    }
 
 }

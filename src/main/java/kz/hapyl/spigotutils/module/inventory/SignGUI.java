@@ -1,7 +1,7 @@
 package kz.hapyl.spigotutils.module.inventory;
 
 import kz.hapyl.spigotutils.module.annotate.ArraySize;
-import kz.hapyl.spigotutils.module.annotate.AsyncWarning;
+import kz.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import kz.hapyl.spigotutils.module.reflect.ReflectPacket;
 import kz.hapyl.spigotutils.module.util.Runnables;
 import kz.hapyl.spigotutils.module.util.Validate;
@@ -99,7 +99,7 @@ public abstract class SignGUI {
      * @param response - Four lines of a sign, including ^^^^^^^^^^^^^^ and prompt.
      *                 Use {@link this#onResponse(Player, String)} for player's response excluding prompt.
      */
-    @AsyncWarning
+    @AsyncNotSafe
     public abstract void onResponse(Player player, String[] response);
 
     public void onResponse(Player player, String string) {

@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Set;
 
+@Deprecated(forRemoval = true)
 public class VoteAnswer {
 
     private final int index;

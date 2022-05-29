@@ -356,4 +356,12 @@ public class Validate {
     }
 
 
+    public static void checkLength(@Nullable Object[] array, int length) {
+        if (array == null) {
+            throw new NullPointerException("array cannot be null");
+        }
+        if (array.length < length) {
+            throw new ArrayIndexOutOfBoundsException("array have at least length of " + length);
+        }
+    }
 }

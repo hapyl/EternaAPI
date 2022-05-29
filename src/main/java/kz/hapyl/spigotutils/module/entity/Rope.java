@@ -57,8 +57,8 @@ public class Rope {
     public void remove() {
         for (final Bat bat : this.bats) {
             if (bat != null) {
-                bat.remove();
                 bat.setLeashHolder(null);
+                bat.remove();
             }
         }
 

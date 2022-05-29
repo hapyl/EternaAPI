@@ -102,6 +102,10 @@ public final class EternaRegistry {
         init = false;
     }
 
+    private void register(Registry<?> registry, Registry<?> registry1) {
+
+    }
+
     private void runSafe(Runnable runnable, String name) {
         try {
             runnable.run();

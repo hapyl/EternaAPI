@@ -43,6 +43,10 @@ public class GlowingManager extends HashRegistry<Entity, Glowing> {
         this.glowing.put(entity, set);
     }
 
+    public void removeGlowing(Entity entity) {
+        this.glowing.remove(entity);
+    }
+
     public Set<Glowing> getGlowing(Entity entity) {
         return glowing.getOrDefault(entity, Sets.newConcurrentHashSet());
     }

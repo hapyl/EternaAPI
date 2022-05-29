@@ -52,7 +52,7 @@ public class GapList<E> implements List<E> {
     }
 
     public E get(int index) {
-        // insure that index is always in bounds
+        // ensure that index is always in bounds
         if (index >= this.list.size()) {
             index -= this.list.size();
         }

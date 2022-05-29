@@ -18,6 +18,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,6 +64,21 @@ public class Glowing implements Ticking, GlowingListener {
         this.setColor(color);
 
         EternaPlugin.getPlugin().getGlowingManager().addGlowing(entity, this);
+    }
+
+    // static shortcuts
+    public static void glow(Entity entity, ChatColor color, int duration, @Nullable Player... viewers) {
+        final Glowing glowing = new Glowing(entity, color, duration);
+        glowing.addViewersOrGlobal(viewers);
+        glowing.glow();
+    }
+
+    public static void glowInfinitly(Entity entity, ChatColor color, @Nullable Player... viewers) {
+        glow(entity, color, Integer.MAX_VALUE, viewers);
+    }
+
+    public static void stopGlowing(Entity entity) {
+        EternaPlugin.getPlugin().getGlowingManager().removeGlowing(entity);
     }
 
     @Override
@@ -171,6 +189,23 @@ public class Glowing implements Ticking, GlowingListener {
      */
     public final void addViewer(Player player) {
         this.viewers.add(player);
+    }
+
+    public final void addViewers(Player... players) {
+        this.viewers.addAll(Arrays.asList(players));
+    }
+
+    public final void addViewers(Collection<Player> players) {
+        this.viewers.addAll(players);
+    }
+
+    public final void addViewersOrGlobal(Player... players) {
+        if (players == null || players.length == 0) {
+            setEveryoneIsListener(true);
+        }
+        else {
+            addViewers(players);
+        }
     }
 
     /**

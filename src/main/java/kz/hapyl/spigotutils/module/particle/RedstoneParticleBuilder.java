@@ -1,6 +1,6 @@
 package kz.hapyl.spigotutils.module.particle;
 
-import kz.hapyl.spigotutils.module.annotate.NotEmpty;
+import kz.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -8,6 +8,9 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Creates a Redstone dust particle with certain color.
+ */
 public class RedstoneParticleBuilder extends ParticleBuilder {
 
     private final Color color;
@@ -18,8 +21,9 @@ public class RedstoneParticleBuilder extends ParticleBuilder {
     }
 
     @Override
-    public void display(Location location) {
-        super.worldNotNull(location);
+    public void display(@Nonnull Location location) {
+        Validate.notNull(location.getWorld());
+
         location.getWorld().spawnParticle(
                 this.getParticle(),
                 location,
@@ -33,9 +37,10 @@ public class RedstoneParticleBuilder extends ParticleBuilder {
     }
 
     @Override
-    public void display(Location location, @Nonnull @NotEmpty Player... players) {
-        super.worldNotNull(location);
-        super.viewersNotEmpty(players);
+    public void display(@Nonnull Location location, @Nonnull Player... players) {
+        Validate.notNull(location);
+        Validate.notNull(players);
+
         for (final Player player : players) {
             player.spawnParticle(
                     this.getParticle(),
@@ -48,11 +53,6 @@ public class RedstoneParticleBuilder extends ParticleBuilder {
                     this.fetchColor()
             );
         }
-    }
-
-    @Override
-    public void displayAsync(Player... players) {
-        super.displayAsync(players);
     }
 
     private Particle.DustOptions fetchColor() {

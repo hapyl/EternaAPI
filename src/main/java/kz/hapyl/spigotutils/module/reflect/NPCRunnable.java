@@ -39,8 +39,7 @@ public class NPCRunnable implements Runnable {
                     return;
                 }
 
-                final Set<Entity> entities = new HashSet<>(location.getWorld()
-                                                                   .getNearbyEntities(location, dist, dist, dist));
+                final Set<Entity> entities = new HashSet<>(location.getWorld().getNearbyEntities(location, dist, dist, dist));
 
                 if (entities.isEmpty()) {
                     return;

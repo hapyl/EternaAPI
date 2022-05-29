@@ -144,6 +144,12 @@ public final class Entities<T extends Entity> {
 
     // custom entities with root consumer
     public static final Entities<ArmorStand> ARMOR_STAND_MARKER = new Entities<>(ArmorStand.class, self -> self.setMarker(true));
+    public static final Entities<ArmorStand> ARMOR_STAND_HOLOGRAM = new Entities<>(ArmorStand.class, self -> {
+        self.setMarker(true);
+        self.setSilent(true);
+        self.setInvisible(true);
+        self.setSmall(true);
+    });
 
     private final Class<T> entityClass;
     private final Consumer<T> rootConsumer;

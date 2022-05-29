@@ -19,7 +19,7 @@ public class QuestJournal extends PlayerGUI {
     public QuestJournal(Player player) {
         super(player, "Quest Journal", 5);
 
-        if (!Rule.ALLOW_QUEST_JOURNAL.isTrue()) {
+        if (Rule.ALLOW_QUEST_JOURNAL.isFalse()) {
             Chat.sendMessage(player, "&cThis server does not allow Quest Journal!");
             return;
         }

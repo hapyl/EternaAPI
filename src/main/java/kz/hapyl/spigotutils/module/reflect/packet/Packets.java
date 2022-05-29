@@ -67,9 +67,6 @@ public final class Packets {
             sendPacket(new PacketPlayOutEntityEquipment(getEntityId(entity), list), players);
         }
 
-        static {
-        }
-
     }
 
     /**

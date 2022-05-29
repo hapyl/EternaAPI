@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 /**
  * Indicates that this method is ASYNC and code inside must be called SYNC.
  */
-public @interface AsyncWarning {
+public @interface AsyncNotSafe {
 }

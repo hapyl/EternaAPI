@@ -313,7 +313,7 @@ public class Chat {
     /**
      * I really have no idea why this is here.
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public static void sendMessage_(Player player, Object s, Object... format) {
         sendMessage(player, s, format);
     }

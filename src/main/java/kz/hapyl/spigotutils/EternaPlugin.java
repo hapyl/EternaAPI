@@ -11,7 +11,6 @@ import kz.hapyl.spigotutils.module.inventory.ItemBuilderListener;
 import kz.hapyl.spigotutils.module.inventory.gui.GUIListener;
 import kz.hapyl.spigotutils.module.inventory.item.CustomItemHolder;
 import kz.hapyl.spigotutils.module.inventory.item.CustomItemListener;
-import kz.hapyl.spigotutils.module.listener.SimpleListener;
 import kz.hapyl.spigotutils.module.locaiton.TriggerManager;
 import kz.hapyl.spigotutils.module.parkour.ParkourListener;
 import kz.hapyl.spigotutils.module.parkour.ParkourManager;
@@ -131,10 +130,6 @@ public class EternaPlugin extends JavaPlugin {
 
     public static EternaPlugin getPlugin() {
         return plugin;
-    }
-
-    public static void registerEvent(SimpleListener simpleListener) {
-        plugin.getServer().getPluginManager().registerEvents(simpleListener, plugin);
     }
 
     public static Logger logger() {

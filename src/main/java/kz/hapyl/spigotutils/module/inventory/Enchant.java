@@ -2,6 +2,7 @@ package kz.hapyl.spigotutils.module.inventory;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 
@@ -73,6 +74,10 @@ public enum Enchant {
 
     public int getVanillaMaxLvl() {
         return vanillaMaxLvl;
+    }
+
+    public void enchantItem(ItemStack stack, int lvl, boolean ignoreVanillaRestrictions) {
+        Meta.of(stack).enchant(this, ignoreVanillaRestrictions ? lvl : Math.min(lvl, vanillaMaxLvl));
     }
 
     @Nonnull

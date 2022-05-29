@@ -9,6 +9,9 @@ import java.util.UUID;
  */
 public class StaticNonPrimitiveDataField {
 
+    private StaticNonPrimitiveDataField() {
+    }
+
     // Convert string to value.
     public static Object loadFrom(Class<?> clazz, @Nonnull Object object) {
         final String objectToString = object.toString();

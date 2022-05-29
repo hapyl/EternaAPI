@@ -15,8 +15,12 @@ import java.util.Arrays;
  * @author Schottky
  */
 public class Gradient {
+
     private String str;
-    private boolean bold, italic, underscore, strikethrough;
+    private boolean bold;
+    private boolean italic;
+    private boolean underscore;
+    private boolean strikethrough;
 
     public Gradient(String input) {
         this.str = input;

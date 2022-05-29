@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target(ElementType.METHOD)
 /**
- * Used when field is final but cannot be annotated as such.
+ * Indicates that the method is a static shortcut.
  */
-public @interface Final {
+public @interface StaticShortcut {
 }

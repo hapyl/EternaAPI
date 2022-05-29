@@ -147,7 +147,6 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
         }
 
         this.sendInvalidUsageMessage(player);
-
     }
 
     @Nullable
@@ -231,7 +230,7 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
     private BaseComponent[] createClickable(String name) {
         final String coolName = Chat.capitalize(name);
         return new ComponentBuilder(ChatColor.GOLD + coolName).event(LazyHoverEvent.SHOW_TEXT.of("&eClick to play \"" + name + "\"!"))
-                // for what reason it's called run_command but it does not call command but instead sends a chat message
+                // for what reason it's called run_command, but it does not call command but instead sends a chat message
                 .event(LazyClickEvent.RUN_COMMAND.of("/nbs play " + name))
                 .create();
     }
@@ -252,7 +251,6 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-
         if (args.length == 1) {
             return completerSort(Arrays.asList("play", "stop", "list", "pause", "info", "queue", "add", "skip"), args);
         }
@@ -262,7 +260,6 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
         }
 
         return null;
-
     }
 
 }

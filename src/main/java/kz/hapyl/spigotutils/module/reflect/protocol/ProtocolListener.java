@@ -21,8 +21,6 @@ public abstract class ProtocolListener {
             public void onPacketSending(PacketEvent event) {
                 ProtocolListener.this.onPacketSending(event);
             }
-
-
         });
     }
 

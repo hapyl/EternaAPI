@@ -3,6 +3,9 @@ package kz.hapyl.spigotutils.module.chat;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Easy access hover event builder.
  */
@@ -21,8 +24,9 @@ public enum LazyHoverEvent {
         this.action = action;
     }
 
-    public HoverEvent of(Object value) {
-        return new HoverEvent(this.action, new Text(Chat.format(value)));
+    @Nonnull
+    public HoverEvent of(Object value, @Nullable Object... replacements) {
+        return new HoverEvent(this.action, new Text(Chat.format(value, replacements)));
     }
 
 }

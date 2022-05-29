@@ -38,6 +38,10 @@ public class Rule<E> {
         return value instanceof Boolean b ? b : value instanceof Integer i && i == 1;
     }
 
+    public boolean isFalse() {
+        return !isTrue();
+    }
+
     public void set(E e) {
         this.value = e;
     }
