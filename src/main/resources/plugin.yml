@@ -1,5 +1,5 @@
 name: "EternaAPI"
-main: "kz.hapyl.spigotutils.EternaPlugin"
+main: "me.hapyl.spigotutils.EternaPlugin"
 version: ${version}
 author: "hapyl"
 description: ${description}

@@ -6,10 +6,10 @@
 
     <groupId>EternaAPI</groupId>
     <artifactId>EternaAPI</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.4.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>EternaAPI</name>
-    <description>An API for hapyl's plugins. Now depends on ProtocolLib.</description>
+    <description>An API for Spigot development.</description>
 
     <properties>
         <java.version>17</java.version>
