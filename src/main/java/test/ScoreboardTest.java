@@ -1,6 +1,6 @@
 package test;
 
-import kz.hapyl.spigotutils.module.scoreboard.Scoreboarder;
+import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import org.bukkit.entity.Player;
 
 public class ScoreboardTest {

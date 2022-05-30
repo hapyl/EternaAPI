@@ -1,6 +1,6 @@
 package test;
 
-import kz.hapyl.spigotutils.module.reflect.Laser;
+import me.hapyl.spigotutils.module.reflect.Laser;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 

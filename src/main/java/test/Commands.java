@@ -1,15 +1,15 @@
 package test;
 
-import kz.hapyl.spigotutils.EternaPlugin;
-import kz.hapyl.spigotutils.module.chat.Chat;
-import kz.hapyl.spigotutils.module.command.CommandProcessor;
-import kz.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
-import kz.hapyl.spigotutils.module.quest.Quest;
-import kz.hapyl.spigotutils.module.quest.QuestManager;
-import kz.hapyl.spigotutils.module.quest.QuestProgress;
-import kz.hapyl.spigotutils.module.record.Record;
-import kz.hapyl.spigotutils.module.record.Replay;
-import kz.hapyl.spigotutils.module.reflect.border.PlayerBorder;
+import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.command.CommandProcessor;
+import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
+import me.hapyl.spigotutils.module.quest.Quest;
+import me.hapyl.spigotutils.module.quest.QuestManager;
+import me.hapyl.spigotutils.module.quest.QuestProgress;
+import me.hapyl.spigotutils.module.record.Record;
+import me.hapyl.spigotutils.module.record.Replay;
+import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.util.NumberConversions;
 

@@ -1,6 +1,6 @@
 package test;
 
-import kz.hapyl.spigotutils.module.util.Validate;
+import me.hapyl.spigotutils.module.util.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

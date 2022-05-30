@@ -1,9 +1,9 @@
 package test;
 
-import kz.hapyl.spigotutils.module.inventory.ItemBuilder;
-import kz.hapyl.spigotutils.module.inventory.gui.SlotPattern;
-import kz.hapyl.spigotutils.module.inventory.gui.SmartComponent;
-import kz.hapyl.spigotutils.module.inventory.gui.SmartGUI;
+import me.hapyl.spigotutils.module.inventory.ItemBuilder;
+import me.hapyl.spigotutils.module.inventory.gui.SlotPattern;
+import me.hapyl.spigotutils.module.inventory.gui.SmartComponent;
+import me.hapyl.spigotutils.module.inventory.gui.SmartGUI;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 

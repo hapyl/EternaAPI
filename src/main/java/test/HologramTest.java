@@ -1,7 +1,7 @@
 package test;
 
-import kz.hapyl.spigotutils.module.chat.Chat;
-import kz.hapyl.spigotutils.module.hologram.Hologram;
+import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.hologram.Hologram;
 import org.bukkit.entity.Player;
 
 public class HologramTest {

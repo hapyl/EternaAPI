@@ -1,6 +1,6 @@
 package test;
 
-import kz.hapyl.spigotutils.module.inventory.SignGUI;
+import me.hapyl.spigotutils.module.inventory.SignGUI;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;

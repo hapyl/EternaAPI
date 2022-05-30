@@ -1,6 +1,6 @@
 package test;
 
-import kz.hapyl.spigotutils.module.reflect.npc.HumanNPC;
+import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
