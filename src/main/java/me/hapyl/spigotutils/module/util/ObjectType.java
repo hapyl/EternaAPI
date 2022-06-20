@@ -4,6 +4,9 @@ import org.bukkit.inventory.ItemStack;
 
 public enum ObjectType {
 
+    /**
+     * Provided object was null.
+     */
     NULL(),
     BYTE(byte.class, Byte.class),
     SHORT(short.class, Short.class),

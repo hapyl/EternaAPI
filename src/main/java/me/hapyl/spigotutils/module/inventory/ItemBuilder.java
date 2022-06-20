@@ -722,14 +722,14 @@ public class ItemBuilder {
         }
     }
 
+    private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
+    private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
+
     public ItemBuilder setHeadTexture(UUID uuid, String name) {
         final SkullMeta skullMeta = (SkullMeta) this.meta;
         skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(uuid, name));
         return this;
     }
-
-    private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
-    private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
 
     /**
      * Sets a link to minecraft skin texture as textures.

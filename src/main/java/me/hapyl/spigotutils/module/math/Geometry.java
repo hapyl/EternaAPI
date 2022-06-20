@@ -1,14 +1,20 @@
 package me.hapyl.spigotutils.module.math;
 
+import com.google.common.collect.Lists;
+import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.AsyncSafe;
 import me.hapyl.spigotutils.module.math.gometry.Draw;
 import me.hapyl.spigotutils.module.math.gometry.Quality;
 import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -41,6 +47,43 @@ public class Geometry {
             draw.draw(center);
             center.subtract(x, 0, z);
         }
+    }
+
+    /**
+     * Draws a circle around center.
+     *
+     * @param center   - Center.
+     * @param radius   - Radius from the center.
+     * @param material - Material to replace block with.
+     * @return List of affected blocks.
+     * @throws IllegalArgumentException if material is not a block.
+     * @throws NullPointerException     if world is unloaded.
+     */
+    @AsyncNotSafe
+    public static List<Block> drawCircleWithBlocks(@Nonnull Location center, int radius, Material material) {
+        final World world = center.getWorld();
+        radius = Math.max(radius, 0);
+        Validate.isTrue(material.isBlock(), "material must be a block, %s isn't!".formatted(material.name()));
+        Validate.notNull(world, "world cannot be null");
+
+        final List<Block> list = Lists.newArrayList();
+        final int tX = center.getBlockX();
+        final int tY = center.getBlockY();
+        final int tZ = center.getBlockZ();
+
+        for (int x = tX - radius; x <= tX + radius; x++) {
+            for (int z = tZ - radius; z < tZ + radius; z++) {
+                if ((tX - x) * (tX - x) + (tZ - z) * (tZ - z) <= (radius * radius)) {
+                    final Block block = world.getBlockAt(x, tY, z);
+                    if (!block.getType().isSolid()) {
+                        block.setType(material, false);
+                        list.add(block);
+                    }
+                }
+            }
+        }
+
+        return list;
     }
 
     /**
