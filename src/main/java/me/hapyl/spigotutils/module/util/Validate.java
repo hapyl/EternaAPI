@@ -662,11 +662,11 @@ public class Validate {
      * @return true if array has item on provided slot.
      */
     public static <T> boolean checkArray(T[] array, int index, T item) {
-        return array.length >= index && array[index] != null && array[index].equals(item);
+        return array.length != 0 && index <= array.length && array[index] != null && array[index].equals(item);
     }
 
     public static boolean checkArrayString(String[] array, int index, String value) {
-        return array.length >= index && array[index] != null && array[index].equalsIgnoreCase(value);
+        return array.length != 0 && index <= array.length && array[index] != null && array[index].equalsIgnoreCase(value);
     }
 
 }
