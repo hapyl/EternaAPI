@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
+import me.hapyl.spigotutils.module.annotate.ArraySize;
 import me.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -662,11 +663,33 @@ public class Validate {
      * @return true if array has item on provided slot.
      */
     public static <T> boolean checkArray(T[] array, int index, T item) {
-        return array.length != 0 && index <= array.length && array[index] != null && array[index].equals(item);
+        return array.length != 0 && index < array.length && array[index] != null && array[index].equals(item);
     }
 
-    public static boolean checkArrayString(String[] array, int index, String value) {
-        return array.length != 0 && index <= array.length && array[index] != null && array[index].equalsIgnoreCase(value);
+    /**
+     * Validates that array has string on provided index.
+     * The string comparing is <b>not</b> case-sensitive.
+     *
+     * @param array  - Array.
+     * @param index  - Index.
+     * @param values - Strings to check.
+     */
+    public static boolean checkArrayString(String[] array, int index, @ArraySize(min = 1) String... values) {
+        if (array.length == 0 || index < 0 || index >= array.length || array[index] == null || values.length == 0) {
+            return false;
+        }
+        final String sample = array[index];
+        if (values.length == 1) {
+            return values[0].equalsIgnoreCase(sample);
+        }
+        else {
+            for (String value : values) {
+                if (value.equalsIgnoreCase(sample)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

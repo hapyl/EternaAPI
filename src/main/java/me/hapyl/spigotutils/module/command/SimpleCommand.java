@@ -6,6 +6,7 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -34,6 +35,8 @@ public abstract class SimpleCommand {
     private int cooldownTick;
 
     private CommandCooldown cooldown;
+    @Nullable
+    private ArgumentProcessor argumentProcessor;
 
     /**
      * Creates a new simple command
@@ -56,19 +59,18 @@ public abstract class SimpleCommand {
     /**
      * Adds a value to index of tab completer.
      * Note that completer values will be automatically sorted
-     * using {@link this#completerSort(List, String[])} AFTER
-     * {@link this#tabComplete(CommandSender, String[])} is called.
+     * using {@link SimpleCommand#completerSort(List, String[])} AFTER
+     * {@link SimpleCommand#tabComplete(CommandSender, String[])} is called.
      *
-     * @param index - Index. (Length of arguments).
+     * @param index - Index. <b>Stars at 1 for first argument (args[0])</b>
      * @param value - Value to add. Will be forced to lower case.
      */
     public void addCompleterValue(int index, String value) {
-        final List<String> list = getCompleterValues(index);
-        list.add(value.toLowerCase());
-        completerValues.put(index, list);
+        addCompleterValues(index, value);
     }
 
     public void addCompleterValues(int index, String... values) {
+        index = Math.max(1, index);
         final List<String> list = getCompleterValues(index);
         for (String value : values) {
             list.add(value.toLowerCase());
@@ -175,6 +177,28 @@ public abstract class SimpleCommand {
             usage = usage.replace("/", "");
         }
         this.usage = "/" + usage;
+    }
+
+    /**
+     * Returns argument processor for this command if any present.
+     *
+     * @return argument processor for this command if any present.
+     */
+    @Nullable
+    public ArgumentProcessor getArgumentProcessor() {
+        return argumentProcessor;
+    }
+
+    public void testArgumentProcessorIfExists(CommandSender sender, String[] args) {
+        if (argumentProcessor != null) {
+            argumentProcessor.checkArgumentAndExecute(sender, args);
+        }
+    }
+
+    protected void tryArgumentProcessor() {
+        if (this.argumentProcessor == null && ArgumentProcessor.countMethods(this) > 0) {
+            this.argumentProcessor = new ArgumentProcessor(this);
+        }
     }
 
     /**

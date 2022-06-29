@@ -4,6 +4,7 @@ import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -15,7 +16,6 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,87 +72,79 @@ public class CommandProcessor {
                 throw new IllegalArgumentException("There must be at least one command!");
             }
 
-            final PluginManager manager = this.plugin.getServer().getPluginManager();
-            final Class<? extends PluginManager> clazz = manager.getClass();
-            final Field field = clazz.getDeclaredField("commandMap");
-
-            field.setAccessible(true);
-            final SimpleCommandMap simpleMap = (SimpleCommandMap) field.get(manager);
+            final SimpleCommandMap simpleMap = getCommandMap();
 
             for (final SimpleCommand cmd : array) {
+                final Command command = new Command(cmd.getName(), cmd.getDescription(), cmd.getUsage(), Arrays.asList(cmd.getAliases())) {
+                    @Override
+                    public boolean execute(@Nonnull CommandSender sender, @Nonnull String label, @Nonnull String[] args) {
+                        if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
+                            sender.sendMessage(ChatColor.RED + "You must be a player to use perform this command!");
+                            return true;
+                        }
 
-                if (simpleMap.getCommand(cmd.getName()) != null) {
-                    throw new IllegalArgumentException(String.format(
-                            "Command %s already registered in %s!",
-                            cmd.getName(),
-                            this.plugin.getName()
-                    ));
-                }
+                        // permission check
+                        if ((cmd.isAllowOnlyOp() && !sender.isOp()) || !sender.hasPermission(cmd.getPermission())) {
+                            sender.sendMessage(ChatColor.RED + "No permissions.");
+                            return true;
+                        }
 
-                simpleMap.register(
-                        this.plugin.getName(),
-                        new Command(cmd.getName(), cmd.getDescription(), cmd.getUsage(), Arrays.asList(cmd.getAliases())) {
-
-                            // Register Command
-                            @Override
-                            public boolean execute(CommandSender sender, String label, String[] args) {
-                                if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
-                                    sender.sendMessage(ChatColor.RED + "You must be a player to use perform this command!");
-                                    return true;
-                                }
-
-                                // permission check
-                                if ((cmd.isAllowOnlyOp() && !sender.isOp()) || !sender.hasPermission(cmd.getPermission())) {
-                                    sender.sendMessage(ChatColor.RED + "No permissions.");
-                                    return true;
-                                }
-
-                                // cooldown check
-                                if (cmd.hasCooldown() && sender instanceof final Player playerSender) {
-                                    final CommandCooldown cooldown = cmd.getCooldown();
-                                    if (cooldown.hasCooldown(playerSender)) {
-                                        Chat.sendMessage(
-                                                playerSender,
-                                                "&cThis command is on cooldown for %ss!",
-                                                BukkitUtils.roundTick((int) (cooldown.getTimeLeft(playerSender) / 50L))
-                                        );
-                                        PlayerLib.playSound(playerSender, Sound.ENTITY_ENDERMAN_TELEPORT, 0.0f);
-                                        return true;
-                                    }
-                                    if (!cooldown.canIgnoreCooldown(playerSender)) {
-                                        cooldown.startCooldown(playerSender);
-                                    }
-                                }
-
-                                cmd.execute(sender, args);
-
+                        // cooldown check
+                        if (cmd.hasCooldown() && sender instanceof final Player playerSender) {
+                            final CommandCooldown cooldown = cmd.getCooldown();
+                            if (cooldown.hasCooldown(playerSender)) {
+                                Chat.sendMessage(
+                                        playerSender,
+                                        "&cThis command is on cooldown for %ss!",
+                                        BukkitUtils.roundTick((int) (cooldown.getTimeLeft(playerSender) / 50L))
+                                );
+                                PlayerLib.playSound(playerSender, Sound.ENTITY_ENDERMAN_TELEPORT, 0.0f);
                                 return true;
                             }
-
-                            // Register Tab Completer
-                            @Override
-                            public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-                                if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
-                                    return Collections.emptyList();
-                                }
-
-                                final List<String> strings = cmd.tabComplete(sender, args);
-
-                                if (cmd.hasCompleterValues(args.length)) {
-                                    strings.addAll(cmd.completerSort(cmd.getCompleterValues(args.length), args));
-                                }
-
-                                return strings == null ? defaultCompleter() : strings;
+                            if (!cooldown.canIgnoreCooldown(playerSender)) {
+                                cooldown.startCooldown(playerSender);
                             }
                         }
-                );
 
+                        cmd.execute(sender, args);
+
+                        //  test argument processor
+                        cmd.testArgumentProcessorIfExists(sender, args);
+
+                        return true;
+                    }
+
+                    // Register Tab Completer
+                    @Override
+                    @Nonnull
+                    public List<String> tabComplete(@Nonnull CommandSender sender, @Nonnull String alias, @Nonnull String[] args) throws IllegalArgumentException {
+                        if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
+                            return Collections.emptyList();
+                        }
+
+                        final List<String> strings = cmd.tabComplete(sender, args);
+
+                        if (cmd.hasCompleterValues(args.length)) {
+                            strings.addAll(cmd.completerSort(cmd.getCompleterValues(args.length), args));
+                        }
+
+                        return strings == null ? defaultCompleter() : strings;
+                    }
+                };
+
+                // Register Command
+                simpleMap.register(this.plugin.getName(), command);
+                cmd.tryArgumentProcessor();
             }
 
-            field.setAccessible(false);
         } catch (Exception error) {
             error.printStackTrace();
         }
+    }
+
+    public static SimpleCommandMap getCommandMap() throws IllegalAccessException {
+        final PluginManager manager = Bukkit.getServer().getPluginManager();
+        return (SimpleCommandMap) FieldUtils.getDeclaredField(manager.getClass(), "commandMap", true).get(manager);
     }
 
     private static List<String> defaultCompleter() {
