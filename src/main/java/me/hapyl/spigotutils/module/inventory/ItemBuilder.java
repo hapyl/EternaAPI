@@ -645,12 +645,12 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setName(String name) {
-        this.meta.setDisplayName(colorize(name));
+        this.meta.setDisplayName(ChatColor.GREEN + colorize(name));
         return this;
     }
 
-    public ItemBuilder setName(String name, Object... repl) {
-        this.setName(Chat.format(name, repl));
+    public ItemBuilder setName(String name, Object... replacements) {
+        this.setName(Chat.format(name, replacements));
         return this;
     }
 

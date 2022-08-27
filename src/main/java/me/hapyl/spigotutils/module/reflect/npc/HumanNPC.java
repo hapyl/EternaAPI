@@ -140,7 +140,12 @@ public class HumanNPC implements Intractable, Human {
             setSkin(skinOwner);
         }
 
-        this.human = new EntityPlayer(Reflect.getMinecraftServer(), (WorldServer) Reflect.getMinecraftWorld(location.getWorld()), profile);
+        this.human = new EntityPlayer(
+                Reflect.getMinecraftServer(),
+                (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
+                profile,
+                null
+        );
 
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
@@ -602,7 +607,7 @@ public class HumanNPC implements Intractable, Human {
             try {
                 final Player player = Bukkit.getPlayer(targetName);
                 final EntityPlayer nmsEntity = Reflect.getMinecraftPlayer(player);
-                final GameProfile profile = nmsEntity.fq();
+                final GameProfile profile = Reflect.getGameProfile(nmsEntity);
 
                 final Property textures = profile
                         .getProperties()

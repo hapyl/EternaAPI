@@ -1,6 +1,5 @@
 package me.hapyl.spigotutils.module.chat;
 
-import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.util.Placeholder;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -8,8 +7,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.protocol.game.PacketPlayOutChat;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,7 +19,6 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingFormatArgumentException;
-import java.util.UUID;
 
 /**
  * Allows to manipulate with string easily such as formatting,
@@ -133,13 +129,9 @@ public class Chat {
      * @param iChat        - String to convert to IChat.
      * @param replacements - Replacements.
      */
+    @Deprecated(forRemoval = true)
     public static void sendIChatMessage(Player player, String iChat, Object... replacements) {
-        iChat = String.format(iChat, replacements);
-        ReflectPacket.send(new PacketPlayOutChat(
-                IChatBaseComponent.a(iChat),
-                net.minecraft.network.chat.ChatMessageType.b,
-                UUID.randomUUID()
-        ), player);
+        sendMessage(player, iChat, replacements);
     }
 
     /**

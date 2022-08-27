@@ -1,9 +1,9 @@
 package me.hapyl.spigotutils.module.reflect;
 
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.entity.EntityUtils;
 import me.hapyl.spigotutils.module.reflect.packet.Packets;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.EntitySquid;
 import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Bukkit;
@@ -91,10 +91,10 @@ public class Laser {
             return;
         }
 
-        guardian = new EntityGuardian(EntityTypes.K, Reflect.getMinecraftWorld(this.start.getWorld()));
+        guardian = new EntityGuardian(Entities.NMS.GUARDIAN, Reflect.getMinecraftWorld(this.start.getWorld()));
         Reflect.setEntityLocation(guardian, start);
 
-        squid = new EntitySquid(EntityTypes.aJ, Reflect.getMinecraftWorld(this.end.getWorld()));
+        squid = new EntitySquid(Entities.NMS.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
         Reflect.setEntityLocation(squid, end);
 
         // remove collision between guardian and squid

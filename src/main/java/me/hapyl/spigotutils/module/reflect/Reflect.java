@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.module.annotate.InsuredViewers;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
@@ -104,7 +105,7 @@ public final class Reflect {
      * @param entity   - Entity.
      * @param location - Location.
      */
-    @TestedNMS(version = "1.18")
+    @TestedNMS(version = "1.19.1")
     public static void setEntityLocation(net.minecraft.world.entity.Entity entity, Location location) {
         entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
@@ -527,13 +528,13 @@ public final class Reflect {
      * @param player - Player.
      * @param packet - Packet.
      */
-    @TestedNMS(version = "1.18")
+    @TestedNMS(version = "1.19.1")
     public static void sendPacket(Player player, Packet<?> packet) {
         if (HumanNPC.isNPC(player.getEntityId())) {
             return;
         }
         final EntityPlayer mc = getMinecraftPlayer(player);
-        mc.b.a.a(packet);
+        mc.b.a(packet);
     }
 
     /**
@@ -566,6 +567,14 @@ public final class Reflect {
      */
     public static Object getCraftEntity(Entity entity) {
         return invokeMethod(lazyMethod(entity.getClass(), "getHandle"), entity);
+    }
+
+    public static GameProfile getGameProfile(Player player) {
+        return getGameProfile(getMinecraftPlayer(player));
+    }
+
+    public static GameProfile getGameProfile(EntityPlayer player) {
+        return player.fy();
     }
 
     /**
@@ -677,7 +686,7 @@ public final class Reflect {
     @TestedNMS(version = "1.18")
     public static void sendPacket(Packet<?> packet, Player... receivers) {
         for (final Player receiver : receivers) {
-            getMinecraftPlayer(receiver).b.a.a(packet);
+            sendPacket(receiver, packet);
         }
     }
 

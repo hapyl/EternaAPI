@@ -5,6 +5,9 @@ import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Validate;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.animal.EntitySquid;
+import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.*;
@@ -26,6 +29,14 @@ import java.util.Set;
  */
 @SuppressWarnings("unused" /*utility class*/)
 public final class Entities<T extends Entity> {
+
+    public static class NMS {
+
+        public static final EntityTypes<EntityGuardian> GUARDIAN = EntityTypes.N;
+        public static final EntityTypes<EntitySquid> SQUID = EntityTypes.aM;
+
+    }
+
 
     private static final EternaPlugin ETERNA_PLUGIN = EternaPlugin.getPlugin();
 

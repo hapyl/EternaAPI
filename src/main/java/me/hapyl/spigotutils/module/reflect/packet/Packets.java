@@ -34,7 +34,7 @@ public final class Packets {
     public final static class Server {
 
         public static void spawnEntityLiving(EntityLiving entity, Player... players) {
-            Reflect.sendPacket(new PacketPlayOutSpawnEntityLiving(entity), players);
+            Reflect.sendPacket(new PacketPlayOutSpawnEntity(entity), players);
         }
 
         public static void entityDestroy(Entity entity, Player... players) {

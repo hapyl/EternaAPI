@@ -8,7 +8,7 @@ import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving;
+import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Bukkit;
@@ -323,7 +323,7 @@ public class Hologram {
             return;
         }
 
-        EntityArmorStand armorStand = new EntityArmorStand(EntityTypes.c, Reflect.getMinecraftWorld(location.getWorld()));
+        EntityArmorStand armorStand = new EntityArmorStand(EntityTypes.d, Reflect.getMinecraftWorld(location.getWorld()));
 
         final ArmorStand bukkit = (ArmorStand) armorStand.getBukkitEntity();
 
@@ -336,7 +336,7 @@ public class Hologram {
         bukkit.setCustomNameVisible(true);
 
         this.packets.put(armorStand, new ReflectPacket(
-                new PacketPlayOutSpawnEntityLiving(armorStand),
+                new PacketPlayOutSpawnEntity(armorStand),
                 new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.ai(), true),
                 new PacketPlayOutEntityDestroy(bukkit.getEntityId())
         ));
