@@ -246,6 +246,18 @@ public class Chat {
      * @return a sorted list.
      */
     public static List<String> tabCompleterSort(List<?> list, String[] args, boolean forceLowerCase) {
+        return tabCompleterSort0(list, args, forceLowerCase, true);
+    }
+
+    /**
+     * Sorts List based on last value of last args.
+     *
+     * @param list           - List to sort.
+     * @param args           - Args.
+     * @param forceLowerCase - If value should be forced to lower case.
+     * @return a sorted list.
+     */
+    public static List<String> tabCompleterSort0(List<?> list, String[] args, boolean forceLowerCase, boolean method) {
         final List<String> result = new ArrayList<>();
         String latest = args[args.length - 1];
         if (forceLowerCase) {
@@ -256,7 +268,11 @@ public class Chat {
             if (forceLowerCase) {
                 str = str.toLowerCase();
             }
-            if (str.startsWith(latest)) {
+
+            if (str.startsWith(latest) && method) {
+                result.add(str);
+            }
+            else if (str.contains(latest) && !method) {
                 result.add(str);
             }
         }

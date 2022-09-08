@@ -265,6 +265,18 @@ public abstract class SimpleCommand {
         return Chat.tabCompleterSort(eToString(list), args);
     }
 
+    protected List<String> completerSort2(List<String> list, String[] args, boolean forceLowerCase) {
+        return Chat.tabCompleterSort0(list, args, forceLowerCase, false);
+    }
+
+    protected List<String> completerSort2(List<String> list, String[] args) {
+        return completerSort2(list, args, true);
+    }
+
+    protected <E> List<String> completerSort2(E[] array, String[] args) {
+        return completerSort2(arrayToList(array), args);
+    }
+
     /**
      * Returns true if argument of provided index is present and is equals to string.
      *

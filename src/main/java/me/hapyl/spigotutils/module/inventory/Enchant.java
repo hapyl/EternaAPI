@@ -1,10 +1,12 @@
 package me.hapyl.spigotutils.module.inventory;
 
+import com.google.common.collect.Maps;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 
 public enum Enchant {
 
@@ -52,6 +54,14 @@ public enum Enchant {
     CURSE_OF_BINDING(Enchantment.BINDING_CURSE, Material.BARRIER, "Prevents removal of cursed item.", 1),
     CURSE_OF_VANISHING(Enchantment.VANISHING_CURSE, Material.LAVA_BUCKET, "Item vanish upon death.", 1);
 
+    private final static Map<Enchantment, Enchant> byBukkit = Maps.newHashMap();
+
+    static {
+        for (Enchant value : values()) {
+            byBukkit.put(value.getAsBukkit(), value);
+        }
+    }
+
     private final Enchantment bukkit;
     private final Material material;
     private final String description;
@@ -83,6 +93,11 @@ public enum Enchant {
     @Nonnull
     public Enchantment getAsBukkit() {
         return bukkit;
+    }
+
+    @Nonnull
+    public static Enchant fromBukkit(Enchantment enchantment) {
+        return byBukkit.getOrDefault(enchantment, UNBREAKING);
     }
 
 }
