@@ -36,6 +36,14 @@ public class GlowingManager extends HashRegistry<Entity, Glowing> {
         this.glowing.put(entity, set);
     }
 
+    public void stopGlowing(Entity entity) {
+        final Set<Glowing> set = getGlowing(entity);
+
+        for (Glowing glow : set) {
+            glow.forceStop();
+        }
+    }
+
     public void removeGlowing(Entity entity, Glowing glowing) {
         final Set<Glowing> set = getGlowing(entity);
         set.remove(glowing);
@@ -51,6 +59,18 @@ public class GlowingManager extends HashRegistry<Entity, Glowing> {
         return glowing.getOrDefault(entity, Sets.newConcurrentHashSet());
     }
 
+    @Nullable
+    public Glowing getGlowing(Entity entity, Player viewer) {
+        final Set<Glowing> glowings = getGlowing(entity);
+        for (Glowing glow : glowings) {
+            if (glow.isViewer(viewer) && glow.getDuration() > 0) {
+                return glow;
+            }
+        }
+
+        return null;
+    }
+
     public boolean isGlowing(Entity entity) {
         return !getGlowing(entity).isEmpty();
     }
@@ -62,8 +82,8 @@ public class GlowingManager extends HashRegistry<Entity, Glowing> {
         }
 
         for (Glowing glow : set) {
-            if (glow.isViewer(player)) {
-                return glow.getDuration() > 0;
+            if (glow.isViewer(player) && glow.getDuration() > 0) {
+                return true;
             }
         }
 

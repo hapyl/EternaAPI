@@ -124,8 +124,12 @@ public class EternaPlugin extends JavaPlugin {
         return registry.glowingManager;
     }
 
-    public static void runTaskLater(Consumer<BukkitTask> runnable, int later) {
+    public static void runTaskLater(Consumer<BukkitTask> runnable, long later) {
         Bukkit.getScheduler().runTaskLater(plugin, runnable, later);
+    }
+
+    public static void runTaskTimer(Consumer<BukkitTask> runnable, long period) {
+        Bukkit.getScheduler().runTaskTimer(plugin, runnable, 0L, period);
     }
 
     public static EternaPlugin getPlugin() {

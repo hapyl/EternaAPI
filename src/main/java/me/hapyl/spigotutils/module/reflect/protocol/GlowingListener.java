@@ -1,6 +1,8 @@
 package me.hapyl.spigotutils.module.reflect.protocol;
 
 import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
@@ -14,6 +16,7 @@ import java.util.List;
 public class GlowingListener extends ProtocolListener {
 
     private final GlowingManager manager = EternaPlugin.getPlugin().getGlowingManager();
+    private final ProtocolManager protocol = ProtocolLibrary.getProtocolManager();
 
     public GlowingListener() {
         super(PacketType.Play.Server.ENTITY_METADATA);
@@ -22,6 +25,35 @@ public class GlowingListener extends ProtocolListener {
     @Override
     public void onPacketReceiving(PacketEvent event) {
     }
+
+    //    @Override
+    //    public void onPacketSending(PacketEvent event) {
+    //        final PacketContainer packet = event.getPacket();
+    //        final Player player = event.getPlayer();
+    //        final WrappedDataWatcher watcher = new WrappedDataWatcher(packet.getWatchableCollectionModifier().read(0));
+    //
+    //        final byte value = watcher.getByte(0);
+    //        if (!watcher.getIndexes().contains(0) || value == 0) {
+    //            watcher.setObject(0, WrappedDataWatcher.Registry.get(Byte.class), (byte) 0x40);
+    //            packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
+    //            return;
+    //        }
+    //
+    //        if (value == 0x40) {
+    //            return;
+    //        }
+    //
+    //        // Update packet
+    //        final PacketContainer newPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
+    //        newPacket.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
+    //        newPacket.getIntegers().write(0, packet.getIntegers().read(0));
+    //        try {
+    //            protocol.sendServerPacket(player, newPacket);
+    //        } catch (InvocationTargetException e) {
+    //            e.printStackTrace();
+    //        }
+    //
+    //    }
 
     @Override
     public void onPacketSending(PacketEvent event) {
@@ -34,13 +66,22 @@ public class GlowingListener extends ProtocolListener {
             return;
         }
 
+        //
+        // After many attempts of fixing the self-glowing bug
+        // I gave up and returned everything as it used to be.
+        // Don't know the way of doing this or checking the right values.
+        //
+
         final List<WrappedWatchableObject> data = packet.getWatchableCollectionModifier().read(0);
+
         for (WrappedWatchableObject object : data) {
             if (object.getIndex() == 0) {
-                final byte initByte = (byte) object.getValue();
-                final byte bitMask = (byte) 0x40;
-                object.setValue((byte) (initByte | bitMask));
+                final byte value = (byte) object.getValue();
+                object.setValue((byte) (value | 0x40));
             }
         }
+
     }
+
+
 }

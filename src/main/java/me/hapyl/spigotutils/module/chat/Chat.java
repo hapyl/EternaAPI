@@ -178,6 +178,7 @@ public class Chat {
 
     /**
      * Formats seconds into string formatted as such: 0h 0m 0s
+     * todo fix this
      *
      * @param timeInSec - Time in seconds to format.
      * @return formatted string.
@@ -318,6 +319,10 @@ public class Chat {
         sender.sendMessage(CenterChat.makeString(Chat.format(message.toString(), format)));
     }
 
+    public static void broadcastCenterMessage(Object message, Object... format) {
+        Bukkit.getOnlinePlayers().forEach(player -> sendCenterMessage(player, message, format));
+    }
+
     /**
      * I really have no idea why this is here.
      */
@@ -431,6 +436,29 @@ public class Chat {
      */
     public static void sendTitle(Player player, @Nonnull String title, @Nonnull String subtitle, int fadeIn, int stay, int fadeOut) {
         player.sendTitle(Chat.format(title.isEmpty() ? " " : title), Chat.format(subtitle), fadeIn, stay, fadeOut);
+    }
+
+    /**
+     * Sends a title to all online players.
+     *
+     * @param title    - Title.
+     * @param subtitle - Subtitle.
+     * @param fadeIn   - fade in animation ticks.
+     * @param stay     - stay text ticks.
+     * @param fadeOut  - fade out animation ticks.
+     */
+    public static void sendTitles(@Nonnull String title, @Nonnull String subtitle, int fadeIn, int stay, int fadeOut) {
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            sendTitle(player, title, subtitle, fadeIn, stay, fadeOut);
+        });
+    }
+
+    public static void clearTitle(Player player) {
+        player.resetTitle();
+    }
+
+    public static void clearTitles() {
+        Bukkit.getOnlinePlayers().forEach(Player::resetTitle);
     }
 
     /**

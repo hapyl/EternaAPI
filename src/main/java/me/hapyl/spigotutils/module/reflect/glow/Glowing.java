@@ -24,6 +24,10 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Note: If you're glowing for other players, you will currently glow for yourself when other are near you.
+ * Currently, IS a bug, but I've wasted so many hours trying to fix this so whatever.
+ */
 public class Glowing implements Ticking, GlowingListener {
 
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -109,7 +113,7 @@ public class Glowing implements Ticking, GlowingListener {
         }
     }
 
-    private void createPacket(boolean flag) {
+    protected void createPacket(boolean flag) {
         final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
         packet.getIntegers().write(0, entity.getEntityId());
 
@@ -332,10 +336,9 @@ public class Glowing implements Ticking, GlowingListener {
         team.setColor(this.color);
         return team;
     }
-
     // returns either player's name or entities UUID to use as entry in a team
+
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
     }
-
 }
