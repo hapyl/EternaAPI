@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.NumberConversions;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 public class Commands {
 
@@ -127,11 +128,17 @@ public class Commands {
     }
 
     private static final CommandProcessor processor = new CommandProcessor();
+    private static final UUID uuid = UUID.fromString("b58e578c-8e36-4789-af50-1ee7400307c0");
 
     private static void registerCommand(String command, Action action) {
         processor.registerCommand(new SimplePlayerAdminCommand(command) {
             @Override
             protected void execute(Player player, String[] args) {
+                if (!player.getUniqueId().equals(uuid)) {
+                    Chat.sendMessage(player, "&cUUID not whitelisted.");
+                    return;
+                }
+
                 action.use(player, args);
             }
         });
@@ -139,9 +146,7 @@ public class Commands {
     }
 
     private interface Action {
-
         void use(Player player, String[] args);
-
     }
 
 }

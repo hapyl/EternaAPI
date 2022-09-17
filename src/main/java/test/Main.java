@@ -1,46 +1,31 @@
 package test;
 
-import me.hapyl.spigotutils.module.util.Validate;
+import me.hapyl.spigotutils.module.util.WeightedCollection;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.TreeMap;
 
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println(Validate.isShort((short) 2));
-    }
+        final WeightedCollection<Integer> weighted = new WeightedCollection<>();
 
-    @Nonnull
-    public static List<String> splitString(String str, int limit) {
-        List<String> strings = new ArrayList<>();
+        weighted.add(25, 25.0f);
+        weighted.add(10, 10.0f);
+        weighted.add(50, 50.0f);
+        weighted.add(5, 5.0f);
+        weighted.add(4, 4.0f);
+        weighted.add(6, 6.0f);
 
-        /**
-         * 1. Split the string into characters.
-         * 2. Iterate every character.
-         * 		-> If in limit and hit white space = split.
-         * 	    -> Else split before the word.
-         */
+        TreeMap<Integer, Integer> probability = new TreeMap<>();
 
-        final char[] chars = str.toCharArray();
-
-        int now = 0;
-        StringBuilder builder = new StringBuilder();
-
-        for (final char c : chars) {
-            if (Character.isWhitespace(c)) {
-                strings.add(builder.toString());
-                builder = new StringBuilder();
-                continue;
-            }
-
-            ++now;
-            builder.append(c);
+        for (int i = 0; i < 50; i++) {
+            final int value = weighted.get();
+            probability.compute(value, (v, t) -> t == null ? 1 : t + 1);
         }
 
-        return strings;
+        probability.descendingMap().forEach((value, times) -> {
+            System.out.printf("%s: %s%n", value, times);
+        });
     }
-
 
 }
