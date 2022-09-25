@@ -106,16 +106,31 @@ public abstract class SignGUI {
 
     }
 
+    /**
+     * Concat strings from output without the input query.
+     *
+     * @param array - Output array.
+     * @return formatted string.
+     */
     public String concatString(String[] array) {
         final StringBuilder builder = new StringBuilder();
         for (String str : array) {
-            if (str.contains("^^^^^^^^^^^^^^")) {
+            if (isLine(str)) {
                 break;
             }
 
-            builder.append(str).append(" ");
+            builder.append(str.trim()).append(" ");
         }
         return builder.toString().trim();
+    }
+
+    private boolean isLine(String str) {
+        for (String line : lines) {
+            if (!line.isBlank() && !line.isEmpty() && line.equals(str)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void runSync(Runnable runnable) {

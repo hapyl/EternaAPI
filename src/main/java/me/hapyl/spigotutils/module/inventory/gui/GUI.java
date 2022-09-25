@@ -285,6 +285,19 @@ public class GUI {
     }
 
     /**
+     * Sets an item to provided slots with different left and right click actions.
+     *
+     * @param slot       - Slot to put item at.
+     * @param item       - Item to set.
+     * @param leftClick  - Left click action.
+     * @param rightClick - Right click action.
+     */
+    public final void setItem(int slot, @Nullable ItemStack item, @Nonnull Action leftClick, @Nonnull Action rightClick) {
+        setItem(slot, item);
+        setClick(slot, leftClick, rightClick);
+    }
+
+    /**
      * Sets an item to provided slot.
      *
      * @param slot - Slot to put item at.
@@ -345,6 +358,18 @@ public class GUI {
      */
     public final void setClick(int slot, Action action) {
         this.setClick(slot, new GUIClick(action));
+    }
+
+    /**
+     * Sets a separate click for left and right clik.
+     *
+     * @param slot       - Slot to put click at.
+     * @param leftClick  - Left click action.
+     * @param rightClick - Right click action.
+     */
+    public final void setClick(int slot, Action leftClick, Action rightClick) {
+        this.setClick(slot, leftClick, ClickType.LEFT);
+        this.setClick(slot, rightClick, ClickType.RIGHT);
     }
 
     /**
