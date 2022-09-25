@@ -60,6 +60,30 @@ public final class SlotPattern {
             { 0, 0, 1, 1, 1, 1, 1, 0, 0 }  // 5
     });
 
+    public static final SlotPattern RIGHT_TO_LEFT = new SlotPattern(new byte[][] {
+            { 1, 1, 0, 0, 0, 0, 0, 0, 0 }, // 1
+            { 1, 1, 0, 0, 0, 0, 0, 0, 0 }, // 2
+            { 1, 1, 1, 0, 0, 0, 0, 0, 0 }, // 3
+            { 1, 1, 1, 1, 0, 0, 0, 0, 0 }, // 4
+            { 1, 1, 1, 1, 1, 0, 0, 0, 0 }, // 5
+            { 1, 1, 1, 1, 1, 1, 0, 0, 0 }, // 6
+            { 1, 1, 1, 1, 1, 1, 1, 0, 0 }, // 7
+            { 1, 1, 1, 1, 1, 1, 1, 1, 0 }, // 8
+            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 9
+    });
+
+    public static final SlotPattern LEFT_TO_RIGHT = new SlotPattern(new byte[][] {
+            { 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 1
+            { 0, 0, 0, 0, 0, 0, 0, 1, 1 }, // 2
+            { 0, 0, 0, 0, 0, 0, 1, 1, 1 }, // 3
+            { 0, 0, 0, 0, 0, 1, 1, 1, 1 }, // 4
+            { 0, 0, 0, 0, 1, 1, 1, 1, 1 }, // 5
+            { 0, 0, 0, 1, 1, 1, 1, 1, 1 }, // 6
+            { 0, 0, 1, 1, 1, 1, 1, 1, 1 }, // 7
+            { 0, 1, 1, 1, 1, 1, 1, 1, 1 }, // 8
+            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 9
+    });
+
     private final byte[][] pattern;
 
     /**
@@ -109,7 +133,7 @@ public final class SlotPattern {
                 count = 0;
                 continue;
             }
-            if (i == (size - 1)) {
+            if (i == (size - 1) && line < bytes.length) {
                 bytes[line] = pattern[count];
             }
             ++count;

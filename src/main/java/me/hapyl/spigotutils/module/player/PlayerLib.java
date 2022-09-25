@@ -14,29 +14,31 @@ import java.util.Collection;
  */
 public class PlayerLib {
 
-    public static final SoundCategory defaultCategory = SoundCategory.RECORDS;
+    public static final SoundCategory SOUND_CATEGORY = SoundCategory.RECORDS;
+    public static final int WORLD_SOUND_VOLUME = 2;
+    public static final int PLAYER_SOUND_VOLUME = 1;
 
     public static void playSound(Player player, Sound sound, float pitch) {
-        validateTrue(pitch >= 0.0f && pitch <= 2.0f);
-        player.playSound(player.getLocation(), sound, defaultCategory, 2, pitch);
+        validateTrue(pitch >= 0.0f && pitch <= 2.0f, "pitch out of bounds");
+        player.playSound(player.getLocation(), sound, SOUND_CATEGORY, PLAYER_SOUND_VOLUME, pitch);
     }
 
     public static void playSound(Location location, Sound sound, float pitch) {
         validateTrue(pitch >= 0.0f && pitch <= 2.0f);
         validateTrue(location.getWorld() != null);
-        location.getWorld().playSound(location, sound, defaultCategory, 20, pitch);
+        location.getWorld().playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, pitch);
     }
 
     public static void playSound(Player player, Location location, Sound sound, float pitch) {
         validateTrue(pitch >= 0.0f && pitch <= 2.0f);
         validateTrue(location.getWorld() != null);
-        player.playSound(location, sound, defaultCategory, 20, pitch);
+        player.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, pitch);
     }
 
     public static void playSoundAndCut(Player player, Sound sound, float pitch, int cutAfter) {
         playSound(player, sound, pitch);
         EternaPlugin.runTaskLater((task) -> {
-            player.stopSound(sound, defaultCategory);
+            player.stopSound(sound, SOUND_CATEGORY);
         }, cutAfter);
     }
 
@@ -47,7 +49,7 @@ public class PlayerLib {
         });
         EternaPlugin.runTaskLater((task) -> {
             players.forEach(player -> {
-                player.stopSound(sound, defaultCategory);
+                player.stopSound(sound, SOUND_CATEGORY);
             });
             players.clear();
         }, cutAfter);
@@ -56,12 +58,12 @@ public class PlayerLib {
     public static void playSoundAndCut(Player player, Location location, Sound sound, float pitch, int cutAfter) {
         playSound(player, location, sound, pitch);
         EternaPlugin.runTaskLater((task) -> {
-            player.stopSound(sound, defaultCategory);
+            player.stopSound(sound, SOUND_CATEGORY);
         }, cutAfter);
     }
 
     public static void stopSound(Sound sound) {
-        Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(sound, defaultCategory));
+        Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(sound, SOUND_CATEGORY));
     }
 
     public static void spawnParticle(Player player, Location location, Particle particle, int amount, double x, double y, double z, float speed) {
