@@ -43,7 +43,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.UUID;
 
 /**
  * Useful utility class, which was indented to use reflection, hence the name Reflect.
@@ -227,27 +226,6 @@ public final class Reflect {
      */
     public static String getVersion() {
         return ReflectCache.getVersion();
-    }
-
-    /**
-     * Changes entity's collision using {@link net.minecraft.world.entity.EntityLiving#collidableExemptions} hashSet.
-     *
-     * @param entity - Entity.
-     * @param uuid   - UUID of collider.
-     * @param flag   - true to enable collision with collider, false to remove.
-     */
-    public static void setCollision(net.minecraft.world.entity.EntityLiving entity, UUID uuid, boolean flag) {
-        if (entity.collides && flag) {
-            entity.collidableExemptions.add(uuid);
-        }
-        else {
-            entity.collidableExemptions.remove(uuid);
-        }
-    }
-
-    // see above
-    public static void setCollision(net.minecraft.world.entity.EntityLiving entity, Entity collider, boolean flag) {
-        setCollision(entity, collider.getUniqueId(), flag);
     }
 
     // insured viewers

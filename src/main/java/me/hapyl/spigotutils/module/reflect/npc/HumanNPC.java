@@ -25,7 +25,7 @@ import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
-import me.hapyl.spigotutils.module.util.Helper;
+import me.hapyl.spigotutils.module.util.TeamHelper;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.server.level.EntityPlayer;
@@ -73,6 +73,7 @@ public class HumanNPC implements Intractable, Human {
     private final Hologram aboveHead;
     private final String npcName;
     private final String hexName;
+    private final String teamName;
     private final UUID uuid;
     private final NPCResponse responses = new NPCResponse();
     private final NPCEquipment equipment;
@@ -81,6 +82,7 @@ public class HumanNPC implements Intractable, Human {
     private String skinOwner;
     private String chatPrefix;
     private boolean alive;
+    private boolean collision = true;
     private boolean stopTalking = false;
 
     private long interactionDelay = 0L;
@@ -135,6 +137,7 @@ public class HumanNPC implements Intractable, Human {
         this.aboveHead = new Hologram().addLine(this.npcName).create(this.location.clone().subtract(0.0d, 0.51d, 0.0d));
         this.profile = new GameProfile(this.uuid, this.hexName);
         this.equipment = new NPCEquipment();
+        this.teamName = TeamHelper.PARENT + "npc." + uuid;
 
         if (skinOwner != null && !skinOwner.isEmpty()) {
             setSkin(skinOwner);
@@ -702,6 +705,7 @@ public class HumanNPC implements Intractable, Human {
         updateSkin(players);
         updateEquipment(players);
         updateDataWatcher(players);
+        updateCollision(players);
 
         if (init) {
             for (final Player player : players) {
@@ -777,6 +781,7 @@ public class HumanNPC implements Intractable, Human {
     public void remove() {
         this.alive = false;
         this.hide();
+        this.deleteTeam();
         this.showingTo.clear();
         EternaRegistry.getNpcRegistry().remove(getId());
     }
@@ -796,12 +801,33 @@ public class HumanNPC implements Intractable, Human {
     }
 
     public HumanNPC setCollision(boolean flag) {
-        for (final Player viewer : this.getViewers()) {
-            final Team team = Helper.getNpcTeam(viewer.getScoreboard());
-            team.setOption(Team.Option.COLLISION_RULE, flag ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
+        collision = flag;
+        return this;
+    }
+
+    private void updateCollision(Player... players) {
+        players = insureViewers(players);
+
+        for (Player player : players) {
+            final Team team = getTeamOrCreate(player.getScoreboard());
+            team.setOption(Team.Option.COLLISION_RULE, collision ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
             team.addEntry(this.hexName);
         }
-        return this;
+    }
+
+    private void deleteTeam() {
+        for (Player viewer : getViewers()) {
+            deleteTeam(viewer.getScoreboard());
+        }
+    }
+
+    private void deleteTeam(Scoreboard scoreboard) {
+        final Team team = scoreboard.getTeam(teamName);
+        if (team == null) {
+            return;
+        }
+
+        team.unregister();
     }
 
     public int getId() {
@@ -814,8 +840,9 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void hideDisplayName(Player... players) {
-        for (final Player player : players) {
-            final Team team = Helper.getNpcTeam(player.getScoreboard());
+        players = insureViewers(players);
+        for (Player player : players) {
+            final Team team = getTeamOrCreate(player.getScoreboard());
             team.addEntry(this.hexName);
         }
     }
@@ -835,14 +862,10 @@ public class HumanNPC implements Intractable, Human {
         return players;
     }
 
-    /**
-     * @deprecated Use {@link Helper}
-     */
-    @Deprecated
-    private Team getTeamOrCreate(Scoreboard scoreboard) {
-        Team team = scoreboard.getTeam("ETERNA_API");
+    public Team getTeamOrCreate(Scoreboard scoreboard) {
+        Team team = scoreboard.getTeam(teamName);
         if (team == null) {
-            team = scoreboard.registerNewTeam("ETERNA_API");
+            team = scoreboard.registerNewTeam(teamName);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
         }
         return team;

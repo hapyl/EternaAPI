@@ -2,12 +2,10 @@ package test;
 
 import me.hapyl.spigotutils.module.reflect.Laser;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 
 public class LaserTest {
 
     private static Laser laser;
-    private static BukkitTask task;
 
     public static void test(Player player) {
         if (laser == null) {
@@ -18,7 +16,6 @@ public class LaserTest {
         else {
             laser.remove(player);
             laser = null;
-            task.cancel();
             player.sendMessage("§aRemoved.");
         }
     }

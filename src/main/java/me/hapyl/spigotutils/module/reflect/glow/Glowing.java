@@ -9,7 +9,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.reflect.Ticking;
-import me.hapyl.spigotutils.module.util.Helper;
+import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -313,7 +313,7 @@ public class Glowing implements Ticking, GlowingListener {
         }
 
         // if fake team, remove target from that team
-        if (Helper.Teams.GLOWING.compareName(entryTeam.getName())) {
+        if (TeamHelper.GLOWING.compareName(entryTeam.getName())) {
             entryTeam.removeEntry(getEntityName());
         }
     }
@@ -324,15 +324,12 @@ public class Glowing implements Ticking, GlowingListener {
      */
     private Team getTeamOrCreate(Player player) {
         final Scoreboard scoreboard = player.getScoreboard();
-        Team team = scoreboard.getEntryTeam(getEntityName());
-
-        if (team == null) {
-            team = Helper.getGlowingTeam(scoreboard);
-        }
+        Team team = TeamHelper.GLOWING.getTeam(scoreboard);
 
         if (entity instanceof Player target) {
             oldColor.putIfAbsent(target, team.getColor());
         }
+
         team.setColor(this.color);
         return team;
     }

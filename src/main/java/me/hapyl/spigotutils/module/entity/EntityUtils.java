@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.entity;
 
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.util.Helper;
+import me.hapyl.spigotutils.module.util.TeamHelper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
@@ -65,7 +65,7 @@ public class EntityUtils {
      */
     public static void setCollision(Entity entity, Collision flag, Collection<Player> viewers) {
         for (final Player viewer : viewers) {
-            final Team team = Helper.getEntityTeam(viewer.getScoreboard());
+            final Team team = TeamHelper.FAKE_ENTITY.getTeam(viewer.getScoreboard());
             team.setOption(Team.Option.COLLISION_RULE, flag == Collision.ALLOW ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
             team.addEntry(entity.getUniqueId().toString());
         }

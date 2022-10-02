@@ -2,12 +2,14 @@ package me.hapyl.spigotutils.module.reflect;
 
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.entity.Entities;
-import me.hapyl.spigotutils.module.entity.EntityUtils;
 import me.hapyl.spigotutils.module.reflect.packet.Packets;
+import me.hapyl.spigotutils.module.util.TeamHelper;
+import net.minecraft.world.entity.EntityLiving;
 import net.minecraft.world.entity.animal.EntitySquid;
 import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
@@ -47,8 +49,8 @@ public class Laser {
         squid.collidableExemptions.add(guardian.getBukkitEntity().getUniqueId());
 
         // remove player collision
-        EntityUtils.setCollision(squid.getBukkitEntity(), EntityUtils.Collision.DENY, players);
-        EntityUtils.setCollision(guardian.getBukkitEntity(), EntityUtils.Collision.DENY, players);
+        removeCollision(squid, players);
+        removeCollision(guardian, players);
 
         // make entities invisible and set guardian's beam target
         Reflect.setDataWatcherValue(squid, DataWatcherType.BYTE, 0, (byte) 0x20, players);
@@ -96,10 +98,6 @@ public class Laser {
 
         squid = new EntitySquid(Entities.NMS.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
         Reflect.setEntityLocation(squid, end);
-
-        // remove collision between guardian and squid
-        Reflect.setCollision(squid, guardian.getBukkitEntity(), false);
-        Reflect.setCollision(guardian, squid.getBukkitEntity(), false);
     }
 
     private Player[] insureViewers(Player... b) {
@@ -107,6 +105,13 @@ public class Laser {
             return Bukkit.getOnlinePlayers().toArray(new Player[] {});
         }
         return b;
+    }
+
+    private void removeCollision(EntityLiving entity, Player... players) {
+        final CraftEntity bukkitEntity = entity.getBukkitEntity();
+        for (Player player : players) {
+            TeamHelper.FAKE_ENTITY.addToTeam(player.getScoreboard(), bukkitEntity);
+        }
     }
 
 }

@@ -93,11 +93,11 @@ public final class EternaRegistry {
     }
 
     public void onDisable() {
-        runSafe(configManager::saveAllData, "config save");
-        runSafe(parkourManager::restoreAllData, "parkour save");
-        runSafe(npcRegistry::removeAll, "npc removal");
-        runSafe(hologramRegistry::removeAll, "hologram removal");
-        runSafe(ropeRegistry::removeAll, "rope removal");
+        runSafe(configManager::saveAllData, "Config Save (Some data did NOT save!)");
+        runSafe(parkourManager::restoreAllData, "Parkour Save (Some entities might be alive.)");
+        runSafe(npcRegistry::removeAll, "NPC Removal (Some NPC's might be alive.)");
+        runSafe(hologramRegistry::removeAll, "Hologram Removal (Some Armor Stands might be visible.)");
+        runSafe(ropeRegistry::removeAll, "Rope Removal (Some bats might be alive.)");
 
         init = false;
     }
