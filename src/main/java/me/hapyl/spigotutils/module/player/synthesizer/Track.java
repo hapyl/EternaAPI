@@ -1,9 +1,7 @@
 package me.hapyl.spigotutils.module.player.synthesizer;
 
 import com.google.common.collect.Maps;
-import me.hapyl.spigotutils.EternaPlugin;
 import org.bukkit.Sound;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Map;
 
@@ -29,32 +27,15 @@ public class Track {
             return;
         }
 
+        mappedBPT = synthesizer.getBPT();
         final long bpt = synthesizer.getBPT();
         final char[] chars = track.toCharArray();
 
-        new BukkitRunnable() {
-            private long tick = 0;
-            private int index = 0;
-
-            @Override
-            public void run() {
-                if (index >= chars.length) {
-                    this.cancel();
-                    return;
-                }
-
-                final char current = chars[index];
-                if (current == Synthesizer.EMPTY_NOTE) {
-                    mappedTrack.put(tick, null);
-                }
-                else {
-                    mappedTrack.put(tick, perTune.get(current));
-                }
-
-                index++;
-                tick += bpt;
-            }
-        }.runTaskTimer(EternaPlugin.getPlugin(), 0L, bpt);
+        long tick = 0;
+        for (int i = 0; i < chars.length; i++, tick += bpt) {
+            final char current = chars[i];
+            mappedTrack.put(tick, current == Synthesizer.EMPTY_NOTE ? null : perTune.get(current));
+        }
     }
 
     protected Map<Long, Tune> getMappedTrack() {

@@ -3,11 +3,13 @@ package me.hapyl.spigotutils.module.player.synthesizer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.inventory.item.Event;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.math.nn.IntInt;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,85 +18,18 @@ public class Synthesizer {
 
     public static final Character EMPTY_NOTE = '-';
 
-    static {
-        final Synthesizer synthesizer = Synthesizer
-                .singleTrack("a-a-a--DB--DB")
-                .plingWhere('a', 2.0f)
-                .plingWhere('D', 1.0f)
-                .plingWhere('B', 0.5f)
-                .toSynthesizer()
-                .setBPT(2);
-    }
-
     private final List<Track> tracks;
-    private final Set<Player> listeners;
     private long bpt;
-    private State state;
 
     public Synthesizer() {
         this.tracks = Lists.newArrayList();
-        this.listeners = Sets.newHashSet();
-        this.state = State.STANDBY;
         this.bpt = 1L;
     }
 
-    public void play() {
-        if (state == State.PLAYING) {
-            return;
-        }
-
-        state = State.PLAYING;
-        tracks.forEach(Track::mapTrack);
-
-        final IntInt maxFrame = new IntInt();
-        final List<Map<Long, Tune>> tunes = Lists.newArrayList();
-
-        for (Track track : tracks) {
-            final Map<Long, Tune> mapped = track.getMappedTrack();
-            final int size = mapped.size();
-            tunes.add(mapped);
-
-            if (maxFrame.get() == 0 || size > maxFrame.get()) {
-                maxFrame.set(size);
-            }
-        }
-
-        new BukkitRunnable() {
-            private long currentFrame;
-
-            @Override
-            public void run() {
-                if (state == State.PAUSED) {
-                    return;
-                }
-
-                if (state == State.STANDBY || (currentFrame > maxFrame.get())) {
-                    state = State.STANDBY;
-                    this.cancel();
-                    return;
-                }
-
-                for (Map<Long, Tune> map : tunes) {
-                    final Tune tune = map.get(currentFrame);
-                    if (tune == null) {
-                        continue;
-                    }
-
-                    tune.play(listeners);
-                }
-
-                currentFrame++;
-            }
-        }.runTaskTimer(EternaPlugin.getPlugin(), 0L, bpt);
-    }
-
     /**
-     * Plays tracks to a certain player.
-     * <b>Note that this is done with a separate runnable and cannot be paused.<b/>
-     *
-     * @param player - Player to play to.
+     * Plays tracks to players.
      */
-    public void play(Player player) {
+    public void play(Player player, Player... other) {
         tracks.forEach(Track::mapTrack);
 
         final IntInt maxFrame = new IntInt();
@@ -102,13 +37,16 @@ public class Synthesizer {
 
         for (Track track : tracks) {
             final Map<Long, Tune> mapped = track.getMappedTrack();
-            final int size = mapped.size();
             tunes.add(mapped);
 
-            if (maxFrame.get() == 0 || size > maxFrame.get()) {
-                maxFrame.set(size);
+            final int i = mapped.keySet().stream().max(Long::compareTo).orElse(0L).intValue();
+            if (maxFrame.get() == 0 || i > maxFrame.get()) {
+                maxFrame.set(i);
             }
         }
+
+        final Set<Player> players = combinePlayers(player, other);
+        onStartPlaying(players);
 
         new BukkitRunnable() {
             private long currentFrame;
@@ -116,6 +54,7 @@ public class Synthesizer {
             @Override
             public void run() {
                 if (currentFrame > maxFrame.get()) {
+                    onStopPlaying(players);
                     this.cancel();
                     return;
                 }
@@ -126,47 +65,20 @@ public class Synthesizer {
                         continue;
                     }
 
-                    tune.play(player);
+                    tune.play(player, other);
                 }
 
-                currentFrame++;
+                currentFrame += bpt;
             }
         }.runTaskTimer(EternaPlugin.getPlugin(), 0L, bpt);
     }
 
-    public void stop() {
-        state = State.STANDBY;
+    @Event
+    public void onStartPlaying(Set<Player> players) {
     }
 
-    public void pause() {
-        if (state != State.PLAYING) {
-            return;
-        }
-        state = State.PAUSED;
-    }
-
-    public void unpause() {
-        if (state != State.PAUSED) {
-            return;
-        }
-        state = State.PLAYING;
-    }
-
-    public State getState() {
-        return state;
-    }
-
-    public Set<Player> getListeners() {
-        return listeners;
-    }
-
-    public boolean isListener(Player player) {
-        return listeners.contains(player);
-    }
-
-    public Synthesizer addListener(Player player) {
-        listeners.add(player);
-        return this;
+    @Event
+    public void onStopPlaying(Set<Player> players) {
     }
 
     public Synthesizer setBPT(long bpt) {
@@ -187,5 +99,12 @@ public class Synthesizer {
     // static members
     public static Track singleTrack(String track) {
         return new Synthesizer().addTrack(track);
+    }
+
+    private Set<Player> combinePlayers(Player player, Player... other) {
+        final Set<Player> set = Sets.newHashSet();
+        set.add(player);
+        set.addAll(Arrays.asList(other));
+        return set;
     }
 }

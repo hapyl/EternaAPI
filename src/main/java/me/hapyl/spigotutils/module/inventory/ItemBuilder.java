@@ -7,6 +7,8 @@ import com.mojang.authlib.properties.Property;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
+import me.hapyl.spigotutils.module.nbt.LazyType;
+import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.module.util.Nulls;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.apache.commons.lang.reflect.FieldUtils;
@@ -40,7 +42,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public class ItemBuilder {
 
-    private static final String PLUGIN_ID_PATH = "ItemBuilderId";
+    private static final String PLUGIN_PATH = "ItemBuilderId";
     protected static Map<String, ItemBuilder> itemsWithEvents = new HashMap<>();
 
     private final ItemStack item;
@@ -51,6 +53,7 @@ public class ItemBuilder {
     private int cd;
     private Predicate<Player> predicate;
     private String error;
+    private boolean allowInventoryClick;
 
     public ItemBuilder(Material material) {
         this(new ItemStack(material));
@@ -69,6 +72,7 @@ public class ItemBuilder {
         this.meta = stack.getItemMeta();
         this.id = id;
         this.functions = new HashSet<>();
+        this.allowInventoryClick = false;
     }
 
     public ItemBuilder predicate(boolean predicate, Consumer<ItemBuilder> action) {
@@ -134,13 +138,21 @@ public class ItemBuilder {
 
     @Nullable
     public static String getItemID(ItemStack item) {
-        final ItemMeta iMeta = item.getItemMeta();
-        if (iMeta == null) {
-            return "";
+        final ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return null;
         }
-        return iMeta
-                .getPersistentDataContainer()
-                .get(new NamespacedKey(EternaPlugin.getPlugin(), PLUGIN_ID_PATH), PersistentDataType.STRING);
+        return NBT.getString(meta, PLUGIN_PATH, null);
+    }
+
+    @Nullable
+    public static ItemBuilder getBuilderFromItem(ItemStack item) {
+        final String id = getItemID(item);
+        if (id == null) {
+            return null;
+        }
+
+        return itemsWithEvents.get(id);
     }
 
     public static boolean itemHasID(ItemStack item, String id) {
@@ -300,6 +312,15 @@ public class ItemBuilder {
 
     private void displayWarning(String warning, Object... objects) {
         Bukkit.getLogger().warning(ChatColor.YELLOW + warning.formatted(objects));
+    }
+
+    public ItemBuilder setAllowInventoryClick(boolean allowInventoryClick) {
+        this.allowInventoryClick = allowInventoryClick;
+        return this;
+    }
+
+    public boolean isAllowInventoryClick() {
+        return allowInventoryClick;
     }
 
     public ItemBuilder setMapView(MapView view) {
@@ -863,10 +884,9 @@ public class ItemBuilder {
                 );
                 return item;
             }
-            setPersistentData(PLUGIN_ID_PATH, PersistentDataType.STRING, this.id);
+            NBT.setValue(this.meta, PLUGIN_PATH, LazyType.STR, id);
             itemsWithEvents.put(this.id, this);
         }
-
 
         else if (!this.functions.isEmpty()) {
             sendErrorMessage(
@@ -878,7 +898,6 @@ public class ItemBuilder {
 
         this.item.setItemMeta(this.meta);
         return item;
-
     }
 
     /**
@@ -989,9 +1008,10 @@ public class ItemBuilder {
         try {
             this.meta.getPersistentDataContainer().set(new NamespacedKey(EternaPlugin.getPlugin(), path), type, value);
         } catch (IllegalArgumentException er) {
-            Bukkit.broadcastMessage(ChatColor.RED + "An error occurred whilst trying to perform this action. Check the console!");
+            Chat.broadcastOp("&4An error occurred whilst trying to perform this action. Check the console!");
             throw new ItemBuilderException(
-                    "Plugin call before plugin initiated. Make sure to register ItemBuilder BEFORE you register commands, events etc!");
+                    "Plugin call before plugin initiated. Make sure to register ItemBuilder BEFORE you register commands, events etc!"
+            );
         }
         return this;
     }

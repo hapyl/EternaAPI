@@ -125,6 +125,14 @@ public class Commands {
 
         });
 
+        registerCommand("testitembuilder", (player, args) -> {
+            player.getInventory().addItem(ItemBuilderTest.ITEM_TEST);
+        });
+
+        registerCommand("testsynthesizer", (player, args) -> {
+            SynthesizerTest.randomStuff.play(player);
+        });
+
     }
 
     private static final CommandProcessor processor = new CommandProcessor();

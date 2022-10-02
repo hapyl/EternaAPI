@@ -6,7 +6,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 /**
  * This uses spigot getPersistentDataContainer, not NMS.
@@ -36,6 +38,34 @@ public class NBT {
 
     public static <T> void setValue(PersistentDataHolder holder, String path, LazyType<T> type, T value) {
         holder.getPersistentDataContainer().set(createKey(path), type.getType(), value);
+    }
+
+    @Nullable
+    public static PersistentDataContainer getCompound(PersistentDataHolder holder, String path) {
+        return holder.getPersistentDataContainer().get(createKey(path), LazyType.CONTAINER.getType());
+    }
+
+    @Nonnull
+    public static PersistentDataContainer getOrCreateCompound(PersistentDataHolder holder, String path) {
+        PersistentDataContainer compound = getCompound(holder, path);
+
+        if (compound == null) {
+            compound = holder.getPersistentDataContainer().getAdapterContext().newPersistentDataContainer();
+            holder.getPersistentDataContainer().set(createKey(path), LazyType.CONTAINER.getType(), compound);
+        }
+
+        return compound;
+    }
+
+    public static <T> void setCompoundValue(PersistentDataHolder holder, String path, LazyType<T> type, T value) {
+        final String[] split = path.split("\\.");
+        if (split.length != 2) {
+            throw new IllegalArgumentException("Path must contain only one '.': %s".formatted(Arrays.toString(split)));
+        }
+
+        final PersistentDataContainer compound = getOrCreateCompound(holder, split[0]);
+        compound.set(createKey(split[1]), type.getType(), value);
+        holder.getPersistentDataContainer().set(createKey(split[0]), LazyType.CONTAINER.getType(), compound);
     }
 
     @Nullable

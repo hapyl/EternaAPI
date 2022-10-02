@@ -16,6 +16,13 @@ public class Tune {
         this.pitch = Numbers.clamp(pitch, 0.0f, 2.0f);
     }
 
+    public void play(Player player, Player... other) {
+        play(player);
+        for (Player player1 : other) {
+            play(player1);
+        }
+    }
+
     public void play(Player player) {
         player.playSound(player, sound, 2, pitch);
     }

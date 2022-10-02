@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.nbt;
 
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 public class LazyType<T> {
@@ -11,6 +12,8 @@ public class LazyType<T> {
     public static final LazyType<Long> LONG = new LazyType<>(PersistentDataType.LONG);
     public static final LazyType<Double> DOUBLE = new LazyType<>(PersistentDataType.DOUBLE);
     public static final LazyType<Float> FLOAT = new LazyType<>(PersistentDataType.FLOAT);
+    public static final LazyType<PersistentDataContainer> CONTAINER = new LazyType<>(PersistentDataType.TAG_CONTAINER);
+    public static final LazyType<PersistentDataContainer[]> CONTAINER_ARRAY = new LazyType<>(PersistentDataType.TAG_CONTAINER_ARRAY);
 
     private final PersistentDataType<T, T> type;
 
