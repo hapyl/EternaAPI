@@ -133,6 +133,10 @@ public class Commands {
             SynthesizerTest.randomStuff.play(player);
         });
 
+        registerCommand("testtablist", (player, args) -> {
+            TablistTest.run(player, args.length == 1 ? args[0] : "");
+        });
+
     }
 
     private static final CommandProcessor processor = new CommandProcessor();

@@ -1,9 +1,6 @@
 package test;
 
 import me.hapyl.spigotutils.module.player.synthesizer.Synthesizer;
-import org.bukkit.entity.Player;
-
-import java.util.Set;
 
 public class SynthesizerTest {
 
@@ -15,17 +12,7 @@ public class SynthesizerTest {
             .toSynthesizer()
             .setBPT(2);
 
-    public static final Synthesizer randomStuff = new Synthesizer() {
-        @Override
-        public void onStartPlaying(Set<Player> player) {
-            player.forEach(pl -> pl.sendMessage("started"));
-        }
-
-        @Override
-        public void onStopPlaying(Set<Player> players) {
-            players.forEach(pl -> pl.sendMessage("finished playing"));
-        }
-    }
+    public static final Synthesizer randomStuff = new Synthesizer()
             .addTrack("aaaaaaaaaaaaaa").plingWhere('a', 1.75f).toSynthesizer()
             .addTrack("---a-aa---a-aa").plingWhere('a', 0.75f).toSynthesizer().setBPT(2);
 
