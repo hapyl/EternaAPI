@@ -75,7 +75,7 @@ public class EternaPlugin extends JavaPlugin {
 
         // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);
-        commandProcessor.registerCommand(new QuestCommand("quest"));
+        commandProcessor.registerCommand(new QuestCommand("questjournal"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
         commandProcessor.registerCommand(new ReloadPlayerConfigCommand("reloadplayerconfig"));
 

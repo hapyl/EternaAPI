@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingFormatArgumentException;
@@ -160,14 +161,14 @@ public class Chat {
     /**
      * Converts seconds into array of time formatted as such: [hours, minutes, seconds]
      *
-     * @param timeInSec - Time in seconds to format.
+     * @param sec - Time in seconds to format.
      * @return formatted array in format [hours, minutes, seconds]
      */
-    public static long[] formatTime(long timeInSec) {
+    public static long[] formatTime(long sec) {
         try {
-            long hours = timeInSec % 3600;
-            long minutes = hours / 60;
-            long seconds = timeInSec % 60;
+            long hours = Math.max(0, sec / 3600);
+            long minutes = Math.max(0, (sec % 3600) / 60);
+            long seconds = Math.max(0, sec % 60);
 
             return new long[] { hours, minutes, seconds };
         } catch (NumberFormatException e) {
@@ -178,23 +179,18 @@ public class Chat {
 
     /**
      * Formats seconds into string formatted as such: 0h 0m 0s
-     * todo fix this
      *
-     * @param timeInSec - Time in seconds to format.
+     * @param millis - Time in milliseconds to format.
      * @return formatted string.
      */
-    public static String formatTimeString(long timeInSec) {
-        final long hours = timeInSec / 3600;
-        final long minutes = (timeInSec % 3600) / 60;
-        final long seconds = timeInSec % 60;
-        final long[] time = { hours, minutes, seconds };
-        final StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < 3; i++) {
-            if (time[i] > i) {
-                builder.append(time[i]).append(i == 0 ? "h" : i == 1 ? "m" : "s").append(" ");
-            }
+    public static String formatTimeString(long millis) {
+        if (millis >= 3600000) {
+            return new SimpleDateFormat("hh:mm:ss").format(millis);
         }
-        return builder.toString().trim();
+        else if (millis >= 60000) {
+            return new SimpleDateFormat("mm:ss").format(millis);
+        }
+        return new SimpleDateFormat("ss").format(millis);
     }
 
     /**
@@ -339,7 +335,7 @@ public class Chat {
      * @param message    - Message.
      * @param format     - Replacements.
      */
-    public static void sendClickableMessage(CommandSender sender, Object runCommand, Object message, Object... format) {
+    public static void sendClickableMessage(CommandSender sender, String runCommand, String message, Object... format) {
         sendClickableMessage(sender, LazyClickEvent.RUN_COMMAND.of(runCommand), message, format);
     }
 
@@ -351,8 +347,8 @@ public class Chat {
      * @param message  - Message.
      * @param format   - Replacements.
      */
-    public static void sendHoverableMessage(CommandSender sender, Object showText, Object message, Object... format) {
-        sendClickableMessage(sender, LazyHoverEvent.SHOW_TEXT.of(showText), message, format);
+    public static void sendHoverableMessage(CommandSender sender, String showText, String message, Object... format) {
+        sendHoverableMessage(sender, LazyHoverEvent.SHOW_TEXT.of(showText), message, format);
     }
 
     /**
@@ -364,7 +360,7 @@ public class Chat {
      * @param message    - Message.
      * @param format     - Replacements.
      */
-    public static void sendClickableHoverableMessage(CommandSender sender, Object runCommand, Object showText, Object message, Object... format) {
+    public static void sendClickableHoverableMessage(CommandSender sender, String runCommand, String showText, String message, Object... format) {
         sendClickableHoverableMessage(
                 sender,
                 LazyClickEvent.RUN_COMMAND.of(runCommand),

@@ -9,9 +9,7 @@ import java.util.Map;
 
 public class PlayerHologram extends Hologram {
 
-    // todo -> move to registry
     private static final Map<Player, List<PlayerHologram>> perPlayerHolograms = new HashMap<>();
-
     private final Player player;
 
     private PlayerHologram(Player player) {

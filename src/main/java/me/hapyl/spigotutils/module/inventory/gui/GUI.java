@@ -39,10 +39,7 @@ public class GUI {
     private Action closeEvent;
     private me.hapyl.spigotutils.module.inventory.gui.EventListener listener;
 
-    private boolean allowDrag;
-    private boolean allowShiftClick;
-    private boolean respectItemClick;
-
+    private final Properties properties;
     private CancelType cancelType;
 
     private final Map<Integer, GUIClick> bySlot;
@@ -54,7 +51,7 @@ public class GUI {
         this.bySlot = new HashMap<>();
         this.cancelType = CancelType.EITHER;
         this.ignoredClicks = new HashSet<>();
-        this.respectItemClick = false;
+        this.properties = new Properties();
         this.inventory = Bukkit.createInventory(null, this.size, name);
     }
 
@@ -115,14 +112,6 @@ public class GUI {
      * @deprecated {@link this#setCancelType(CancelType)}
      */
     @Deprecated
-    public final void setOnlyCanelGUI(boolean flag) {
-        setOnlyCancelGUI(flag);
-    }
-
-    /**
-     * @deprecated {@link this#setCancelType(CancelType)}
-     */
-    @Deprecated
     public final void setOnlyCancelGUI(boolean flag) {
         setCancelType(flag ? CancelType.GUI : CancelType.EITHER);
     }
@@ -138,18 +127,8 @@ public class GUI {
         return this.ignoredClicks.contains(slot);
     }
 
-    /**
-     * Sets if click events should respect items on their slot,
-     * meaning the event will fire only if item is not null nor air on provided slot.
-     *
-     * @param respectItemClick - boolean.
-     */
-    public void setRespectItemClick(boolean respectItemClick) {
-        this.respectItemClick = respectItemClick;
-    }
-
-    public boolean isRespectItemClick() {
-        return respectItemClick;
+    public Properties getProperties() {
+        return properties;
     }
 
     /**
@@ -743,7 +722,7 @@ public class GUI {
     public final void acceptEvent(int slot, Player player, ClickType type) {
         final Map<ClickType, Action> events = bySlot.get(slot).getEvents();
 
-        if (respectItemClick && getItem(slot) == null) {
+        if (properties.respectItemClick && getItem(slot) == null) {
             return;
         }
 
@@ -759,7 +738,6 @@ public class GUI {
                 Nulls.runIfNotNull(action, a -> action.invoke(player));
             }
         });
-
     }
 
     public final void acceptEvent(int slot, Player player) {
@@ -803,20 +781,68 @@ public class GUI {
         playerInventory.clear();
     }
 
-    public boolean isAllowDrag() {
-        return allowDrag;
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
+    public final void setRespectItemClick(boolean respectItemClick) {
+        properties.setRespectItemClick(respectItemClick);
     }
 
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
+    public final boolean isRespectItemClick() {
+        return properties.isRespectItemClick();
+    }
+
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
+    public final boolean isAllowDrag() {
+        return properties.isAllowDrag();
+    }
+
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
     public final void setAllowDrag(boolean allowDrag) {
-        this.allowDrag = allowDrag;
+        properties.setAllowDrag(allowDrag);
     }
 
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
+    public boolean isAllowNumbers() {
+        return properties.allowNumbers;
+    }
+
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
+    public void setAllowNumbers(boolean allowNumbers) {
+        properties.setAllowNumbersClick(allowNumbers);
+    }
+
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
     public final boolean isAllowShiftClick() {
-        return allowShiftClick;
+        return properties.isAllowShiftClick();
     }
 
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
     public final void setAllowShiftClick(boolean allowShiftClick) {
-        this.allowShiftClick = allowShiftClick;
+        properties.setAllowShiftClick(allowShiftClick);
     }
 
     public final boolean compareInventory(Inventory inventory) {

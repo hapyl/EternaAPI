@@ -9,6 +9,7 @@ import java.util.*;
  * @param <E> - Type of list
  * @author hapyl
  */
+@Deprecated(forRemoval = true)
 public class GapList<E> implements List<E> {
 
     private final List<E> list;

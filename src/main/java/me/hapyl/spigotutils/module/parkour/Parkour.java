@@ -20,8 +20,6 @@ import java.util.Set;
 
 public class Parkour implements Startable<Player>, Finishable<Player> {
 
-    // TODO: 018. 18/05/2022 - maybe add formatter
-
     private static final Location DEFAULT_QUIT_LOCATION;
     private static final ParkourFormatter DEFAULT_FORMATTER;
 
@@ -35,7 +33,6 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
     @Nonnull private ParkourFormatter formatter;
     private Difficulty difficulty;
     private Location quitLocation;
-    private boolean silent;
     private boolean spawnHolograms;
 
     public Parkour(String name, Position start, Position finish) {
@@ -50,7 +47,6 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
         this.checkpoints = Lists.newArrayList();
         this.allowedFails = Sets.newHashSet();
         this.formatter = DEFAULT_FORMATTER;
-        this.silent = false; // silent parkour will not send messages nor play sfx
         this.spawnHolograms = true;
     }
 

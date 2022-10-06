@@ -37,7 +37,6 @@ public final class Entities<T extends Entity> {
 
     }
 
-
     private static final EternaPlugin ETERNA_PLUGIN = EternaPlugin.getPlugin();
 
     // Saved all spawned entities per plugin.

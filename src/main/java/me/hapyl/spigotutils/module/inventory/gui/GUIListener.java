@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.inventory.gui;
 
+import me.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,7 +19,7 @@ public class GUIListener implements Listener {
             return;
         }
 
-        if (!gui.isAllowDrag()) {
+        if (!gui.getProperties().isAllowDrag()) {
             ev.setCancelled(true);
         }
     }
@@ -35,7 +36,11 @@ public class GUIListener implements Listener {
         final int slot = ev.getRawSlot();
         final ClickType click = ev.getClick();
 
-        if (click.isShiftClick() && !gui.isAllowShiftClick()) {
+        if (click.isShiftClick() && !gui.getProperties().isAllowShiftClick()) {
+            ev.setCancelled(true);
+        }
+
+        if (click == ClickType.NUMBER_KEY && !gui.getProperties().isAllowNumbersClick()) {
             ev.setCancelled(true);
         }
 
@@ -55,7 +60,14 @@ public class GUIListener implements Listener {
         }
 
         if (gui.hasEvent(slot)) {
+            if (!gui.getProperties().isClickCooldown(player)) {
+                Chat.sendMessage(player, "&cPlease slow down!");
+                ev.setCancelled(true);
+                return;
+            }
+
             gui.acceptEvent(slot, player, click);
+            gui.getProperties().markCooldownClick(player);
         }
 
     }

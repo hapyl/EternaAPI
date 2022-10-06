@@ -23,7 +23,7 @@ import java.util.function.BiConsumer;
  *
  * @deprecated {@link GUI}
  */
-@Deprecated(since = "2.1")
+@Deprecated(since = "2.1", forRemoval = true)
 public final class ChestInventory {
 
     public static final Map<UUID, ChestInventory> perPlayerMenu = new HashMap<>();

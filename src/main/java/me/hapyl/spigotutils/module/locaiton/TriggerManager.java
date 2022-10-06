@@ -16,15 +16,13 @@ import java.util.Set;
 
 public class TriggerManager implements Listener {
 
-    // todo: move to registry
     private static final Map<Integer, Trigger> byId = new HashMap<>();
-    public static final Map<Player, Set<Trigger>> inTrigger = new HashMap<>();
+    protected static final Map<Player, Set<Trigger>> inTrigger = new HashMap<>();
 
     private static int freeId = 0;
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerMove(PlayerMoveEvent ev) {
-
         if (byId.isEmpty()) {
             return;
         }
