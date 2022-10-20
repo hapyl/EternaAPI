@@ -3,7 +3,6 @@ package me.hapyl.spigotutils.module.inventory.gui;
 import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.module.annotate.ArraySize;
 import me.hapyl.spigotutils.module.annotate.Super;
-import me.hapyl.spigotutils.module.inventory.ChestInventory;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.util.Nulls;
@@ -28,7 +27,8 @@ public class GUI {
 
     public static final char ARROW_FORWARD = '➜';
 
-    private static final Map<UUID, GUI> playerInventory = new HashMap<>();
+    private static final Map<UUID, GUI> lastPlayerInventory = Maps.newHashMap();
+    private static final Map<UUID, GUI> playerInventory = Maps.newHashMap();
 
     private final String name;
     private final int size;
@@ -38,6 +38,7 @@ public class GUI {
     private Action openEvent;
     private Action closeEvent;
     private me.hapyl.spigotutils.module.inventory.gui.EventListener listener;
+    private GUIEventHandler eventHandler;
 
     private final Properties properties;
     private CancelType cancelType;
@@ -89,6 +90,15 @@ public class GUI {
      */
     public final void setEventListener(@Nullable me.hapyl.spigotutils.module.inventory.gui.EventListener listener) {
         this.listener = listener;
+    }
+
+    public final void setEventHandler(@Nullable GUIEventHandler handler) {
+        this.eventHandler = handler;
+    }
+
+    @Nullable
+    public GUIEventHandler getEventHandler() {
+        return eventHandler;
     }
 
     /**
@@ -651,25 +661,7 @@ public class GUI {
      */
     @Deprecated
     protected final void fillItems(LinkedHashMap<ItemStack, GUIClick> hashMap, int startLine) {
-        final List<Integer> slots = ChestInventory.convertItemsIntoSmartSlots(hashMap.keySet(), startLine);
-        final Iterator<ItemStack> iterator = hashMap.keySet().iterator();
-        for (final Integer slot : slots) {
-            if (this.size >= slot) {
-                if (iterator.hasNext()) {
-                    final ItemStack nextItem = iterator.next();
-                    if (hashMap.getOrDefault(nextItem, null) == null) {
-                        this.setItem(slot, nextItem);
-                    }
-                    else {
-                        this.setItem(slot, nextItem, hashMap.get(nextItem));
-                    }
-                }
-            }
-        }
-    }
-
-    protected final void fillItems(LinkedHashMap<ItemStack, GUIClick> hashMap) {
-        fillItems(hashMap, 1);
+        fillItems(hashMap, SlotPattern.DEFAULT, startLine);
     }
 
     /**
@@ -719,6 +711,13 @@ public class GUI {
         player.openInventory(this.inventory);
     }
 
+    /**
+     * Manually accepts the event.
+     *
+     * @param slot   - Slot.
+     * @param player - Player.
+     * @param type   - Click Type.
+     */
     public final void acceptEvent(int slot, Player player, ClickType type) {
         final Map<ClickType, Action> events = bySlot.get(slot).getEvents();
 
@@ -757,22 +756,46 @@ public class GUI {
     }
 
     // static members
+
+    /**
+     * Returns players current GUI that is opened, or null if no GUI.
+     *
+     * @param player - Player.
+     * @return players current GUI that is opened, or null if no GUI.
+     */
     @Nullable
     public static GUI getPlayerGUI(Player player) {
         return playerInventory.getOrDefault(player.getUniqueId(), null);
     }
 
-    public static void setPlayerGUI(Player player, GUI gui) {
+    /**
+     * Returns players previous GUI or null if never had previous GUI.
+     *
+     * @param player - Player.
+     * @return players previous GUI or null if never had previous GUI.
+     */
+    @Nullable
+    public static GUI getPlayerLastGUI(Player player) {
+        return lastPlayerInventory.get(player.getUniqueId());
+    }
+
+    protected static void setPlayerGUI(Player player, GUI gui) {
         playerInventory.put(player.getUniqueId(), gui);
     }
 
-    public static void removePlayerGUI(Player player) {
-        if (getPlayerGUI(player) == null) {
+    protected static void removePlayerGUI(Player player) {
+        final GUI playerGUI = getPlayerGUI(player);
+        if (playerGUI == null) {
             return;
         }
+
         playerInventory.remove(player.getUniqueId());
+        lastPlayerInventory.put(player.getUniqueId(), playerGUI);
     }
 
+    /**
+     * Clears all players GUIs.
+     */
     public static void clearAll() {
         for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             onlinePlayer.closeInventory();

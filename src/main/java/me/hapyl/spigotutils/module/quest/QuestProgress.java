@@ -118,6 +118,7 @@ public class QuestProgress {
         return claimedReward;
     }
 
+    // TODO: 0007, Oct 7 2022 - Implement time limit.
     public final void checkTimeLimit() {
         if (!quest.hasTimeLimit()) {
             return;

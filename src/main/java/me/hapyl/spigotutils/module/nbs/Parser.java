@@ -32,7 +32,6 @@ public class Parser {
     }
 
     public void parse() {
-
         try {
             short length = this.readShort();
             byte version = 0;
@@ -112,7 +111,7 @@ public class Parser {
             }
 
         } catch (Exception e) {
-            Chat.broadcastOp("&b&lNBS> &cAn error occurred whist trying to parse a song, check the console details!");
+            Chat.broadcastOp("&b&lNBS> &cAn error occurred whist trying to parse a song, check the console for details!");
             e.printStackTrace();
         }
 

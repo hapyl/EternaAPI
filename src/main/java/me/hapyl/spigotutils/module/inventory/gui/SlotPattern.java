@@ -60,7 +60,7 @@ public final class SlotPattern {
             { 0, 0, 1, 1, 1, 1, 1, 0, 0 }  // 5
     });
 
-    public static final SlotPattern RIGHT_TO_LEFT = new SlotPattern(new byte[][] {
+    public static final SlotPattern LEFT_TO_RIGHT = new SlotPattern(new byte[][] {
             { 1, 1, 0, 0, 0, 0, 0, 0, 0 }, // 1
             { 1, 1, 0, 0, 0, 0, 0, 0, 0 }, // 2
             { 1, 1, 1, 0, 0, 0, 0, 0, 0 }, // 3
@@ -72,7 +72,7 @@ public final class SlotPattern {
             { 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 9
     });
 
-    public static final SlotPattern LEFT_TO_RIGHT = new SlotPattern(new byte[][] {
+    public static final SlotPattern RIGHT_TO_LEFT = new SlotPattern(new byte[][] {
             { 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 1
             { 0, 0, 0, 0, 0, 0, 0, 1, 1 }, // 2
             { 0, 0, 0, 0, 0, 0, 1, 1, 1 }, // 3

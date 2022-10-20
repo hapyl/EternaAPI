@@ -21,7 +21,6 @@ import java.util.Map;
 public class ParkourManager extends HashRegistry<Position, Parkour> {
 
     public final Map<Position, Parkour> byPosition = Maps.newHashMap();
-
     public final ParkourItemStorage parkourItemStorage = new ParkourItemStorage(this);
 
     private final Map<Player, Data> parkourData;

@@ -70,6 +70,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
      * @param formatter - New formatter. Use {@link ParkourFormatter#EMPTY} to clear formatter.
      */
     public void setFormatter(@Nonnull ParkourFormatter formatter) {
+        Validate.notNull(formatter, "formatter cannot be null, use ParkourFormatter.EMPTY to remove formatter");
         this.formatter = formatter;
     }
 
@@ -81,7 +82,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
      */
     @Nonnull
     public ParkourFormatter getFormatter() {
-        Validate.notNull(formatter, "formatter must not be null");
+        Validate.notNull(formatter, "formatter cannot be null");
         return formatter;
     }
 

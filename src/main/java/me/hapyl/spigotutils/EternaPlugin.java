@@ -6,7 +6,6 @@ import me.hapyl.spigotutils.builtin.command.ReloadPlayerConfigCommand;
 import me.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.hologram.HologramRunnable;
-import me.hapyl.spigotutils.module.inventory.ChestInventoryListener;
 import me.hapyl.spigotutils.module.inventory.ItemBuilderListener;
 import me.hapyl.spigotutils.module.inventory.gui.GUIListener;
 import me.hapyl.spigotutils.module.inventory.item.CustomItemHolder;
@@ -50,7 +49,6 @@ public class EternaPlugin extends JavaPlugin {
 
         manager.registerEvents(new ItemBuilderListener(), this);
         manager.registerEvents(new CustomItemListener(), this);
-        manager.registerEvents(new ChestInventoryListener(), this);
         manager.registerEvents(new GUIListener(), this);
         manager.registerEvents(new TriggerManager(), this);
         manager.registerEvents(new QuestListener(), this);

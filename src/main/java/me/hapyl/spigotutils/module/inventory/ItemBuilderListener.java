@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class ItemBuilderListener implements Listener {
@@ -60,8 +61,13 @@ public class ItemBuilderListener implements Listener {
             return;
         }
 
+        final Set<ItemAction> functions = builder.getFunctions();
+        if (functions.isEmpty()) {
+            return;
+        }
+
+        functions.stream().filter(f -> f.hasAction(action)).forEach(func -> execute(player, builder, func));
         ev.setCancelled(true);
-        builder.getFunctions().stream().filter(f -> f.hasAction(action)).forEach(func -> execute(player, builder, func));
     }
 
     private void execute(Player player, ItemBuilder builder, ItemAction func) {

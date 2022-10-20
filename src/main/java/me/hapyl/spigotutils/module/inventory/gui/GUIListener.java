@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.inventory.gui;
 
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.util.Nulls;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -68,6 +69,8 @@ public class GUIListener implements Listener {
 
             gui.acceptEvent(slot, player, click);
             gui.getProperties().markCooldownClick(player);
+
+            Nulls.runIfNotNull(gui.getEventHandler(), h -> h.onClick(gui, player, slot));
         }
 
     }
@@ -79,6 +82,8 @@ public class GUIListener implements Listener {
         if (gui != null && gui.getCloseEvent() != null) {
             gui.getCloseEvent().invoke(player);
             GUI.removePlayerGUI(player);
+
+            Nulls.runIfNotNull(gui.getEventHandler(), h -> h.onClose(gui, player));
         }
     }
 
@@ -88,6 +93,8 @@ public class GUIListener implements Listener {
         final GUI gui = GUI.getPlayerGUI(player);
         if (gui != null && gui.getOpenEvent() != null) {
             gui.getOpenEvent().invoke(player);
+
+            Nulls.runIfNotNull(gui.getEventHandler(), h -> h.onOpen(gui, player));
         }
     }
 

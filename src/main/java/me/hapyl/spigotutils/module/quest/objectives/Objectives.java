@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Note;
 import org.bukkit.entity.EntityType;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class Objectives {
@@ -67,12 +68,16 @@ public class Objectives {
         return new SlayEntity(type, times);
     }
 
-    public static TakeDamage takeDamage(long amount) {
+    public static TakeDamage takeDamage(double amount) {
         return new TakeDamage(amount);
     }
 
-    public static TakeDamageFrom takeDamageFrom(EntityType type, long amount) {
+    public static TakeDamageFrom takeDamageFrom(EntityType type, double amount) {
         return new TakeDamageFrom(amount, type);
+    }
+
+    public static TakeDamageFromCause takeDamageFromCause(EntityDamageEvent.DamageCause cause, double amount) {
+        return new TakeDamageFromCause(amount, cause);
     }
 
     public static TalkToNpc talkToNpc(HumanNPC npc, int times) {

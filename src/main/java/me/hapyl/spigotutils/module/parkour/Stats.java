@@ -41,10 +41,9 @@ public class Stats extends Holder<Player> {
     }
 
     public enum Type {
-
         JUMP,
         CHECKPOINT_TELEPORT
-
+        // More to come. Maybe
     }
 
 }

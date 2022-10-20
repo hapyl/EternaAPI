@@ -23,10 +23,10 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+// Don't look here! 👀
 public class QuestListener implements Listener {
 
     private final QuestManager manager = QuestManager.current();
-
 
     @EventHandler(priority = EventPriority.HIGH)
     public void handleAsyncChatEvent(AsyncPlayerChatEvent ev) {
@@ -181,7 +181,6 @@ public class QuestListener implements Listener {
 
         manager.checkActiveQuests(player, QuestObjectiveType.DEAL_DAMAGE, damage);
         manager.checkActiveQuests(player, QuestObjectiveType.DEAL_DAMAGE_TO, damage, entity);
-
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -195,6 +194,7 @@ public class QuestListener implements Listener {
             return;
         }
 
+        manager.checkActiveQuests(player, QuestObjectiveType.TAKE_DAMAGE_FROM_CAUSE, damage, ev.getCause());
         manager.checkActiveQuests(player, QuestObjectiveType.TAKE_DAMAGE, damage);
 
         if (ev instanceof final EntityDamageByEntityEvent evDamageByEntity) {

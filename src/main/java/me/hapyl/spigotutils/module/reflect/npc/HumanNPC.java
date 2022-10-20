@@ -56,7 +56,7 @@ import java.util.function.Consumer;
  * For complex NPCs use CitizensAPI
  */
 @SuppressWarnings("unused")
-@TestedNMS(version = "1.18")
+@TestedNMS(version = "1.19")
 public class HumanNPC implements Intractable, Human {
 
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";

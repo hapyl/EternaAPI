@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Stores all player info BEFORE starting the parkour
- * to further restore.
+ * Stores all player info BEFORE starting the parkour to restore later.
  */
 public class PlayerInfo extends Holder<Player> {
 

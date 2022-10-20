@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nullable;
 import java.util.*;
 
+// Quest manager.
 public class QuestManager {
 
     private final Map<UUID, Set<QuestProgress>> playerQuests;

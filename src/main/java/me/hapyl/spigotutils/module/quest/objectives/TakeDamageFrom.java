@@ -18,6 +18,10 @@ public class TakeDamageFrom extends QuestObjective {
 
     @Override
     public double testQuestCompletion(Object... objects) {
+        if (objects == null) {
+            return -1.0d;
+        }
+
         if (objects.length == 2) {
             if (objects[1] instanceof LivingEntity && ((LivingEntity) objects[1]).getType() == this.type) {
                 return Validate.getDouble(objects[0]);

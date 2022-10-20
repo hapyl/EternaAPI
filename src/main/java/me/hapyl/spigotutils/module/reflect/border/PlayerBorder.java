@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 @TestedNMS(version = "1.18.2")
 /**
  * Allows to create per-player world border.
- * Note that this is client only change and it will
+ * Note that this is client only change, and it will
  * be reset after player re-logins.
  */
 public class PlayerBorder extends Holder<Player> {

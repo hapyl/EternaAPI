@@ -62,7 +62,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.19.1-R0.1-SNAPSHOT</version>
+            <version>1.19.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -72,30 +72,35 @@
             <version>1.5.25</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>com.mojang</groupId>
             <artifactId>datafixerupper</artifactId>
             <version>4.1.27</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>com.mojang</groupId>
             <artifactId>brigadier</artifactId>
             <version>1.0.18</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
             <version>4.7.0</version>
         </dependency>
-        <dependency>
-            <groupId>local.spigot.remapped</groupId>
-            <artifactId>local</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>E:/Development/BuildTools/Spigot/Spigot-Server/target/spigot-1.19.2-R0.1-SNAPSHOT-remapped.jar
-            </systemPath>
-        </dependency>
+
+        <!--        <dependency>-->
+        <!--            <groupId>local.spigot.remapped</groupId>-->
+        <!--            <artifactId>local</artifactId>-->
+        <!--            <version>1.0</version>-->
+        <!--            <scope>system</scope>-->
+        <!--            <systemPath>E:/Development/BuildTools/Spigot/Spigot-Server/target/spigot-1.19.2-R0.1-SNAPSHOT-remapped.jar-->
+        <!--            </systemPath>-->
+        <!--        </dependency>-->
+
     </dependencies>
 </project>
