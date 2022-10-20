@@ -15,12 +15,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Set;
 import java.util.function.Predicate;
 
 public class ItemBuilderListener implements Listener {
 
-    @EventHandler()
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handleInventoryClick(InventoryClickEvent ev) {
         final HumanEntity player = ev.getWhoClicked();
         final ItemStack item = ev.getCurrentItem();
@@ -61,13 +60,11 @@ public class ItemBuilderListener implements Listener {
             return;
         }
 
-        final Set<ItemAction> functions = builder.getFunctions();
-        if (functions.isEmpty()) {
-            return;
-        }
+        builder.getFunctions().stream().filter(f -> f.hasAction(action)).forEach(func -> execute(player, builder, func));
 
-        functions.stream().filter(f -> f.hasAction(action)).forEach(func -> execute(player, builder, func));
-        ev.setCancelled(true);
+        if (!builder.getFunctions().isEmpty() && builder.isCancelClicks()) {
+            ev.setCancelled(true);
+        }
     }
 
     private void execute(Player player, ItemBuilder builder, ItemAction func) {
@@ -88,6 +85,7 @@ public class ItemBuilderListener implements Listener {
 
             player.setCooldown(builder.getItem().getType(), builder.getCd());
         }
+
         func.execute(player);
         // Progress USE_CUSTOM_ITEM
         QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, builder.getId());

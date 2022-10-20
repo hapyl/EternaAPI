@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.inventory.gui;
 import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.module.annotate.ArraySize;
 import me.hapyl.spigotutils.module.annotate.Super;
+import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.util.Nulls;
@@ -707,6 +708,10 @@ public class GUI {
      * @param player - Player to open inventory.
      */
     public final void openInventory(Player player) {
+        if (this instanceof DisabledGUI) {
+            Chat.sendMessage(player, "&cThis feature is currently disabled!");
+            return;
+        }
         setPlayerGUI(player, this);
         player.openInventory(this.inventory);
     }

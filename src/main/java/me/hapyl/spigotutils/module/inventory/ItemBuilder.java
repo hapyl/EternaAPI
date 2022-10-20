@@ -54,6 +54,7 @@ public class ItemBuilder {
     private Predicate<Player> predicate;
     private String error;
     private boolean allowInventoryClick;
+    private boolean cancelClicks;
 
     public ItemBuilder(Material material) {
         this(new ItemStack(material));
@@ -73,6 +74,7 @@ public class ItemBuilder {
         this.id = id;
         this.functions = new HashSet<>();
         this.allowInventoryClick = false;
+        this.cancelClicks = true;
     }
 
     public ItemBuilder predicate(boolean predicate, Consumer<ItemBuilder> action) {
@@ -331,6 +333,17 @@ public class ItemBuilder {
 
         MapMeta meta = (MapMeta) this.meta;
         meta.setMapView(view);
+        return this;
+    }
+
+    /**
+     * Sets if even should cancel clicks upon click event triggering.
+     * Set to false if using custom checks for click.
+     *
+     * @param cancelClicks - New value.
+     */
+    public ItemBuilder setCancelClicks(boolean cancelClicks) {
+        this.cancelClicks = cancelClicks;
         return this;
     }
 
@@ -1044,6 +1057,10 @@ public class ItemBuilder {
 
     public Predicate<Player> getPredicate() {
         return this.predicate;
+    }
+
+    public boolean isCancelClicks() {
+        return cancelClicks;
     }
 
     private static class ItemBuilderException extends RuntimeException {
