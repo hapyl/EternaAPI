@@ -12,11 +12,11 @@ public class LazyEvent {
     }
 
     public static ClickEvent openFile(String file, @Nullable Object... format) {
-        return LazyClickEvent.OPEN_URL.of(file, format);
+        return LazyClickEvent.OPEN_FILE.of(file, format);
     }
 
     public static ClickEvent runCommand(String command, @Nullable Object... format) {
-        return LazyClickEvent.OPEN_URL.of(command, format);
+        return LazyClickEvent.RUN_COMMAND.of(command, format);
     }
 
     public static ClickEvent suggestCommand(String command, @Nullable Object... format) {

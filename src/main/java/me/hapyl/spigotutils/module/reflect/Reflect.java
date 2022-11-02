@@ -50,6 +50,7 @@ import java.util.Collection;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
+@TestedNMS(version = "1.19.2")
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -104,7 +105,6 @@ public final class Reflect {
      * @param entity   - Entity.
      * @param location - Location.
      */
-    @TestedNMS(version = "1.19.1")
     public static void setEntityLocation(net.minecraft.world.entity.Entity entity, Location location) {
         entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
@@ -131,7 +131,6 @@ public final class Reflect {
      * @param players - Players who will see the change.
      * @param <T>     - Type of the value.
      */
-    @TestedNMS(version = "1.18")
     @InsuredViewers
     public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, Player... players) {
         players = insureViewers(players);
@@ -154,7 +153,6 @@ public final class Reflect {
     }
 
     @Super
-    @TestedNMS(version = "1.18")
     private static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T object) {
         try {
             final Method method = dataWatcher.getClass().getDeclaredMethod("c", DataWatcherObject.class, Object.class);
@@ -177,13 +175,16 @@ public final class Reflect {
         ReflectPacket.send(new PacketPlayOutEntityMetadata(entity.ae(), watcher, true), players);
     }
 
+    public static void updateMetadata(net.minecraft.world.entity.Entity entity, Player... players) {
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(entity.ae(), getDataWatcher(entity), true), players);
+    }
+
     /**
      * Returns entity's ID.
      *
      * @param entity - Entity.
      * @return entity's ID.
      */
-    @TestedNMS(version = "1.18")
     public static int getEntityId(net.minecraft.world.entity.Entity entity) {
         return entity.ae();
     }
@@ -424,6 +425,14 @@ public final class Reflect {
         ReflectPacket.send(new PacketPlayOutEntityDestroy(entity.getEntityId()), players);
     }
 
+    public static void createEntity(net.minecraft.world.entity.Entity netEntity, Player... players) {
+        ReflectPacket.send(new PacketPlayOutSpawnEntity(netEntity, getEntityId(netEntity)), players);
+    }
+
+    public static DataWatcher getDataWatcher(net.minecraft.world.entity.Entity entity) {
+        return entity.ai();
+    }
+
     /**
      * Shows hidden entity for viewers.
      *
@@ -506,7 +515,6 @@ public final class Reflect {
      * @param player - Player.
      * @param packet - Packet.
      */
-    @TestedNMS(version = "1.19.1")
     public static void sendPacket(Player player, Packet<?> packet) {
         if (HumanNPC.isNPC(player.getEntityId())) {
             return;
@@ -661,7 +669,6 @@ public final class Reflect {
         return (net.minecraft.world.level.World) Reflect.invokeMethod(Reflect.lazyMethod(bukkitWorld, "getHandle"), bukkitWorld);
     }
 
-    @TestedNMS(version = "1.18")
     public static void sendPacket(Packet<?> packet, Player... receivers) {
         for (final Player receiver : receivers) {
             sendPacket(receiver, packet);

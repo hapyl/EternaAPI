@@ -10,6 +10,7 @@ import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.nbt.LazyType;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.module.util.Nulls;
+import me.hapyl.spigotutils.module.util.Validate;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
@@ -56,6 +57,10 @@ public class ItemBuilder {
     private boolean allowInventoryClick;
     private boolean cancelClicks;
 
+    private ItemEventHandler handler;
+
+    // TODO: 021, Oct 21, 2022 - Move methods around
+
     public ItemBuilder(Material material) {
         this(new ItemStack(material));
     }
@@ -68,6 +73,11 @@ public class ItemBuilder {
         this(new ItemStack(material), id);
     }
 
+    static {
+        new ItemBuilder(Material.STONE).setEventHandler(new ItemEventHandler() {
+        }).build();
+    }
+
     public ItemBuilder(ItemStack stack, String id) {
         this.item = stack;
         this.meta = stack.getItemMeta();
@@ -75,6 +85,23 @@ public class ItemBuilder {
         this.functions = new HashSet<>();
         this.allowInventoryClick = false;
         this.cancelClicks = true;
+        this.handler = ItemEventHandler.EMPTY;
+    }
+
+    /**
+     * Sets a new event handler.
+     *
+     * @param handler - New event handler.
+     */
+    public ItemBuilder setEventHandler(@Nonnull ItemEventHandler handler) {
+        Validate.notNull(handler, "event handler cannot be null");
+        this.handler = handler;
+        return this;
+    }
+
+    @Nonnull
+    public ItemEventHandler getEventHandler() {
+        return handler;
     }
 
     public ItemBuilder predicate(boolean predicate, Consumer<ItemBuilder> action) {
@@ -140,6 +167,10 @@ public class ItemBuilder {
 
     @Nullable
     public static String getItemID(ItemStack item) {
+        if (item == null) {
+            return null;
+        }
+
         final ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             return null;

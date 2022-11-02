@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 
 public class NBTNative {
 
-    private static final Method CRAFT_AS_NMS_COPY_METHOD = Reflect.getCraftMethod("inventory.CraftItemStack", "asNMSCopy");
+    private static final Method CRAFT_AS_NMS_COPY_METHOD = Reflect.getCraftMethod("inventory.CraftItemStack", "asNMSCopy", ItemStack.class);
 
     @Nonnull
     public static NBTTagCompound getCompound(ItemStack item) {
@@ -19,7 +19,6 @@ public class NBTNative {
 
     private static net.minecraft.world.item.ItemStack asNMSCopy(ItemStack stack) {
         return (net.minecraft.world.item.ItemStack) Reflect.invokeMethod(CRAFT_AS_NMS_COPY_METHOD, null, stack);
-
     }
 
 }
