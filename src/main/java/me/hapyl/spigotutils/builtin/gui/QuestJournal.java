@@ -1,6 +1,5 @@
 package me.hapyl.spigotutils.builtin.gui;
 
-import me.hapyl.spigotutils.Rule;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.inventory.gui.PlayerGUI;
@@ -18,12 +17,6 @@ public class QuestJournal extends PlayerGUI {
 
     public QuestJournal(Player player) {
         super(player, "Quest Journal", 5);
-
-        if (Rule.ALLOW_QUEST_JOURNAL.isFalse()) {
-            Chat.sendMessage(player, "&cThis server does not allow Quest Journal!");
-            return;
-        }
-
         this.setOpenEvent(target -> PlayerLib.playSound(player, Sound.ITEM_BOOK_PAGE_TURN, 0.75f));
         this.setUpItems();
     }

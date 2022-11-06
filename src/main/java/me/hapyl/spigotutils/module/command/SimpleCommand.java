@@ -78,6 +78,10 @@ public abstract class SimpleCommand {
         completerValues.put(index, list);
     }
 
+    public void addCompleterValues(int index, Collection<String> values) {
+        addCompleterValues(index, values.toArray(new String[] {}));
+    }
+
     /**
      * Returns a list of strings of tab completer if present or empty list is not.
      *

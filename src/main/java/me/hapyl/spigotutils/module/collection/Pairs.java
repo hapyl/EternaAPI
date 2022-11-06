@@ -6,6 +6,9 @@ import me.hapyl.spigotutils.module.util.Action;
 import javax.annotation.Nullable;
 import java.util.Set;
 
+/**
+ * Pair node impl.
+ */
 public class Pairs<L, R> {
 
     private final Set<Node> nodes;

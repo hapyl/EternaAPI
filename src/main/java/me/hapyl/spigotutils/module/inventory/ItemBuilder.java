@@ -73,11 +73,6 @@ public class ItemBuilder {
         this(new ItemStack(material), id);
     }
 
-    static {
-        new ItemBuilder(Material.STONE).setEventHandler(new ItemEventHandler() {
-        }).build();
-    }
-
     public ItemBuilder(ItemStack stack, String id) {
         this.item = stack;
         this.meta = stack.getItemMeta();

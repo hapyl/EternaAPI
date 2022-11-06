@@ -74,5 +74,4 @@ public class PlayerConfig extends Config {
         loadQuestProgress();
     }
 
-
 }

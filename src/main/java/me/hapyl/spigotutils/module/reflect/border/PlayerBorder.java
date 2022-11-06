@@ -11,7 +11,7 @@ import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 
 @EternaModule
-@TestedNMS(version = "1.18.2")
+@TestedNMS(version = "1.19.2")
 /**
  * Allows to create per-player world border.
  * Note that this is client only change, and it will

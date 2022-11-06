@@ -64,7 +64,6 @@ public class NoteBlockStudioCommand extends SimpleAdminCommand {
                     if (radio.isPlaying()) {
                         radio.stopPlaying();
                     }
-
                 }
                 case "pause" -> {
                     if (this.validateHasSong(player)) {

@@ -1,12 +1,12 @@
 package me.hapyl.spigotutils.module.command;
 
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -78,14 +78,19 @@ public class CommandProcessor {
                 final Command command = new Command(cmd.getName(), cmd.getDescription(), cmd.getUsage(), Arrays.asList(cmd.getAliases())) {
                     @Override
                     public boolean execute(@Nonnull CommandSender sender, @Nonnull String label, @Nonnull String[] args) {
+                        if (cmd instanceof DisabledCommand) {
+                            Chat.sendMessage(sender, "&cThis command is currently disabled!");
+                            return true;
+                        }
+
                         if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
-                            sender.sendMessage(ChatColor.RED + "You must be a player to use perform this command!");
+                            Chat.sendMessage(sender, "&cYou must be a player to use perform this command!");
                             return true;
                         }
 
                         // permission check
                         if ((cmd.isAllowOnlyOp() && !sender.isOp()) || !sender.hasPermission(cmd.getPermission())) {
-                            sender.sendMessage(ChatColor.RED + "No permissions.");
+                            Chat.sendMessage(sender, "&4No permissions.");
                             return true;
                         }
 
@@ -142,6 +147,13 @@ public class CommandProcessor {
         }
     }
 
+    /**
+     * Gets the command map for this server.
+     *
+     * @return command map for this server.
+     * @throws IllegalAccessException if failed to retrieve command map.
+     */
+    @TestedNMS(version = "1.19.2")
     public static SimpleCommandMap getCommandMap() throws IllegalAccessException {
         final PluginManager manager = Bukkit.getServer().getPluginManager();
         return (SimpleCommandMap) FieldUtils.getDeclaredField(manager.getClass(), "commandMap", true).get(manager);

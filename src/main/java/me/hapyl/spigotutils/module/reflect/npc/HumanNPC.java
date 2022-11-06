@@ -56,7 +56,7 @@ import java.util.function.Consumer;
  * For complex NPCs use CitizensAPI
  */
 @SuppressWarnings("unused")
-@TestedNMS(version = "1.19")
+@TestedNMS(version = "1.19.2")
 public class HumanNPC implements Intractable, Human {
 
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
@@ -603,7 +603,7 @@ public class HumanNPC implements Intractable, Human {
         }.runTaskAsynchronously(EternaPlugin.getPlugin());
     }
 
-    @TestedNMS(version = "1.18")
+    @TestedNMS(version = "1.19.2")
     public String[] getSkin(String targetName) {
         // if player on the server just get their game profile
         if (Bukkit.getPlayer(targetName) != null) {

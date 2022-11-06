@@ -18,6 +18,7 @@ import java.util.function.Consumer;
  *
  * @author hapyl
  */
+@Deprecated
 public class BlockMagic {
 
     protected static final Set<BlockMagic> allAffected = Sets.newConcurrentHashSet();
