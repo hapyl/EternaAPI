@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.nbt.LazyType;
@@ -61,18 +62,41 @@ public class ItemBuilder {
 
     // TODO: 021, Oct 21, 2022 - Move methods around
 
+    /**
+     * Create new ItemBuilder instance.
+     *
+     * @param material - Material of the builder.
+     */
     public ItemBuilder(Material material) {
         this(new ItemStack(material));
     }
 
+    /**
+     * Create new ItemBuilder instance.
+     *
+     * @param stack - ItemStack of the builder. Data is cloned.
+     */
     public ItemBuilder(ItemStack stack) {
         this(stack.clone(), null);
     }
 
+    /**
+     * Create new ItemBuilder instance with ID for events.
+     *
+     * @param material - Material of the builder.
+     * @param id       - ID of the builder. Must be unique and will be force to lower case.
+     */
     public ItemBuilder(Material material, String id) {
         this(new ItemStack(material), id);
     }
 
+    /**
+     * Create new ItemBuilder instance with ID for events.
+     *
+     * @param stack - ItemStack of the builder. Data is cloned.
+     * @param id    - ID of the builder. Must be unique and will be force to lower case.
+     */
+    @Super
     public ItemBuilder(ItemStack stack, String id) {
         this.item = stack;
         this.meta = stack.getItemMeta();
@@ -88,17 +112,38 @@ public class ItemBuilder {
      *
      * @param handler - New event handler.
      */
-    public ItemBuilder setEventHandler(@Nonnull ItemEventHandler handler) {
+    public final ItemBuilder setEventHandler(@Nonnull ItemEventHandler handler) {
         Validate.notNull(handler, "event handler cannot be null");
         this.handler = handler;
         return this;
     }
 
+    /**
+     * Returns current EventHandler for this builder, cannot be null.
+     *
+     * @return current EventHandler for this builder, cannot be null.
+     */
     @Nonnull
     public ItemEventHandler getEventHandler() {
         return handler;
     }
 
+    /**
+     * Sets the builder's ItemMeta.
+     *
+     * @param meta - New ItemMeta.
+     */
+    public ItemBuilder setItemMeta(ItemMeta meta) {
+        this.meta = meta;
+        return this;
+    }
+
+    /**
+     * Performs a predicate and applying action if predicate returned true, does nothing otherwise.
+     *
+     * @param predicate - Predicate.
+     * @param action    - Action to perform if predicate returned true.
+     */
     public ItemBuilder predicate(boolean predicate, Consumer<ItemBuilder> action) {
         if (predicate) {
             action.accept(this);
@@ -106,225 +151,12 @@ public class ItemBuilder {
         return this;
     }
 
-    // Static Members
-    public static ItemBuilder playerHead(String texture) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
-    }
-
-    public static ItemBuilder playerHeadUrl(String url) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
-    }
-
-    public static ItemBuilder leatherHat(Color color) {
-        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
-    }
-
-    public static ItemBuilder leatherTunic(Color color) {
-        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
-    }
-
-    public static ItemBuilder leatherPants(Color color) {
-        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
-    }
-
-    public static ItemBuilder leatherBoots(Color color) {
-        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
-    }
-
-    public static void clear() {
-        itemsWithEvents.clear();
-    }
-
-    private static boolean isIdRegistered(String id) {
-        return id != null && itemsWithEvents.containsKey(id);
-    }
-
-    public static ItemBuilder of(Material material) {
-        return new ItemBuilder(material);
-    }
-
-    @Nullable
-    public static ItemStack getItemByID(String id) {
-        if (itemsWithEvents.containsKey(id)) {
-            return itemsWithEvents.get(id).item;
-        }
-        return null;
-    }
-
-    public static void broadcastRegisteredIDs() {
-        Bukkit.getLogger().info("[ItemBuilder] Registered Custom Items:");
-        System.out.println(itemsWithEvents.keySet());
-    }
-
-    public static Set<String> getRegisteredIDs() {
-        return itemsWithEvents.keySet();
-    }
-
-    @Nullable
-    public static String getItemID(ItemStack item) {
-        if (item == null) {
-            return null;
-        }
-
-        final ItemMeta meta = item.getItemMeta();
-        if (meta == null) {
-            return null;
-        }
-        return NBT.getString(meta, PLUGIN_PATH, null);
-    }
-
-    @Nullable
-    public static ItemBuilder getBuilderFromItem(ItemStack item) {
-        final String id = getItemID(item);
-        if (id == null) {
-            return null;
-        }
-
-        return itemsWithEvents.get(id);
-    }
-
-    public static boolean itemHasID(ItemStack item, String id) {
-        final String itemId = getItemID(item);
-        return itemHasID(item) && itemId != null && itemId.equalsIgnoreCase(id);
-    }
-
-    public static boolean itemContainsId(ItemStack item, String id) {
-        final String itemId = getItemID(item);
-        return itemHasID(item) && itemId != null && itemId.contains(id);
-    }
-
-    public static boolean itemHasID(ItemStack item) {
-        return getItemID(item) != null;
-    }
-
-    public static List<String> splitString(@Nullable String prefix, String string, int limit) {
-        final List<String> list = new ArrayList<>();
-        final char[] chars = string.toCharArray();
-
-        StringBuilder builder = new StringBuilder();
-        int counter = 0;
-
-        for (int i = 0; i < chars.length; i++) {
-            final char c = chars[i];
-            final boolean isManualSplit = (isManualSplitChar(c) && (i + 1 < chars.length && isManualSplitChar(chars[i + 1])));
-
-            // If out of limit and hit whitespace then add line.
-            final boolean lastChar = i == chars.length - 1;
-            if (lastChar || (counter >= limit && Character.isWhitespace(c)) || isManualSplit) {
-                if (isManualSplit) {
-                    i++;
-                }
-
-                // Don't eat the last char.
-                if (lastChar) {
-                    builder.append(c);
-                }
-
-                list.add(colorize((prefix == null ? "" : prefix) + builder.toString().trim()));
-                counter = 0;
-                builder = new StringBuilder();
-                continue;
-            }
-
-            builder.append(c);
-            ++counter;
-        }
-
-        return list;
-    }
-
-    private static boolean isManualSplitChar(char c) {
-        return c == '_';
-    }
-
-    // Used to split lore after certain char limit. Honestly I don't remember when I wrote this but it works so Imma not touching it.
-
     /**
-     * @see ItemBuilder#splitString(String, String, int)
-     * @deprecated improved system a little bit
+     * Clones the builder.
+     *
+     * @return Cloned ItemBuilder if possible.
+     * @throws UnsupportedOperationException if builder has ID.
      */
-    @Deprecated
-    private static List<String> splitAfter(String linePrefix, String text, int maxChars) {
-        List<String> list = new ArrayList<>();
-        String line = "";
-        int counter = 0;
-
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            final boolean checkLast = c == text.charAt(text.length() - 1);
-            line = line.concat(c + "");
-            counter++;
-
-            if (c == '_' && text.charAt(i + 1) == '_') {
-                // this fixes an extra space before manual split.
-                // it's not a bug and it works as indented, but it's
-                // getting quite annoying at times to fix.
-                if (list.size() > 1) {
-                    final String lastValue = list.get(list.size() - 1).trim().replace("§", "&");
-                    if (lastValue.isEmpty() || lastValue.isBlank() || lastValue.equalsIgnoreCase(linePrefix)) {
-                        list.remove(list.size() - 1);
-                    }
-                }
-
-                list.add(colorize(linePrefix + line.substring(0, line.length() - 1).trim()));
-                line = "";
-                counter = 0;
-                i++;
-                continue;
-            }
-
-            if (counter >= maxChars || i == text.length() - 1) {
-                if (Character.isWhitespace(c) || checkLast) {
-                    list.add(colorize(linePrefix + line.trim()));
-                    line = "";
-                    counter = 0;
-                }
-            }
-        }
-
-        return list;
-    }
-
-    @Deprecated
-    public static List<String> splitAfter(String text, int max) {
-        return splitAfter("&7", text, max);
-    }
-
-    @Deprecated
-    public static List<String> splitAfter(String text, int max, String prefix) {
-        return splitAfter(prefix, text, max);
-    }
-
-    public static List<String> splitString(String text, int max) {
-        return splitString("&7", text, max);
-    }
-
-    public static List<String> splitString(String text) {
-        return splitString(text, 35);
-    }
-
-    private static String colorize(String s) {
-        return ChatColor.translateAlternateColorCodes('&', s);
-    }
-
-    // Item Value Setters
-    public static void setName(ItemStack item, String name) {
-        final ItemMeta meta = item.getItemMeta();
-        Nulls.runIfNotNull(meta, m -> m.setDisplayName(colorize(name)));
-        item.setItemMeta(meta);
-    }
-
-    public static void setLore(ItemStack item, String lore) {
-        final ItemMeta meta = item.getItemMeta();
-        Nulls.runIfNotNull(meta, m -> m.setLore(Collections.singletonList(lore)));
-        item.setItemMeta(meta);
-    }
-
-    public ItemBuilder setItemMeta(ItemMeta meta) {
-        this.meta = meta;
-        return this;
-    }
-
     @Nullable
     public ItemBuilder clone() {
         try {
@@ -338,27 +170,51 @@ public class ItemBuilder {
         }
     }
 
-    private void displayWarning(String warning, Object... objects) {
-        Bukkit.getLogger().warning(ChatColor.YELLOW + warning.formatted(objects));
-    }
-
+    /**
+     * Sets if click events from inventory are allowed.
+     *
+     * @param allowInventoryClick - New value.
+     */
     public ItemBuilder setAllowInventoryClick(boolean allowInventoryClick) {
         this.allowInventoryClick = allowInventoryClick;
         return this;
     }
 
+    /**
+     * Returns true if click events from inventory are allowed, false otherwise.
+     *
+     * @return true if click events from inventory are allowed, false otherwise.
+     */
     public boolean isAllowInventoryClick() {
         return allowInventoryClick;
     }
 
+    /**
+     * Sets the map view for the builder. Material will be forced to be FILLED_MAP.
+     *
+     * @param view - New map view.
+     */
     public ItemBuilder setMapView(MapView view) {
-        if (this.item.getType() != Material.FILLED_MAP) {
-            displayWarning("Material must be FILLED_MAP to use map view.");
-            return this;
-        }
+        setType(Material.FILLED_MAP);
 
-        MapMeta meta = (MapMeta) this.meta;
+        final MapMeta meta = (MapMeta) this.meta;
         meta.setMapView(view);
+        this.item.setItemMeta(meta);
+        return this;
+    }
+
+
+    /**
+     * Sets the book name. Material will be forced to WRITTEN_BOOK.
+     *
+     * @param name - New book name.
+     */
+    public ItemBuilder setBookName(String name) {
+        setType(Material.WRITTEN_BOOK);
+
+        final BookMeta bookMeta = (BookMeta) this.meta;
+        bookMeta.setDisplayName(colorize(name));
+        this.item.setItemMeta(bookMeta);
         return this;
     }
 
@@ -370,23 +226,6 @@ public class ItemBuilder {
      */
     public ItemBuilder setCancelClicks(boolean cancelClicks) {
         this.cancelClicks = cancelClicks;
-        return this;
-    }
-
-    public Material getType() {
-        return item.getType();
-    }
-
-    public ItemBuilder setBookName(String name) {
-        final Material type = this.getItem().getType();
-        if (type != Material.WRITTEN_BOOK) {
-            displayWarning("Material must be WRITTEN_BOOK to set book name.");
-            return this;
-        }
-
-        final BookMeta bookMeta = (BookMeta) this.meta;
-        bookMeta.setDisplayName(colorize(name));
-        this.item.setItemMeta(bookMeta);
         return this;
     }
 
@@ -882,6 +721,15 @@ public class ItemBuilder {
     }
 
     /**
+     * Returns the type of the builder.
+     *
+     * @return the type of the builder.
+     */
+    public Material getType() {
+        return item.getType();
+    }
+
+    /**
      * Skips {@link ItemBuilder#build(boolean)} ID checks and only applies item meta, then returns ItemStack.
      *
      * @return ItemStack.
@@ -1087,6 +935,241 @@ public class ItemBuilder {
 
     public boolean isCancelClicks() {
         return cancelClicks;
+    }
+
+
+    // Static Members
+    public static ItemBuilder playerHead(String texture) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
+    }
+
+    public static ItemBuilder playerHeadUrl(String url) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
+    }
+
+    public static ItemBuilder leatherHat(Color color) {
+        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
+    }
+
+    public static ItemBuilder leatherTunic(Color color) {
+        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
+    }
+
+    public static ItemBuilder leatherPants(Color color) {
+        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
+    }
+
+    public static ItemBuilder leatherBoots(Color color) {
+        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
+    }
+
+    public static void clear() {
+        itemsWithEvents.clear();
+    }
+
+    private static boolean isIdRegistered(String id) {
+        return id != null && itemsWithEvents.containsKey(id);
+    }
+
+    // Static fast access
+    public static ItemBuilder of(Material material) {
+        return new ItemBuilder(material);
+    }
+
+    public static ItemBuilder of(Material material, String name) {
+        return new ItemBuilder(material).setName(name);
+    }
+
+    public static ItemBuilder of(Material material, String name, String... lore) {
+        final ItemBuilder builder = new ItemBuilder(material).setName(name);
+        if (lore != null) {
+            for (String str : lore) {
+                builder.addLore(str);
+            }
+        }
+        return builder;
+    }
+
+    @Nullable
+    public static ItemStack getItemByID(String id) {
+        if (itemsWithEvents.containsKey(id)) {
+            return itemsWithEvents.get(id).item;
+        }
+        return null;
+    }
+
+    @Deprecated
+    public static void broadcastRegisteredIDs() {
+        Bukkit.getLogger().info("[ItemBuilder] Registered Custom Items:");
+        System.out.println(itemsWithEvents.keySet());
+    }
+
+    public static Set<String> getRegisteredIDs() {
+        return itemsWithEvents.keySet();
+    }
+
+    @Nullable
+    public static String getItemID(ItemStack item) {
+        if (item == null) {
+            return null;
+        }
+
+        final ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+        return NBT.getString(meta, PLUGIN_PATH, null);
+    }
+
+    @Nullable
+    public static ItemBuilder getBuilderFromItem(ItemStack item) {
+        final String id = getItemID(item);
+        if (id == null) {
+            return null;
+        }
+
+        return itemsWithEvents.get(id);
+    }
+
+    public static boolean itemHasID(ItemStack item, String id) {
+        final String itemId = getItemID(item);
+        return itemHasID(item) && itemId != null && itemId.equalsIgnoreCase(id);
+    }
+
+    public static boolean itemContainsId(ItemStack item, String id) {
+        final String itemId = getItemID(item);
+        return itemHasID(item) && itemId != null && itemId.contains(id);
+    }
+
+    public static boolean itemHasID(ItemStack item) {
+        return getItemID(item) != null;
+    }
+
+    public static List<String> splitString(@Nullable String prefix, String string, int limit) {
+        final List<String> list = new ArrayList<>();
+        final char[] chars = string.toCharArray();
+
+        StringBuilder builder = new StringBuilder();
+        int counter = 0;
+
+        for (int i = 0; i < chars.length; i++) {
+            final char c = chars[i];
+            final boolean isManualSplit = (isManualSplitChar(c) && (i + 1 < chars.length && isManualSplitChar(chars[i + 1])));
+
+            // If out of limit and hit whitespace then add line.
+            final boolean lastChar = i == chars.length - 1;
+            if (lastChar || (counter >= limit && Character.isWhitespace(c)) || isManualSplit) {
+                if (isManualSplit) {
+                    i++;
+                }
+
+                // Don't eat the last char.
+                if (lastChar) {
+                    builder.append(c);
+                }
+
+                list.add(colorize((prefix == null ? "" : prefix) + builder.toString().trim()));
+                counter = 0;
+                builder = new StringBuilder();
+                continue;
+            }
+
+            builder.append(c);
+            ++counter;
+        }
+
+        return list;
+    }
+
+    private static boolean isManualSplitChar(char c) {
+        return c == '_';
+    }
+
+    // Used to split lore after certain char limit. Honestly I don't remember when I wrote this but it works so Imma not touching it.
+
+    /**
+     * @see ItemBuilder#splitString(String, String, int)
+     * @deprecated improved system a little
+     */
+    @Deprecated
+    private static List<String> splitAfter(String linePrefix, String text, int maxChars) {
+        List<String> list = new ArrayList<>();
+        String line = "";
+        int counter = 0;
+
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            final boolean checkLast = c == text.charAt(text.length() - 1);
+            line = line.concat(c + "");
+            counter++;
+
+            if (c == '_' && text.charAt(i + 1) == '_') {
+                // this fixes an extra space before manual split.
+                // it's not a bug and it works as indented, but it's
+                // getting quite annoying at times to fix.
+                if (list.size() > 1) {
+                    final String lastValue = list.get(list.size() - 1).trim().replace("§", "&");
+                    if (lastValue.isEmpty() || lastValue.isBlank() || lastValue.equalsIgnoreCase(linePrefix)) {
+                        list.remove(list.size() - 1);
+                    }
+                }
+
+                list.add(colorize(linePrefix + line.substring(0, line.length() - 1).trim()));
+                line = "";
+                counter = 0;
+                i++;
+                continue;
+            }
+
+            if (counter >= maxChars || i == text.length() - 1) {
+                if (Character.isWhitespace(c) || checkLast) {
+                    list.add(colorize(linePrefix + line.trim()));
+                    line = "";
+                    counter = 0;
+                }
+            }
+        }
+
+        return list;
+    }
+
+    @Deprecated
+    public static List<String> splitAfter(String text, int max) {
+        return splitAfter("&7", text, max);
+    }
+
+    @Deprecated
+    public static List<String> splitAfter(String text, int max, String prefix) {
+        return splitAfter(prefix, text, max);
+    }
+
+    public static List<String> splitString(String text, int max) {
+        return splitString("&7", text, max);
+    }
+
+    public static List<String> splitString(String text) {
+        return splitString(text, 35);
+    }
+
+    private static String colorize(String s) {
+        return ChatColor.translateAlternateColorCodes('&', s);
+    }
+
+    // Item Value Setters
+    public static void setName(ItemStack item, String name) {
+        final ItemMeta meta = item.getItemMeta();
+        Nulls.runIfNotNull(meta, m -> m.setDisplayName(colorize(name)));
+        item.setItemMeta(meta);
+    }
+
+    public static void setLore(ItemStack item, String lore) {
+        final ItemMeta meta = item.getItemMeta();
+        Nulls.runIfNotNull(meta, m -> m.setLore(Collections.singletonList(lore)));
+        item.setItemMeta(meta);
+    }
+
+    private void displayWarning(String warning, Object... objects) {
+        Bukkit.getLogger().warning(ChatColor.YELLOW + warning.formatted(objects));
     }
 
     private static class ItemBuilderException extends RuntimeException {
