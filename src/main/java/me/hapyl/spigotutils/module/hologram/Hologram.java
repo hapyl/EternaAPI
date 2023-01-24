@@ -337,7 +337,7 @@ public class Hologram {
 
         this.packets.put(armorStand, new ReflectPacket(
                 new PacketPlayOutSpawnEntity(armorStand),
-                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.ai(), true),
+                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.al().c()),
                 new PacketPlayOutEntityDestroy(bukkit.getEntityId())
         ));
 

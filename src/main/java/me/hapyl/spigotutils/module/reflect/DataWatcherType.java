@@ -7,9 +7,9 @@ public class DataWatcherType<T> {
 
     public static final DataWatcherType<Byte> BYTE = new DataWatcherType<>(Byte.class, DataWatcherRegistry.a);
     public static final DataWatcherType<Integer> INT = new DataWatcherType<>(Integer.class, DataWatcherRegistry.b);
-    public static final DataWatcherType<Float> FLOAT = new DataWatcherType<>(Float.class, DataWatcherRegistry.c);
-    public static final DataWatcherType<String> STR = new DataWatcherType<>(String.class, DataWatcherRegistry.d);
-    public static final DataWatcherType<Boolean> BOOL = new DataWatcherType<>(Boolean.class, DataWatcherRegistry.i);
+    public static final DataWatcherType<Float> FLOAT = new DataWatcherType<>(Float.class, DataWatcherRegistry.d);
+    public static final DataWatcherType<String> STR = new DataWatcherType<>(String.class, DataWatcherRegistry.e);
+    public static final DataWatcherType<Boolean> BOOL = new DataWatcherType<>(Boolean.class, DataWatcherRegistry.j);
 
     private final Class<T> clazz;
     private final DataWatcherSerializer<T> fieldName;

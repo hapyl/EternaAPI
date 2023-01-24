@@ -135,7 +135,7 @@ public final class Reflect {
     public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, Player... players) {
         players = insureViewers(players);
 
-        final DataWatcher dataWatcher = entity.ai();
+        final DataWatcher dataWatcher = entity.al();
         setDataWatcherValue0(dataWatcher, type.get().a(key), value);
         updateMetadata(entity, dataWatcher, players);
     }
@@ -172,11 +172,11 @@ public final class Reflect {
      * @param players - Players who will see the update.
      */
     public static void updateMetadata(net.minecraft.world.entity.Entity entity, DataWatcher watcher, Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityMetadata(entity.ae(), watcher, true), players);
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(getEntityId(entity), watcher.c()), players);
     }
 
     public static void updateMetadata(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityMetadata(entity.ae(), getDataWatcher(entity), true), players);
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(getEntityId(entity), getDataWatcher(entity).c()), players);
     }
 
     /**
@@ -186,7 +186,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(net.minecraft.world.entity.Entity entity) {
-        return entity.ae();
+        return entity.ah();
     }
 
     @Nullable
@@ -430,7 +430,7 @@ public final class Reflect {
     }
 
     public static DataWatcher getDataWatcher(net.minecraft.world.entity.Entity entity) {
-        return entity.ai();
+        return entity.al();
     }
 
     /**
@@ -560,7 +560,7 @@ public final class Reflect {
     }
 
     public static GameProfile getGameProfile(EntityPlayer player) {
-        return player.fy();
+        return player.fD();
     }
 
     /**

@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.reflect.npc;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
@@ -54,9 +55,11 @@ import java.util.function.Consumer;
 /**
  * Allows to create SIMPLE player NPCs with support of clicks.
  * For complex NPCs use CitizensAPI
+ *
+ * TODO -> Rework NMS using protocol maybe?
  */
 @SuppressWarnings("unused")
-@TestedNMS(version = "1.19.2")
+@TestedNMS(version = "1.19.3")
 public class HumanNPC implements Intractable, Human {
 
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
@@ -146,20 +149,18 @@ public class HumanNPC implements Intractable, Human {
         this.human = new EntityPlayer(
                 Reflect.getMinecraftServer(),
                 (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
-                profile,
-                null
+                profile
         );
 
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
-        this.packetAddPlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.a, this.human));
-        this.packetRemovePlayer = new ReflectPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e, this.human));
+        this.packetAddPlayer = new ReflectPacket(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.a, this.human));
+        this.packetRemovePlayer = new ReflectPacket(new ClientboundPlayerInfoRemovePacket(Lists.newArrayList(this.uuid)));
         this.packetSpawn = new ReflectPacket(new PacketPlayOutNamedEntitySpawn(this.human));
         this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getBukkitEntity().getEntityId()));
 
         EternaRegistry.getNpcRegistry().register(this);
         this.alive = true;
-
     }
 
     public static boolean isNPC(int entityId) {
@@ -701,6 +702,9 @@ public class HumanNPC implements Intractable, Human {
         packetSpawn.sendPackets(players);
 
         setLocation(this.location, players);
+        if (true) {
+            //            return;
+        }
 
         updateSkin(players);
         updateEquipment(players);
@@ -746,7 +750,7 @@ public class HumanNPC implements Intractable, Human {
     @Override
     @InsuredViewers
     public void setDataWatcherByteValue(int key, byte value, @Nullable Player... viewers) {
-        human.ai().a(DataWatcherRegistry.a.a(key), value);
+        human.al().a(DataWatcherRegistry.a.a(key), value);
         updateDataWatcher(insureViewers(viewers));
     }
 
@@ -772,7 +776,7 @@ public class HumanNPC implements Intractable, Human {
     @Override
     @InsuredViewers
     public void updateDataWatcher(@Nullable Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityMetadata(this.getId(), this.human.ai(), true), insureViewers(players));
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(this.getId(), this.human.al().c()), insureViewers(players));
     }
 
     /**

@@ -46,7 +46,7 @@ public final class Packets {
         }
 
         public static void entityMetadata(Entity entity, DataWatcher dataWatcher, Player... players) {
-            Reflect.sendPacket(new PacketPlayOutEntityMetadata(Reflect.getEntityId(entity), dataWatcher, true), players);
+            Reflect.sendPacket(new PacketPlayOutEntityMetadata(Reflect.getEntityId(entity), dataWatcher.c()), players);
         }
 
         public static void animation(Entity entity, NPCAnimation type, Player... players) {

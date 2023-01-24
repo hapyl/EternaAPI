@@ -9,7 +9,7 @@ import net.minecraft.world.entity.animal.EntitySquid;
 import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
 /**
  * Creates a laser (Guardian beam) between start and end.
  */
-@TestedNMS(version = "1.19.2")
+@TestedNMS(version = "1.19.3")
 public class Laser {
 
     private final Location start;
@@ -108,7 +108,7 @@ public class Laser {
     }
 
     private void removeCollision(EntityLiving entity, Player... players) {
-        final CraftEntity bukkitEntity = entity.getBukkitEntity();
+        final Entity bukkitEntity = entity.getBukkitEntity();
         for (Player player : players) {
             TeamHelper.FAKE_ENTITY.addToTeam(player.getScoreboard(), bukkitEntity);
         }
