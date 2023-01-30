@@ -78,8 +78,14 @@ public abstract class SimpleCommand {
         completerValues.put(index, list);
     }
 
-    public void addCompleterValues(int index, Collection<String> values) {
+    public <T> void addCompleterValues(int index, Collection<String> values) {
         addCompleterValues(index, values.toArray(new String[] {}));
+    }
+
+    public <T extends Enum<T>> void addCompleterValues(int index, Enum<T>[] array) {
+        for (Enum<T> tEnum : array) {
+            addCompleterValue(index, tEnum.name());
+        }
     }
 
     /**

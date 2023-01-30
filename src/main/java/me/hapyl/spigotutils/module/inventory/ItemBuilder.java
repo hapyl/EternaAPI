@@ -4,15 +4,19 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.nbt.LazyType;
 import me.hapyl.spigotutils.module.nbt.NBT;
+import me.hapyl.spigotutils.module.nbt.nms.NBTNative;
 import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.minecraft.nbt.MojangsonParser;
+import net.minecraft.nbt.NBTTagCompound;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -47,7 +51,7 @@ public class ItemBuilder {
     private static final String PLUGIN_PATH = "ItemBuilderId";
     protected static Map<String, ItemBuilder> itemsWithEvents = new HashMap<>();
 
-    private final ItemStack item;
+    private ItemStack item;
     private final String id;
     private final Set<ItemAction> functions;
 
@@ -57,6 +61,7 @@ public class ItemBuilder {
     private String error;
     private boolean allowInventoryClick;
     private boolean cancelClicks;
+    private String nativeNbt;
 
     private ItemEventHandler handler;
 
@@ -104,6 +109,7 @@ public class ItemBuilder {
         this.functions = new HashSet<>();
         this.allowInventoryClick = false;
         this.cancelClicks = true;
+        this.nativeNbt = "";
         this.handler = ItemEventHandler.EMPTY;
     }
 
@@ -126,6 +132,30 @@ public class ItemBuilder {
     @Nonnull
     public ItemEventHandler getEventHandler() {
         return handler;
+    }
+
+    /**
+     * Returns item's NBT in string format, same as you would use it in give command.
+     *
+     * @return item's NBT or empty string if none.
+     */
+    @Nonnull
+    public String getNbt() {
+        return nativeNbt;
+    }
+
+    /**
+     * Sets item's NBT.
+     * This method uses native minecraft nbt stored in the '<i>tag:{<b>HERE</b>}</i>' compound.
+     *
+     * @param nbt - New NBT or null to remove.
+     */
+    public void setNbt(@Nullable String nbt) {
+        if (nbt == null) {
+            this.nativeNbt = "";
+            return;
+        }
+        this.nativeNbt = nbt;
     }
 
     /**
@@ -340,7 +370,7 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder addNbt(String path, Object value) {
+    public ItemBuilder setPersistentData(String path, Object value) {
         if (value instanceof String) {
             this.setPersistentData(path, PersistentDataType.STRING, (String) value);
         }
@@ -784,6 +814,31 @@ public class ItemBuilder {
         }
 
         this.item.setItemMeta(this.meta);
+
+        // Apply native NBT
+        if (!nativeNbt.isBlank()) {
+            try {
+                final NBTTagCompound compound = MojangsonParser.a("{" + nativeNbt + "}");
+                final net.minecraft.world.item.ItemStack nmsItem = NBTNative.asNMSCopy(this.item);
+
+                final NBTTagCompound original = NBTNative.getCompoundOrCreate(nmsItem);
+                original.a(compound);
+
+                // Set NBT to the item if was empty
+                if (!nmsItem.t()) {
+                    nmsItem.c(compound);
+                }
+
+                this.item = NBTNative.asBukkitCopy(nmsItem);
+
+            } catch (CommandSyntaxException e) {
+                sendErrorMessage(
+                        "Could not build ItemBuilder! Invalid NBT format: \"%s\"",
+                        e.getMessage()
+                );
+            }
+        }
+
         return item;
     }
 
@@ -830,6 +885,10 @@ public class ItemBuilder {
             hash.add(lore.get(i));
         }
         return hash;
+    }
+
+    public ItemMeta getMeta() {
+        return meta;
     }
 
     public int getAmount() {
@@ -897,8 +956,7 @@ public class ItemBuilder {
         } catch (IllegalArgumentException er) {
             Chat.broadcastOp("&4An error occurred whilst trying to perform this action. Check the console!");
             throw new ItemBuilderException(
-                    "Plugin call before plugin initiated. Make sure to register ItemBuilder BEFORE you register commands, events etc!"
-            );
+                    "Plugin call before plugin initiated. Make sure to register ItemBuilder BEFORE you register commands, events etc!");
         }
         return this;
     }
@@ -988,6 +1046,10 @@ public class ItemBuilder {
             }
         }
         return builder;
+    }
+
+    public static ItemBuilder air() {
+        return of(Material.AIR);
     }
 
     @Nullable
