@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.inventory.gui;
 
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.LinkedHashMap;
@@ -20,6 +21,16 @@ public class SmartComponent {
     public SmartComponent add(ItemStack item, Action action) {
         this.map.put(item, new GUIClick(action));
         return this;
+    }
+
+    public SmartComponent add(ItemStack item, Action action, ClickType... clickTypes) {
+        final GUIClick guiClick = this.map.computeIfAbsent(item, a -> new GUIClick(action));
+
+        for (ClickType click : clickTypes) {
+            guiClick.addPerClick(click, action);
+        }
+
+        return this.add(item, guiClick);
     }
 
     public SmartComponent add(ItemStack item) {

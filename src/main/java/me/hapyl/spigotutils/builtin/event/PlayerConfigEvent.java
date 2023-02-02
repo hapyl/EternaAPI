@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.builtin.event;
 
-import me.hapyl.spigotutils.EternaRegistry;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;

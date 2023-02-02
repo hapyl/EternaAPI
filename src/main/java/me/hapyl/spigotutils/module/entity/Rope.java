@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.entity;
 
-import me.hapyl.spigotutils.EternaRegistry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;

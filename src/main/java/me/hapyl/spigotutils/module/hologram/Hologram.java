@@ -1,10 +1,10 @@
 package me.hapyl.spigotutils.module.hologram;
 
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.EternaRegistry;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;

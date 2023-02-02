@@ -1,26 +1,30 @@
-package me.hapyl.spigotutils;
+package me.hapyl.spigotutils.registry;
 
+import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.config.PlayerConfigManager;
 import me.hapyl.spigotutils.module.entity.RopeRegistry;
 import me.hapyl.spigotutils.module.hologram.HologramRegistry;
-import me.hapyl.spigotutils.module.inventory.item.CustomItemHolder;
+import me.hapyl.spigotutils.module.inventory.item.CustomItemRegistry;
 import me.hapyl.spigotutils.module.parkour.ParkourManager;
 import me.hapyl.spigotutils.module.player.song.SongPlayer;
-import me.hapyl.spigotutils.module.reflect.glow.GlowingManager;
+import me.hapyl.spigotutils.module.reflect.glow.GlowingRegistry;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPCRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * Registry of registries. 😕
+ */
 public final class EternaRegistry {
 
     private static boolean init;
 
     private final EternaPlugin plugin;
 
-    // registries (should probably refactor for consistency)
-    public final SongPlayer songPlayer;
-    public final CustomItemHolder itemHolder;
-    public final GlowingManager glowingManager;
+    public final SongPlayer songPlayer; // fixme -> this is not even a registry, why is this here
+
+    public final CustomItemRegistry itemHolder;
+    public final GlowingRegistry glowingManager;
     public final ParkourManager parkourManager;
     public final PlayerConfigManager configManager;
     public final HumanNPCRegistry npcRegistry;
@@ -36,8 +40,8 @@ public final class EternaRegistry {
 
         // register registries
         songPlayer = new SongPlayer(plugin);
-        glowingManager = new GlowingManager(plugin);
-        itemHolder = new CustomItemHolder(plugin);
+        glowingManager = new GlowingRegistry(plugin);
+        itemHolder = new CustomItemRegistry(plugin);
         parkourManager = new ParkourManager(plugin);
         configManager = new PlayerConfigManager(plugin);
         npcRegistry = new HumanNPCRegistry(plugin);
@@ -71,11 +75,11 @@ public final class EternaRegistry {
         return new SongPlayer(plugin);
     }
 
-    public static CustomItemHolder getItemHolder() {
+    public static CustomItemRegistry getItemHolder() {
         return current().itemHolder;
     }
 
-    public static GlowingManager getGlowingManager() {
+    public static GlowingRegistry getGlowingManager() {
         return current().glowingManager;
     }
 
@@ -100,10 +104,6 @@ public final class EternaRegistry {
         runSafe(ropeRegistry::removeAll, "Rope Removal (Some bats might be alive.)");
 
         init = false;
-    }
-
-    private void register(Registry<?> registry, Registry<?> registry1) {
-
     }
 
     private void runSafe(Runnable runnable, String name) {

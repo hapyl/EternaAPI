@@ -1,41 +1,56 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.HashRegistry;
+import me.hapyl.spigotutils.registry.Registry;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Set;
 
-public class GlowingManager extends HashRegistry<Entity, Glowing> {
+public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
 
-    private final Map<Entity, Set<Glowing>> glowing = Maps.newConcurrentMap();
-
-    public GlowingManager(EternaPlugin plugin) {
+    /**
+     * Single entity may have multiple glowing tasks
+     * for different players. This is why concurrent
+     * set is used to store all possible glowing tasks.
+     */
+    public GlowingRegistry(EternaPlugin plugin) {
         super(plugin);
     }
 
-    @Override
-    public void register(Entity entity, Glowing glowing) {
-        addGlowing(entity, glowing);
-    }
-
-    @Override
-    public void unregister(Entity entity, Glowing glowing) {
-        removeGlowing(entity, glowing);
-    }
-
+    /**
+     * Adds glowing for entity.
+     *
+     * @param entity  - Entity.
+     * @param glowing - Glowing.
+     */
     public void addGlowing(Entity entity, Glowing glowing) {
         final Set<Glowing> set = getGlowing(entity);
         set.add(glowing);
 
-        this.glowing.put(entity, set);
+        this.registry.put(entity, set);
     }
 
+    /**
+     * Removes glowing from entity.
+     *
+     * @param entity  - Entity.
+     * @param glowing - Glowing.
+     */
+    public void removeGlowing(Entity entity, Glowing glowing) {
+        final Set<Glowing> set = getGlowing(entity);
+        set.remove(glowing);
+
+        this.registry.put(entity, set);
+    }
+
+    /**
+     * Stops all glowing tasks from entity.
+     *
+     * @param entity - Entity.
+     */
     public void stopGlowing(Entity entity) {
         final Set<Glowing> set = getGlowing(entity);
 
@@ -44,19 +59,12 @@ public class GlowingManager extends HashRegistry<Entity, Glowing> {
         }
     }
 
-    public void removeGlowing(Entity entity, Glowing glowing) {
-        final Set<Glowing> set = getGlowing(entity);
-        set.remove(glowing);
-
-        this.glowing.put(entity, set);
-    }
-
     public void removeGlowing(Entity entity) {
-        this.glowing.remove(entity);
+        this.registry.remove(entity);
     }
 
     public Set<Glowing> getGlowing(Entity entity) {
-        return glowing.getOrDefault(entity, Sets.newConcurrentHashSet());
+        return registry.getOrDefault(entity, Sets.newConcurrentHashSet());
     }
 
     @Nullable
@@ -92,15 +100,16 @@ public class GlowingManager extends HashRegistry<Entity, Glowing> {
 
     @Nullable
     public Entity getById(int entityId) {
-        for (Entity entity : glowing.keySet()) {
+        for (Entity entity : getKeys()) {
             if (entity.getEntityId() == entityId) {
                 return entity;
             }
         }
+
         return null;
     }
 
     public void tickAll() {
-        this.glowing.forEach((entity, set) -> set.forEach(Glowing::tick));
+        forEachValues(set -> set.forEach(Glowing::tick));
     }
 }

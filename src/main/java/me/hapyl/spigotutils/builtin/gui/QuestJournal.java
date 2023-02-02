@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Set;
 
-public class QuestJournal extends PlayerGUI {
+public final class QuestJournal extends PlayerGUI {
 
     public QuestJournal(Player player) {
         super(player, "Quest Journal", 5);

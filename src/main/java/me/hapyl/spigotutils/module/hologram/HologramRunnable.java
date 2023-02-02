@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.hologram;
 
-import me.hapyl.spigotutils.EternaRegistry;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 
 import java.util.Objects;
 

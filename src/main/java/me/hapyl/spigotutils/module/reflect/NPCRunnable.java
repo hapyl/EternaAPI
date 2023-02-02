@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.reflect;
 
-import me.hapyl.spigotutils.EternaRegistry;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

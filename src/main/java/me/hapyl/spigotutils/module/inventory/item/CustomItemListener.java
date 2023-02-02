@@ -81,7 +81,7 @@ public class CustomItemListener implements Listener {
 	}
 
 	private CustomItem getItem(ItemStack stack) {
-		return CustomItemHolder.getInstance().byItemStack(stack);
+		return CustomItemRegistry.getInstance().byItemStack(stack);
 	}
 
 }

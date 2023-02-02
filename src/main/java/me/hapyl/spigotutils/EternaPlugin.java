@@ -8,8 +8,8 @@ import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.hologram.HologramRunnable;
 import me.hapyl.spigotutils.module.inventory.ItemBuilderListener;
 import me.hapyl.spigotutils.module.inventory.gui.GUIListener;
-import me.hapyl.spigotutils.module.inventory.item.CustomItemHolder;
 import me.hapyl.spigotutils.module.inventory.item.CustomItemListener;
+import me.hapyl.spigotutils.module.inventory.item.CustomItemRegistry;
 import me.hapyl.spigotutils.module.locaiton.TriggerManager;
 import me.hapyl.spigotutils.module.parkour.ParkourListener;
 import me.hapyl.spigotutils.module.parkour.ParkourManager;
@@ -18,12 +18,13 @@ import me.hapyl.spigotutils.module.player.song.SongPlayer;
 import me.hapyl.spigotutils.module.quest.QuestListener;
 import me.hapyl.spigotutils.module.record.ReplayListener;
 import me.hapyl.spigotutils.module.reflect.NPCRunnable;
-import me.hapyl.spigotutils.module.reflect.glow.GlowingManager;
+import me.hapyl.spigotutils.module.reflect.glow.GlowingRegistry;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
 import me.hapyl.spigotutils.module.reflect.protocol.GlowingListener;
 import me.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
 import me.hapyl.spigotutils.module.reflect.protocol.SignListener;
 import me.hapyl.spigotutils.module.util.Runnables;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,6 +57,7 @@ public class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new PlayerConfigEvent(), this);
         manager.registerEvents(new ReplayListener(), this);
 
+        // Init registry
         registry = new EternaRegistry(this);
 
         final BukkitScheduler scheduler = Bukkit.getScheduler();
@@ -94,6 +96,7 @@ public class EternaPlugin extends JavaPlugin {
         // Load dependencies
         EternaAPI.loadAll();
 
+        // Register test commands. Ignore this, no one can use this besides my.
         new Test().test();
     }
 
@@ -106,7 +109,7 @@ public class EternaPlugin extends JavaPlugin {
         registry.onDisable();
     }
 
-    public CustomItemHolder getItemHolder() {
+    public CustomItemRegistry getItemHolder() {
         return registry.itemHolder;
     }
 
@@ -118,7 +121,7 @@ public class EternaPlugin extends JavaPlugin {
         return registry.parkourManager;
     }
 
-    public GlowingManager getGlowingManager() {
+    public GlowingRegistry getGlowingManager() {
         return registry.glowingManager;
     }
 

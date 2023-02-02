@@ -2,6 +2,11 @@ package me.hapyl.spigotutils;
 
 import me.hapyl.spigotutils.module.util.Validate;
 
+/**
+ * Rules are <b>global</b> configurations.
+ *
+ * @param <E>
+ */
 public class Rule<E> {
 
     public static final Rule<Boolean> ALLOW_QUEST_JOURNAL = new Rule<>("", Boolean.class, true);

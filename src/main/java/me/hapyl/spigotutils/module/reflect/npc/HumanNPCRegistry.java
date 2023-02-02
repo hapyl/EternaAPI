@@ -2,12 +2,12 @@ package me.hapyl.spigotutils.module.reflect.npc;
 
 import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.HashRegistry;
+import me.hapyl.spigotutils.registry.Registry;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 
-public class HumanNPCRegistry extends HashRegistry<Integer, HumanNPC> {
+public class HumanNPCRegistry extends Registry<Integer, HumanNPC> {
     private final HashMap<Integer, HumanNPC> byId;
 
     public HumanNPCRegistry(EternaPlugin plugin) {

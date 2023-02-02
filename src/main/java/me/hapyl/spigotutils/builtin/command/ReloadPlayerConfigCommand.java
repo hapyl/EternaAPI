@@ -1,8 +1,8 @@
 package me.hapyl.spigotutils.builtin.command;
 
-import me.hapyl.spigotutils.EternaRegistry;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

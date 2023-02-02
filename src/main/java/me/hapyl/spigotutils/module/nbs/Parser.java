@@ -1,4 +1,3 @@
-
 package me.hapyl.spigotutils.module.nbs;
 
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -67,8 +66,12 @@ public class Parser {
                 this.readShort(); // Loop Start Tick
             }
 
-            this.song = new Song(checkEmpty(songName, "Unnamed Song"), checkEmpty(songAuthor, "Unknown Author"),
-                                 checkEmpty(songOrigin, "Unknown Original Author"), length, tempo / 100
+            this.song = new Song(
+                    checkEmpty(songName, "Unnamed Song"),
+                    checkEmpty(songAuthor, "Unknown Author"),
+                    checkEmpty(songOrigin, "Unknown Original Author"),
+                    length,
+                    tempo / 100
             );
             // Start reading notes
             short tick = -1;

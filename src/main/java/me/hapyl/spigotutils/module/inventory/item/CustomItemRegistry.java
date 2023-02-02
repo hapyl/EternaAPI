@@ -2,19 +2,19 @@ package me.hapyl.spigotutils.module.inventory.item;
 
 import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.Registry;
 import me.hapyl.spigotutils.module.nbt.NBT;
+import me.hapyl.spigotutils.registry.Registry;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
 import java.util.Map;
 
-public final class CustomItemHolder extends Registry<CustomItem> {
+public final class CustomItemRegistry extends Registry<String, CustomItem> {
 
     public final Map<String, CustomItem> customItems = Maps.newConcurrentMap();
 
-    public CustomItemHolder(EternaPlugin plugin) {
+    public CustomItemRegistry(EternaPlugin plugin) {
         super(plugin);
     }
 
@@ -41,26 +41,25 @@ public final class CustomItemHolder extends Registry<CustomItem> {
     }
 
     @Override
-    public void register(CustomItem item) {
-        final String id = item.getId();
+    public void register(String id, CustomItem customItem) {
         if (isItemExists(id)) {
             throw new IllegalArgumentException("cannot register %s since it's already registered!".formatted(id));
         }
-        this.customItems.put(formatId(id), item);
+
+        super.register(id, customItem);
     }
 
     @Override
-    public void unregister(CustomItem item) {
-        final String id = item.getId();
+    public void unregister(String id, CustomItem customItem) {
         if (!isItemExists(id)) {
             throw new IllegalArgumentException("cannot unregister %s since it's doesn't exist!".formatted(id));
         }
-        this.customItems.remove(formatId(id), item);
+
+        super.unregister(id, customItem);
     }
 
-    public static CustomItemHolder getInstance() {
+    public static CustomItemRegistry getInstance() {
         return EternaPlugin.getPlugin().getItemHolder();
     }
-
 
 }

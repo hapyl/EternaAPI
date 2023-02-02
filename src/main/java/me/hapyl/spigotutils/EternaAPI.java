@@ -1,23 +1,25 @@
 package me.hapyl.spigotutils;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.Validate;
+import me.hapyl.spigotutils.registry.PluginLibrary;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public final class EternaAPI {
 
-    private static final List<EternaAPI> plugins = Lists.newArrayList();
+    private static final Map<String, EternaAPI> byName = Maps.newLinkedHashMap();
     private static final String PREFIX = "&b&lEternaAPI&b> &a";
 
     private final JavaPlugin plugin;
-    private final EternaLibrary library;
+    private final PluginLibrary library;
     private final boolean silent;
 
     public EternaAPI(@Nonnull JavaPlugin plugin) {
@@ -25,6 +27,10 @@ public final class EternaAPI {
     }
 
     public EternaAPI(@Nonnull JavaPlugin plugin, boolean silent) {
+        if (exists(plugin.getName())) {
+            throw new IllegalArgumentException("Plugin named '%s' is already registered in EternaAPI!");
+        }
+
         this.plugin = plugin;
         this.silent = silent;
 
@@ -34,53 +40,82 @@ public final class EternaAPI {
                 "Could not load %s for %s since it doesn't depend nor soft-depend the API!".formatted(getAPIName(), plugin.getName())
         );
 
-        this.library = new EternaLibrary(this);
-
-        plugins.add(this);
+        this.library = new PluginLibrary(plugin);
+        byName.put(plugin.getName().toLowerCase(Locale.ROOT), this);
     }
 
+    /**
+     * Returns owning plugin.
+     *
+     * @return owning plugin
+     */
     public JavaPlugin getPlugin() {
         return plugin;
     }
 
-    public EternaLibrary getLibrary() {
+    /**
+     * Returns library for this API.
+     * Library stores important data such as registries etc.
+     *
+     * @return library for this API.
+     */
+    public PluginLibrary getLibrary() {
         return library;
     }
 
+    /**
+     * Returns true if plugin depend on EternaAPI; If false, exception will be thrown.
+     *
+     * @return true if plugin depend on EternaAPI; If false, exception will be thrown.
+     */
     public boolean isDepends() {
         final PluginDescriptionFile description = plugin.getDescription();
         final String pluginName = getAPIName();
         return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
     }
 
+    // static members
+
+    /**
+     * Returns current API version.
+     *
+     * @return current API version.
+     */
     public static String getAPIVersion() {
         return EternaPlugin.getPlugin().getDescription().getVersion();
     }
 
+    /**
+     * Returns current API name.
+     *
+     * @return current API name.
+     */
     public static String getAPIName() {
         return EternaPlugin.getPlugin().getName();
     }
 
+    /**
+     * Loads all APIs and their respected registries.
+     */
     public static void loadAll() {
+        if (byName.isEmpty()) {
+            return;
+        }
+
         Runnables.runLater(() -> {
-            if (plugins.isEmpty()) {
-                return;
-            }
             broadcastAPIMessageConsole("&eAPI version is %s. Loading plugins...", getAPIVersion());
             broadcastAPIMessageOP("&eAPI version is %s. Loading plugins...", getAPIVersion());
-            plugins.forEach(plugin -> {
-                final JavaPlugin javaPlugin = plugin.getPlugin();
+            byName.forEach((name, api) -> {
+                // api.getLibrary().load();
+
+                final JavaPlugin javaPlugin = api.getPlugin();
                 final String string = "Loaded %s v%s.".formatted(javaPlugin.getName(), javaPlugin.getDescription().getVersion());
-                if (!plugin.silent) {
+                if (!api.silent) {
                     broadcastAPIMessageOP(string);
                 }
                 broadcastAPIMessageConsole(string);
             });
         }, 20L);
-    }
-
-    public static List<EternaAPI> getPlugins() {
-        return plugins;
     }
 
     public static void broadcastAPIMessageOP(String string, Object... objects) {
@@ -89,6 +124,14 @@ public final class EternaAPI {
 
     public static void broadcastAPIMessageConsole(String string, Object... replacements) {
         Chat.sendMessage(Bukkit.getConsoleSender(), PREFIX + string, replacements);
+    }
+
+    public static EternaAPI byName(String name) {
+        return byName.get(name.toLowerCase(Locale.ROOT));
+    }
+
+    public static boolean exists(String name) {
+        return byName(name) != null;
     }
 
 }
