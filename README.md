@@ -7,4 +7,4 @@ _Some classes are not mine and authors were credited._
 * Don't forget about _softdepend_ or _depend_ in your plugin.yml
 
 ## Javadoc
-...
+[...](https://hapyl.github.io/javadocs/eterna/index.html)
