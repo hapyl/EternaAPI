@@ -19,6 +19,12 @@ public class CenterChat {
 
     private final static int CENTER_PX = 154;
 
+    /**
+     * Send centered message to a player.
+     *
+     * @param player  - Player.
+     * @param message - Message to center and send.
+     */
     public static void sendCenteredMessage(Player player, String message) {
         player.sendMessage(makeString(message));
     }

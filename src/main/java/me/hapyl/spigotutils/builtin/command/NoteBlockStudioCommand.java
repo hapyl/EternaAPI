@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.builtin.command;
 
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.annotate.BuiltIn;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.chat.LazyClickEvent;
 import me.hapyl.spigotutils.module.chat.LazyHoverEvent;
@@ -20,7 +21,11 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
 
-public class NoteBlockStudioCommand extends SimpleAdminCommand {
+/**
+ * Built in command for playing nbs files.
+ */
+@BuiltIn
+public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
     private final SongPlayer radio;
 

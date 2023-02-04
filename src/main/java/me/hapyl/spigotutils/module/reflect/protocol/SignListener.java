@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.reflect.protocol;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import me.hapyl.spigotutils.module.inventory.Response;
 import me.hapyl.spigotutils.module.inventory.SignGUI;
 import org.bukkit.entity.Player;
 
@@ -23,8 +24,7 @@ public class SignListener extends ProtocolListener {
         }
 
         final String[] lines = packet.getStringArrays().read(0);
-        signGUI.onResponse(player, lines);
-        signGUI.onResponse(player, signGUI.concatString(lines));
+        signGUI.onResponse(new Response(player, lines));
         signGUI.clearSign();
         SignGUI.saved.remove(player);
     }

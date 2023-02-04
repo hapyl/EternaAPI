@@ -128,7 +128,7 @@ public class Scoreboarder {
      * and changing their respective positions.
      *
      * This is only called automatically at
-     * {@link this#setLines(String...)}. Must be
+     * {@link Scoreboarder#setLines(String...)} Must be
      * called manually after adding lines using
      * other methods.
      */

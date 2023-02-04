@@ -784,6 +784,17 @@ public class ItemBuilder {
     }
 
     /**
+     * Builds item stack and hides all extra data
+     * in the lore of the item.
+     *
+     * @return icon-themed ItemStack.
+     */
+    public ItemStack asIcon() {
+        hideFlags();
+        return build();
+    }
+
+    /**
      * Finalizes item meta and returns an ItemStack.
      *
      * @param overrideIfExists - if true, item has ID and item with that ID is already

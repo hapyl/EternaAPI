@@ -2,6 +2,7 @@ package me.hapyl.spigotutils;
 
 import me.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
 import me.hapyl.spigotutils.builtin.command.QuestCommand;
+import me.hapyl.spigotutils.builtin.command.ReloadAddonsCommand;
 import me.hapyl.spigotutils.builtin.command.ReloadPlayerConfigCommand;
 import me.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
@@ -78,6 +79,7 @@ public class EternaPlugin extends JavaPlugin {
         commandProcessor.registerCommand(new QuestCommand("questjournal"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
         commandProcessor.registerCommand(new ReloadPlayerConfigCommand("reloadplayerconfig"));
+        commandProcessor.registerCommand(new ReloadAddonsCommand("reloadaddons"));
 
         // Load configuration file
         this.getConfig().options().copyDefaults(true);

@@ -47,4 +47,15 @@ public class Numbers {
         return isInt(obj) ? Validate.getInt(obj) : def;
     }
 
+    public static float getFloat(Object obj, float def) {
+        return isFloat(obj) ? Validate.getFloat(obj) : def;
+    }
+
+    public static double getDouble(Object obj, double def) {
+        return isDouble(obj) ? Validate.getDouble(obj) : def;
+    }
+
+    public static long getLong(Object obj, long def) {
+        return isLong(obj) ? Validate.getLong(obj) : def;
+    }
 }

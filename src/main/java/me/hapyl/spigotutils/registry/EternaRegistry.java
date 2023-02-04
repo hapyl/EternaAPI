@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.registry;
 
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.config.PlayerConfigManager;
+import me.hapyl.spigotutils.module.addons.AddonRegistry;
 import me.hapyl.spigotutils.module.entity.RopeRegistry;
 import me.hapyl.spigotutils.module.hologram.HologramRegistry;
 import me.hapyl.spigotutils.module.inventory.item.CustomItemRegistry;
@@ -30,6 +31,7 @@ public final class EternaRegistry {
     public final HumanNPCRegistry npcRegistry;
     public final HologramRegistry hologramRegistry;
     public final RopeRegistry ropeRegistry;
+    public final AddonRegistry addonRegistry;
 
     public EternaRegistry(EternaPlugin plugin) {
         if (init) {
@@ -47,6 +49,7 @@ public final class EternaRegistry {
         npcRegistry = new HumanNPCRegistry(plugin);
         hologramRegistry = new HologramRegistry(plugin);
         ropeRegistry = new RopeRegistry(plugin);
+        addonRegistry = new AddonRegistry(plugin);
 
         init = true;
     }

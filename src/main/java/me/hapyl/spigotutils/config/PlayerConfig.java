@@ -10,6 +10,10 @@ import org.bukkit.entity.Player;
 
 import java.util.Set;
 
+/**
+ * Player config file managing all the data.
+ * The config file is stored in the yaml format.
+ */
 public class PlayerConfig extends Config {
 
     private final String pathQuestObjective = "quest.%s.objective";

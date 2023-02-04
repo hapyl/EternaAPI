@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.builtin.command;
 
 import me.hapyl.spigotutils.Rule;
 import me.hapyl.spigotutils.builtin.gui.QuestJournal;
+import me.hapyl.spigotutils.module.annotate.BuiltIn;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.SimpleCommand;
 import org.bukkit.command.CommandSender;
@@ -9,7 +10,11 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class QuestCommand extends SimpleCommand {
+/**
+ * Built in command for {@link QuestJournal}.
+ */
+@BuiltIn
+public final class QuestCommand extends SimpleCommand {
 
     public QuestCommand(String str) {
         super(str);

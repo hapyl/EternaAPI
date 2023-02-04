@@ -8,6 +8,9 @@ import org.bukkit.entity.Player;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Manager for {@link PlayerConfig}
+ */
 public class PlayerConfigManager extends Registry<UUID, PlayerConfig> {
 
     protected final Map<UUID, PlayerConfig> playerConfig;

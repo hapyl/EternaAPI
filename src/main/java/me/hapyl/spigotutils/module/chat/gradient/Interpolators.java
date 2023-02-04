@@ -1,5 +1,8 @@
 package me.hapyl.spigotutils.module.chat.gradient;
 
+/**
+ * Difference interpolators for gradient.
+ */
 public final class Interpolators {
 
     public static final Interpolator LINEAR = (from, to, max) -> {

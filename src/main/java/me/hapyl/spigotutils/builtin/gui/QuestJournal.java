@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.builtin.gui;
 
+import me.hapyl.spigotutils.module.annotate.BuiltIn;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.inventory.gui.PlayerGUI;
@@ -13,6 +14,10 @@ import org.bukkit.entity.Player;
 
 import java.util.Set;
 
+/**
+ * Built in GUI for {@link QuestJournal}.
+ */
+@BuiltIn
 public final class QuestJournal extends PlayerGUI {
 
     public QuestJournal(Player player) {

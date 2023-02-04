@@ -2,24 +2,29 @@ package me.hapyl.spigotutils.module.inventory;
 
 import me.hapyl.spigotutils.module.annotate.ArraySize;
 import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
+import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.game.PacketPlayOutOpenSignEditor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Opens a SIGN that can be used as input.
  */
+@TestedNMS(version = "1.19.3")
 public abstract class SignGUI {
 
     public static final Map<Player, SignGUI> saved = new HashMap<>();
@@ -58,6 +63,8 @@ public abstract class SignGUI {
                 this.lines[3] = (splits.size() > 2) ? (lastLine.substring(0, lastLine.length() - 3) + "...") : lastLine;
             }
         }
+
+        Runnables.runLater(this::createPacketAndSend, 1L);
     }
 
     /**
@@ -74,8 +81,13 @@ public abstract class SignGUI {
         System.arraycopy(prompt, 0, this.lines, 1, prompt.length);
     }
 
+    @Deprecated
     public void openMenu() {
-        createPacketAndSend();
+        final RuntimeException exception = new RuntimeException("Deprecated 'openMenu()' call on SignGUI.");
+        final Logger logger = Bukkit.getLogger();
+
+        logger.warning("Deprecated call 'openMenu()'!");
+        logger.warning(Arrays.toString(exception.getStackTrace()));
     }
 
     public String[] getLines() {
@@ -94,17 +106,8 @@ public abstract class SignGUI {
         player.sendBlockChange(location, location.getBlock().getBlockData());
     }
 
-    /**
-     * @param player   - Player.
-     * @param response - Four lines of a sign, including ^^^^^^^^^^^^^^ and prompt.
-     *                 Use {@link this#onResponse(Player, String)} for player's response excluding prompt.
-     */
     @AsyncNotSafe
-    public abstract void onResponse(Player player, String[] response);
-
-    public void onResponse(Player player, String string) {
-
-    }
+    public abstract void onResponse(Response response);
 
     /**
      * Concat strings from output without the input query.
@@ -135,10 +138,6 @@ public abstract class SignGUI {
 
     protected void runSync(Runnable runnable) {
         Runnables.runSync(runnable);
-    }
-
-    protected String getResponseValue(String[] response, int index) {
-        return index >= response.length ? "empty" : response[index];
     }
 
     private void createPacketAndSend() {

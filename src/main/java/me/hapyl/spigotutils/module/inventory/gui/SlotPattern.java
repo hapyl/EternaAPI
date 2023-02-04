@@ -84,6 +84,16 @@ public final class SlotPattern {
             { 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 9
     });
 
+    public static final SlotPattern FANCY = new SlotPattern(new byte[][] {
+            { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // 1
+            { 0, 0, 0, 1, 0, 1, 0, 0, 0 }, // 1
+            { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // 1
+            { 0, 0, 1, 1, 0, 1, 1, 0, 0 }, // 1
+            { 0, 0, 1, 1, 1, 1, 1, 0, 0 }, // 1
+            { 0, 1, 1, 1, 0, 1, 1, 1, 0 }, // 1
+            { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 1
+    });
+
     private final byte[][] pattern;
 
     /**

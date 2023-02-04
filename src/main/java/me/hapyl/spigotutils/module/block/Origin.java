@@ -4,6 +4,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 
+/**
+ * Stores original state of a block for {@link BlockMagic}.
+ */
 public class Origin {
     private final Block block;
     private final BlockData blockData;
