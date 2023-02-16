@@ -1,22 +1,22 @@
 package me.hapyl.spigotutils;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.Validate;
 import me.hapyl.spigotutils.registry.PluginLibrary;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public final class EternaAPI {
 
     private static final Map<String, EternaAPI> byName = Maps.newLinkedHashMap();
-    private static final String PREFIX = "&b&lEternaAPI&b> &a";
 
     private final JavaPlugin plugin;
     private final PluginLibrary library;
@@ -103,29 +103,37 @@ public final class EternaAPI {
         }
 
         Runnables.runLater(() -> {
-            broadcastAPIMessageConsole("&eAPI version is %s. Loading plugins...", getAPIVersion());
-            broadcastAPIMessageOP("&eAPI version is %s. Loading plugins...", getAPIVersion());
+            EternaLogger.broadcastMessageConsole("&eAPI version is %s. Loading plugins...", getAPIVersion());
+            EternaLogger.broadcastMessageOP("&eAPI version is %s. Loading plugins...", getAPIVersion());
             byName.forEach((name, api) -> {
                 // api.getLibrary().load();
 
                 final JavaPlugin javaPlugin = api.getPlugin();
                 final String string = "Loaded %s v%s.".formatted(javaPlugin.getName(), javaPlugin.getDescription().getVersion());
                 if (!api.silent) {
-                    broadcastAPIMessageOP(string);
+                    EternaLogger.broadcastMessageOP(string);
                 }
-                broadcastAPIMessageConsole(string);
+                EternaLogger.broadcastMessageConsole(string);
             });
         }, 20L);
     }
 
-    public static void broadcastAPIMessageOP(String string, Object... objects) {
-        Chat.broadcastOp(PREFIX + string, objects);
+    public static List<EternaAPI> listModules() {
+        return Lists.newArrayList(byName.values());
     }
 
-    public static void broadcastAPIMessageConsole(String string, Object... replacements) {
-        Chat.sendMessage(Bukkit.getConsoleSender(), PREFIX + string, replacements);
+    public static List<String> listNames() {
+        final List<EternaAPI> apis = listModules();
+        final List<String> names = Lists.newArrayList();
+
+        for (EternaAPI api : apis) {
+            names.add(api.getPlugin().getName());
+        }
+
+        return names;
     }
 
+    @Nullable
     public static EternaAPI byName(String name) {
         return byName.get(name.toLowerCase(Locale.ROOT));
     }

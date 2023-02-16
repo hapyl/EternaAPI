@@ -50,7 +50,7 @@ public abstract class SimpleCommand {
      * @param name - Name of the command.
      */
     public SimpleCommand(@Nonnull String name) {
-        this.name = name;
+        this.name = name.toLowerCase();
         this.aliases = new String[] {};
         this.permission = "";
         this.usage = "/" + name;
@@ -241,7 +241,11 @@ public abstract class SimpleCommand {
      * @param aliases - new aliases
      */
     public void setAliases(String... aliases) {
-        this.aliases = aliases;
+        this.aliases = new String[aliases.length];
+
+        for (int i = 0; i < aliases.length; i++) {
+            this.aliases[i] = aliases[i].toLowerCase();
+        }
     }
 
     /**
