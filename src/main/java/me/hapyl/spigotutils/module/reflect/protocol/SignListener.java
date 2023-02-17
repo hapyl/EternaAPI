@@ -17,7 +17,7 @@ public class SignListener extends ProtocolListener {
     public void onPacketReceiving(PacketEvent event) {
         final PacketContainer packet = event.getPacket();
         final Player player = event.getPlayer();
-        final SignGUI signGUI = SignGUI.savedCopy().get(player);
+        final SignGUI signGUI = SignGUI.getMap().get(player);
 
         if (signGUI == null) {
             return;

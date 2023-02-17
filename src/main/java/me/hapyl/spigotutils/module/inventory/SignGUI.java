@@ -59,9 +59,9 @@ public abstract class SignGUI {
                 this.lines[3] = splits.get(0);
             }
             else {
+                final String lastLine = splits.get(1);
                 this.lines[1] = DASHED_LINE;
                 this.lines[2] = splits.get(0);
-                final String lastLine = splits.get(1);
                 this.lines[3] = (splits.size() > 2) ? (lastLine.substring(0, lastLine.length() - 3) + "...") : lastLine;
             }
         }
@@ -83,7 +83,20 @@ public abstract class SignGUI {
             throw new IllegalArgumentException("Prompt cannot be longer than 4 lines!");
         }
 
-        System.arraycopy(prompt, 0, this.lines, 0, prompt.length);
+        switch (prompt.length) {
+            case 1 -> this.lines[3] = prompt[0];
+            case 2 -> {
+                this.lines[2] = prompt[0];
+                this.lines[3] = prompt[1];
+            }
+            case 3 -> {
+                this.lines[1] = prompt[0];
+                this.lines[2] = prompt[1];
+                this.lines[3] = prompt[2];
+            }
+            case 4 -> System.arraycopy(prompt, 0, this.lines, 0, prompt.length);
+        }
+
     }
 
     @Deprecated
@@ -156,8 +169,8 @@ public abstract class SignGUI {
         saved.put(player, this);
     }
 
-    public static Map<Player, SignGUI> savedCopy() {
-        return new HashMap<>(saved);
+    public static Map<Player, SignGUI> getMap() {
+        return saved;
     }
 
     public static void remove(Player player) {

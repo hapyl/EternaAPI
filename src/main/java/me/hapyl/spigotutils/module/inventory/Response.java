@@ -106,6 +106,10 @@ public class Response {
         Runnables.runSync(runnable);
     }
 
+    public void runSync(Runnable runnable, long delay) {
+        Runnables.runLater(() -> Runnables.runSync(runnable), delay);
+    }
+
     private boolean isLine(String str) {
         return str.startsWith("^") && str.endsWith("^");
     }

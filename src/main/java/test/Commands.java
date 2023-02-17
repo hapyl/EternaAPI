@@ -4,6 +4,7 @@ import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
+import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.quest.Quest;
 import me.hapyl.spigotutils.module.quest.QuestManager;
@@ -34,7 +35,7 @@ public class Commands {
                 "showplugins",
                 (p, a) -> p.sendMessage(Arrays.toString(EternaPlugin.getPlugin().getServer().getPluginManager().getPlugins()))
         );
-        registerTestCommand("signgui", (p, a) -> SignGUITest.run(p));
+        registerTestCommand("signgui", (p, a) -> SignGUITest.run(p, Numbers.getInt(a[0], 1)));
         registerTestCommand("glowing", (p, a) -> GlowingTest.run(p, a.length >= 1 ? NumberConversions.toInt(a[0]) : 40));
 
         registerTestCommand("laser", (p, a) -> LaserTest.test(p.getPlayer()));
