@@ -5,7 +5,6 @@ import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.util.Runnables;
-import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.game.PacketPlayOutOpenSignEditor;
 import org.bukkit.Bukkit;
@@ -27,7 +26,10 @@ import java.util.logging.Logger;
 @TestedNMS(version = "1.19.3")
 public abstract class SignGUI {
 
-    public static final Map<Player, SignGUI> saved = new HashMap<>();
+    public static final String DASHED_LINE = "^^^^^^^^^^^^^^";
+
+    private static final Map<Player, SignGUI> saved = new HashMap<>();
+
     private final Player player;
     private final String[] lines;
     private final Location location;
@@ -50,14 +52,14 @@ public abstract class SignGUI {
         if (prompt != null) {
             final List<String> splits = ItemBuilder.splitString(prompt, 14);
             if (splits.size() == 0 || prompt.isBlank()) {
-                this.lines[3] = "^^^^^^^^^^^^^^";
+                this.lines[3] = DASHED_LINE;
             }
             else if (splits.size() == 1) {
-                this.lines[2] = "^^^^^^^^^^^^^^";
+                this.lines[2] = DASHED_LINE;
                 this.lines[3] = splits.get(0);
             }
             else {
-                this.lines[1] = "^^^^^^^^^^^^^^";
+                this.lines[1] = DASHED_LINE;
                 this.lines[2] = splits.get(0);
                 final String lastLine = splits.get(1);
                 this.lines[3] = (splits.size() > 2) ? (lastLine.substring(0, lastLine.length() - 3) + "...") : lastLine;
@@ -71,14 +73,17 @@ public abstract class SignGUI {
      * Creates a new SignGUI.
      *
      * @param player - Player to
-     * @param prompt - Up to 3 lines of prompt text.
+     * @param prompt - Up to 4 lines of prompt text.
      *               <b>This method will NOT include '^' character.</b>
-     * @throws IllegalArgumentException if wrong amount of lines. (less than or equals to 0 or more than 3)
+     * @throws IllegalArgumentException if prompt lines are longer than 4 lines.
      */
-    public SignGUI(Player player, @Nonnull @ArraySize(max = 3) String... prompt) {
+    public SignGUI(Player player, @Nonnull @ArraySize(max = 4) String... prompt) {
         this(player, (String) null);
-        Validate.isTrue(prompt.length > 0 && prompt.length < 4, "prompt cannot be null and must have between 0-3 lines");
-        System.arraycopy(prompt, 0, this.lines, 1, prompt.length);
+        if (prompt.length > 4) {
+            throw new IllegalArgumentException("Prompt cannot be longer than 4 lines!");
+        }
+
+        System.arraycopy(prompt, 0, this.lines, 0, prompt.length);
     }
 
     @Deprecated
@@ -149,6 +154,14 @@ public abstract class SignGUI {
                 location.getBlockZ()
         )), player);
         saved.put(player, this);
+    }
+
+    public static Map<Player, SignGUI> savedCopy() {
+        return new HashMap<>(saved);
+    }
+
+    public static void remove(Player player) {
+        saved.remove(player);
     }
 
 }

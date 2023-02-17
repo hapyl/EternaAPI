@@ -5,6 +5,7 @@ import me.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 
 public class Response {
 
@@ -35,6 +36,11 @@ public class Response {
             builder.append(str.trim()).append(" ");
         }
         return builder.toString().trim();
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(lines);
     }
 
     /**
