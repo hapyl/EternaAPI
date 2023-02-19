@@ -259,6 +259,16 @@ public final class Reflect {
         }
     }
 
+    public static Constructor<?> getConstructor(String className, Class<?>... params) {
+        try {
+            final Class<?> clazz = Class.forName(className);
+            return clazz.getDeclaredConstructor(params);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * Returns CraftBukkit constructor.
      *
