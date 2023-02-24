@@ -5,7 +5,6 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.mojang.authlib.GameProfile;
-import me.hapyl.spigotutils.module.annotate.InsuredViewers;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -50,7 +49,7 @@ import java.util.Collection;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedNMS(version = "1.19.2")
+@TestedNMS(version = "1.19.3")
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -131,12 +130,13 @@ public final class Reflect {
      * @param players - Players who will see the change.
      * @param <T>     - Type of the value.
      */
-    @InsuredViewers
-    public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, Player... players) {
-        players = insureViewers(players);
-
+    public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, @Nullable Player... players) {
         final DataWatcher dataWatcher = entity.al();
         setDataWatcherValue0(dataWatcher, type.get().a(key), value);
+
+        if (players == null || players.length == 0) {
+            return;
+        }
         updateMetadata(entity, dataWatcher, players);
     }
 
@@ -153,12 +153,13 @@ public final class Reflect {
     }
 
     @Super
-    private static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T object) {
+    public static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T object) {
         try {
-            final Method method = dataWatcher.getClass().getDeclaredMethod("c", DataWatcherObject.class, Object.class);
-            method.setAccessible(true);
-            method.invoke(dataWatcher, type, object);
-            method.setAccessible(false);
+            dataWatcher.b(type, object);
+            //            final Method method = dataWatcher.getClass().getDeclaredMethod("c", DataWatcherObject.class, Object.class);
+            //            method.setAccessible(true);
+            //            method.invoke(dataWatcher, type, object);
+            //            method.setAccessible(false);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -526,9 +527,10 @@ public final class Reflect {
      * @param packet - Packet.
      */
     public static void sendPacket(Player player, Packet<?> packet) {
-        if (HumanNPC.isNPC(player.getEntityId())) {
+        if (player == null || HumanNPC.isNPC(player.getEntityId())) {
             return;
         }
+
         final EntityPlayer mc = getMinecraftPlayer(player);
         mc.b.a(packet);
     }

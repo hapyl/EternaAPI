@@ -21,7 +21,7 @@ public class NPCRunnable implements Runnable {
                     }
                     if (player.getLocation().distance(npc.getLocation()) >= npc.getFarAwayDist()) {
                         if (npc.isShowingTo(player)) {
-                            npc.hide(player);
+                            npc.hide(true, player);
                         }
                     }
                     else {
@@ -65,7 +65,7 @@ public class NPCRunnable implements Runnable {
                 }
 
                 if (closest != null && closest.isOnline()) {
-                    npc.lookAt(closest, closest);
+                    npc.lookAt(closest);
                 }
             }
         });

@@ -1,7 +1,6 @@
 package me.hapyl.spigotutils.module.block;
 
 import com.google.common.collect.Sets;
-import me.hapyl.spigotutils.module.annotate.InsuredViewers;
 import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -93,7 +92,6 @@ public class BlockMagic {
      * @param material - Material to change.
      * @param viewers  - Viewers that will see the change, if empty or null everyone will see the change.
      */
-    @InsuredViewers
     public void sendChange(Material material, Player... viewers) {
         Validate.isTrue(material.isBlock(), "material must be block");
         final BlockData blockData = material.createBlockData();
