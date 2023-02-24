@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -15,8 +14,6 @@ import me.hapyl.spigotutils.module.nbt.nms.NBTNative;
 import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.minecraft.nbt.MojangsonParser;
-import net.minecraft.nbt.NBTTagCompound;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -828,26 +825,7 @@ public class ItemBuilder {
 
         // Apply native NBT
         if (!nativeNbt.isBlank()) {
-            try {
-                final NBTTagCompound compound = MojangsonParser.a("{" + nativeNbt + "}");
-                final net.minecraft.world.item.ItemStack nmsItem = NBTNative.asNMSCopy(this.item);
-
-                final NBTTagCompound original = NBTNative.getCompoundOrCreate(nmsItem);
-                original.a(compound);
-
-                // Set NBT to the item if was empty
-                if (!nmsItem.t()) {
-                    nmsItem.c(compound);
-                }
-
-                this.item = NBTNative.asBukkitCopy(nmsItem);
-
-            } catch (CommandSyntaxException e) {
-                sendErrorMessage(
-                        "Could not build ItemBuilder! Invalid NBT format: \"%s\"",
-                        e.getMessage()
-                );
-            }
+            this.item = NBTNative.setNbt(this.item, nativeNbt);
         }
 
         return item;

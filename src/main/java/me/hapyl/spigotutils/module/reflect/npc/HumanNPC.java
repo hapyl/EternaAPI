@@ -28,7 +28,6 @@ import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EnumItemSlot;
@@ -750,8 +749,8 @@ public class HumanNPC implements Intractable, Human {
     @Override
     @InsuredViewers
     public void setDataWatcherByteValue(int key, byte value, @Nullable Player... viewers) {
-        human.al().a(DataWatcherRegistry.a.a(key), value);
-        updateDataWatcher(insureViewers(viewers));
+        //java.lang.IllegalStateException: Registering datawatcher object after entity initialization
+        Reflect.setDataWatcherByteValue(human, key, value, viewers);
     }
 
     @Override

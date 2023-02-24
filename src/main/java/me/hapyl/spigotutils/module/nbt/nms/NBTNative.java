@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.nbt.nms;
 
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.reflect.Reflect;
+import net.minecraft.nbt.MojangsonParser;
 import net.minecraft.nbt.NBTTagCompound;
 import org.bukkit.inventory.ItemStack;
 
@@ -34,6 +35,29 @@ public class NBTNative {
 
     public static ItemStack asBukkitCopy(net.minecraft.world.item.ItemStack nmsItem) {
         return (ItemStack) Reflect.invokeMethod(CRAFT_AS_BUKKIT_COPY_METHOD, null, nmsItem);
+    }
+
+    public static ItemStack setNbt(@Nonnull ItemStack itemStack, @Nonnull String nbt) {
+        if (nbt.startsWith("{") && nbt.endsWith("}")) {
+            try {
+                final NBTTagCompound compound = MojangsonParser.a(nbt);
+                final net.minecraft.world.item.ItemStack nmsItem = asNMSCopy(itemStack);
+
+                final NBTTagCompound original = getCompoundOrCreate(nmsItem);
+                original.a(compound);
+
+                // Set NBT to the item if was empty
+                if (!nmsItem.t()) {
+                    nmsItem.c(compound);
+                }
+
+                return NBTNative.asBukkitCopy(nmsItem);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new IllegalArgumentException("Could not parse NBT! " + nbt);
+            }
+        }
+        throw new IllegalArgumentException("nbt must be wrapped between {}!");
     }
 
 }
