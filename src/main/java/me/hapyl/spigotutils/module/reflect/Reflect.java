@@ -700,7 +700,7 @@ public final class Reflect {
             for (Player receiver : receivers) {
                 manager.sendServerPacket(receiver, packet);
             }
-        } catch (InvocationTargetException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

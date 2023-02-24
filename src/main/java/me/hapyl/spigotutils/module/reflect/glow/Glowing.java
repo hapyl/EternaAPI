@@ -4,6 +4,8 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -19,10 +21,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Note: If you're glowing for other players, you will currently glow for yourself when other are near you.
@@ -38,7 +37,7 @@ public class Glowing implements Ticking, GlowingListener {
 
     private boolean status;
 
-    private final Set<Player> viewers;
+    private final Set<Player> players;
     private final Map<Player, ChatColor> oldColor = Maps.newHashMap();
     private final Entity entity;
 
@@ -64,7 +63,7 @@ public class Glowing implements Ticking, GlowingListener {
         this.duration = duration;
         this.everyoneIsListener = false;
         this.status = false;
-        this.viewers = Sets.newHashSet();
+        this.players = Sets.newHashSet();
         this.setColor(color);
 
         EternaPlugin.getPlugin().getGlowingManager().addGlowing(entity, this);
@@ -73,7 +72,7 @@ public class Glowing implements Ticking, GlowingListener {
     // static shortcuts
     public static void glow(Entity entity, ChatColor color, int duration, @Nullable Player... viewers) {
         final Glowing glowing = new Glowing(entity, color, duration);
-        glowing.addViewersOrGlobal(viewers);
+        glowing.addPlayerOrGlobal(viewers);
         glowing.glow();
     }
 
@@ -117,19 +116,14 @@ public class Glowing implements Ticking, GlowingListener {
         final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
         packet.getIntegers().write(0, entity.getEntityId());
 
-        final WrappedDataWatcher data = new WrappedDataWatcher();
+        final WrappedDataWatcher dataWatcher = WrappedDataWatcher.getEntityWatcher(entity);
         final WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.get(Byte.class);
+        final StructureModifier<List<WrappedDataValue>> modifier = packet.getDataValueCollectionModifier();
 
-        final WrappedDataWatcher realData = WrappedDataWatcher.getEntityWatcher(entity);
+        final byte bitMask = dataWatcher.getByte(0);
 
-        final byte initByte = realData.getByte(0);
-        final byte bitMask = (byte) 0x40;
+        modifier.write(0, List.of(new WrappedDataValue(0, serializer, !flag ? bitMask : (byte) (bitMask | 0x40))));
 
-        data.setEntity(entity);
-        data.setObject(0, serializer, (byte) (flag ? (initByte | bitMask) : (initByte & ~bitMask)));
-        packet.getWatchableCollectionModifier().write(0, data.getWatchableObjects());
-
-        // send packet
         try {
             if (isEveryoneIsListener()) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
@@ -137,13 +131,14 @@ public class Glowing implements Ticking, GlowingListener {
                 }
             }
             else {
-                for (Player player : viewers) {
+                for (Player player : players) {
                     manager.sendServerPacket(player, packet);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public final Entity getEntity() {
@@ -154,8 +149,8 @@ public class Glowing implements Ticking, GlowingListener {
         return color;
     }
 
-    public final Set<Player> getViewers() {
-        return viewers;
+    public final Set<Player> getPlayers() {
+        return players;
     }
 
     @Override
@@ -191,24 +186,24 @@ public class Glowing implements Ticking, GlowingListener {
      *
      * @param player - Player.
      */
-    public final void addViewer(Player player) {
-        this.viewers.add(player);
+    public final void addPlayer(Player player) {
+        this.players.add(player);
     }
 
-    public final void addViewers(Player... players) {
-        this.viewers.addAll(Arrays.asList(players));
+    public final void addPlayer(Player... players) {
+        this.players.addAll(Arrays.asList(players));
     }
 
-    public final void addViewers(Collection<Player> players) {
-        this.viewers.addAll(players);
+    public final void addPlayer(Collection<Player> players) {
+        this.players.addAll(players);
     }
 
-    public final void addViewersOrGlobal(Player... players) {
+    public final void addPlayerOrGlobal(Player... players) {
         if (players == null || players.length == 0) {
             setEveryoneIsListener(true);
         }
         else {
-            addViewers(players);
+            addPlayer(players);
         }
     }
 
@@ -217,8 +212,8 @@ public class Glowing implements Ticking, GlowingListener {
      *
      * @param player - Player.
      */
-    public final void removeViewer(Player player) {
-        this.viewers.remove(player);
+    public final void removePlayer(Player player) {
+        this.players.remove(player);
     }
 
     /**
@@ -227,8 +222,8 @@ public class Glowing implements Ticking, GlowingListener {
      * @param player - Player.
      * @return true is player can see the glowing.
      */
-    public final boolean isViewer(Player player) {
-        return this.viewers.contains(player);
+    public final boolean isPlayer(Player player) {
+        return this.players.contains(player);
     }
 
     /**
@@ -277,16 +272,16 @@ public class Glowing implements Ticking, GlowingListener {
     }
 
     private void updateTeamColor() {
-        viewers.forEach(player -> getTeamOrCreate(player).setColor(this.color));
+        players.forEach(player -> getTeamOrCreate(player).setColor(this.color));
     }
 
     private void createTeam(boolean flag) {
-        if (viewers.isEmpty()) {
+        if (players.isEmpty()) {
             return;
         }
 
         // Create team
-        viewers.forEach(player -> {
+        players.forEach(player -> {
             if (flag) {
                 final Team team = getTeamOrCreate(player);
                 team.addEntry(getEntityName());

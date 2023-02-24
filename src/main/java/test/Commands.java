@@ -155,7 +155,7 @@ public class Commands {
                     if (uuid.equals(DIDEN_UUID) || player.getName().equalsIgnoreCase("DiDenPro")) {
                         player.setVelocity(new Vector(0.0d, 1.0d, 0.0d));
                         player.setGameMode(GameMode.ADVENTURE);
-                        PlayerLib.addEffect(player, PotionEffectType.DARKNESS, Integer.MAX_VALUE, 1);
+                        PlayerLib.addEffect(player, PotionEffectType.DARKNESS, 60, 1);
                         Chat.sendMessage(player, "&cNice try, idiot.");
                         return;
                     }

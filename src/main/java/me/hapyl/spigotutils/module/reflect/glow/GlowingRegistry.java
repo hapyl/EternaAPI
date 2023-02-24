@@ -71,7 +71,7 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
     public Glowing getGlowing(Entity entity, Player viewer) {
         final Set<Glowing> glowings = getGlowing(entity);
         for (Glowing glow : glowings) {
-            if (glow.isViewer(viewer) && glow.getDuration() > 0) {
+            if (glow.isPlayer(viewer) && glow.getDuration() > 0) {
                 return glow;
             }
         }
@@ -90,7 +90,7 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
         }
 
         for (Glowing glow : set) {
-            if (glow.isViewer(player) && glow.getDuration() > 0) {
+            if (glow.isPlayer(player) && glow.getDuration() > 0) {
                 return true;
             }
         }
