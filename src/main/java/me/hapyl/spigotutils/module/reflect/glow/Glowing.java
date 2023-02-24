@@ -7,7 +7,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.reflect.Ticking;
@@ -21,7 +20,10 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Note: If you're glowing for other players, you will currently glow for yourself when other are near you.
@@ -36,9 +38,9 @@ public class Glowing implements Ticking, GlowingListener {
     private boolean everyoneIsListener;
 
     private boolean status;
+    private ChatColor oldTeamColor;
 
     private final Set<Player> players;
-    private final Map<Player, ChatColor> oldColor = Maps.newHashMap();
     private final Entity entity;
 
     /**
@@ -301,10 +303,10 @@ public class Glowing implements Ticking, GlowingListener {
             return;
         }
 
-        // if glowing entity is player then restore their team is there is one
-        if (entity instanceof Player target) {
-            entryTeam.setColor(oldColor.getOrDefault(target, ChatColor.WHITE));
-            oldColor.remove(target);
+        // restore color if team is not fake
+        if (oldTeamColor != null) {
+            entryTeam.setColor(oldTeamColor);
+            oldTeamColor = null;
         }
 
         // if fake team, remove target from that team
@@ -319,17 +321,23 @@ public class Glowing implements Ticking, GlowingListener {
      */
     private Team getTeamOrCreate(Player player) {
         final Scoreboard scoreboard = player.getScoreboard();
-        Team team = TeamHelper.GLOWING.getTeam(scoreboard);
 
-        if (entity instanceof Player target) {
-            oldColor.putIfAbsent(target, team.getColor());
+        // test for existing team
+        Team team = scoreboard.getEntryTeam(getEntityName());
+
+        if (team == null) {
+            team = TeamHelper.GLOWING.getTeam(scoreboard);
+        }
+        // store team color if using existing
+        else {
+            oldTeamColor = team.getColor();
         }
 
         team.setColor(this.color);
         return team;
     }
-    // returns either player's name or entities UUID to use as entry in a team
 
+    // returns either player's name or entities UUID to use as entry in a team
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
     }
