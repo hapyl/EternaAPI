@@ -55,8 +55,6 @@ import java.util.function.Consumer;
 /**
  * Allows to create SIMPLE player NPCs with support of clicks.
  * For complex NPCs use CitizensAPI
- *
- * TODO -> Rework NMS using protocol maybe?
  */
 @SuppressWarnings("unused")
 @TestedNMS(version = "1.19.3")
@@ -163,6 +161,18 @@ public class HumanNPC implements Intractable, Human {
         this.alive = true;
     }
 
+    public static Human create(Location location) {
+        return create(location, "", "");
+    }
+
+    public static Human create(Location location, String name) {
+        return create(location, name, "");
+    }
+
+    public static Human create(Location location, String name, String skin) {
+        return new HumanNPC(location, name, skin);
+    }
+
     public static boolean isNPC(int entityId) {
         return EternaRegistry.getNpcRegistry().isRegistered(entityId);
     }
@@ -179,7 +189,7 @@ public class HumanNPC implements Intractable, Human {
     }
 
     @Override
-    public void setShoulderEntity(boolean shoulder, boolean status) {
+    public void setShoulderEntity(Shoulder shoulder, boolean status) {
         throw new NotImplementedException("setShoulderEntity not yet implemented");
     }
 

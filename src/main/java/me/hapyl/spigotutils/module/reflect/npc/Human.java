@@ -10,14 +10,72 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface Human {
+
+    /**
+     * Static access to creating NPC.
+     *
+     * @param location - Location to create at.
+     */
+    static Human create(Location location) {
+        return HumanNPC.create(location);
+    }
+
+    /**
+     * Static access to creating NPC.
+     *
+     * @param location - Location to create at.
+     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
+     */
+    static Human create(Location location, String name) {
+        return HumanNPC.create(location, name);
+    }
+
+    /**
+     * Static access to creating NPC.
+     *
+     * @param location - Location to create at.
+     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
+     * @param skin     - Skin owner username.
+     */
+    static Human create(Location location, String name, String skin) {
+        return HumanNPC.create(location, name, skin);
+    }
+
+    /**
+     * Sets the remaining freeze ticks for NPC.
+     *
+     * @param ticks - Ticks.
+     */
     void setFreezeTicks(int ticks);
 
+    /**
+     * Returns remaining freeze ticks.
+     *
+     * @return remaining freeze ticks.
+     */
     int getFreezeTicks();
 
-    void setShoulderEntity(boolean shoulder, boolean status);
+    /**
+     * Changes NPC's should entity.
+     *
+     * @param shoulder - Shoulder.
+     * @param status   - Enable or disable entity.
+     */
+    void setShoulderEntity(Shoulder shoulder, boolean status);
 
+    /**
+     * Returns true if NPC can be seen by the player.
+     *
+     * @param player - The player.
+     * @return true if NPC can be seen by the player.
+     */
     boolean isShowingTo(Player player);
 
+    /**
+     * Changes NPC pose.
+     *
+     * @param pose - New pose.
+     */
     HumanNPC setPose(NPCPose pose);
 
     /**
@@ -60,7 +118,7 @@ public interface Human {
 
     /**
      * Ignores NPC's equipment and sends a "ghost" item to provided players.
-     * {@link HumanNPC#updateEquipment(Player...)} will reset NPC's "ghost" equipment.
+     * {@link Human#updateEquipment()} will reset NPC's "ghost" equipment.
      *
      * @param slot    - Slot to put items on.
      * @param item    - Item.
@@ -131,7 +189,7 @@ public interface Human {
     void playAnimation(NPCAnimation animation);
 
     /**
-     * Updates NPC's DataWatcher. Used after calling {@link HumanNPC#setDataWatcherByteValue(int, byte, Player...)}
+     * Updates NPC's DataWatcher. Used after calling {@link HumanNPC#setDataWatcherByteValue(int, byte)}
      */
     void updateDataWatcher();
 
