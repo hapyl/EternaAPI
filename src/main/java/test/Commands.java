@@ -139,6 +139,10 @@ public class Commands {
             TablistTest.run(player, args.length == 1 ? args[0] : "");
         });
 
+        registerTestCommand("visibility", ((player, args) -> {
+            TestVisibility.run(player);
+        }));
+
     }
 
     private static final CommandProcessor processor = new CommandProcessor();
