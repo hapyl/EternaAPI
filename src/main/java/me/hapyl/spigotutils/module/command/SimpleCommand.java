@@ -433,7 +433,7 @@ public abstract class SimpleCommand {
                 }
 
                 // permission check
-                if ((cmd.isAllowOnlyOp() && !sender.isOp()) || !sender.hasPermission(cmd.getPermission())) {
+                if ((cmd.isAllowOnlyOp() && !sender.isOp()) || (cmd.hasPermission() && !sender.hasPermission(cmd.getPermission()))) {
                     Chat.sendMessage(sender, "&4No permissions.");
                     return true;
                 }
@@ -480,6 +480,10 @@ public abstract class SimpleCommand {
                 return strings == null ? defaultCompleter() : strings;
             }
         };
+    }
+
+    private boolean hasPermission() {
+        return permission != null && !permission.isEmpty();
     }
 
     private static List<String> defaultCompleter() {

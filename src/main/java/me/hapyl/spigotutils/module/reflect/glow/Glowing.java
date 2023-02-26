@@ -83,7 +83,8 @@ public class Glowing implements Ticking, GlowingListener {
     }
 
     public static void stopGlowing(Entity entity) {
-        EternaPlugin.getPlugin().getGlowingManager().removeGlowing(entity);
+        final GlowingRegistry glowingManager = EternaPlugin.getPlugin().getGlowingManager();
+        glowingManager.stopGlowing(entity);
     }
 
     @Override

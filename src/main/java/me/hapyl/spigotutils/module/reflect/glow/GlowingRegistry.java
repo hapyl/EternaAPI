@@ -55,7 +55,7 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
         final Set<Glowing> set = getGlowing(entity);
 
         for (Glowing glow : set) {
-            glow.forceStop();
+            glow.stop();
         }
     }
 
