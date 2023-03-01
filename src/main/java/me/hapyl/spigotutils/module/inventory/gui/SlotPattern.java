@@ -1,10 +1,11 @@
 package me.hapyl.spigotutils.module.inventory.gui;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public final class SlotPattern {
 
@@ -12,108 +13,198 @@ public final class SlotPattern {
      * Fills inner layer left to right.
      */
     public static final SlotPattern INNER_LEFT_TO_RIGHT = new SlotPattern(new byte[][] {
-            { 0, 1, 0, 0, 0, 0, 0, 0, 0 }, // 1
-            { 0, 1, 1, 0, 0, 0, 0, 0, 0 }, // 2
-            { 0, 1, 1, 1, 0, 0, 0, 0, 0 }, // 3
-            { 0, 1, 1, 1, 1, 0, 0, 0, 0 }, // 4
-            { 0, 1, 1, 1, 1, 1, 0, 0, 0 }, // 5
-            { 0, 1, 1, 1, 1, 1, 1, 0, 0 }, // 6
-            { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 7
+            { 0, 1, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 1, 1, 0, 0, 0, 0, 0, 0 },
+            { 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+            { 0, 1, 1, 1, 1, 0, 0, 0, 0 },
+            { 0, 1, 1, 1, 1, 1, 0, 0, 0 },
+            { 0, 1, 1, 1, 1, 1, 1, 0, 0 },
+            { 0, 1, 1, 1, 1, 1, 1, 1, 0 },
     });
 
     /**
      * Fills inner layer right to left.
      */
     public static final SlotPattern INNER_RIGHT_TO_LEFT = new SlotPattern(new byte[][] {
-            { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, // 1
-            { 0, 0, 0, 0, 0, 0, 1, 1, 0 }, // 2
-            { 0, 0, 0, 0, 0, 1, 1, 1, 0 }, // 3
-            { 0, 0, 0, 0, 1, 1, 1, 1, 0 }, // 4
-            { 0, 0, 0, 1, 1, 1, 1, 1, 0 }, // 5
-            { 0, 0, 1, 1, 1, 1, 1, 1, 0 }, // 6
-            { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 7
+            { 0, 0, 0, 0, 0, 0, 0, 1, 0 },
+            { 0, 0, 0, 0, 0, 0, 1, 1, 0 },
+            { 0, 0, 0, 0, 0, 1, 1, 1, 0 },
+            { 0, 0, 0, 0, 1, 1, 1, 1, 0 },
+            { 0, 0, 0, 1, 1, 1, 1, 1, 0 },
+            { 0, 0, 1, 1, 1, 1, 1, 1, 0 },
+            { 0, 1, 1, 1, 1, 1, 1, 1, 0 },
     });
 
     /**
      * More chunky version of default pattern.
      */
     public static final SlotPattern CHUNKY = new SlotPattern(new byte[][] {
-            { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // 1
-            { 0, 0, 0, 1, 0, 1, 0, 0, 0 }, // 2
-            { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // 3
-            { 0, 0, 1, 1, 0, 1, 1, 0, 0 }, // 4
-            { 0, 0, 1, 1, 1, 1, 1, 0, 0 }, // 5
-            { 0, 1, 1, 1, 0, 1, 1, 1, 0 }, // 6
-            { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 7
-            { 1, 1, 1, 1, 0, 1, 1, 1, 1 }, // 8
-            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }  // 9
+            { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+            { 0, 0, 0, 1, 0, 1, 0, 0, 0 },
+            { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+            { 0, 0, 1, 1, 0, 1, 1, 0, 0 },
+            { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+            { 0, 1, 1, 1, 0, 1, 1, 1, 0 },
+            { 0, 1, 1, 1, 1, 1, 1, 1, 0 },
+            { 1, 1, 1, 1, 0, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }
     });
 
     /**
      * Standard pattern.
      */
     public static final SlotPattern DEFAULT = new SlotPattern(new byte[][] {
-            { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // 1
-            { 0, 0, 0, 1, 0, 1, 0, 0, 0 }, // 2
-            { 0, 0, 1, 0, 1, 0, 1, 0, 0 }, // 3
-            { 0, 0, 1, 1, 0, 1, 1, 0, 0 }, // 4
-            { 0, 0, 1, 1, 1, 1, 1, 0, 0 }  // 5
+            { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+            { 0, 0, 0, 1, 0, 1, 0, 0, 0 },
+            { 0, 0, 1, 0, 1, 0, 1, 0, 0 },
+            { 0, 0, 1, 1, 0, 1, 1, 0, 0 },
+            { 0, 0, 1, 1, 1, 1, 1, 0, 0 }
     });
 
+    /**
+     * Fills outer layer left to right.
+     */
     public static final SlotPattern LEFT_TO_RIGHT = new SlotPattern(new byte[][] {
-            { 1, 1, 0, 0, 0, 0, 0, 0, 0 }, // 1
-            { 1, 1, 0, 0, 0, 0, 0, 0, 0 }, // 2
-            { 1, 1, 1, 0, 0, 0, 0, 0, 0 }, // 3
-            { 1, 1, 1, 1, 0, 0, 0, 0, 0 }, // 4
-            { 1, 1, 1, 1, 1, 0, 0, 0, 0 }, // 5
-            { 1, 1, 1, 1, 1, 1, 0, 0, 0 }, // 6
-            { 1, 1, 1, 1, 1, 1, 1, 0, 0 }, // 7
-            { 1, 1, 1, 1, 1, 1, 1, 1, 0 }, // 8
-            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 9
+            { 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 1, 1, 0, 0, 0, 0, 0, 0, 0 },
+            { 1, 1, 1, 0, 0, 0, 0, 0, 0 },
+            { 1, 1, 1, 1, 0, 0, 0, 0, 0 },
+            { 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+            { 1, 1, 1, 1, 1, 1, 0, 0, 0 },
+            { 1, 1, 1, 1, 1, 1, 1, 0, 0 },
+            { 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+            { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     });
 
+    /**
+     * Fills outer layer right to left.
+     */
     public static final SlotPattern RIGHT_TO_LEFT = new SlotPattern(new byte[][] {
-            { 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 1
-            { 0, 0, 0, 0, 0, 0, 0, 1, 1 }, // 2
-            { 0, 0, 0, 0, 0, 0, 1, 1, 1 }, // 3
-            { 0, 0, 0, 0, 0, 1, 1, 1, 1 }, // 4
-            { 0, 0, 0, 0, 1, 1, 1, 1, 1 }, // 5
-            { 0, 0, 0, 1, 1, 1, 1, 1, 1 }, // 6
-            { 0, 0, 1, 1, 1, 1, 1, 1, 1 }, // 7
-            { 0, 1, 1, 1, 1, 1, 1, 1, 1 }, // 8
-            { 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 9
+            { 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+            { 0, 0, 0, 0, 0, 0, 0, 1, 1 },
+            { 0, 0, 0, 0, 0, 0, 1, 1, 1 },
+            { 0, 0, 0, 0, 0, 1, 1, 1, 1 },
+            { 0, 0, 0, 0, 1, 1, 1, 1, 1 },
+            { 0, 0, 0, 1, 1, 1, 1, 1, 1 },
+            { 0, 0, 1, 1, 1, 1, 1, 1, 1 },
+            { 0, 1, 1, 1, 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     });
 
+    /**
+     * Fills outer layer top to bottom, similar (I think) to hypixel's pattern.
+     */
     public static final SlotPattern FANCY = new SlotPattern(new byte[][] {
-            { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // 1
-            { 0, 0, 0, 1, 0, 1, 0, 0, 0 }, // 1
-            { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // 1
-            { 0, 0, 1, 1, 0, 1, 1, 0, 0 }, // 1
-            { 0, 0, 1, 1, 1, 1, 1, 0, 0 }, // 1
-            { 0, 1, 1, 1, 0, 1, 1, 1, 0 }, // 1
-            { 0, 1, 1, 1, 1, 1, 1, 1, 0 }, // 1
+            { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+            { 0, 0, 0, 1, 0, 1, 0, 0, 0 },
+            { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+            { 0, 0, 1, 1, 0, 1, 1, 0, 0 },
+            { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+            { 0, 1, 1, 1, 0, 1, 1, 1, 0 },
+            { 0, 1, 1, 1, 1, 1, 1, 1, 0 },
     });
 
+    private final Map<Integer, byte[]> compiled;
     private final byte[][] pattern;
+
+    private int maxPatternSize;
 
     /**
      * @throws IllegalArgumentException if pattern length is not 9
      */
     public SlotPattern(byte[][] pattern) {
         for (byte[] bytes : pattern) {
-            if (bytes.length != 9) {
-                throw new IllegalArgumentException("pattern length must be 9, not " + bytes.length);
+            Validate.isTrue(countOnes(bytes) != 0, "Do not use empty lines in pattern! %s".formatted(Arrays.toString(bytes)));
+            Validate.isTrue(bytes.length == 9, "Pattern must have a length of 9, not %s!".formatted(bytes.length));
+        }
+
+        this.maxPatternSize = 0;
+        this.pattern = pattern;
+        this.compiled = Maps.newHashMap();
+        compile();
+    }
+
+    public byte[][] getPattern() {
+        return pattern;
+    }
+
+    /**
+     * Applies the pattern to the gui.
+     *
+     * @param gui      the gui to apply the pattern to.
+     * @param items    the items to apply to the gui.
+     * @param startRow the row to start the pattern from.
+     */
+    public void apply(GUI gui, LinkedHashMap<ItemStack, GUIClick> items, int startRow) {
+        final List<List<ItemStack>> subList = subList(items);
+
+        for (List<ItemStack> itemStacks : subList) {
+            final byte[] bytes = compiled.get(itemStacks.size());
+
+            for (int i = 0; i < itemStacks.size(); i++) {
+                final ItemStack item = itemStacks.get(i);
+
+                int one = 0;
+                for (int j = 0; j < bytes.length; j++) {
+                    if (bytes[j] == 1) {
+                        if (one == i) {
+                            final int slot = j + (startRow * 9);
+                            final GUIClick click = items.get(item);
+
+                            gui.setItem(slot, item, click);
+                        }
+                        one++;
+                    }
+                }
+            }
+            startRow++;
+        }
+    }
+
+    private List<List<ItemStack>> subList(LinkedHashMap<ItemStack, GUIClick> items) {
+        final List<List<ItemStack>> subList = Lists.newArrayList();
+        final List<ItemStack> mapToList = Lists.newArrayList(items.keySet());
+
+        for (int i = 0; i < mapToList.size(); i += maxPatternSize) {
+            subList.add(mapToList.subList(i, Math.min(i + maxPatternSize, mapToList.size())));
+        }
+
+        return subList;
+    }
+
+    private void compile() {
+        for (byte[] bytes : pattern) {
+            final int ones = countOnes(bytes);
+
+            if (maxPatternSize == 0 || ones > maxPatternSize) {
+                maxPatternSize = ones;
+            }
+
+            if (compiled.containsKey(ones)) {
+                throw new IllegalArgumentException("Pattern contains duplicate lines! (%s)".formatted(Arrays.toString(bytes)));
+            }
+            compiled.put(ones, bytes);
+        }
+    }
+
+    private int countOnes(byte[] pattern) {
+        int count = 0;
+        for (byte b : pattern) {
+            if (b == 1) {
+                count++;
             }
         }
-        this.pattern = pattern;
+        return count;
     }
 
     // Converts Collection of ItemStack to slots depending on items size.
+    @Deprecated
     public List<Integer> getSlots(Collection<ItemStack> items, int startLine) {
         return getSlots(calculateBytes(items), startLine);
     }
 
     // Converts bytes into list of slots to put items to.
+    @Deprecated
     public List<Integer> getSlots(byte[][] bytes, int startLine) {
         final List<Integer> slots = new ArrayList<>();
 
@@ -124,10 +215,12 @@ public final class SlotPattern {
                 }
             }
         }
+
         return slots;
     }
 
     // Calculates Collection of ItemStack to byte based on current pattern.
+    @Deprecated
     public byte[][] calculateBytes(Collection<ItemStack> items) {
         final int size = items.size();
         final int sizeScaled = (int) Math.ceil(size / 5.0f);
@@ -151,7 +244,5 @@ public final class SlotPattern {
         return bytes;
     }
 
-    public byte[][] getPattern() {
-        return pattern;
-    }
+
 }

@@ -300,7 +300,7 @@ public class GUI {
 
     // Private Set Item (super)
 
-    private void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
+    protected void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
         if (slot > this.size) {
             throw new IndexOutOfBoundsException(String.format("There are only %s slots, given %s.", this.size, slot));
         }
@@ -390,7 +390,7 @@ public class GUI {
     }
 
     // Private Set Click (super)
-    private void setClick(int slot, GUIClick action) {
+    protected void setClick(int slot, GUIClick action) {
         if (action != null) {
             this.bySlot.put(slot, action);
         }
@@ -625,18 +625,23 @@ public class GUI {
         fillItems(map, pattern, startLine);
     }
 
+    /**
+     * @deprecated Use {@link SlotPattern#apply(GUI, LinkedHashMap, int)} instead.
+     */
     @Super
+    @Deprecated
     public final void fillItems(Map<ItemStack, GUIClick> items, SlotPattern pattern, int startLine) {
-        final List<Integer> slots = pattern.getSlots(items.keySet(), startLine);
-        final Iterator<ItemStack> iterator = items.keySet().iterator();
-        for (Integer slot : slots) {
-            if (size < slot || !iterator.hasNext()) {
-                continue;
-            }
-
-            final ItemStack item = iterator.next();
-            setItem(slot, item, items.get(item));
-        }
+        pattern.apply(this, (LinkedHashMap<ItemStack, GUIClick>) items, startLine);
+        //        final List<Integer> slots = pattern.getSlots(items.keySet(), startLine);
+        //        final Iterator<ItemStack> iterator = items.keySet().iterator();
+        //        for (Integer slot : slots) {
+        //            if (size < slot || !iterator.hasNext()) {
+        //                continue;
+        //            }
+        //
+        //            final ItemStack item = iterator.next();
+        //            setItem(slot, item, items.get(item));
+        //        }
     }
 
     /**
