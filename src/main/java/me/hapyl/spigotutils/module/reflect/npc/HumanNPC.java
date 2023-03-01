@@ -60,6 +60,8 @@ import java.util.function.Consumer;
 @TestedNMS(version = "1.19.3")
 public class HumanNPC implements Intractable, Human {
 
+    // TODO: 001, Mar 1, 2023 -> Extract methods into Human.
+
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
 
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -792,6 +794,7 @@ public class HumanNPC implements Intractable, Human {
         this.packetDestroy.sendPackets(getPlayers());
     }
 
+    @InvokePolicy(Policy.BEFORE_SPAWN)
     public HumanNPC setCollision(boolean flag) {
         collision = flag;
         return this;

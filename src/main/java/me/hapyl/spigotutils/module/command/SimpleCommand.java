@@ -468,7 +468,7 @@ public abstract class SimpleCommand {
             @Nonnull
             public List<String> tabComplete(@Nonnull CommandSender sender, @Nonnull String alias, @Nonnull String[] args) throws IllegalArgumentException {
                 if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
-                    return Collections.emptyList();
+                    return defaultCompleter();
                 }
 
                 final List<String> strings = cmd.tabComplete(sender, args);
@@ -477,7 +477,7 @@ public abstract class SimpleCommand {
                     strings.addAll(cmd.completerSort(cmd.getCompleterValues(args.length), args));
                 }
 
-                return strings == null ? defaultCompleter() : strings;
+                return (strings == null || strings.isEmpty()) ? defaultCompleter() : strings;
             }
         };
     }
