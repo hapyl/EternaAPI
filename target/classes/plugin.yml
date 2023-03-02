@@ -1,0 +1,9 @@
+name: "EternaAPI"
+main: "me.hapyl.spigotutils.EternaPlugin"
+version: 2.9.2-SNAPSHOT
+author: "hapyl"
+description: An API for Spigot development.
+prefix: "EternaAPI"
+api-version: 1.19
+depend:
+  - ProtocolLib
