@@ -82,10 +82,11 @@ public final class GUIListener implements Listener {
     public void handleInventoryCloseEvent(InventoryCloseEvent ev) {
         final Player player = (Player) ev.getPlayer();
         final GUI gui = GUI.getPlayerGUI(player);
-        if (gui != null && gui.getCloseEvent() != null) {
-            gui.getCloseEvent().invoke(player);
-            GUI.removePlayerGUI(player);
 
+        if (gui != null && gui.compareInventory(ev.getInventory()) && gui.getCloseEvent() != null) {
+            // GUI.removePlayerGUI(player); - This is not needed.
+
+            Nulls.runIfNotNull(gui.getCloseEvent(), event -> event.invoke(player));
             Nulls.runIfNotNull(gui.getEventHandler(), h -> h.onClose(gui, player));
         }
     }
@@ -94,7 +95,7 @@ public final class GUIListener implements Listener {
     public void handleInventoryOpenEvent(InventoryOpenEvent ev) {
         final Player player = (Player) ev.getPlayer();
         final GUI gui = GUI.getPlayerGUI(player);
-        if (gui != null && gui.getOpenEvent() != null) {
+        if (gui != null && gui.compareInventory(ev.getInventory()) && gui.getOpenEvent() != null) {
             gui.getOpenEvent().invoke(player);
 
             Nulls.runIfNotNull(gui.getEventHandler(), h -> h.onOpen(gui, player));
