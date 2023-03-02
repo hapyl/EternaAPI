@@ -138,6 +138,7 @@ public abstract class SimpleCommand {
      * @param args   - Arguments of the command
      * @return Sorted list with valid arguments
      */
+    @Nullable
     protected List<String> tabComplete(CommandSender sender, String[] args) {
         return Lists.newArrayList();
     }
@@ -471,14 +472,16 @@ public abstract class SimpleCommand {
                     return defaultCompleter();
                 }
 
-                final List<String> strings = cmd.tabComplete(sender, args);
+                final List<String> tabComplete = cmd.tabComplete(sender, args);
+                final List<String> strings = tabComplete == null ? Lists.newArrayList() : tabComplete;
 
                 if (cmd.hasCompleterValues(args.length)) {
                     strings.addAll(cmd.completerSort(cmd.getCompleterValues(args.length), args));
                 }
 
-                return (strings == null || strings.isEmpty()) ? defaultCompleter() : strings;
+                return strings.isEmpty() ? defaultCompleter() : strings;
             }
+
         };
     }
 
