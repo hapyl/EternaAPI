@@ -5,6 +5,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Map;
 
+/**
+ * Represents a GUI properties.
+ */
 public class Properties {
 
     private final Map<Player, Long> lastClick;

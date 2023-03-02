@@ -5,6 +5,9 @@ import org.bukkit.event.inventory.ClickType;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a click event for a GUI, stored per ClickType.
+ */
 public class GUIClick {
 
     private final Map<ClickType, Action> perClickAction;

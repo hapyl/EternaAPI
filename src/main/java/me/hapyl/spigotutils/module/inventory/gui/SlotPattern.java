@@ -110,7 +110,11 @@ public final class SlotPattern {
     private int maxPatternSize;
 
     /**
-     * @throws IllegalArgumentException if pattern length is not 9
+     * Creates a new slot pattern.
+     *
+     * @param pattern - the pattern to use.
+     * @throws IllegalArgumentException if there is an empty line in the pattern.
+     * @throws IllegalArgumentException if the pattern[i] length is not 9.
      */
     public SlotPattern(byte[][] pattern) {
         for (byte[] bytes : pattern) {
@@ -124,8 +128,8 @@ public final class SlotPattern {
         compile();
     }
 
-    public byte[][] getPattern() {
-        return pattern;
+    public static SlotPatternBuilder builder() {
+        return new SlotPatternBuilder();
     }
 
     /**
@@ -134,12 +138,13 @@ public final class SlotPattern {
      * @param gui      the gui to apply the pattern to.
      * @param items    the items to apply to the gui.
      * @param startRow the row to start the pattern from.
+     * @throws IllegalArgumentException if no valid pattern can be found.
      */
     public void apply(GUI gui, LinkedHashMap<ItemStack, GUIClick> items, int startRow) {
         final List<List<ItemStack>> subList = subList(items);
 
         for (List<ItemStack> itemStacks : subList) {
-            final byte[] bytes = compiled.get(itemStacks.size());
+            final byte[] bytes = getPattern(itemStacks.size());
 
             for (int i = 0; i < itemStacks.size(); i++) {
                 final ItemStack item = itemStacks.get(i);
@@ -159,6 +164,37 @@ public final class SlotPattern {
             }
             startRow++;
         }
+    }
+
+    public byte[][] getPattern() {
+        return pattern;
+    }
+
+    private byte[] getPattern(int size) {
+        byte[] pattern = compiled.get(size);
+        if (pattern == null) {
+            // Find the closest pattern.
+            int index = 0;
+            int closest = Integer.MAX_VALUE;
+
+            for (int i = 0; i < this.pattern.length; i++) {
+                final int ones = countOnes(this.pattern[i]);
+                final int diff = Math.abs(ones - size);
+
+                if (diff < closest) {
+                    closest = diff;
+                    index = i;
+                }
+            }
+
+            pattern = this.pattern[index];
+        }
+
+        if (pattern == null) {
+            throw new IllegalStateException("Could not find pattern for size %s!".formatted(size));
+        }
+
+        return pattern;
     }
 
     private List<List<ItemStack>> subList(LinkedHashMap<ItemStack, GUIClick> items) {

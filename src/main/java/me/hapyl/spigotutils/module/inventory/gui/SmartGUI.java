@@ -3,6 +3,10 @@ package me.hapyl.spigotutils.module.inventory.gui;
 import me.hapyl.spigotutils.module.annotate.Super;
 import org.bukkit.entity.Player;
 
+/**
+ * @deprecated Use {@link PlayerAutoGUI} instead.
+ */
+@Deprecated
 public class SmartGUI extends PlayerGUI {
 
     private final SmartComponent smart;

@@ -1,4 +1,4 @@
-package me.hapyl.spigotutils.module.math.gometry;
+package me.hapyl.spigotutils.module.math.geometry;
 
 import me.hapyl.spigotutils.module.math.Numbers;
 

@@ -23,6 +23,8 @@ import java.util.*;
 /**
  * A powerful GUI creator class.
  * Allows to add items, click events, close and open events or even add your own listener.
+ *
+ * It is recommended to use {@link PlayerGUI} or it's subclasses instead of this class.
  */
 public class GUI {
 

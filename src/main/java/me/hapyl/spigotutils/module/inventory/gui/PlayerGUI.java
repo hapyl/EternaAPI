@@ -2,6 +2,9 @@ package me.hapyl.spigotutils.module.inventory.gui;
 
 import org.bukkit.entity.Player;
 
+/**
+ * Represents a GUI that is opened to a player.
+ */
 public class PlayerGUI extends GUI {
 
     private final Player player;

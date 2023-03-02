@@ -9,7 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class GUIListener implements Listener {
+/**
+ * A listener implementation for GUIs.
+ */
+public final class GUIListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handleGUIDrag(InventoryDragEvent ev) {

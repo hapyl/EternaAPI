@@ -4,6 +4,9 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Represents a GUI event handler.
+ */
 public interface GUIEventHandler {
 
     void onOpen(@Nonnull GUI gui, @Nonnull Player player);
