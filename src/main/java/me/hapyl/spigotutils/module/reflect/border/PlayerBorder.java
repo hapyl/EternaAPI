@@ -10,13 +10,13 @@ import org.bukkit.Location;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 
-@EternaModule
-@TestedNMS(version = "1.19.3")
 /**
  * Allows to create per-player world border.
  * Note that this is client only change, and it will
  * be reset after player re-logins.
  */
+@EternaModule
+@TestedNMS(version = "1.19.3")
 public class PlayerBorder extends Holder<Player> {
 
     private final WorldBorder border;

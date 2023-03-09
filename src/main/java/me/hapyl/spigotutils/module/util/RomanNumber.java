@@ -2,6 +2,10 @@ package me.hapyl.spigotutils.module.util;
 
 import java.util.TreeMap;
 
+/**
+ * Converts a number to a roman numeral.
+ * I stole this class from stackoverflow, but I don't remember the link.
+ */
 public class RomanNumber {
 
     private final static TreeMap<Integer, String> map = new TreeMap<>();
@@ -22,6 +26,12 @@ public class RomanNumber {
         map.put(1, "I");
     }
 
+    /**
+     * Converts a number to a roman numeral.
+     *
+     * @param number number to convert
+     * @return roman numeral.
+     */
     public static String toRoman(int number) {
         int l = map.floorKey(number);
         if (number == l) {

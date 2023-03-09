@@ -87,6 +87,47 @@ public class Geometry {
     }
 
     /**
+     * Draws a circle around center anchored to a block, meaning that the circle will be drawn on the highest or lowest block.
+     *
+     * @param center  - center of the circle.
+     * @param radius  - radius of the circle.
+     * @param quality - quality of the circle.
+     * @param draw    - drawable.
+     * @param yOffset - y offset of the circle. <b>Note that offset is added after adding +1</b>
+     */
+    public static void drawCircleAnchored(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Draw draw, double yOffset) {
+        World world = center.getWorld();
+
+        for (double i = 0.0d; i < TWO_PI; i += quality.getStep()) {
+            double x = center.getX() + (radius * Math.cos(i));
+            double z = center.getZ() + (radius * Math.sin(i));
+            Location location = new Location(world, x, center.getY(), z);
+
+            // Adjust the y-coordinate of the location to anchor it to a block
+            while (location.getBlock().getType().isSolid()) {
+                location.add(0, 1, 0);
+            }
+            while (location.getBlock().getType().isAir()) {
+                location.subtract(0, 1, 0);
+            }
+
+            draw.draw(location.add(0.0d, yOffset + 1.0d, 0.0d));
+        }
+    }
+
+    /**
+     * Draws a circle around center anchored to a block, meaning that the circle will be drawn on the highest or lowest block.
+     *
+     * @param center  - center of the circle.
+     * @param radius  - radius of the circle.
+     * @param quality - quality of the circle.
+     * @param draw    - drawable.
+     */
+    public static void drawCircleAnchored(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Draw draw) {
+        drawCircleAnchored(center, radius, quality, draw, 0.0d);
+    }
+
+    /**
      * Draws a line between two points.
      *
      * @param start - Start of the line.

@@ -1,5 +1,4 @@
 # Project exclude paths
 /out/
 .idea
-.github
 target

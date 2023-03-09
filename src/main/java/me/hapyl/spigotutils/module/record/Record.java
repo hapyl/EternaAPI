@@ -25,6 +25,8 @@ import java.util.UUID;
  * --- Sneaking
  * --- Sleeping
  * --- Swimming
+ *
+ * Not implemented: (mark as todo)
  * - Taking damage.
  * - Swinging hands.
  */

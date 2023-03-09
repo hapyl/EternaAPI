@@ -5,10 +5,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Original Class by:
@@ -47,21 +45,35 @@ public class Cuboid {
     }
 
     public Iterator<Block> blockList() {
+        return getBlocks().iterator();
+    }
+
+    public List<Block> getBlocks() {
+        return getBlocks(block -> true);
+    }
+
+    public List<Block> getBlocks(Predicate<Block> predicate) {
         final List<Block> bL = new ArrayList<>(this.getTotalBlockSize());
         for (int x = this.xMin; x <= this.xMax; ++x) {
             for (int y = this.yMin; y <= this.yMax; ++y) {
                 for (int z = this.zMin; z <= this.zMax; ++z) {
                     final Block b = this.world.getBlockAt(x, y, z);
-                    bL.add(b);
+                    if (predicate.test(b)) {
+                        bL.add(b);
+                    }
                 }
             }
         }
-        return bL.iterator();
+        return bL;
+    }
+
+    public Set<Block> getBlockSet() {
+        return new HashSet<>(this.getBlocks());
     }
 
     public Location getCenter() {
         return new Location(this.world, (this.xMax - this.xMin) / 2d + this.xMin, (this.yMax - this.yMin) / 2d + this.yMin,
-                            (this.zMax - this.zMin) / 2d + this.zMin
+                (this.zMax - this.zMin) / 2d + this.zMin
         );
     }
 

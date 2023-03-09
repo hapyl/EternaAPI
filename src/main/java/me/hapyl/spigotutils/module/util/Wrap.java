@@ -1,5 +1,8 @@
 package me.hapyl.spigotutils.module.util;
 
+/**
+ * Represents a wrapper for an array.
+ */
 public interface Wrap {
 
     String start();

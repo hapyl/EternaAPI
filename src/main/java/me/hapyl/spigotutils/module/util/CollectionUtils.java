@@ -10,6 +10,14 @@ import java.util.function.Consumer;
 
 public class CollectionUtils {
 
+    /**
+     * Gets the first element of a list
+     *
+     * @param arrayList - list to get from.
+     * @param index     - index of the element to get.
+     * @param <E>       - type of the list.
+     * @return - the element at the index, or null if the index is out of bounds.
+     */
     @Nullable
     public static <E> E get(List<E> arrayList, int index) {
         return getOrDefault(arrayList, index, null);

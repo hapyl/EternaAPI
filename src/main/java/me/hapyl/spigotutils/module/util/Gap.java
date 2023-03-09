@@ -5,6 +5,10 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @deprecated Use {@link LinkedKeyValMap} instead.
+ */
+@Deprecated
 public class Gap<K, V> {
 
     private final Map<K, V> hashMap;

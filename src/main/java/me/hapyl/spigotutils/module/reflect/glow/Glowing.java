@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Note: If you're glowing for other players, you will currently glow for yourself when other are near you.
- * Currently, IS a bug, but I've wasted so many hours trying to fix this so whatever.
+ * Allows to create per-player glowing.
  */
 public class Glowing implements Ticking, GlowingListener {
 

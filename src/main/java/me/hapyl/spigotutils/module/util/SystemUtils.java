@@ -3,6 +3,9 @@ package me.hapyl.spigotutils.module.util;
 import javax.annotation.Nullable;
 import java.util.Scanner;
 
+/**
+ * System Utils, I guess.
+ */
 public final class SystemUtils {
 
     private SystemUtils() {

@@ -4,6 +4,10 @@ import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+/**
+ * This is used to store internal cooldowns as items.
+ * Not the best way of doing this honestly, but it's fine.
+ */
 public class InternalCooldown {
 
     private final Material material;

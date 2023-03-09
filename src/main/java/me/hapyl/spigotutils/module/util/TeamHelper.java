@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 
 /**
  * This helper works with team to apply collision or name tag visibility.
+ * Should really be called EternaTeams or something.
  */
 public enum TeamHelper {
 
