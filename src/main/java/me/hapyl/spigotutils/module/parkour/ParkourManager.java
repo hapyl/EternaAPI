@@ -75,11 +75,13 @@ public class ParkourManager extends Registry<Position, Parkour> {
             return;
         }
 
+        data.setFinished();
+
         if (tryEventCheckCancel(new ParkourFinishEvent(player, data))) {
+            data.resetFinished();
             return;
         }
 
-        data.setFinished();
         parkourData.remove(player);
 
         data.getPlayerInfo().restore();

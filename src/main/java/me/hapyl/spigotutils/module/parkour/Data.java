@@ -131,6 +131,10 @@ public class Data extends Holder<Player> {
         return stats;
     }
 
+    public void resetFinished() {
+        this.finishedAt = -1;
+    }
+
     public void setFinished() {
         if (finishedAt == -1) {
             return;
@@ -168,6 +172,10 @@ public class Data extends Holder<Player> {
                 ", startedAt=" + startedAt +
                 ", finishedAt=" + finishedAt +
                 '}';
+    }
+
+    public boolean compareParkour(Parkour parkour) {
+        return this.parkour != null && this.parkour.equals(parkour);
     }
 
     // Checks if location is a valid checkpoint

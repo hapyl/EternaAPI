@@ -69,7 +69,6 @@ public class ParkourListener implements Listener {
             ev.setUseInteractedBlock(Event.Result.DENY);
             ev.setCancelled(true);
 
-
             // Start
             if (parkour.getStart().compare(clickedBlockLocation)) {
                 manager().startParkour(player, parkour);
@@ -80,6 +79,11 @@ public class ParkourListener implements Listener {
             if (parkour.getFinish().compare(clickedBlockLocation)) {
                 if (data == null) {
                     parkour.getFormatter().sendErrorParkourNotStarted(player, parkour);
+                    return;
+                }
+
+                // Make sure it's the same parkour lol.
+                if (!data.compareParkour(parkour)) {
                     return;
                 }
 
@@ -101,8 +105,8 @@ public class ParkourListener implements Listener {
             if (data == null || InternalCooldownStorage.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
                 return;
             }
-            InternalCooldownStorage.PARKOUR_CHECKPOINT.start(player);
 
+            InternalCooldownStorage.PARKOUR_CHECKPOINT.start(player);
             ev.setUseInteractedBlock(Event.Result.DENY);
             ev.setCancelled(true);
 

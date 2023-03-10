@@ -113,7 +113,7 @@ public class Position {
         START_OR_FINISH, CHECKPOINT;
 
         public Material material() {
-            return this == CHECKPOINT ? Material.LIGHT_WEIGHTED_PRESSURE_PLATE : Material.HEAVY_WEIGHTED_PRESSURE_PLATE;
+            return this == CHECKPOINT ? Material.HEAVY_WEIGHTED_PRESSURE_PLATE : Material.LIGHT_WEIGHTED_PRESSURE_PLATE;
         }
 
     }

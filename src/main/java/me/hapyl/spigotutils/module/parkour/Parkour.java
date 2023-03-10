@@ -365,28 +365,29 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
             public void sendCheckpointPassed(Data data) {
                 Chat.sendMessage(
                         data.get(),
-                        "Checkpoint! (%s/%s)",
+                        "&aCheckpoint! (%s/%s)",
                         data.passedCheckpointsCount(),
                         data.getParkour().getCheckpoints().size()
                 );
+
                 PlayerLib.playSound(data.get(), Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f);
             }
 
             @Override
             public void sendResetTime(Player player, Parkour parkour) {
-                Chat.sendMessage(player, "Reset time for %s!", parkour.getName());
+                Chat.sendMessage(player, "&cReset time for %s!", parkour.getName());
                 PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
             }
 
             @Override
             public void sendParkourStarted(Player player, Parkour parkour) {
-                Chat.sendMessage(player, "Started %s!", parkour.getName());
+                Chat.sendMessage(player, "&aStarted %s!", parkour.getName());
                 PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
             }
 
             @Override
             public void sendParkourFinished(Data data) {
-                Chat.sendMessage(data.get(), "Finished &a%s&7 in &b%ss&7!", data.getParkour().getName(), data.getTimePassedFormatted());
+                Chat.sendMessage(data.get(), "&aFinished &a%s&7 in &b%ss&7!", data.getParkour().getName(), data.getTimePassedFormatted());
             }
 
             @Override
@@ -399,13 +400,13 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
             @Override
             public void sendHaventPassedCheckpoint(Data data) {
                 final Player player = data.get();
-                Chat.sendMessage(player, "You haven't passed any checkpoints yet!");
+                Chat.sendMessage(player, "&cYou haven't passed any checkpoints yet!");
                 PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
             }
 
             @Override
             public void sendQuit(Data data) {
-                Chat.sendMessage(data.get(), "Quit %s!", data.getParkour().getName());
+                Chat.sendMessage(data.get(), "&cQuit %s!", data.getParkour().getName());
             }
 
             @Override
