@@ -7,6 +7,5 @@ public abstract class SimpleAdminCommand extends SimpleCommand {
     public SimpleAdminCommand(String name) {
         super(name);
         this.setAllowOnlyOp(true);
-        this.setAllowOnlyPlayer(true);
     }
 }
