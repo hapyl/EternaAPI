@@ -140,6 +140,11 @@ public final class Reflect {
         updateMetadata(entity, dataWatcher, players);
     }
 
+    public static <T> T getDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key) {
+        final DataWatcher dataWatcher = getDataWatcher(entity);
+        return dataWatcher.a(type.get().a(key));
+    }
+
     /**
      * Sets DataWatcher byte value.
      *

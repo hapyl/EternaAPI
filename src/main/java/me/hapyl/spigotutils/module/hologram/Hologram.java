@@ -81,7 +81,7 @@ public class Hologram {
      * Removes line at the given index.
      *
      * @param index - Index.
-     * @throws IndexOutOfBoundsException if there is on sucn line.
+     * @throws IndexOutOfBoundsException if there is on such line.
      */
     public Hologram removeLine(int index) throws IndexOutOfBoundsException {
         if (this.lines.size() - 1 < index) {

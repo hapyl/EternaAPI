@@ -28,6 +28,8 @@ import java.util.UUID;
 public class Commands {
 
     public static void createCommands() {
+        registerTestCommand("pose", NPCPoseTest::work);
+
         registerTestCommand("holo", HologramTest::run);
         registerTestCommand("npc", (p, a) -> NPCTest.create(p, a.length >= 1 ? a[0] : p.getName()));
         registerTestCommand("scoreboard", ScoreboardTest::create);

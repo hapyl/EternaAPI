@@ -2,6 +2,8 @@ package me.hapyl.spigotutils.module.reflect.npc;
 
 import net.minecraft.world.entity.EntityPose;
 
+import javax.annotation.Nullable;
+
 public enum NPCPose {
 
     /**
@@ -29,18 +31,31 @@ public enum NPCPose {
      */
     CROUCHING(EntityPose.f),
     /**
-     * Idk
+     * Long Jumping
      */
+    @Deprecated
     LONG_JUMPING(EntityPose.g),
     /**
-     * Idk
+     * Dying
      */
+    @Deprecated
     DYING(EntityPose.h);
 
     private final EntityPose nms;
 
     NPCPose(EntityPose nms) {
         this.nms = nms;
+    }
+
+    @Nullable
+    public static NPCPose fromNMS(EntityPose an) {
+        for (NPCPose value : values()) {
+            if (value.nms == an) {
+                return value;
+            }
+        }
+
+        return null;
     }
 
     public EntityPose getNMSValue() {

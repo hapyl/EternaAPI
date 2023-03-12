@@ -1,13 +1,20 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
+import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.WrappedDataValue;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -33,6 +40,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -146,11 +154,7 @@ public class HumanNPC implements Intractable, Human {
             setSkin(skinOwner);
         }
 
-        this.human = new EntityPlayer(
-                Reflect.getMinecraftServer(),
-                (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
-                profile
-        );
+        this.human = new EntityPlayer(Reflect.getMinecraftServer(), (WorldServer) Reflect.getMinecraftWorld(location.getWorld()), profile);
 
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
@@ -180,14 +184,14 @@ public class HumanNPC implements Intractable, Human {
     }
 
     @Override
-    public void setFreezeTicks(int ticks) {
-        Reflect.setDataWatcherValue(human, DataWatcherType.INT, 7, ticks);
+    public void setShaking(boolean shaking) {
+        Reflect.setDataWatcherValue(human, DataWatcherType.INT, 7, shaking ? 140 : 0);
         updateDataWatcher();
     }
 
     @Override
-    public int getFreezeTicks() {
-        return bukkitEntity().getFreezeTicks();
+    public boolean isShaking() {
+        return Reflect.getDataWatcherValue(human, DataWatcherType.INT, 7) != 0;
     }
 
     @Override
@@ -195,35 +199,33 @@ public class HumanNPC implements Intractable, Human {
         throw new NotImplementedException("setShoulderEntity not yet implemented");
     }
 
+    @Override
     public Player bukkitEntity() {
         return this.human.getBukkitEntity();
     }
 
-    public static void hideAllNames(Scoreboard score) {
-        for (final HumanNPC value : EternaRegistry.getNpcRegistry().getRegistered().values()) {
-            value.hideTabListName();
-        }
-    }
-
+    @Override
     public boolean isAlive() {
         return alive;
     }
 
+    @Override
     public Set<Player> getViewers() {
         return showingTo.keySet();
     }
 
-    private String getPrefix() {
-        return this.npcName == null ? "&aNPC" : this.npcName;
-    }
-
+    @Override
     public Location getLocation() {
-        return location;
+        return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     @Override
     public boolean isShowingTo(Player player) {
         return this.showingTo.containsKey(player) && this.showingTo.get(player);
+    }
+
+    private String getPrefix() {
+        return this.npcName == null ? "&aNPC" : this.npcName;
     }
 
     public String getNpcName() {
@@ -258,18 +260,22 @@ public class HumanNPC implements Intractable, Human {
         this.alive = alive;
     }
 
+    @Override
     public boolean isPersistent() {
         return persistent;
     }
 
+    @Override
     public void setPersistent(boolean persistent) {
         this.persistent = persistent;
     }
 
+    @Override
     public int getFarAwayDist() {
         return farAwayDist;
     }
 
+    @Override
     public HumanNPC setFarAwayDist(int farAwayDist) {
         this.farAwayDist = farAwayDist;
         return this;
@@ -286,16 +292,19 @@ public class HumanNPC implements Intractable, Human {
 
     }
 
+    @Override
     public HumanNPC addEntry(NPCEntry entry) {
         this.entries.add(entry);
         return this;
     }
 
+    @Override
     public HumanNPC addDialogLine(String string, int delayNext) {
         entries.add(new StringEntry(string, delayNext));
         return this;
     }
 
+    @Override
     public HumanNPC addDialogLine(String string) {
         return this.addDialogLine(string, Numbers.clamp(string.length(), 20, 100));
     }
@@ -388,31 +397,33 @@ public class HumanNPC implements Intractable, Human {
         return responses;
     }
 
-
     public void setInteractDelay(Player player) {
         this.interactedAt.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
+    @Override
     public boolean exists() {
         return EternaRegistry.getNpcRegistry().isRegistered(getId());
     }
 
+    @Override
     public String getName() {
         return npcName;
     }
 
+    @Override
     public void stopTalking() {
         this.stopTalking = true;
+    }
+
+    public String getCannotInteractMessage() {
+        return cannotInteractMessage;
     }
 
     private boolean canInteract(Player player) {
         final long talkedAt = this.interactedAt.getOrDefault(player.getUniqueId(), 0L);
         final long ticksToMillis = this.interactionDelay * 50L;
         return System.currentTimeMillis() >= (talkedAt + ticksToMillis);
-    }
-
-    public String getCannotInteractMessage() {
-        return cannotInteractMessage;
     }
 
     public HumanNPC setCannotInteractMessage(String cannotInteractMessage) {
@@ -433,8 +444,7 @@ public class HumanNPC implements Intractable, Human {
         final String[] splits = entry.split(" ");
         final StringBuilder builder = new StringBuilder();
         for (String split : splits) {
-            split = split
-                    .replace(Placeholders.PLAYER.get(), player.getName())
+            split = split.replace(Placeholders.PLAYER.get(), player.getName())
                     .replace(Placeholders.NAME.get(), this.getName())
                     .replace(Placeholders.LOCATION.get(), BukkitUtils.locationToString(this.getLocation()));
             builder.append(split);
@@ -443,21 +453,25 @@ public class HumanNPC implements Intractable, Human {
         return builder.toString().trim();
     }
 
+    @Override
     public int getLookAtCloseDist() {
         return lookAtCloseDist;
     }
 
+    @Override
     public HumanNPC setLookAtCloseDist(int lookAtCloseDist) {
         this.lookAtCloseDist = lookAtCloseDist;
         return this;
     }
 
+    @Override
     public HumanNPC addTextAboveHead(String text) {
         this.aboveHead.addLine(text);
         this.aboveHead.updateLines(true);
         return this;
     }
 
+    @Override
     public HumanNPC removeTextAboveHead(int index) {
         this.aboveHead.removeLine(index);
         this.aboveHead.updateLines(true);
@@ -466,14 +480,45 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void onClick(Player player, HumanNPC npc, ClickType clickType) {
-
     }
 
     @Override
     public HumanNPC setPose(NPCPose pose) {
         human.b(pose.getNMSValue());
         updateDataWatcher();
+
+        if (pose == NPCPose.STANDING) {
+            resetPose();
+        }
+
         return this;
+    }
+
+    // The old way does not actually work
+    public void resetPose() {
+        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
+        packet.getIntegers().write(0, getId());
+
+        WrappedDataWatcher watcher = new WrappedDataWatcher();
+
+        packet.getDataValueCollectionModifier()
+                .write(
+                        0,
+                        List.of(new WrappedDataValue(
+                                6,
+                                WrappedDataWatcher.Registry.get(EnumWrappers.getEntityPoseClass()),
+                                EnumWrappers.EntityPose.STANDING
+                        ))
+                );
+
+        for (Player player : getPlayers()) {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+        }
+    }
+
+    @Override
+    public NPCPose getPose() {
+        return NPCPose.fromNMS(human.an());
     }
 
     @Override
@@ -485,14 +530,18 @@ public class HumanNPC implements Intractable, Human {
     public void lookAt(Location location) {
         this.location.setDirection(location.clone().subtract(this.location).toVector());
         this.setHeadRotation(this.location.getYaw());
-        ReflectPacket.send(new PacketPlayOutEntity.PacketPlayOutEntityLook(
-                this.getId(),
-                (byte) (this.location.getYaw() * 256 / 360),
-                (byte) (this.location.getPitch() * 256 / 360),
-                true
-        ), getPlayers());
+        ReflectPacket.send(
+                new PacketPlayOutEntity.PacketPlayOutEntityLook(
+                        this.getId(),
+                        (byte) (this.location.getYaw() * 256 / 360),
+                        (byte) (this.location.getPitch() * 256 / 360),
+                        true
+                ),
+                getPlayers()
+        );
     }
 
+    @Override
     public void teleport(double x, double y, double z, float yaw, float pitch) {
         this.location.setX(x);
         this.location.setY(y);
@@ -527,10 +576,13 @@ public class HumanNPC implements Intractable, Human {
         swingArm(false);
     }
 
-    private void swingArm(boolean b) {
-        new ReflectPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3)).sendPackets(getPlayers());
-    }
-
+    /**
+     * Sets NPC's skin to the given texture and signature.
+     * Get the texture and signature from <a href="https://mineskin.org">MineSkin</a>
+     *
+     * @param texture   - Texture.
+     * @param signature - Signature.
+     */
     public HumanNPC setSkin(String texture, String signature) {
         this.profile.getProperties().removeAll("textures");
         this.profile.getProperties().put("textures", new Property("textures", texture, signature));
@@ -540,6 +592,10 @@ public class HumanNPC implements Intractable, Human {
     public boolean hasSkin() {
         final Collection<Property> skin = getSkin();
         return skin != null && !skin.isEmpty();
+    }
+
+    private void swingArm(boolean b) {
+        new ReflectPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3)).sendPackets(getPlayers());
     }
 
     public Collection<Property> getSkin() {
@@ -610,8 +666,7 @@ public class HumanNPC implements Intractable, Human {
                 final EntityPlayer nmsEntity = Reflect.getMinecraftPlayer(player);
                 final GameProfile profile = Reflect.getGameProfile(nmsEntity);
 
-                final Property textures = profile
-                        .getProperties()
+                final Property textures = profile.getProperties()
                         .get("textures")
                         .stream()
                         .findFirst()
@@ -632,8 +687,7 @@ public class HumanNPC implements Intractable, Human {
             final String uuid = new JsonParser().parse(reader).getAsJsonObject().get("id").getAsString();
             final URL sessionUrl = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
             final InputStreamReader sessionReader = new InputStreamReader(sessionUrl.openStream());
-            final JsonObject property = new JsonParser()
-                    .parse(sessionReader)
+            final JsonObject property = new JsonParser().parse(sessionReader)
                     .getAsJsonObject()
                     .get("properties")
                     .getAsJsonArray()
@@ -679,6 +733,7 @@ public class HumanNPC implements Intractable, Human {
         return equipment;
     }
 
+    @Override
     public void showAll() {
         for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             this.show(onlinePlayer);
@@ -686,6 +741,11 @@ public class HumanNPC implements Intractable, Human {
     }
 
     // super show
+    @Override
+    public void show(@Nonnull Player... players) {
+        show(true, players);
+    }
+
     private void show(boolean init, Player... players) {
         if (init) {
             for (final Player player : players) {
@@ -706,13 +766,7 @@ public class HumanNPC implements Intractable, Human {
         updateSkin();
 
         updateDataWatcher();
-
         hideTabListName();
-    }
-
-    @Override
-    public void show(@Nonnull Player... players) {
-        show(true, players);
     }
 
     @Override
@@ -720,8 +774,6 @@ public class HumanNPC implements Intractable, Human {
         hide(false);
         show(false);
     }
-
-    /* Methods with insured viewers. See: {@link InsuredViewers} */
 
     @Override
     public void setEquipment(EntityEquipment equipment) {
@@ -742,8 +794,26 @@ public class HumanNPC implements Intractable, Human {
         updateDataWatcher();
     }
 
+    @Override
+    public byte getDataWatcherByteValue(int key) {
+        final DataWatcher dataWatcher = getDataWatcher();
+        return dataWatcher.a(DataWatcherRegistry.a.a(key));
+    }
+
+    @Override
     public DataWatcher getDataWatcher() {
         return this.human.al();
+    }
+
+    @SuppressWarnings("all")
+    @Nonnull
+    protected Int2ObjectMap<DataWatcher.Item<?>> getInt2ObjectMap() {
+        try {
+            return (Int2ObjectMap<DataWatcher.Item<?>>) FieldUtils.readField(getDataWatcher(), "e", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Int2ObjectOpenHashMap();
+        }
     }
 
     @Override
@@ -757,6 +827,11 @@ public class HumanNPC implements Intractable, Human {
     }
 
     @Override
+    public void updateSkin(SkinPart... parts) {
+        setDataWatcherByteValue(17, SkinPart.mask(parts));
+    }
+
+    @Override
     public void playAnimation(NPCAnimation animation) {
         ReflectPacket.send(new PacketPlayOutAnimation(this.getHuman(), animation.getPos()), getPlayers());
     }
@@ -767,9 +842,7 @@ public class HumanNPC implements Intractable, Human {
         ReflectPacket.send(new PacketPlayOutEntityMetadata(this.getId(), list), getPlayers());
     }
 
-    /**
-     * Completely removes NPC.
-     */
+    @Override
     public void remove() {
         this.alive = false;
         this.hide();
@@ -778,6 +851,7 @@ public class HumanNPC implements Intractable, Human {
         EternaRegistry.getNpcRegistry().remove(getId());
     }
 
+    @Override
     public void hide(boolean mappings, Player... players) {
         if (players == null || players.length == 0) {
             players = getPlayers();
@@ -794,9 +868,11 @@ public class HumanNPC implements Intractable, Human {
         this.packetDestroy.sendPackets(getPlayers());
     }
 
-    @InvokePolicy(Policy.BEFORE_SPAWN)
+    @Override
+    @InvokePolicy(Policy.ANYTIME)
     public HumanNPC setCollision(boolean flag) {
         collision = flag;
+        updateCollision();
         return this;
     }
 
@@ -827,6 +903,7 @@ public class HumanNPC implements Intractable, Human {
         return human.ah();
     }
 
+    @Override
     public EntityPlayer getHuman() {
         return human;
     }
@@ -839,23 +916,6 @@ public class HumanNPC implements Intractable, Human {
         }
     }
 
-    private net.minecraft.world.item.ItemStack toNMSItemStack(ItemStack stack) {
-        return (net.minecraft.world.item.ItemStack) Reflect.invokeMethod(Reflect.getCraftMethod(
-                "inventory.CraftItemStack",
-                "asNMSCopy",
-                ItemStack.class
-        ), null, stack);
-    }
-
-    /**
-     * Returns players that can see this NPC.
-     *
-     * @return players that can see this NPC.
-     */
-    public Player[] getPlayers() {
-        return showingTo.keySet().toArray(new Player[0]);
-    }
-
     public Team getTeamOrCreate(Scoreboard scoreboard) {
         Team team = scoreboard.getTeam(teamName);
         if (team == null) {
@@ -865,15 +925,37 @@ public class HumanNPC implements Intractable, Human {
         return team;
     }
 
+    /**
+     * Syncs the text above the NPC's head.
+     */
     public void syncText() {
         if (this.aboveHead != null) {
             this.aboveHead.teleport(this.location.clone().add(0.0d, 1.50d, 0.0d));
         }
     }
 
+    private net.minecraft.world.item.ItemStack toNMSItemStack(ItemStack stack) {
+        return (net.minecraft.world.item.ItemStack) Reflect.invokeMethod(Reflect.getCraftMethod(
+                "inventory.CraftItemStack",
+                "asNMSCopy",
+                ItemStack.class
+        ), null, stack);
+    }
+
+    @Override
+    public Player[] getPlayers() {
+        return showingTo.keySet().toArray(new Player[0]);
+    }
+
     @Nullable
     public static HumanNPC getById(int id) {
         return EternaRegistry.getNpcRegistry().getById(id);
+    }
+
+    public static void hideAllNames(Scoreboard score) {
+        for (final HumanNPC value : EternaRegistry.getNpcRegistry().getRegistered().values()) {
+            value.hideTabListName();
+        }
     }
 
 }
