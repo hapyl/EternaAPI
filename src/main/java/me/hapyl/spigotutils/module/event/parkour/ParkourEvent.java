@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 /**
  * Root.
  */
+@Deprecated
 public class ParkourEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 

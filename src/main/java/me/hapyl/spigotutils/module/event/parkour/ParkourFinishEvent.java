@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 /**
  * Called whenever player successfully finishes parkour.
  */
+@Deprecated
 public class ParkourFinishEvent extends ParkourEvent {
     public ParkourFinishEvent(Player who, Data data) {
         super(who, data);

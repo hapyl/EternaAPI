@@ -2,7 +2,7 @@ package me.hapyl.spigotutils.module.parkour;
 
 import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.event.parkour.*;
+import me.hapyl.spigotutils.module.event.parkour.ParkourEvent;
 import me.hapyl.spigotutils.module.player.EffectType;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.registry.Registry;
@@ -49,7 +49,7 @@ public class ParkourManager extends Registry<Position, Parkour> {
             // Else start a new instance
             final Data newData = new Data(player, parkour);
 
-            if (tryEventCheckCancel(new ParkourStartEvent(player, newData))) {
+            if (parkour instanceof ParkourHandler handler && handler.onStart(player, newData) == ParkourHandler.Response.CANCEL) {
                 return;
             }
 
@@ -75,9 +75,10 @@ public class ParkourManager extends Registry<Position, Parkour> {
             return;
         }
 
+        final Parkour parkour = data.getParkour();
         data.setFinished();
 
-        if (tryEventCheckCancel(new ParkourFinishEvent(player, data))) {
+        if (parkour instanceof ParkourHandler handler && handler.onFinish(player, data) == ParkourHandler.Response.CANCEL) {
             data.resetFinished();
             return;
         }
@@ -85,9 +86,9 @@ public class ParkourManager extends Registry<Position, Parkour> {
         parkourData.remove(player);
 
         data.getPlayerInfo().restore();
-        player.teleport(data.getParkour().getQuitLocation());
+        //player.teleport(data.getParkour().getQuitLocation());
 
-        data.getParkour().getFormatter().sendParkourFinished(data);
+        parkour.getFormatter().sendParkourFinished(data);
     }
 
     public void failParkour(Player player, FailType type) {
@@ -96,7 +97,9 @@ public class ParkourManager extends Registry<Position, Parkour> {
             return;
         }
 
-        if (tryEventCheckCancel(new ParkourFailEvent(player, data, type))) {
+        final Parkour parkour = data.getParkour();
+
+        if (parkour instanceof ParkourHandler handler && handler.onFail(player, data, type) == ParkourHandler.Response.CANCEL) {
             return;
         }
 
@@ -106,7 +109,7 @@ public class ParkourManager extends Registry<Position, Parkour> {
 
         PlayerLib.removeEffect(player, EffectType.INVISIBILITY);
 
-        data.getParkour().getFormatter().sendParkourFailed(data, type);
+        parkour.getFormatter().sendParkourFailed(data, type);
     }
 
     public void teleportToCheckpoint(Player player) {
@@ -115,17 +118,22 @@ public class ParkourManager extends Registry<Position, Parkour> {
             return;
         }
 
+        final Parkour parkour = data.getParkour();
         final Position checkpoint = data.getPreviousCheckpoint();
+
         if (checkpoint == null) {
-            data.getParkour().getFormatter().sendHaventPassedCheckpoint(data);
+            parkour.getFormatter().sendHaventPassedCheckpoint(data);
         }
         else {
-            if (tryEventCheckCancel(new ParkourCheckpointEvent(player, data, checkpoint, ParkourCheckpointEvent.Type.TELEPORT_TO))) {
+
+            if (parkour instanceof ParkourHandler handler &&
+                    handler.onCheckpoint(player, data, checkpoint, ParkourHandler.Type.TELEPORT_TO) == ParkourHandler.Response.CANCEL) {
                 return;
             }
+
             player.teleport(checkpoint.toLocationCentered(), PlayerTeleportEvent.TeleportCause.UNKNOWN);
             data.getStats().increment(Stats.Type.CHECKPOINT_TELEPORT, 1);
-            data.getParkour().getFormatter().sendCheckpointTeleport(data);
+            parkour.getFormatter().sendCheckpointTeleport(data);
         }
     }
 
@@ -142,6 +150,15 @@ public class ParkourManager extends Registry<Position, Parkour> {
         );
     }
 
+    private boolean handleStart(Data data) {
+        if (data.getParkour() instanceof ParkourHandler handler) {
+            return handler.onStart(data.get(), data) == ParkourHandler.Response.CANCEL;
+        }
+
+        return false;
+    }
+
+    @Deprecated
     private boolean tryEventCheckCancel(ParkourEvent event) {
         Bukkit.getServer().getPluginManager().callEvent(event);
         return event.isCancelled();

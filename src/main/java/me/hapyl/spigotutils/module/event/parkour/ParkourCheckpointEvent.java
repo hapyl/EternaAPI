@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 /**
  * Called whenever player steps on checkpoint pressure plate.
  */
+@Deprecated
 public class ParkourCheckpointEvent extends ParkourEvent {
     private final Position position;
     private final Type type;

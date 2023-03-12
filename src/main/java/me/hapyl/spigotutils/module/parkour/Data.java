@@ -5,7 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
-import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -136,15 +136,11 @@ public class Data extends Holder<Player> {
     }
 
     public void setFinished() {
-        if (finishedAt == -1) {
+        if (isFinished()) {
             return;
         }
 
         finishedAt = System.currentTimeMillis();
-    }
-
-    public void setUnfinished() {
-        finishedAt = -1;
     }
 
     public boolean isFinished() {
@@ -155,10 +151,28 @@ public class Data extends Holder<Player> {
         return System.currentTimeMillis() - this.startedAt;
     }
 
+    public long getCompletionTime() {
+        return this.finishedAt - this.startedAt;
+    }
+
+    public String formatTime(long millis) {
+        if (millis >= 3600000) {
+            return new SimpleDateFormat("HH:mm:ss.SSS").format(millis);
+        }
+        else if (millis >= 60000) {
+            return new SimpleDateFormat("mm:ss.SSS").format(millis);
+        }
+        else {
+            return new SimpleDateFormat("ss.SSS").format(millis);
+        }
+    }
+
     public String getTimePassedFormatted() {
-        final double timePassed = (double) (this.isFinished() ? this.getFinishedAt() : this.getTimePassed()) / 1000;
-        return new DecimalFormat("#0.00").format(timePassed);
-        // return Chat.format("&a&l%s &6&l%s", this.parkour.getName().toUpperCase(), format);
+        return formatTime(getTimePassed());
+    }
+
+    public String getCompletionTimeFormatted() {
+        return formatTime(getCompletionTime());
     }
 
     @Override

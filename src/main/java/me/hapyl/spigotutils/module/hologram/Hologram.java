@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * This class allows to create packet-holograms
  */
+// TODO: 012, Mar 12, 2023 -> Why is this so hard to use bruh
 public class Hologram {
 
     /**
@@ -77,6 +78,13 @@ public class Hologram {
         return this;
     }
 
+    public Hologram setLines(String... lines) {
+        this.lines.clear();
+        this.lines.addAll(Arrays.asList(lines));
+        this.updateLines(false);
+        return this;
+    }
+
     /**
      * Removes line at the given index.
      *
@@ -108,6 +116,11 @@ public class Hologram {
         else {
             this.lines.set(index, line);
         }
+        return this;
+    }
+
+    public Hologram clear() {
+        this.lines.clear();
         return this;
     }
 

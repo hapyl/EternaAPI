@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 /**
  * Called whenever player fails a parkour.
  */
+@Deprecated
 public class ParkourFailEvent extends ParkourEvent {
     private final FailType type;
 
