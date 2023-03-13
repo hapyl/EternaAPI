@@ -43,7 +43,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
  */
-public class ItemBuilder {
+public class ItemBuilder implements ItemStackBuilder {
 
     private static final String PLUGIN_PATH = "ItemBuilderId";
     protected static Map<String, ItemBuilder> itemsWithEvents = new HashMap<>();
@@ -61,8 +61,6 @@ public class ItemBuilder {
     private String nativeNbt;
 
     private ItemEventHandler handler;
-
-    // TODO: 021, Oct 21, 2022 - Move methods around
 
     /**
      * Create new ItemBuilder instance.
@@ -111,42 +109,122 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets a new event handler.
+     * Creates player head from texture.
      *
-     * @param handler - New event handler.
+     * @param texture - Texture to use.
      */
+    public static ItemBuilder playerHead(String texture) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
+    }
+
+    /**
+     * Creates player head from texture from url.
+     *
+     * @param url - Url to texture.
+     */
+    public static ItemBuilder playerHeadUrl(String url) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
+    }
+
+    /**
+     * Creates leather helmet with provided color.
+     *
+     * @param color - Color to use.
+     */
+    public static ItemBuilder leatherHat(Color color) {
+        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather chestplate with provided color.
+     *
+     * @param color - Color to use.
+     */
+    public static ItemBuilder leatherTunic(Color color) {
+        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather leggings with provided color.
+     *
+     * @param color - Color to use.
+     */
+    public static ItemBuilder leatherPants(Color color) {
+        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather boots with provided color.
+     *
+     * @param color - Color to use.
+     */
+    public static ItemBuilder leatherBoots(Color color) {
+        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates builder of provided material.
+     *
+     * @param material - Material to use.
+     */
+    public static ItemBuilder of(Material material) {
+        return new ItemBuilder(material);
+    }
+
+    /**
+     * Creates builder of provided material with provided name.
+     *
+     * @param material - Material to use.
+     * @param name     - Name to use.
+     */
+    public static ItemBuilder of(Material material, String name) {
+        return new ItemBuilder(material).setName(name);
+    }
+
+    /**
+     * Creates builder of provided material with provided name and lore.
+     *
+     * @param material - Material to use.
+     * @param name     - Name to use.
+     * @param lore     - Lore to use.
+     */
+    public static ItemBuilder of(Material material, String name, String... lore) {
+        final ItemBuilder builder = new ItemBuilder(material).setName(name);
+        if (lore != null) {
+            for (String str : lore) {
+                builder.addLore(str);
+            }
+        }
+        return builder;
+    }
+
+    /**
+     * Creates air builder.
+     */
+    public static ItemBuilder air() {
+        return of(Material.AIR);
+    }
+
+    @Override
     public final ItemBuilder setEventHandler(@Nonnull ItemEventHandler handler) {
         Validate.notNull(handler, "event handler cannot be null");
         this.handler = handler;
         return this;
     }
 
-    /**
-     * Returns current EventHandler for this builder, cannot be null.
-     *
-     * @return current EventHandler for this builder, cannot be null.
-     */
+    @Override
     @Nonnull
     public ItemEventHandler getEventHandler() {
         return handler;
     }
 
-    /**
-     * Returns item's NBT in string format, same as you would use it in give command.
-     *
-     * @return item's NBT or empty string if none.
-     */
+    @Override
     @Nonnull
     public String getNbt() {
         return nativeNbt;
     }
 
-    /**
-     * Sets item's NBT.
-     * This method uses native minecraft nbt stored in the '<i>tag:{<b>HERE</b>}</i>' compound.
-     *
-     * @param nbt - New NBT or null to remove.
-     */
+    @Override
     public void setNbt(@Nullable String nbt) {
         if (nbt == null) {
             this.nativeNbt = "";
@@ -155,11 +233,7 @@ public class ItemBuilder {
         this.nativeNbt = nbt;
     }
 
-    /**
-     * Sets the builder's ItemMeta.
-     *
-     * @param meta - New ItemMeta.
-     */
+    @Override
     public ItemBuilder setItemMeta(ItemMeta meta) {
         this.meta = meta;
         return this;
@@ -178,12 +252,7 @@ public class ItemBuilder {
         return this;
     }
 
-    /**
-     * Clones the builder.
-     *
-     * @return Cloned ItemBuilder if possible.
-     * @throws UnsupportedOperationException if builder has ID.
-     */
+    @Override
     @Nullable
     public ItemBuilder clone() {
         try {
@@ -197,30 +266,18 @@ public class ItemBuilder {
         }
     }
 
-    /**
-     * Sets if click events from inventory are allowed.
-     *
-     * @param allowInventoryClick - New value.
-     */
+    @Override
     public ItemBuilder setAllowInventoryClick(boolean allowInventoryClick) {
         this.allowInventoryClick = allowInventoryClick;
         return this;
     }
 
-    /**
-     * Returns true if click events from inventory are allowed, false otherwise.
-     *
-     * @return true if click events from inventory are allowed, false otherwise.
-     */
+    @Override
     public boolean isAllowInventoryClick() {
         return allowInventoryClick;
     }
 
-    /**
-     * Sets the map view for the builder. Material will be forced to be FILLED_MAP.
-     *
-     * @param view - New map view.
-     */
+    @Override
     public ItemBuilder setMapView(MapView view) {
         setType(Material.FILLED_MAP);
 
@@ -230,12 +287,7 @@ public class ItemBuilder {
         return this;
     }
 
-
-    /**
-     * Sets the book name. Material will be forced to WRITTEN_BOOK.
-     *
-     * @param name - New book name.
-     */
+    @Override
     public ItemBuilder setBookName(String name) {
         setType(Material.WRITTEN_BOOK);
 
@@ -245,17 +297,13 @@ public class ItemBuilder {
         return this;
     }
 
-    /**
-     * Sets if even should cancel clicks upon click event triggering.
-     * Set to false if using custom checks for click.
-     *
-     * @param cancelClicks - New value.
-     */
+    @Override
     public ItemBuilder setCancelClicks(boolean cancelClicks) {
         this.cancelClicks = cancelClicks;
         return this;
     }
 
+    @Override
     public ItemBuilder setBookAuthor(String author) {
         this.validateBookMeta();
         final BookMeta bookMeta = (BookMeta) this.meta;
@@ -264,6 +312,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setBookTitle(String title) {
         this.validateBookMeta();
         final BookMeta bookMeta = (BookMeta) this.meta;
@@ -272,6 +321,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setBookPages(List<String> pages) {
         this.validateBookMeta();
         final BookMeta bookMeta = (BookMeta) this.meta;
@@ -280,6 +330,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setBookPages(BaseComponent[]... base) {
         this.validateBookMeta();
         final BookMeta meta = (BookMeta) this.meta;
@@ -288,6 +339,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setBookPage(int page, BaseComponent[] base) {
         this.validateBookMeta();
         final BookMeta meta = (BookMeta) this.meta;
@@ -299,38 +351,23 @@ public class ItemBuilder {
     private void validateBookMeta() {
         final Material type = this.getItem().getType();
         if (type != Material.WRITTEN_BOOK) {
-            throw new ItemBuilderException("Material must be WRITTEN_BOOK, not " + type);
+            throw new IllegalStateException("Material must be WRITTEN_BOOK, not " + type);
         }
     }
 
-    /**
-     * Adds cooldown to click event, requires ID.
-     *
-     * @param ticks - Cooldown in ticks.
-     */
+    @Override
     public ItemBuilder withCooldown(int ticks) {
         withCooldown(ticks, null);
         return this;
     }
 
-    /**
-     * Adds cooldown to click event, requires ID.
-     *
-     * @param ticks     - Cooldown in ticks.
-     * @param predicate - Predicate of the cooldown.
-     */
+    @Override
     public ItemBuilder withCooldown(int ticks, Predicate<Player> predicate) {
         withCooldown(ticks, predicate, "&cCannot use that!");
         return this;
     }
 
-    /**
-     * Adds cooldown to click event, requires ID.
-     *
-     * @param ticks        - Cooldown in ticks.
-     * @param predicate    - Predicate of the cooldown.
-     * @param errorMessage - Error message if predicate fails.
-     */
+    @Override
     public ItemBuilder withCooldown(int ticks, Predicate<Player> predicate, String errorMessage) {
         this.predicate = predicate;
         this.cd = ticks;
@@ -338,17 +375,13 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder removeClickEvent() {
         this.functions.clear();
         return this;
     }
 
-    /**
-     * Adds a click event.
-     *
-     * @param consumer - Click action.
-     * @param act      - Allowed click types.
-     */
+    @Override
     public ItemBuilder addClickEvent(Consumer<Player> consumer, Action... act) {
         if (act.length < 1) {
             throw new IndexOutOfBoundsException("This requires at least 1 action.");
@@ -357,16 +390,13 @@ public class ItemBuilder {
         return this;
     }
 
-    /**
-     * Adds a click event with only right clicks..
-     *
-     * @param consumer - Click action.
-     */
+    @Override
     public ItemBuilder addClickEvent(Consumer<Player> consumer) {
         this.addClickEvent(consumer, Action.RIGHT_CLICK_BLOCK, Action.RIGHT_CLICK_AIR);
         return this;
     }
 
+    @Override
     public ItemBuilder setPersistentData(String path, Object value) {
         if (value instanceof String) {
             this.setPersistentData(path, PersistentDataType.STRING, (String) value);
@@ -392,95 +422,74 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public <T> T getNbt(String path, PersistentDataType<T, T> value) {
         return this.getPersistentData(path, value);
     }
 
+    @Override
     public ItemBuilder setAmount(int amount) {
         this.item.setAmount(Numbers.clamp(amount, 0, Byte.MAX_VALUE));
         return this;
     }
 
-    /**
-     * Sets lore.
-     *
-     * @param lore - Lore to set.
-     */
+    @Override
     public ItemBuilder setLore(List<String> lore) {
         this.meta.setLore(lore);
         return this;
     }
 
-    /**
-     * Sets smart lore. Smart lore splits automatically at the best places within the chat limit.
-     *
-     * @param lore - Lore to set.
-     */
+    @Override
     public ItemBuilder setSmartLore(String lore) {
         this.meta.setLore(splitAfter(lore, 30));
         return this;
     }
 
-    /**
-     * Sets smart lore with custom char limit.
-     *
-     * @param lore  - Lore to set.
-     * @param limit - Char limit.
-     */
+    @Override
     public ItemBuilder setSmartLore(String lore, final int limit) {
         this.meta.setLore(splitAfter(lore, limit));
         return this;
     }
 
-    /**
-     * Adds smart lore to existing lore with custom char limit.
-     *
-     * @param lore  - Lore to add.
-     * @param limit - Char limit.
-     */
+    @Override
     public ItemBuilder addSmartLore(String lore, final int limit) {
         this.addSmartLore(lore, "&7", limit);
         return this;
     }
 
-    /**
-     * Adds smart lore to existing lore with custom prefix.
-     *
-     * @param lore       - Lore to add.
-     * @param prefixText - Prefix after every split.
-     */
+    @Override
     public ItemBuilder addSmartLore(String lore, String prefixText) {
         this.addSmartLore(lore, prefixText, 30);
         return this;
     }
 
-    /**
-     * Adds smart lore to existing lore.
-     *
-     * @param lore - Lore to add.
-     */
+    @Override
     public ItemBuilder addSmartLore(String lore) {
         addSmartLore(lore, 30);
         return this;
     }
 
-    public ItemBuilder setSmartLore(String lore, String prefixColor) {
-        this.setSmartLore(lore, prefixColor, 30);
+    @Override
+    public ItemBuilder setSmartLore(String lore, String prefix) {
+        this.setSmartLore(lore, prefix, 30);
         return this;
     }
 
-    public ItemBuilder setSmartLore(String lore, String prefixColor, int splitAfter) {
-        this.meta.setLore(splitString(prefixColor, lore, splitAfter));
+    @Override
+    public ItemBuilder setSmartLore(String lore, String prefix, int splitAfter) {
+        this.meta.setLore(splitString(prefix, lore, splitAfter));
         return this;
     }
 
-    public ItemBuilder addSmartLore(String lore, String prefixText, int splitAfter) {
+    @Override
+    public ItemBuilder addSmartLore(String lore, String prefix, int splitAfter) {
         List<String> metaLore = this.meta.getLore() != null ? this.meta.getLore() : Lists.newArrayList();
-        metaLore.addAll(splitString(prefixText, lore, splitAfter));
+        metaLore.addAll(splitString(prefix, lore, splitAfter));
         this.meta.setLore(metaLore);
         return this;
     }
 
+    @Override
     public ItemBuilder setLore(int line, String lore) {
         List<String> oldLore = this.meta.getLore() == null ? Lists.newArrayList() : this.meta.getLore();
         oldLore.set(line, colorize(lore));
@@ -488,11 +497,13 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setLore(String lore) {
         this.setLore(lore, "__");
         return this;
     }
 
+    @Override
     public ItemBuilder addLore(final String lore, ChatColor afterSplitColor) {
         List<String> metaLore = this.meta.getLore() != null ? this.meta.getLore() : Lists.newArrayList();
         for (String value : lore.split("__")) {
@@ -502,31 +513,37 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder addLore(final String lore) {
         return this.addLore(lore, ChatColor.GRAY);
     }
 
+    @Override
     public ItemBuilder addLore(final String lore, final Object... replacements) {
         this.addLore(Chat.format(lore, replacements));
         return this;
     }
 
-    public ItemBuilder addLoreIf(final String lore, final boolean b) {
-        this.addLoreIf(lore, b, "");
+    @Override
+    public ItemBuilder addLoreIf(final String lore, final boolean condition) {
+        this.addLoreIf(lore, condition, "");
         return this;
     }
 
-    public ItemBuilder addLoreIf(final String lore, final boolean b, final Object... replacements) {
-        if (b) {
+    @Override
+    public ItemBuilder addLoreIf(final String lore, final boolean condition, final Object... replacements) {
+        if (condition) {
             this.addLore(lore, replacements);
         }
         return this;
     }
 
+    @Override
     public ItemBuilder addLore() {
         return this.addLore("");
     }
 
+    @Override
     public ItemBuilder setLore(final String lore, final String separator) {
         try {
             this.meta.setLore(Arrays.asList(colorize(lore).split(separator)));
@@ -536,6 +553,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder removeLore() {
         if (this.meta.getLore() != null) {
             this.meta.setLore(null);
@@ -543,6 +561,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder removeLoreLine(int line) {
         if (this.meta.getLore() == null) {
             throw new NullPointerException("ItemMeta doesn't have any lore!");
@@ -557,10 +576,12 @@ public class ItemBuilder {
 
     }
 
+    @Override
     public ItemBuilder applyDefaultSettings() {
         return applyDefaultSettings(true);
     }
 
+    @Override
     public ItemBuilder applyDefaultSettings(boolean applyCurse) {
         if (applyCurse) {
             this.meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
@@ -570,41 +591,49 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setName(String name) {
         this.meta.setDisplayName(ChatColor.GREEN + colorize(name));
         return this;
     }
 
+    @Override
     public ItemBuilder setName(String name, Object... replacements) {
         this.setName(Chat.format(name, replacements));
         return this;
     }
 
+    @Override
     public ItemBuilder addEnchant(Enchant enchant, int lvl) {
         return addEnchant(enchant.getAsBukkit(), lvl);
     }
 
-    public ItemBuilder addEnchant(Enchantment ench, int lvl) {
-        this.meta.addEnchant(ench, lvl, true);
+    @Override
+    public ItemBuilder addEnchant(Enchantment enchantment, int lvl) {
+        this.meta.addEnchant(enchantment, lvl, true);
         return this;
     }
 
+    @Override
     public ItemBuilder setUnbreakable() {
         this.meta.setUnbreakable(true);
         return this;
     }
 
-    public ItemBuilder setUnbreakable(boolean v) {
-        this.meta.setUnbreakable(v);
+    @Override
+    public ItemBuilder setUnbreakable(boolean unbreakable) {
+        this.meta.setUnbreakable(unbreakable);
         return this;
     }
 
+    @Override
     public ItemBuilder setRepairCost(int valueInLevels) {
         Repairable r = (Repairable) this.meta;
         r.setRepairCost(valueInLevels);
         return this;
     }
 
+    @Override
     public ItemBuilder setPotionMeta(PotionEffectType type, int lvl, int duration, Color color) {
         switch (this.item.getType()) {
             case POTION, SPLASH_POTION, LINGERING_POTION, TIPPED_ARROW -> {
@@ -616,6 +645,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setPotionColor(Color color) {
         this.validatePotionMeta();
         final PotionMeta meta = (PotionMeta) this.meta;
@@ -624,16 +654,7 @@ public class ItemBuilder {
         return this;
     }
 
-    private void validatePotionMeta() {
-        final Material type = this.item.getType();
-        switch (type) {
-            case LINGERING_POTION, POTION, SPLASH_POTION, TIPPED_ARROW -> {
-            }
-            default -> throw new IllegalArgumentException(
-                    "Material must be POTION, SPLASH_POTION, LINGERING_POTION or TIPPED_ARROW to use this!");
-        }
-    }
-
+    @Override
     public ItemBuilder setLeatherArmorColor(Color color) {
         final Material type = this.item.getType();
         switch (type) {
@@ -643,36 +664,31 @@ public class ItemBuilder {
                 this.item.setItemMeta(meta);
                 return this;
             }
-            default -> throw new IllegalArgumentException(
-                    "Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!");
+            default -> throw new IllegalStateException(
+                    "Cannot apply leather armor meta! Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET!"
+                    //"Material must be LEATHER_BOOTS, LEATHER_CHESTPLATE, LEATHER_LEGGINGS or LEATHER_HELMET to use this!"
+            );
         }
     }
 
     private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
     private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
 
+    @Override
     public ItemBuilder setHeadTexture(UUID uuid, String name) {
         final SkullMeta skullMeta = (SkullMeta) this.meta;
         skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(uuid, name));
         return this;
     }
 
-    /**
-     * Sets a link to minecraft skin texture as textures.
-     * Use Other->Minecraft-URL from minecraft-heads.
-     *
-     * @param url An url to texture. May or may not contains {@link ItemBuilder#URL_TEXTURE_LINK}
-     */
+    @Override
     public ItemBuilder setHeadTextureUrl(String url) {
         url = URL_TEXTURE_FORMAT.formatted(url.contains(URL_TEXTURE_LINK) ? url : URL_TEXTURE_LINK + url);
         setHeadTexture(new String(Base64.getEncoder().encode(url.getBytes(StandardCharsets.UTF_8))));
         return this;
     }
 
-    /**
-     * Sets an actual base64 value as textures.
-     * Use Other->Value from minecraft-heads.
-     */
+    @Override
     public ItemBuilder setHeadTexture(String base64) {
         final GameProfile profile = new GameProfile(UUID.randomUUID(), "");
         profile.getProperties().put("textures", new Property("textures", base64));
@@ -687,6 +703,7 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setSkullOwner(String owner) {
         if (this.item.getType() == Material.PLAYER_HEAD) {
             SkullMeta meta = (SkullMeta) this.meta;
@@ -696,82 +713,73 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public ItemBuilder setPureDamage(double damage) {
         this.addAttribute(Attribute.GENERIC_ATTACK_DAMAGE, damage, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
         return this;
     }
 
-    public ItemBuilder addAttribute(Attribute a, double amount, AttributeModifier.Operation operation, EquipmentSlot slot) {
-        this.meta.addAttributeModifier(a, new AttributeModifier(UUID.randomUUID(), a.toString(), amount, operation, slot));
+    @Override
+    public ItemBuilder addAttribute(Attribute attribute, double amount, AttributeModifier.Operation operation, EquipmentSlot slot) {
+        this.meta.addAttributeModifier(attribute, new AttributeModifier(UUID.randomUUID(), attribute.toString(), amount, operation, slot));
         return this;
     }
 
-    public ItemBuilder hideFlag(ItemFlag... flag) {
-        this.meta.addItemFlags(flag);
+    @Override
+    public ItemBuilder hideFlag(ItemFlag... flags) {
+        this.meta.addItemFlags(flags);
         return this;
     }
 
-    public ItemBuilder showFlag(ItemFlag... flag) {
-        this.meta.removeItemFlags(flag);
+    @Override
+    public ItemBuilder showFlag(ItemFlag... flags) {
+        this.meta.removeItemFlags(flags);
         return this;
     }
 
+    @Override
     public ItemBuilder showFlags() {
         this.meta.removeItemFlags(ItemFlag.values());
         return this;
     }
 
+    @Override
     public ItemBuilder hideFlags() {
         this.meta.addItemFlags(ItemFlag.values());
         return this;
     }
 
+    @Override
     public ItemBuilder clearName() {
         this.meta.setDisplayName("");
         return this;
     }
 
-    public ItemBuilder setDurability(int dura) {
+    @Override
+    public ItemBuilder setDurability(int durability) {
         Damageable meta = (Damageable) this.meta;
-        meta.setDamage(dura);
+        meta.setDamage(durability);
         return this;
     }
 
-    /**
-     * Changes type of the ItemStack.
-     *
-     * @param material - New type.
-     */
+    @Override
     public ItemBuilder setType(Material material) {
         this.item.setType(material);
         return this;
     }
 
-    /**
-     * Returns the type of the builder.
-     *
-     * @return the type of the builder.
-     */
+    @Override
     public Material getType() {
         return item.getType();
     }
 
-    /**
-     * Skips {@link ItemBuilder#build(boolean)} ID checks and only applies item meta, then returns ItemStack.
-     *
-     * @return ItemStack.
-     */
+    @Override
     public ItemStack toItemStack() {
         this.item.setItemMeta(this.meta);
         return this.item;
     }
 
-    /**
-     * Clears Item flags, name, lore and makes it unbreakable before returning ItemStack.
-     * Used to make empty icons items.
-     *
-     * @return cleaned ItemStack.
-     */
+    @Override
     public ItemStack cleanToItemSack() {
         this.hideFlags();
         this.setName("&0");
@@ -780,26 +788,13 @@ public class ItemBuilder {
         return this.toItemStack();
     }
 
-    /**
-     * Builds item stack and hides all extra data
-     * in the lore of the item.
-     *
-     * @return icon-themed ItemStack.
-     */
+    @Override
     public ItemStack asIcon() {
         hideFlags();
         return build();
     }
 
-    /**
-     * Finalizes item meta and returns an ItemStack.
-     *
-     * @param overrideIfExists - if true, item has ID and item with that ID is already
-     *                         registered it will override the stored item, else error
-     *                         will be throws if 2 conditions were met.
-     * @return finalized ItemStack.
-     * @throws ItemBuilderException if item has ID which is already registered, unless {@param overrideIfExists} if true.
-     */
+    @Override
     public ItemStack build(boolean overrideIfExists) {
         if (this.id != null) {
             if (isIdRegistered(this.id) && !overrideIfExists) {
@@ -831,12 +826,7 @@ public class ItemBuilder {
         return item;
     }
 
-    /**
-     * Finalizes item meta and returns an ItemStack.
-     *
-     * @return finalized ItemStack.
-     * @throws ItemBuilderException if item has ID which is already registered.
-     */
+    @Override
     public ItemStack build() {
         return this.build(false);
     }
@@ -847,67 +837,84 @@ public class ItemBuilder {
         new ItemBuilderException(message).printStackTrace();
     }
 
+    @Override
     @Nonnull
     public String getName() {
         return this.meta.getDisplayName();
     }
 
-    /**
-     * Returns current list of lore, or null if no lore.
-     *
-     * @return current list of lore, or null if no lore.
-     */
+    @Override
     @Nullable
     public List<String> getLore() {
         return this.meta.getLore();
     }
 
+    @Override
     @Nullable
     public List<String> getLore(int start, int end) {
         final List<String> hash = new ArrayList<>();
         final List<String> lore = this.getLore();
-        if (lore == null || end > lore.size()) {
-            Bukkit.getLogger().warning("There is either no lore or given more that there is lines.");
-            return null;
+
+        if (lore == null) {
+            return hash;
         }
+
+        if (end > lore.size()) {
+            throw new IndexOutOfBoundsException("There is either no lore or given more that there is lines.");
+        }
+
         for (int i = start; i < end; i++) {
             hash.add(lore.get(i));
         }
         return hash;
     }
 
+    @Override
     public ItemMeta getMeta() {
         return meta;
     }
 
+    @Override
     public int getAmount() {
         return this.item.getAmount();
     }
 
+    @Override
     public Map<Enchantment, Integer> getEnchants() {
         return this.meta.getEnchants();
     }
 
+    @Override
     public boolean isUnbreakable() {
         return this.meta.isUnbreakable();
     }
 
+    @Override
     public String getError() {
         return error;
     }
 
+    @Override
     public ItemStack getItem() {
         return item;
     }
 
+    @Override
     public int getRepairCost() {
         return ((Repairable) this.meta).getRepairCost();
     }
 
+    @Override
+    @Nullable
     public Color getLeatherColor() {
-        return ((LeatherArmorMeta) this.meta).getColor();
+        if (meta instanceof LeatherArmorMeta leatherArmorMeta) {
+            return leatherArmorMeta.getColor();
+        }
+
+        return null;
     }
 
+    @Override
     @Nullable
     public String getHeadTexture() {
         try {
@@ -918,14 +925,17 @@ public class ItemBuilder {
         }
     }
 
+    @Override
     public Set<ItemFlag> getFlags() {
         return this.meta.getItemFlags();
     }
 
+    @Override
     public Multimap<Attribute, AttributeModifier> getAttributes() {
         return this.meta.getAttributeModifiers();
     }
 
+    @Override
     public double getPureDamage() {
         double most = 0;
         for (AttributeModifier t : getAttributes().get(Attribute.GENERIC_ATTACK_DAMAGE)) {
@@ -935,10 +945,13 @@ public class ItemBuilder {
         return most;
     }
 
+    @Override
+    @Nullable
     public String getId() {
         return id;
     }
 
+    @Override
     public <T> ItemBuilder setPersistentData(String path, PersistentDataType<T, T> type, T value) {
         try {
             this.meta.getPersistentDataContainer().set(new NamespacedKey(EternaPlugin.getPlugin(), path), type, value);
@@ -950,14 +963,17 @@ public class ItemBuilder {
         return this;
     }
 
+    @Override
     public <T> boolean hasPersistentData(String path, PersistentDataType<T, T> type) {
         return this.meta.getPersistentDataContainer().has(new NamespacedKey(EternaPlugin.getPlugin(), path), type);
     }
 
+    @Override
     public <T> T getPersistentData(String path, PersistentDataType<T, T> type) {
         return this.meta.getPersistentDataContainer().get(new NamespacedKey(EternaPlugin.getPlugin(), path), type);
     }
 
+    @Override
     public ItemBuilder glow() {
         this.addEnchant(Enchantment.LUCK, 1);
         this.hideFlag(ItemFlag.HIDE_ENCHANTS);
@@ -968,47 +984,26 @@ public class ItemBuilder {
         return new ItemBuilder(stack);
     }
 
+    @Override
     public Set<ItemAction> getFunctions() {
         return this.functions;
     }
 
+    @Override
     public int getCd() {
         return this.cd;
     }
 
+    @Override
     public Predicate<Player> getPredicate() {
         return this.predicate;
     }
 
+    @Override
     public boolean isCancelClicks() {
         return cancelClicks;
     }
 
-
-    // Static Members
-    public static ItemBuilder playerHead(String texture) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
-    }
-
-    public static ItemBuilder playerHeadUrl(String url) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
-    }
-
-    public static ItemBuilder leatherHat(Color color) {
-        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
-    }
-
-    public static ItemBuilder leatherTunic(Color color) {
-        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
-    }
-
-    public static ItemBuilder leatherPants(Color color) {
-        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
-    }
-
-    public static ItemBuilder leatherBoots(Color color) {
-        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
-    }
 
     public static void clear() {
         itemsWithEvents.clear();
@@ -1016,29 +1011,6 @@ public class ItemBuilder {
 
     private static boolean isIdRegistered(String id) {
         return id != null && itemsWithEvents.containsKey(id);
-    }
-
-    // Static fast access
-    public static ItemBuilder of(Material material) {
-        return new ItemBuilder(material);
-    }
-
-    public static ItemBuilder of(Material material, String name) {
-        return new ItemBuilder(material).setName(name);
-    }
-
-    public static ItemBuilder of(Material material, String name, String... lore) {
-        final ItemBuilder builder = new ItemBuilder(material).setName(name);
-        if (lore != null) {
-            for (String str : lore) {
-                builder.addLore(str);
-            }
-        }
-        return builder;
-    }
-
-    public static ItemBuilder air() {
-        return of(Material.AIR);
     }
 
     @Nullable
@@ -1223,7 +1195,19 @@ public class ItemBuilder {
         Bukkit.getLogger().warning(ChatColor.YELLOW + warning.formatted(objects));
     }
 
-    private static class ItemBuilderException extends RuntimeException {
+    private void validatePotionMeta() {
+        final Material type = this.item.getType();
+        switch (type) {
+            case LINGERING_POTION, POTION, SPLASH_POTION, TIPPED_ARROW -> {
+            }
+            default -> throw new IllegalStateException(
+                    "Cannot apply potion meta! Material must be POTION, SPLASH_POTION, LINGERING_POTION or TIPPED_ARROW!"
+                    //"Material must be POTION, SPLASH_POTION, LINGERING_POTION or TIPPED_ARROW to use this!"
+            );
+        }
+    }
+
+    protected static class ItemBuilderException extends RuntimeException {
         private ItemBuilderException() {
             super();
         }

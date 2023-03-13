@@ -5,6 +5,11 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * Indicates that the class contains viewers of some type, usually players.
+ *
+ * @param <T> - The type of viewer.
+ */
 public class ContainsViewers<T> {
 
     private final Set<T> viewers;

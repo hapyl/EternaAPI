@@ -61,6 +61,11 @@ public class Geometry {
      */
     @AsyncNotSafe
     public static List<Block> drawCircleWithBlocks(@Nonnull Location center, int radius, Material material) {
+        return drawCircleWithBlocks(center, radius, material, false);
+    }
+
+    @AsyncNotSafe
+    public static List<Block> drawCircleWithBlocks(@Nonnull Location center, int radius, Material material, boolean trueCircle) {
         final World world = center.getWorld();
         radius = Math.max(radius, 0);
         Validate.isTrue(material.isBlock(), "material must be a block, %s isn't!".formatted(material.name()));
@@ -71,8 +76,8 @@ public class Geometry {
         final int tY = center.getBlockY();
         final int tZ = center.getBlockZ();
 
-        for (int x = tX - radius; x <= tX + radius; x++) {
-            for (int z = tZ - radius; z < tZ + radius; z++) {
+        for (int x = tX - radius; (trueCircle ? x < tX + radius : x <= tX + radius); x++) {
+            for (int z = tZ - radius; (trueCircle ? z < tZ + radius : z <= tZ + radius); z++) {
                 if ((tX - x) * (tX - x) + (tZ - z) * (tZ - z) <= (radius * radius)) {
                     final Block block = world.getBlockAt(x, tY, z);
                     if (!block.getType().isSolid()) {
@@ -96,7 +101,11 @@ public class Geometry {
      * @param yOffset - y offset of the circle. <b>Note that offset is added after adding +1</b>
      */
     public static void drawCircleAnchored(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Draw draw, double yOffset) {
-        World world = center.getWorld();
+        final World world = center.getWorld();
+
+        if (world == null) {
+            throw new IllegalStateException("");
+        }
 
         for (double i = 0.0d; i < TWO_PI; i += quality.getStep()) {
             double x = center.getX() + (radius * Math.cos(i));
@@ -106,9 +115,17 @@ public class Geometry {
             // Adjust the y-coordinate of the location to anchor it to a block
             while (location.getBlock().getType().isSolid()) {
                 location.add(0, 1, 0);
+
+                if (location.getY() >= world.getMaxHeight()) {
+                    break;
+                }
             }
             while (location.getBlock().getType().isAir()) {
                 location.subtract(0, 1, 0);
+
+                if (location.getY() <= world.getMinHeight()) {
+                    break;
+                }
             }
 
             draw.draw(location.add(0.0d, yOffset + 1.0d, 0.0d));

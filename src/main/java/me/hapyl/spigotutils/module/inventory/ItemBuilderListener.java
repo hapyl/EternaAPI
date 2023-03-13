@@ -98,7 +98,6 @@ public class ItemBuilderListener implements Listener {
                 (a.hasAction(Action.RIGHT_CLICK_AIR) || a.hasAction(Action.RIGHT_CLICK_BLOCK));
     }
 
-
     private void execute(Player player, ItemBuilder builder, ItemAction func) {
         // cooldown check
         if (builder.getCd() > 0) {

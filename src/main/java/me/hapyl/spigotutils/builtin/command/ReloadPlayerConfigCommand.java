@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
  */
 @BuiltIn
 public final class ReloadPlayerConfigCommand extends SimplePlayerAdminCommand {
+
     public ReloadPlayerConfigCommand(String name) {
         super(name);
         setUsage("Allows to load data from player config file.");

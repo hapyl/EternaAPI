@@ -44,4 +44,54 @@ public class Nulls {
         return obj == null;
     }
 
+    /**
+     * Returns true if any of the objects are null, false otherwise.
+     *
+     * @param obj - Objects to check.
+     * @return - True if any of the objects are null, false otherwise.
+     */
+    public static boolean anyNull(Object... obj) {
+        if (obj == null || obj.length == 0) {
+            return true;
+        }
+
+        for (Object o : obj) {
+            if (o == null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if all the objects are null, false otherwise.
+     *
+     * @param obj - Objects to check.
+     * @return - True if all the objects are null, false otherwise.
+     */
+    public static boolean allNull(Object... obj) {
+        if (obj == null || obj.length == 0) {
+            return true;
+        }
+
+        for (Object o : obj) {
+            if (o != null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns true if all the objects are not null, false otherwise.
+     *
+     * @param obj - Objects to check.
+     * @return - True if all the objects are not null, false otherwise.
+     */
+    public static boolean nonNull(Object... obj) {
+        return !anyNull(obj);
+    }
+
 }

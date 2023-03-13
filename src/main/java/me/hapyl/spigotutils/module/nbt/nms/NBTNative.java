@@ -54,7 +54,7 @@ public class NBTNative {
                 return NBTNative.asBukkitCopy(nmsItem);
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new IllegalArgumentException("Could not parse NBT! " + nbt);
+                throw new IllegalArgumentException("Could not parse NBT! " + e.getMessage());
             }
         }
         throw new IllegalArgumentException("nbt must be wrapped between {}!");

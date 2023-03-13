@@ -61,14 +61,12 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * Allows to create SIMPLE player NPCs with support of clicks.
+ * Allows to create <b>simple</b> player NPCs with support of clicks.
  * For complex NPCs use CitizensAPI
  */
 @SuppressWarnings("unused")
 @TestedNMS(version = "1.19.3")
 public class HumanNPC implements Intractable, Human {
-
-    // TODO: 001, Mar 1, 2023 -> Extract methods into Human.
 
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
 
@@ -185,7 +183,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void setShaking(boolean shaking) {
-        Reflect.setDataWatcherValue(human, DataWatcherType.INT, 7, shaking ? 140 : 0);
+        Reflect.setDataWatcherValue(human, DataWatcherType.INT, 7, shaking ? Integer.MAX_VALUE : 0);
         updateDataWatcher();
     }
 
@@ -576,13 +574,7 @@ public class HumanNPC implements Intractable, Human {
         swingArm(false);
     }
 
-    /**
-     * Sets NPC's skin to the given texture and signature.
-     * Get the texture and signature from <a href="https://mineskin.org">MineSkin</a>
-     *
-     * @param texture   - Texture.
-     * @param signature - Signature.
-     */
+    @Override
     public HumanNPC setSkin(String texture, String signature) {
         this.profile.getProperties().removeAll("textures");
         this.profile.getProperties().put("textures", new Property("textures", texture, signature));

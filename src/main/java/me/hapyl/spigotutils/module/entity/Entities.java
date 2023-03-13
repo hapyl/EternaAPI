@@ -256,7 +256,7 @@ public final class Entities<T extends Entity> {
     }
 
     /**
-     * @deprecated {@link this#getSpawned(JavaPlugin)}
+     * @deprecated {@link Entities#getSpawned(JavaPlugin)}
      */
     @Deprecated
     public static Set<Entity> getEntities() {
@@ -264,7 +264,7 @@ public final class Entities<T extends Entity> {
     }
 
     /**
-     * @deprecated {@link this#getSpawned(JavaPlugin)}
+     * @deprecated {@link Entities#getSpawned(JavaPlugin)}
      */
     public static Set<Entity> getSpawned() {
         return getSpawned(ETERNA_PLUGIN);

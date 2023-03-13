@@ -4,6 +4,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Utility class for enums.
+ */
 public final class Enums {
 
     private Enums() {

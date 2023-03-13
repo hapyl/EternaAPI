@@ -84,7 +84,7 @@ public class BukkitUtils {
      * @return converts tick into second for display purpose.
      */
     public static String roundTick(int tick) {
-        return tick % 20 == 0 ? ("" + (tick / 20)) : BukkitUtils.decimalFormat(tick / 20.0d);
+        return tick % 20 == 0 ? ("" + (tick / 20) + ".00") : BukkitUtils.decimalFormat(tick / 20.0d);
     }
 
     /**

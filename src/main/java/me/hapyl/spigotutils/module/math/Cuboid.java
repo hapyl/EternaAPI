@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 
 /**
  * Original Class by:
- * <a href="https://www.spigotmc.org/threads/region-cuboid.329859/">https://www.spigotmc.org/threads/region-cuboid.329859/</a>
+ * <a href="https://www.spigotmc.org/threads/region-cuboid.329859/">Tristiisch74</a>
  */
 public class Cuboid {
 

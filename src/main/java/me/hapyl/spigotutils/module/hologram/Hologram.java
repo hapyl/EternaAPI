@@ -25,8 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * This class allows to create packet-holograms
  */
-// TODO: 012, Mar 12, 2023 -> Why is this so hard to use bruh
-public class Hologram {
+public class Hologram implements Holo {
 
     /**
      * Vertical offset of the holograms.
@@ -58,26 +57,19 @@ public class Hologram {
         this(1);
     }
 
-    /**
-     * Adds a line of hologram, lines are sorted from top bo bottom. (Revertible)
-     *
-     * @param line - String.
-     */
+    @Override
     public Hologram addLine(String line) {
         this.lines.add(line);
         return this;
     }
 
-    /**
-     * Adds all lines to hologram.
-     *
-     * @param lines - String[]
-     */
+    @Override
     public Hologram addLines(String... lines) {
         this.lines.addAll(Arrays.asList(lines));
         return this;
     }
 
+    @Override
     public Hologram setLines(String... lines) {
         this.lines.clear();
         this.lines.addAll(Arrays.asList(lines));
@@ -85,12 +77,7 @@ public class Hologram {
         return this;
     }
 
-    /**
-     * Removes line at the given index.
-     *
-     * @param index - Index.
-     * @throws IndexOutOfBoundsException if there is on such line.
-     */
+    @Override
     public Hologram removeLine(int index) throws IndexOutOfBoundsException {
         if (this.lines.size() - 1 < index) {
             throw new IndexOutOfBoundsException(String.format("There is only %s lines, not %s.", this.lines.size(), index));
@@ -101,12 +88,7 @@ public class Hologram {
         return this;
     }
 
-    /**
-     * Sets string at provided index.
-     *
-     * @param index - Index.
-     * @param line  - String.
-     */
+    @Override
     public Hologram setLine(int index, String line) {
         if (this.lines.size() - 1 < index) {
             for (int i = 0; i < index; i++) {
@@ -119,57 +101,55 @@ public class Hologram {
         return this;
     }
 
+    @Override
     public Hologram clear() {
         this.lines.clear();
         return this;
     }
 
-    public Hologram fillLines(String values) {
-        final List<String> newList = new ArrayList<>();
-        for (int i = 0; i < this.lines.size(); i++) {
-            newList.add(values);
-        }
-        this.lines = newList;
-        this.updateLines();
-        return this;
-    }
-
-    /**
-     * If hologram is persistent it will not be removed when far away.
-     *
-     * @param persistent - flag.
-     */
+    @Override
     public Hologram setPersistent(boolean persistent) {
         this.persistent = persistent;
         return this;
     }
 
+    @Override
     public boolean isPersistent() {
         return persistent;
     }
 
+    @Override
     public Hologram setRemoveWhenFarAway(int hideWhenFurtherThan) {
         this.removeWhenFarAway = hideWhenFurtherThan;
         return this;
     }
 
+    @Override
     public int getRemoveWhenFarAway() {
         return removeWhenFarAway;
     }
 
+    /**
+     * Returns the map of players and their status.
+     *
+     * @return the map of players and their status.
+     */
     public Map<Player, Boolean> getShowingTo() {
         return showingTo;
     }
 
+    @Override
     public boolean isShowingTo(Player player) {
         return this.showingTo.containsKey(player) && this.showingTo.get(player);
     }
 
+    @Override
     public Location getLocation() {
         return location;
     }
 
-    public void destroy() {
+    @Override
+    public boolean destroy() {
         this.removeStands();
 
         if (this.task != null) {
@@ -177,6 +157,7 @@ public class Hologram {
         }
 
         EternaRegistry.getHologramRegistry().unregister(this);
+        return true;
     }
 
     protected void removeStands() {
@@ -184,10 +165,12 @@ public class Hologram {
         this.packets.clear();
     }
 
+    @Override
     public Hologram showAll() {
         return this.show(Bukkit.getOnlinePlayers().toArray(new Player[] {}));
     }
 
+    @Override
     public Hologram show(Player... players) {
         if (this.location == null) {
             for (final Player player : players) {
@@ -208,9 +191,7 @@ public class Hologram {
         return this;
     }
 
-    /**
-     * @param flag true -> hide, false -> destroy
-     */
+    @Override
     public Hologram hide(boolean flag, Player... players) {
         if (players.length == 0) {
             players = onlinePlayersToArray();
@@ -232,6 +213,7 @@ public class Hologram {
         return this;
     }
 
+    @Override
     public Hologram hide(Player... players) {
         return this.hide(false, players);
     }
@@ -254,6 +236,7 @@ public class Hologram {
         return this;
     }
 
+    @Override
     public Hologram teleport(Location location) {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             this.move(location, onlinePlayer);
@@ -261,6 +244,7 @@ public class Hologram {
         return this;
     }
 
+    @Override
     public Hologram updateLines(boolean keepListSorted) {
         Location location = this.location.clone();
         location.add(0.0d, 1.0d, 0.0d); // fix marker
@@ -283,23 +267,26 @@ public class Hologram {
         return this;
     }
 
+    @Override
     public Hologram updateLines() {
         return this.updateLines(false);
     }
 
-    public Hologram create(Location loc) {
+    @Override
+    public Hologram create(Location location) {
         if (this.location != null) {
             throw new IllegalArgumentException("This hologram was already created!");
         }
 
         // Saved to use it later when updating stands
-        this.location = loc.clone();
+        this.location = location.clone();
         // fix marker location
         this.location.add(0.0d, 1.0d, 0.0);
         // Move current location up so holograms stop at the start position
         this.location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
+
         for (String string : lines) {
-            createStand(this.location, ChatColor.translateAlternateColorCodes('&', string));
+            createStand(this.location, Chat.format(string));
             this.location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
         }
         return this;
@@ -316,6 +303,7 @@ public class Hologram {
         return array;
     }
 
+    @Override
     public Hologram move(Location location, Player... players) {
         location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
         this.packets.forEach((stand, packets) -> {
@@ -359,5 +347,9 @@ public class Hologram {
     @Override
     public String toString() {
         return this.lines.toString();
+    }
+
+    public boolean isCreated() {
+        return this.location != null;
     }
 }

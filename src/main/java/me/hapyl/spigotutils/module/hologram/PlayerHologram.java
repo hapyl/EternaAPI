@@ -40,12 +40,12 @@ public class PlayerHologram extends Hologram {
     }
 
     @Override
-    public Hologram hide(Player... players) {
+    public final Hologram hide(Player... players) {
         return this.hide();
     }
 
     @Override
-    public Hologram hide(boolean flag, Player... players) {
+    public final Hologram hide(boolean flag, Player... players) {
         return this.hide();
     }
 

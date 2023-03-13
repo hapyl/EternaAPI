@@ -7,6 +7,7 @@ import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import org.bukkit.entity.Player;
 
 public class ReloadAddonsCommand extends SimplePlayerAdminCommand {
+
     public ReloadAddonsCommand(String name) {
         super(name);
         setDescription("Reloads addons.");

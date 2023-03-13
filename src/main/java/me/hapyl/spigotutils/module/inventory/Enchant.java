@@ -8,6 +8,10 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import java.util.Map;
 
+/**
+ * A simple enum that contains all enchantments in Minecraft, with their bukkit enchantment, material, description and max level.
+ * Some are renamed to represent their minecraft name.
+ */
 public enum Enchant {
 
     SHARPNESS(Enchantment.DAMAGE_ALL, Material.IRON_SWORD, "Increases damage dealt to all entities.", 5),
@@ -74,27 +78,62 @@ public enum Enchant {
         this.vanillaMaxLvl = vanillaMaxLvl;
     }
 
+    /**
+     * Returns the material of this enchantment.
+     * These are <b>my</b> opinion of the material that could be used.
+     *
+     * @return the material of this enchantment
+     */
     public Material getMaterial() {
         return material;
     }
 
+    /**
+     * Returns the description of this enchantment.
+     * These are from wikipedia.
+     *
+     * @return the description of this enchantment
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Returns the maximum level of this enchantment that is allowed in vanilla.
+     *
+     * @return the maximum level of this enchantment that is allowed in vanilla
+     */
     public int getVanillaMaxLvl() {
         return vanillaMaxLvl;
     }
 
+    /**
+     * Enchants the given item stack with this enchantment.
+     *
+     * @param stack                     - the item stack to enchant.
+     * @param lvl                       - the level of the enchantment.
+     * @param ignoreVanillaRestrictions - whether to ignore the vanilla restrictions.
+     */
     public void enchantItem(ItemStack stack, int lvl, boolean ignoreVanillaRestrictions) {
         Meta.of(stack).enchant(this, ignoreVanillaRestrictions ? lvl : Math.min(lvl, vanillaMaxLvl));
     }
 
+    /**
+     * Returns bukkit enchantment.
+     *
+     * @return bukkit enchantment
+     */
     @Nonnull
     public Enchantment getAsBukkit() {
         return bukkit;
     }
 
+    /**
+     * Returns Enchant from bukkit enchantment.
+     *
+     * @param enchantment - bukkit enchantment
+     * @return Enchant from bukkit enchantment
+     */
     @Nonnull
     public static Enchant fromBukkit(Enchantment enchantment) {
         return byBukkit.getOrDefault(enchantment, UNBREAKING);

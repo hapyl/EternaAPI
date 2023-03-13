@@ -1,5 +1,11 @@
 package me.hapyl.spigotutils.module.util;
 
+/**
+ * Contains a key and value pair value.
+ *
+ * @param <K> - The key.
+ * @param <P> - The value.
+ */
 public class KeyPair<K, P> {
 
     private final K k;

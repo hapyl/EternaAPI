@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 public abstract class Registry<K, V> {
 
     private final EternaPlugin plugin;
+
     protected final Map<K, V> registry = Maps.newLinkedHashMap();
 
     /**

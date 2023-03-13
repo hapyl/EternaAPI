@@ -1,7 +1,11 @@
 package me.hapyl.spigotutils.module.util;
 
+import javax.annotation.Nullable;
+
 /**
- * Holds a value.
+ * Indicates that the class contains a value of some type.
+ *
+ * @param <E> - The type of value.
  */
 public class Holder<E> {
 
@@ -11,6 +15,12 @@ public class Holder<E> {
         this.e = e;
     }
 
+    /**
+     * Returns the value.
+     *
+     * @return the value.
+     */
+    @Nullable
     public E get() {
         return e;
     }

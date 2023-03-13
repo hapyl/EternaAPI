@@ -15,6 +15,10 @@ public final class AddonRegistry extends Registry<String, EternaAddon> {
         loadAll();
     }
 
+    public static AddonRegistry get() {
+        return null;
+    }
+
     public void loadAll() {
         // Create folder
         final File folder = new File(EternaPlugin.getPlugin().getDataFolder() + "/addons");

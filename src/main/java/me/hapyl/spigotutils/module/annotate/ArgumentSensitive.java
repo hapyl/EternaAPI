@@ -5,8 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
 /**
  * Indicates that the annotated method can
  * be targeted by {@link me.hapyl.spigotutils.module.command.CommandProcessor}
@@ -30,6 +28,9 @@ import java.lang.annotation.Target;
  * the command itself.
  *
  */
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 public @interface ArgumentSensitive {
 
     int targetSize();
@@ -37,3 +38,4 @@ public @interface ArgumentSensitive {
     String targetString();
 
 }
+

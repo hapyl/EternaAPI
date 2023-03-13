@@ -22,7 +22,7 @@ public class TestVisibility {
 
         entity.remove();
         entity = null;
-        Chat.sendMessage(player, "&aRemoved/");
+        Chat.sendMessage(player, "&aRemoved");
     }
 
 }

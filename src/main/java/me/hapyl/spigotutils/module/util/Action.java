@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.util;
 
 @FunctionalInterface
 public interface Action<T> {
+
     void use(T t);
 
     interface AB<A, B> {

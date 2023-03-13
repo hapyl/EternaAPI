@@ -5,14 +5,29 @@ package me.hapyl.spigotutils.module.util;
  */
 public interface Wrap {
 
+    /**
+     * The start of the array.
+     */
     String start();
 
+    /**
+     * The between of elements.
+     */
     String between();
 
+    /**
+     * The end of the array.
+     */
     String end();
 
+    /**
+     * Default wrapped: [element, element, element]
+     */
     Wrap DEFAULT = of("[", ", ", "]");
 
+    /**
+     * Static method to create a new Wrap.
+     */
     static Wrap of(String start, String between, String end) {
         return new Wrap() {
             @Override

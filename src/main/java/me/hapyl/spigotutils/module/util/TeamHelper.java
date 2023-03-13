@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
  * This helper works with team to apply collision or name tag visibility.
  * Should really be called EternaTeams or something.
  */
+// TODO: 013, Mar 13, 2023 -> Should probably rework using packet teams if possible.
 public enum TeamHelper {
 
     FAKE_ENTITY("fakeEntity", team -> {

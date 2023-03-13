@@ -6,6 +6,7 @@ import me.hapyl.spigotutils.builtin.command.ReloadAddonsCommand;
 import me.hapyl.spigotutils.builtin.command.ReloadPlayerConfigCommand;
 import me.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
+import me.hapyl.spigotutils.module.hologram.HologramListener;
 import me.hapyl.spigotutils.module.hologram.HologramRunnable;
 import me.hapyl.spigotutils.module.inventory.ItemBuilderListener;
 import me.hapyl.spigotutils.module.inventory.gui.GUIListener;
@@ -58,6 +59,7 @@ public class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new ParkourListener(), this);
         manager.registerEvents(new PlayerConfigEvent(), this);
         manager.registerEvents(new ReplayListener(), this);
+        manager.registerEvents(new HologramListener(), this);
 
         // Init registry
         registry = new EternaRegistry(this);

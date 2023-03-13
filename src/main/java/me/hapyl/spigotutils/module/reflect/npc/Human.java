@@ -263,6 +263,15 @@ public interface Human {
     void swingOffHand();
 
     /**
+     * Sets NPC's skin to the given texture and signature.
+     * Get the texture and signature from <a href="https://mineskin.org">MineSkin</a>
+     *
+     * @param texture   - Texture.
+     * @param signature - Signature.
+     */
+    HumanNPC setSkin(String texture, String signature);
+
+    /**
      * Ignores NPC's equipment and sends a "ghost" item to provided players.
      * {@link Human#updateEquipment()} will reset NPC's "ghost" equipment.
      *
