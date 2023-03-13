@@ -6,6 +6,7 @@ import me.hapyl.spigotutils.module.util.cd.InternalCooldownStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Statistic;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -159,6 +160,18 @@ public class ParkourListener implements Listener {
         if (type == Position.Type.START_OR_FINISH.material() || type == Position.Type.CHECKPOINT.material()) {
             ev.setCancelled(true);
         }
+    }
+
+    @EventHandler()
+    public void handleJumpStatistic(PlayerStatisticIncrementEvent ev) {
+        final Player player = ev.getPlayer();
+        final Data data = manager().getData(player);
+
+        if (data == null || ev.getStatistic() != Statistic.JUMP) {
+            return;
+        }
+
+        data.getStats().increment(Stats.Type.JUMP, 1);
     }
 
     private void testFail(Player player, FailType type) {

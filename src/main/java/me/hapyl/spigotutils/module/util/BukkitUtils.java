@@ -81,10 +81,21 @@ public class BukkitUtils {
      * Converts tick into second for display purpose.
      *
      * @param tick - Tick to format.
-     * @return converts tick into second for display purpose.
+     * @return formatted string.
      */
     public static String roundTick(int tick) {
-        return tick % 20 == 0 ? ("" + (tick / 20) + ".00") : BukkitUtils.decimalFormat(tick / 20.0d);
+        return roundTick(tick, "");
+    }
+
+    /**
+     * Converts tick into second for display purpose.
+     *
+     * @param tick   - Tick to format.
+     * @param suffix - Suffix to append if tick is divisible by 20.
+     * @return formatted string.
+     */
+    public static String roundTick(int tick, String suffix) {
+        return tick % 20 == 0 ? ((tick / 20) + suffix) : BukkitUtils.decimalFormat(tick / 20.0d);
     }
 
     /**

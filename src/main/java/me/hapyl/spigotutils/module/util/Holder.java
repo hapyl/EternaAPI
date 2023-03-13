@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 /**
  * Indicates that the class contains a value of some type.
@@ -12,6 +12,9 @@ public class Holder<E> {
     private final E e;
 
     public Holder(E e) {
+        if (e == null) {
+            throw new NullPointerException("Holder does not permit null values!");
+        }
         this.e = e;
     }
 
@@ -20,7 +23,7 @@ public class Holder<E> {
      *
      * @return the value.
      */
-    @Nullable
+    @Nonnull
     public E get() {
         return e;
     }

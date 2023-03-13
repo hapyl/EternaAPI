@@ -19,11 +19,11 @@ public class Stats extends Holder<Player> {
     }
 
     public void increment(Type type, long value) {
-        valueMap.put(type, valueMap.computeIfAbsent(type, i -> 0L) + value);
+        valueMap.put(type, getStat(type) + value);
     }
 
     public void decrement(Type type, long value) {
-        valueMap.put(type, valueMap.computeIfAbsent(type, i -> 0L) - value);
+        valueMap.put(type, getStat(type) - value);
     }
 
     public long getStat(Type type) {
