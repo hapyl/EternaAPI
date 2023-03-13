@@ -3,6 +3,9 @@ package me.hapyl.spigotutils.module.command;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.command.completer.Checker;
+import me.hapyl.spigotutils.module.command.completer.Checker2;
+import me.hapyl.spigotutils.module.command.completer.CompleterHandler;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import org.bukkit.Bukkit;
@@ -28,6 +31,7 @@ public abstract class SimpleCommand {
 
     private final String name;
     private final Map<Integer, List<String>> completerValues;
+    private final Map<Integer, CompleterHandler> completerHandlers;
 
     private String permission;
     private String description;
@@ -60,6 +64,7 @@ public abstract class SimpleCommand {
         this.cooldownTick = 0;
         this.cooldown = null;
         this.completerValues = Maps.newHashMap();
+        this.completerHandlers = Maps.newHashMap();
     }
 
     /**
@@ -84,7 +89,23 @@ public abstract class SimpleCommand {
         completerValues.put(index, list);
     }
 
-    public <T> void addCompleterValues(int index, Collection<String> values) {
+    public void addCompleterHandler(CompleterHandler handler) {
+        this.completerHandlers.put(handler.getIndex(), handler);
+    }
+
+    public void addCompleterHandler(int index, Checker checker) {
+        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    }
+
+    public void addCompleterHandler(int index, Checker2 checker) {
+        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    }
+
+    public void addCompleterHandler(int index, String ifValid, String ifInvalid) {
+        this.completerHandlers.put(index, CompleterHandler.of(index).ifValidValue(ifValid).ifInvalidValue(ifInvalid));
+    }
+
+    public void addCompleterValues(int index, Collection<String> values) {
         addCompleterValues(index, values.toArray(new String[] {}));
     }
 
@@ -142,6 +163,31 @@ public abstract class SimpleCommand {
     protected List<String> tabComplete(CommandSender sender, String[] args) {
         return Lists.newArrayList();
     }
+
+    /**
+     * Pre tab complete, called before {@link SimpleCommand#tabComplete(CommandSender, String[])}.
+     *
+     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
+     * @param args   - Arguments of the command
+     * @return New list of completes.
+     */
+    @Nonnull
+    protected List<String> preTabComplete(CommandSender sender, String[] args) {
+        return Lists.newArrayList();
+    }
+
+    /**
+     * Post tab complete, called after {@link SimpleCommand#tabComplete(CommandSender, String[])}.
+     *
+     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
+     * @param args   - Arguments of the command
+     * @return New list of completes.
+     */
+    @Nonnull
+    protected List<String> postTabComplete(CommandSender sender, String[] args) {
+        return Lists.newArrayList();
+    }
+
 
     /**
      * Sets if command can only be executed by a player.
@@ -472,17 +518,42 @@ public abstract class SimpleCommand {
                     return defaultCompleter();
                 }
 
+                final List<String> strings = colorizeList(preTabComplete(sender, args));
                 final List<String> tabComplete = cmd.tabComplete(sender, args);
-                final List<String> strings = tabComplete == null ? Lists.newArrayList() : tabComplete;
+
+                if (tabComplete != null) {
+                    strings.addAll(tabComplete);
+                }
 
                 if (cmd.hasCompleterValues(args.length)) {
                     strings.addAll(cmd.completerSort(cmd.getCompleterValues(args.length), args));
                 }
 
+                strings.addAll(colorizeList(postTabComplete(sender, args)));
+                completerHandler(args.length, args, strings);
+
                 return strings.isEmpty() ? defaultCompleter() : strings;
             }
-
         };
+    }
+
+    private void completerHandler(int index, String[] array, List<String> list) {
+        final CompleterHandler handler = completerHandlers.get(index);
+        if (handler == null) {
+            return;
+        }
+
+        handler.handle(array, list);
+    }
+
+    private static List<String> colorizeList(List<String> list) {
+        final List<String> newList = new ArrayList<>();
+
+        for (final String s : list) {
+            newList.add(Chat.format(s));
+        }
+
+        return newList;
     }
 
     private boolean hasPermission() {
