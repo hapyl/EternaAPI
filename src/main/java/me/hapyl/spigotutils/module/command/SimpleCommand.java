@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Creates a SimpleCommand.
@@ -45,8 +46,7 @@ public abstract class SimpleCommand {
     private int cooldownTick;
 
     private CommandCooldown cooldown;
-    @Nullable
-    private ArgumentProcessor argumentProcessor;
+    @Nullable private ArgumentProcessor argumentProcessor;
 
     /**
      * Creates a new simple command
@@ -68,18 +68,64 @@ public abstract class SimpleCommand {
     }
 
     /**
+     * Adds a new completer handler.
+     *
+     * @param handler - Handler to add.
+     */
+    public void addCompleterHandler(CompleterHandler handler) {
+        this.completerHandlers.put(handler.getIndex(), handler);
+    }
+
+    /**
+     * Adds a new completer handler.
+     *
+     * @param index   - Index of the argument.
+     * @param checker - Checker to use.
+     */
+    public void addCompleterHandler(int index, Checker checker) {
+        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    }
+
+    /**
+     * Adds a new completer handler.
+     *
+     * @param index   - Index of the argument.
+     * @param checker - Checker to use.
+     */
+    public void addCompleterHandler(int index, Checker2 checker) {
+        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    }
+
+    /**
+     * Adds a new completer handler.
+     *
+     * @param index     - Index of the argument.
+     * @param ifValid   - Value to arg if valid.
+     * @param ifInvalid - Value to arg if invalid.
+     */
+    public void addCompleterHandler(int index, String ifValid, String ifInvalid) {
+        this.completerHandlers.put(index, CompleterHandler.of(index).ifValidValue(ifValid).ifInvalidValue(ifInvalid));
+    }
+
+    /**
      * Adds a value to index of tab completer.
      * Note that completer values will be automatically sorted
      * using {@link SimpleCommand#completerSort(List, String[])} AFTER
      * {@link SimpleCommand#tabComplete(CommandSender, String[])} is called.
      *
-     * @param index - Index. <b>Stars at 1 for first argument (args[0])</b>
+     * @param index - Index. <b>Starts at 1 for first argument (args[0])</b>
      * @param value - Value to add. Will be forced to lower case.
      */
     public void addCompleterValue(int index, String value) {
         addCompleterValues(index, value);
     }
 
+    /**
+     * Adds values to index of tab completer.
+     *
+     * @param index  - Index. <b>Starts at 1 for first argument (args[0])</b>
+     * @param values - Values to add. Will be forced to lower case.
+     */
     public void addCompleterValues(int index, String... values) {
         index = Math.max(1, index);
         final List<String> list = getCompleterValues(index);
@@ -89,26 +135,49 @@ public abstract class SimpleCommand {
         completerValues.put(index, list);
     }
 
-    public void addCompleterHandler(CompleterHandler handler) {
-        this.completerHandlers.put(handler.getIndex(), handler);
+    /**
+     * Adds values to index of tab completer.
+     *
+     * @param index  - Index of the argument.
+     * @param values - Values to add.
+     * @param <T>    - Type of the values.
+     */
+    public <T> void addCompleterValues(int index, @Nonnull Collection<T> values) {
+        addCompleterValues(index, values, str -> {
+            if (str instanceof Enum) {
+                return ((Enum<?>) str).name();
+            }
+
+            return str.toString();
+        });
     }
 
-    public void addCompleterHandler(int index, Checker checker) {
-        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    /**
+     * Adds values to index of tab completer.
+     *
+     * @param index    - Index of the argument.
+     * @param values   - Values to add.
+     * @param toString - Function to convert values to string.
+     * @param <T>      - Type of the values.
+     */
+    public <T> void addCompleterValues(int index, @Nonnull Collection<T> values, @Nonnull Function<T, String> toString) {
+        final String[] strings = new String[values.size()];
+
+        int i = 0;
+        for (T value : values) {
+            strings[i++] = toString.apply(value);
+        }
+
+        addCompleterValues(index, strings);
     }
 
-    public void addCompleterHandler(int index, Checker2 checker) {
-        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
-    }
-
-    public void addCompleterHandler(int index, String ifValid, String ifInvalid) {
-        this.completerHandlers.put(index, CompleterHandler.of(index).ifValidValue(ifValid).ifInvalidValue(ifInvalid));
-    }
-
-    public void addCompleterValues(int index, Collection<String> values) {
-        addCompleterValues(index, values.toArray(new String[] {}));
-    }
-
+    /**
+     * Adds values to index of tab completer.
+     *
+     * @param index - Index of the argument.
+     * @param array - Array of values.
+     * @param <T>   - Type of the values.
+     */
     public <T extends Enum<T>> void addCompleterValues(int index, Enum<T>[] array) {
         for (Enum<T> tEnum : array) {
             addCompleterValue(index, tEnum.name());
