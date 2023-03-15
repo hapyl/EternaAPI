@@ -17,11 +17,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 
-@TestedNMS(version = "1.19.3")
 /**
  * Create a visual bounding box between two points.
  * A bounding box size cannot exceed 48 blocks.
  */
+@TestedNMS(version = "1.19.4")
 public class BoundingBox {
 
     public static final int MAX_DIST = 48;
@@ -226,7 +226,7 @@ public class BoundingBox {
         hide();
 
         Runnables.runLater(() -> {
-            final IBlockData blockData = Blocks.oy.n();
+            final IBlockData blockData = Blocks.oW.o();
 
             final int minX = getMinX();
             final int minY = getMinY() - 10; // -10 to offset structure block

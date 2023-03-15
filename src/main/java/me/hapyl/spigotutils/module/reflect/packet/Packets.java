@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * This class is a shortcut to packet creating and sending.
  */
-@TestedNMS(version = "1.19.3")
+@TestedNMS(version = "1.19.4")
 public final class Packets {
 
     private Packets() {

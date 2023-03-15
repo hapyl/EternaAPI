@@ -49,7 +49,7 @@ import java.util.Collection;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedNMS(version = "1.19.3")
+@TestedNMS(version = "1.19.4")
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -131,7 +131,7 @@ public final class Reflect {
      * @param <T>     - Type of the value.
      */
     public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, @Nullable Player... players) {
-        final DataWatcher dataWatcher = entity.al();
+        final DataWatcher dataWatcher = getDataWatcher(entity);
         setDataWatcherValue0(dataWatcher, type.get().a(key), value);
 
         if (players == null || players.length == 0) {
@@ -192,7 +192,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(net.minecraft.world.entity.Entity entity) {
-        return entity.ah();
+        return entity.af();
     }
 
     @Nullable
@@ -446,7 +446,7 @@ public final class Reflect {
     }
 
     public static DataWatcher getDataWatcher(net.minecraft.world.entity.Entity entity) {
-        return entity.al();
+        return entity.aj();
     }
 
     /**
@@ -577,7 +577,7 @@ public final class Reflect {
     }
 
     public static GameProfile getGameProfile(EntityPlayer player) {
-        return player.fD();
+        return player.fI();
     }
 
     /**

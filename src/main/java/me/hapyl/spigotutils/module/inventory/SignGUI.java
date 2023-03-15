@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedNMS(version = "1.19.3")
+@TestedNMS(version = "1.19.4")
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";

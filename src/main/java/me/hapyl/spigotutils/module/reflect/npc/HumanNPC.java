@@ -65,7 +65,7 @@ import java.util.function.Consumer;
  * For complex NPCs use CitizensAPI
  */
 @SuppressWarnings("unused")
-@TestedNMS(version = "1.19.3")
+@TestedNMS(version = "1.19.4")
 public class HumanNPC implements Intractable, Human {
 
     public static final String chatFormat = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
@@ -516,7 +516,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public NPCPose getPose() {
-        return NPCPose.fromNMS(human.an());
+        return NPCPose.fromNMS(human.al());
     }
 
     @Override
@@ -649,7 +649,7 @@ public class HumanNPC implements Intractable, Human {
         }.runTaskAsynchronously(EternaPlugin.getPlugin());
     }
 
-    @TestedNMS(version = "1.19.3")
+    @TestedNMS(version = "1.19.4")
     public String[] getSkin(String targetName) {
         // if player on the server just get their game profile
         if (Bukkit.getPlayer(targetName) != null) {
@@ -794,7 +794,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public DataWatcher getDataWatcher() {
-        return this.human.al();
+        return Reflect.getDataWatcher(human);
     }
 
     @SuppressWarnings("all")
@@ -830,7 +830,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void updateDataWatcher() {
-        final List<DataWatcher.b<?>> list = this.human.al().c();
+        final List<DataWatcher.b<?>> list = getDataWatcher().c();
         ReflectPacket.send(new PacketPlayOutEntityMetadata(this.getId(), list), getPlayers());
     }
 
@@ -892,7 +892,7 @@ public class HumanNPC implements Intractable, Human {
     }
 
     public int getId() {
-        return human.ah();
+        return Reflect.getEntityId(human);
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
 
-@TestedNMS(version = "1.19.3")
+@TestedNMS(version = "1.19.4")
 public class NBTNative {
 
     private static final Method CRAFT_AS_NMS_COPY_METHOD = Reflect.getCraftMethod("inventory.CraftItemStack", "asNMSCopy", ItemStack.class);

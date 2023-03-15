@@ -9,7 +9,7 @@ public class DataWatcherType<T> {
     public static final DataWatcherType<Integer> INT = new DataWatcherType<>(Integer.class, DataWatcherRegistry.b);
     public static final DataWatcherType<Float> FLOAT = new DataWatcherType<>(Float.class, DataWatcherRegistry.d);
     public static final DataWatcherType<String> STR = new DataWatcherType<>(String.class, DataWatcherRegistry.e);
-    public static final DataWatcherType<Boolean> BOOL = new DataWatcherType<>(Boolean.class, DataWatcherRegistry.j);
+    public static final DataWatcherType<Boolean> BOOL = new DataWatcherType<>(Boolean.class, DataWatcherRegistry.k);
 
     private final Class<T> clazz;
     private final DataWatcherSerializer<T> fieldName;

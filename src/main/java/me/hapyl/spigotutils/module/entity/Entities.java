@@ -32,8 +32,8 @@ public final class Entities<T extends Entity> {
 
     public static class NMS {
 
-        public static final EntityTypes<EntityGuardian> GUARDIAN = EntityTypes.O;
-        public static final EntityTypes<EntitySquid> SQUID = EntityTypes.aN;
+        public static final EntityTypes<EntityGuardian> GUARDIAN = EntityTypes.V;
+        public static final EntityTypes<EntitySquid> SQUID = EntityTypes.aT;
 
     }
 

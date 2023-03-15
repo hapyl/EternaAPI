@@ -338,7 +338,7 @@ public class Hologram implements Holo {
 
         this.packets.put(armorStand, new ReflectPacket(
                 new PacketPlayOutSpawnEntity(armorStand),
-                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), armorStand.al().c()),
+                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), Reflect.getDataWatcher(armorStand).c()),
                 new PacketPlayOutEntityDestroy(bukkit.getEntityId())
         ));
 
