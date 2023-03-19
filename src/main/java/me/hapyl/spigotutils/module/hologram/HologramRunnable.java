@@ -17,7 +17,9 @@ public class HologramRunnable implements Runnable {
                     return;
                 }
 
-                if (player.getLocation().distance(hologram.getLocation()) >= hologram.getRemoveWhenFarAway()) {
+                final double distance = player.getLocation().distance(hologram.getLocation());
+
+                if (distance >= hologram.getRemoveWhenFarAway()) {
                     if (hologram.isShowingTo(player)) {
                         hologram.hide(true, player);
                     }
@@ -34,26 +36,6 @@ public class HologramRunnable implements Runnable {
     @Override
     public void run() {
         run0();
-        //EternaRegistry.getHologramRegistry().getHolograms().forEach(hologram -> {
-        //    if (hologram.getRemoveWhenFarAway() > 0 && !hologram.isPersistent()) {
-        //        hologram.getShowingTo().forEach((player, status) -> {
-        //            if (!Objects.equals(player.getLocation().getWorld(), hologram.getLocation().getWorld())) {
-        //                return;
-        //            }
-        //
-        //            if (player.getLocation().distance(hologram.getLocation()) >= hologram.getRemoveWhenFarAway()) {
-        //                if (hologram.isShowingTo(player)) {
-        //                    hologram.hide(true, player);
-        //                }
-        //            }
-        //            else {
-        //                if (!hologram.isShowingTo(player)) {
-        //                    hologram.show(player);
-        //                }
-        //            }
-        //        });
-        //    }
-        //});
     }
 
 }

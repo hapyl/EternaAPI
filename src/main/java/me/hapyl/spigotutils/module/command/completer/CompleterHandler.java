@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.command.completer;
 
 import me.hapyl.spigotutils.module.chat.Chat;
+import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -37,11 +38,8 @@ public class CompleterHandler {
         return this;
     }
 
-    public final void handle(String[] args, List<String> list) {
+    public final void handle(Player player, String[] args, List<String> list) {
         if (args.length <= index) {
-            System.out.println("Args length <= index");
-            System.out.println("Args length: " + args.length);
-            System.out.println("Index: " + index);
             return;
         }
 
@@ -49,7 +47,7 @@ public class CompleterHandler {
 
         // Custom checker
         if (checker != null) {
-            final String check = checker instanceof Checker2 ? ((Checker2) checker).check(arg, args) : checker.check(arg);
+            final String check = checker instanceof Checker2 ? ((Checker2) checker).check(player, arg, args) : checker.check(player, arg);
 
             if (check != null) {
                 list.add(format(check, arg));

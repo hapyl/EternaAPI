@@ -1,15 +1,14 @@
 package me.hapyl.spigotutils.module.hologram;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.registry.EternaRegistry;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,8 +18,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class allows to create packet-holograms
@@ -31,14 +32,16 @@ public class Hologram implements Holo {
      * Vertical offset of the holograms.
      */
     public static final double HOLOGRAM_OFFSET = 0.3d;
+    public static final double HOLOGRAM_HEIGHT = 1.75d;
 
-    private BukkitTask task;
-    private List<String> lines;
-    private final HashMap<EntityArmorStand, ReflectPacket> packets;
+    private final List<String> lines;
+    private final List<HologramArmorStand> packets;
     private final Map<Player, Boolean> showingTo;
+
     private int removeWhenFarAway = 25;
     private boolean persistent;
 
+    private BukkitTask task;
     private Location location;
 
     /**
@@ -48,8 +51,8 @@ public class Hologram implements Holo {
      */
     public Hologram(int size) {
         this.lines = new ArrayList<>(size);
-        this.packets = new HashMap<>();
-        this.showingTo = new ConcurrentHashMap<>();
+        this.packets = Lists.newArrayList();
+        this.showingTo = Maps.newConcurrentMap();
         EternaRegistry.getHologramRegistry().register(this);
     }
 
@@ -161,7 +164,7 @@ public class Hologram implements Holo {
     }
 
     protected void removeStands() {
-        this.showingTo.forEach((player, status) -> this.hide(player));
+        this.showingTo.forEach((player, status) -> hide(player));
         this.packets.clear();
     }
 
@@ -170,6 +173,7 @@ public class Hologram implements Holo {
         return this.show(Bukkit.getOnlinePlayers().toArray(new Player[] {}));
     }
 
+    @Super
     @Override
     public Hologram show(Player... players) {
         if (this.location == null) {
@@ -179,43 +183,37 @@ public class Hologram implements Holo {
             return null;
         }
 
-        updateLines();
+        for (Player player : players) {
+            showingTo.put(player, true);
+            packets.forEach(hologram -> {
+                hologram.show(player);
+                hologram.updateLocation(player);
+            });
+        }
 
-        this.packets.forEach((entity, packet) -> {
-            for (final Player player : players) {
-                this.showingTo.put(player, true);
-                packet.sendPacket(0, player);
-                packet.sendPacket(1, player);
-            }
-        });
         return this;
     }
 
+    @Super
     @Override
     public Hologram hide(boolean flag, Player... players) {
-        if (players.length == 0) {
-            players = onlinePlayersToArray();
-        }
-
-        final Player[] finalPlayers = players;
-        this.packets.forEach((entity, packet) -> {
-            for (final Player player : finalPlayers) {
-                if (flag) {
-                    this.showingTo.put(player, false);
-                }
-                else {
-                    this.showingTo.remove(player);
-                }
-                packet.sendPacket(2, player);
+        for (Player player : players) {
+            if (flag) {
+                showingTo.put(player, false);
             }
-        });
+            else {
+                showingTo.remove(player);
+            }
+
+            packets.forEach(hologram -> hologram.hide(player));
+        }
 
         return this;
     }
 
     @Override
     public Hologram hide(Player... players) {
-        return this.hide(false, players);
+        return hide(false, players);
     }
 
     public Hologram onTick(HologramAction<?> action, int tick) {
@@ -239,16 +237,20 @@ public class Hologram implements Holo {
     @Override
     public Hologram teleport(Location location) {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            this.move(location, onlinePlayer);
+            move(location, onlinePlayer);
         }
         return this;
+    }
+
+    public double getHologramHeight() {
+        return HOLOGRAM_HEIGHT;
     }
 
     @Override
     public Hologram updateLines(boolean keepListSorted) {
         Location location = this.location.clone();
-        location.add(0.0d, 1.0d, 0.0d); // fix marker
-        this.removeStands();
+        location.add(0.0d, getHologramHeight(), 0.0d); // fix marker
+        removeStands();
 
         if (keepListSorted) {
             for (final String line : lines) {
@@ -278,10 +280,9 @@ public class Hologram implements Holo {
             throw new IllegalArgumentException("This hologram was already created!");
         }
 
-        // Saved to use it later when updating stands
         this.location = location.clone();
-        // fix marker location
-        this.location.add(0.0d, 1.0d, 0.0);
+        this.location.add(0.0d, getHologramHeight(), 0.0); // Fix marker location
+
         // Move current location up so holograms stop at the start position
         this.location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
 
@@ -292,30 +293,15 @@ public class Hologram implements Holo {
         return this;
     }
 
-    private Player[] onlinePlayersToArray() {
-        final Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
-        final Player[] array = new Player[onlinePlayers.size()];
-        int step = 0;
-        for (final Player onlinePlayer : onlinePlayers) {
-            array[step] = onlinePlayer;
-            ++step;
-        }
-        return array;
-    }
-
     @Override
     public Hologram move(Location location, Player... players) {
         location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
-        this.packets.forEach((stand, packets) -> {
-            teleportAndSync(stand, location.getX(), location.getY(), location.getZ(), players);
+        packets.forEach(hologram -> {
+            hologram.setLocation(location);
+            hologram.updateLocation(players);
             location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
         });
         return this;
-    }
-
-    private void teleportAndSync(EntityArmorStand stand, double x, double y, double z, Player... players) {
-        stand.a(x, y, z);
-        ReflectPacket.send(new PacketPlayOutEntityTeleport(stand), players);
     }
 
     private void createStand(Location location, String name) {
@@ -324,24 +310,14 @@ public class Hologram implements Holo {
             return;
         }
 
-        EntityArmorStand armorStand = new EntityArmorStand(EntityTypes.d, Reflect.getMinecraftWorld(location.getWorld()));
+        packets.add(new HologramArmorStand(location, name));
+    }
 
-        final ArmorStand bukkit = (ArmorStand) armorStand.getBukkitEntity();
+    public void updateMetadata(EntityArmorStand stand, Player player) {
+        final ArmorStand bukkit = (ArmorStand) stand.getBukkitEntity();
+        final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(bukkit.getEntityId(), Reflect.getDataWatcher(stand).c());
 
-        bukkit.teleport(location);
-
-        bukkit.setInvisible(true);
-        bukkit.setSmall(true);
-        bukkit.setMarker(true);
-        bukkit.setCustomName(name);
-        bukkit.setCustomNameVisible(true);
-
-        this.packets.put(armorStand, new ReflectPacket(
-                new PacketPlayOutSpawnEntity(armorStand),
-                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), Reflect.getDataWatcher(armorStand).c()),
-                new PacketPlayOutEntityDestroy(bukkit.getEntityId())
-        ));
-
+        ReflectPacket.send(packet, player);
     }
 
     @Override

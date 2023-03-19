@@ -27,6 +27,7 @@ import me.hapyl.spigotutils.module.reflect.protocol.GlowingListener;
 import me.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
 import me.hapyl.spigotutils.module.reflect.protocol.SignListener;
 import me.hapyl.spigotutils.module.reflect.protocol.VisibilityListener;
+import me.hapyl.spigotutils.module.reflect.visibility.VisibilityRunnable;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
@@ -73,6 +74,7 @@ public class EternaPlugin extends JavaPlugin {
         scheduler.runTaskTimer(this, new HologramRunnable(), 0, 2);
         scheduler.runTaskTimer(this, new ParkourRunnable(), 0, 2);
         scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
+        scheduler.runTaskTimer(this, new VisibilityRunnable(), 0, 1);
 
         // Load ProtocolLib listeners
         new SignListener();

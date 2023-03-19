@@ -17,12 +17,13 @@ public class VisibilityListener extends ProtocolListener {
 
     @Override
     public void onPacketSending(PacketEvent event) {
+        // FIXME: 019, Mar 19, 2023 -> This broke for some reason
         final Player player = event.getPlayer();
         final PacketContainer packet = event.getPacket();
 
         final int entityId = packet.getIntegers().read(0);
-
         final Visibility visibility = Visibility.of(entityId);
+
         if (visibility == null || visibility.canSee(player)) {
             return;
         }

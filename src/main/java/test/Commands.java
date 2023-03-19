@@ -12,6 +12,7 @@ import me.hapyl.spigotutils.module.quest.QuestProgress;
 import me.hapyl.spigotutils.module.record.Record;
 import me.hapyl.spigotutils.module.record.Replay;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
+import me.hapyl.spigotutils.module.reflect.npc.Human;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
@@ -79,6 +80,11 @@ public class Commands {
             }
         }));
 
+        registerTestCommand("globalnpc", (player, args) -> {
+            Human.create(player.getLocation(), "GLOBAL NPC", player.getName()).showAll();
+            Chat.sendMessage(player, "&aCreated global npc.");
+        });
+
         registerTestCommand("recording", (player, args) -> {
             // replay start
             // replay play
@@ -95,6 +101,7 @@ public class Commands {
                     new Record(player);
                     Chat.sendMessage(player, "&aForced new recording...");
                 }
+
                 case "start" -> {
                     if (record == null) {
                         new Record(player);

@@ -7,6 +7,7 @@ import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.EntitySquid;
+import net.minecraft.world.entity.decoration.EntityArmorStand;
 import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
@@ -34,6 +35,7 @@ public final class Entities<T extends Entity> {
 
         public static final EntityTypes<EntityGuardian> GUARDIAN = EntityTypes.V;
         public static final EntityTypes<EntitySquid> SQUID = EntityTypes.aT;
+        public static final EntityTypes<EntityArmorStand> ARMOR_STAND = EntityTypes.d;
 
     }
 

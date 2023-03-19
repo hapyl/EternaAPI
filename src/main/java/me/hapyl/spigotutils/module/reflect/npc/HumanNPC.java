@@ -856,8 +856,8 @@ public class HumanNPC implements Intractable, Human {
             }
         }
 
-        this.packetRemovePlayer.sendPackets(getPlayers());
-        this.packetDestroy.sendPackets(getPlayers());
+        this.packetRemovePlayer.sendPackets(players);
+        this.packetDestroy.sendPackets(players);
     }
 
     @Override

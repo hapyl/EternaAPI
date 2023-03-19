@@ -19,6 +19,7 @@ public class NPCRunnable implements Runnable {
                     if (!Objects.equals(player.getLocation().getWorld(), npc.getLocation().getWorld())) {
                         return;
                     }
+
                     if (player.getLocation().distance(npc.getLocation()) >= npc.getFarAwayDist()) {
                         if (npc.isShowingTo(player)) {
                             npc.hide(true, player);
@@ -32,6 +33,7 @@ public class NPCRunnable implements Runnable {
                 });
             }
 
+            // Look at closest player
             if (npc.getLookAtCloseDist() > 0) {
                 final int dist = npc.getLookAtCloseDist();
                 final Location location = npc.getLocation();

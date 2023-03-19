@@ -56,6 +56,10 @@ public class Visibility {
         }
     }
 
+    public static Map<Integer, Visibility> mapped() {
+        return VISIBILITY_MAP;
+    }
+
     public static Visibility of(Entity entity, Player... players) {
         if (players == null || players.length == 0) {
             return of(entity);

@@ -599,20 +599,23 @@ public abstract class SimpleCommand {
                 }
 
                 strings.addAll(colorizeList(postTabComplete(sender, args)));
-                completerHandler(args.length, args, strings);
+
+                if (sender instanceof Player player) {
+                    completerHandler(player, args.length, args, strings);
+                }
 
                 return strings.isEmpty() ? defaultCompleter() : strings;
             }
         };
     }
 
-    private void completerHandler(int index, String[] array, List<String> list) {
+    private void completerHandler(Player player, int index, String[] array, List<String> list) {
         final CompleterHandler handler = completerHandlers.get(index);
         if (handler == null) {
             return;
         }
 
-        handler.handle(array, list);
+        handler.handle(player, array, list);
     }
 
     private static List<String> colorizeList(List<String> list) {
