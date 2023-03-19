@@ -9,6 +9,7 @@ import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.reflect.Ticking;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.module.util.Validate;
@@ -59,6 +60,7 @@ public class Glowing implements Ticking, GlowingListener {
      * @param color    - Glowing color.
      * @param duration - Glow duration.
      */
+    @Super
     public Glowing(Entity entity, ChatColor color, int duration) {
         this.entity = entity;
         this.duration = duration;
@@ -86,6 +88,16 @@ public class Glowing implements Ticking, GlowingListener {
         glowingManager.stopGlowing(entity);
     }
 
+    public static void stopGlowing(Entity entity, Player player) {
+        final GlowingRegistry glowingManager = EternaPlugin.getPlugin().getGlowingManager();
+        final Glowing glowing = glowingManager.getGlowing(entity, player);
+        if (glowing == null) {
+            return;
+        }
+
+        glowing.forceStop();
+    }
+
     @Override
     public void onGlowingStart() {
 
@@ -98,7 +110,6 @@ public class Glowing implements Ticking, GlowingListener {
 
     @Override
     public void onGlowingTick() {
-
     }
 
     /**
@@ -140,7 +151,6 @@ public class Glowing implements Ticking, GlowingListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public final Entity getEntity() {
@@ -163,10 +173,27 @@ public class Glowing implements Ticking, GlowingListener {
 
         boolean lastTick = duration-- <= 0;
 
+        // Fix team color if other glowing interrupted
+        tryFixTeam();
+
         if (lastTick) {
             forceStop();
+            return;
         }
+
         this.onGlowingTick();
+    }
+
+    private void tryFixTeam() {
+        for (Player player : getPlayers()) {
+            final Team team = getTeamOrCreate(player);
+
+            if (team.getColor() == this.color) {
+                continue;
+            }
+
+            team.setColor(this.color);
+        }
     }
 
     public final boolean isEveryoneIsListener() {
@@ -267,13 +294,15 @@ public class Glowing implements Ticking, GlowingListener {
      * This calls all onStop methods instead of setting duration to 0.
      */
     public final void forceStop() {
+        status = false;
+
         createPacket(false);
         createTeam(false);
         EternaPlugin.getPlugin().getGlowingManager().removeGlowing(entity, this);
         this.onGlowingStop();
     }
 
-    private void updateTeamColor() {
+    protected void updateTeamColor() {
         players.forEach(player -> getTeamOrCreate(player).setColor(this.color));
     }
 
@@ -336,8 +365,8 @@ public class Glowing implements Ticking, GlowingListener {
         team.setColor(this.color);
         return team;
     }
-
     // returns either player's name or entities UUID to use as entry in a team
+
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
     }

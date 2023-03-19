@@ -20,7 +20,6 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
         super(plugin);
     }
 
-
     /**
      * Adds glowing for entity.
      *
@@ -28,14 +27,14 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
      * @param glowing - Glowing.
      */
     public void addGlowing(Entity entity, Glowing glowing) {
-        // TODO: 027, Feb 27, 2023 -> Concurrent glowing for SAME player kinda breaks the color, either don't allow multiple glowing for VIEWER or override.
-
-        //        for (Player player : glowing.getPlayers()) {
-        //            final Glowing existing = getGlowing(entity, player);
-        //            if (existing != null) {
-        //                existing.stop();
-        //            }
-        //        }
+        // Only allow one glowing entity task per player
+        // aka: If entity already glows for the player, stop it.
+        for (Player player : glowing.getPlayers()) {
+            final Glowing existing = getGlowing(entity, player);
+            if (existing != null) {
+                existing.forceStop();
+            }
+        }
 
         final Set<Glowing> set = getGlowing(entity);
         set.add(glowing);
@@ -100,7 +99,7 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
         }
 
         for (Glowing glow : set) {
-            if (glow.isPlayer(player) && glow.getDuration() > 0) {
+            if (glow.isPlayer(player) && glow.isGlowing()) {
                 return true;
             }
         }
