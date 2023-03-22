@@ -441,13 +441,13 @@ public class ItemBuilder implements ItemStackBuilder {
 
     @Override
     public ItemBuilder setSmartLore(String lore) {
-        this.meta.setLore(splitAfter(lore, 30));
+        this.meta.setLore(splitString(lore, 30));
         return this;
     }
 
     @Override
     public ItemBuilder setSmartLore(String lore, final int limit) {
-        this.meta.setLore(splitAfter(lore, limit));
+        this.meta.setLore(splitString(lore, limit));
         return this;
     }
 

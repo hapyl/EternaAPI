@@ -91,9 +91,9 @@ public interface Holo {
     boolean isShowingTo(Player player);
 
     /**
-     * Return actual location of the hologram.
+     * Return copy location of the hologram.
      *
-     * @return actual location of the hologram.
+     * @return copy location of the hologram.
      */
     Location getLocation();
 

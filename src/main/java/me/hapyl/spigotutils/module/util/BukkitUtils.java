@@ -122,6 +122,16 @@ public class BukkitUtils {
     }
 
     /**
+     * Returne new location.
+     *
+     * @param location - Location to copy from.
+     * @return new location.
+     */
+    public static Location newLocation(Location location) {
+        return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+    }
+
+    /**
      * Returns array item on provided index if exists, def otherwise.
      *
      * @param array - Array.

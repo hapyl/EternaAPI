@@ -40,10 +40,11 @@ public class CenterChat {
         player.spigot().sendMessage(builder.create());
     }
 
-    public static String makeString(String message) {
+    public static String makeString(String message, int centerPx) {
         if (message == null || message.equals("")) {
             return "";
         }
+
         message = ChatColor.translateAlternateColorCodes('&', message);
 
         int messagePxSize = 0;
@@ -66,7 +67,7 @@ public class CenterChat {
         }
 
         int halvedMessageSize = messagePxSize / 2;
-        int toCompensate = CENTER_PX - halvedMessageSize;
+        int toCompensate = centerPx - halvedMessageSize;
         int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
         int compensated = 0;
         StringBuilder sb = new StringBuilder();
@@ -78,6 +79,9 @@ public class CenterChat {
         return sb + message;
     }
 
+    public static String makeString(String message) {
+        return makeString(message, CENTER_PX);
+    }
 
     private enum DefaultFontInfo {
 

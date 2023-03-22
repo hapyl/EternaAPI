@@ -7,6 +7,7 @@ import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
+import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
@@ -91,6 +92,10 @@ public class Hologram implements Holo {
         return this;
     }
 
+    public List<String> getLines() {
+        return lines;
+    }
+
     @Override
     public Hologram setLine(int index, String line) {
         if (this.lines.size() - 1 < index) {
@@ -148,7 +153,7 @@ public class Hologram implements Holo {
 
     @Override
     public Location getLocation() {
-        return location;
+        return BukkitUtils.newLocation(location);
     }
 
     @Override
