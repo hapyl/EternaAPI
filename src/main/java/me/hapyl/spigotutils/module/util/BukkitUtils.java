@@ -312,13 +312,13 @@ public class BukkitUtils {
 
     /**
      * Performs DecimalFormat on a number.
-     * Default format is "#0.00"
+     * Default format is "#.##"
      *
      * @param number - Number to format.
      * @return formatted number.
      */
     public static String decimalFormat(Number number) {
-        return decimalFormat(number, "#0.00");
+        return decimalFormat(number, "#.##");
     }
 
     /**

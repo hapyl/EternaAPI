@@ -1,7 +1,9 @@
 package me.hapyl.spigotutils.module.entity;
 
+import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.util.TeamHelper;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
@@ -69,6 +71,16 @@ public class EntityUtils {
             team.setOption(Team.Option.COLLISION_RULE, flag == Collision.ALLOW ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
             team.addEntry(entity.getUniqueId().toString());
         }
+    }
+
+    /**
+     * Changes collision of entity. This method uses scoreboards and will not work if scoreboard is changed.
+     *
+     * @param entity - Entity to change collision for.
+     * @param flag   - if true, collision will be removed, added otherwise.
+     */
+    public static void setCollision(Entity entity, Collision flag) {
+        setCollision(entity, flag, Sets.newHashSet(Bukkit.getOnlinePlayers()));
     }
 
     public static void setCollision(Entity entity, Collision flag, Player... players) {
