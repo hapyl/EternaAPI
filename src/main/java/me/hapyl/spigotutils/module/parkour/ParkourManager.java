@@ -212,6 +212,15 @@ public class ParkourManager extends Registry<Position, Parkour> {
         return null;
     }
 
+    public boolean isCheckpointOfAnyParkour(Location location) {
+        for (Parkour value : registry.values()) {
+            if (value.isCheckpoint(location)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Nullable
     public Parkour registry(Location target) {
         for (Position position : registry.keySet()) {
@@ -252,5 +261,4 @@ public class ParkourManager extends Registry<Position, Parkour> {
     public Data getData(Player player) {
         return parkourData.get(player);
     }
-
 }

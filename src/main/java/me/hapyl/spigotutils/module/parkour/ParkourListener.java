@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -13,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.*;
 
 public class ParkourListener implements Listener {
@@ -107,14 +109,12 @@ public class ParkourListener implements Listener {
 
         /** Checkpoint */
         else if (clickedBlockType == Position.Type.CHECKPOINT.material()) {
-            if (data == null) {
-                return;
+            if (EternaPlugin.getPlugin().getParkourManager().isCheckpointOfAnyParkour(clickedBlockLocation)) {
+                ev.setUseInteractedBlock(Event.Result.DENY);
+                ev.setCancelled(true);
             }
 
-            ev.setUseInteractedBlock(Event.Result.DENY);
-            ev.setCancelled(true);
-
-            if (InternalCooldownStorage.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
+            if (data == null || InternalCooldownStorage.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
                 return;
             }
 
@@ -162,6 +162,27 @@ public class ParkourListener implements Listener {
         if (type == Position.Type.START_OR_FINISH.material() || type == Position.Type.CHECKPOINT.material()) {
             ev.setCancelled(true);
         }
+    }
+
+    @EventHandler()
+    public void handleParkourEffect(EntityPotionEffectEvent ev) {
+        final Entity entity = ev.getEntity();
+        if (!(entity instanceof Player player)) {
+            return;
+        }
+
+        final Data data = manager().getData(player);
+
+        if (ev.getNewEffect() == null || !manager().isParkouring(player) || data == null) {
+            return;
+        }
+
+        final Parkour parkour = data.getParkour();
+        if (parkour.isFailAllowed(FailType.EFFECT_CHANGE)) {
+            return;
+        }
+
+        manager().failParkour(player, FailType.EFFECT_CHANGE);
     }
 
     @EventHandler()

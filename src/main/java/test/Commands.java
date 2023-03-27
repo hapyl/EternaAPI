@@ -3,7 +3,6 @@ package test;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.ai.AI;
 import me.hapyl.spigotutils.module.ai.MobAI;
-import me.hapyl.spigotutils.module.ai.goal.LookAtPlayerGoal;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
@@ -164,7 +163,7 @@ public class Commands {
             pigAI.removeAllGoals();
             System.out.println(pigAI.getRunningGoals());
 
-            pigAI.addGoal(0, new LookAtPlayerGoal(pigAI, 8.0f));
+            //pigAI.addGoal(0, new LookAtPlayerGoal(pigAI, 8.0f));
         });
 
     }

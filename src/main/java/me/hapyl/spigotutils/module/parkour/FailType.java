@@ -5,6 +5,7 @@ public class FailType {
     public static final FailType TELEPORT = new FailType("do not teleport");
     public static final FailType FLIGHT = new FailType("do not fly");
     public static final FailType GAMEMODE_CHANGE = new FailType("do not change your gamemode");
+    public static final FailType EFFECT_CHANGE = new FailType("do not change use potions");
 
     private final String reason;
 

@@ -1,6 +1,5 @@
 package me.hapyl.spigotutils.module.ai;
 
-import me.hapyl.spigotutils.module.ai.goal.Goal;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import net.minecraft.world.entity.EntityInsentient;
 import net.minecraft.world.entity.ai.goal.PathfinderGoal;
@@ -32,13 +31,13 @@ public class MobAI implements AI {
     }
 
     @Override
-    public void addGoal(int priority, Goal goal) {
-        goalSelector.a(priority, goal.getMinecraftGoal());
+    public void addGoal(int priority, PathfinderGoal goal) {
+        goalSelector.a(priority, goal);
     }
 
     @Override
-    public void removeGoal(Goal goal) {
-        goalSelector.a(goal.getMinecraftGoal());
+    public void removeGoal(PathfinderGoal goal) {
+        goalSelector.a(goal);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package me.hapyl.spigotutils.module.ai;
 
-import me.hapyl.spigotutils.module.ai.goal.Goal;
 import net.minecraft.world.entity.EntityInsentient;
 import net.minecraft.world.entity.ai.goal.PathfinderGoal;
 import net.minecraft.world.entity.ai.goal.PathfinderGoalWrapped;
@@ -11,9 +10,9 @@ import java.util.stream.Stream;
 
 public interface AI {
 
-    void addGoal(int priority, Goal goal);
+    void addGoal(int priority, PathfinderGoal goal);
 
-    void removeGoal(Goal goal);
+    void removeGoal(PathfinderGoal goal);
 
     void removeAllGoals();
 
