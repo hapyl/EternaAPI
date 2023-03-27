@@ -154,6 +154,18 @@ public final class Entities<T extends Entity> {
     public static final Entities<Goat> GOAT = new Entities<>(Goat.class);
     public static final Entities<Marker> MARKER = new Entities<>(Marker.class);
 
+    public static final Entities<Allay> ALLAY = new Entities<>(Allay.class);
+    public static final Entities<ChestBoat> CHEST_BOAT = new Entities<>(ChestBoat.class);
+    public static final Entities<Frog> FROG = new Entities<>(Frog.class);
+    public static final Entities<Tadpole> TADPOLE = new Entities<>(Tadpole.class);
+    public static final Entities<Warden> WARDEN = new Entities<>(Warden.class);
+    public static final Entities<Camel> CAMEL = new Entities<>(Camel.class);
+    public static final Entities<BlockDisplay> BLOCK_DISPLAY = new Entities<>(BlockDisplay.class);
+    public static final Entities<Interaction> INTERACTION = new Entities<>(Interaction.class);
+    public static final Entities<ItemDisplay> ITEM_DISPLAY = new Entities<>(ItemDisplay.class);
+    @Experimental public static final Entities<Sniffer> SNIFFER = new Entities<>(Sniffer.class);
+    public static final Entities<TextDisplay> TEXT_DISPLAY = new Entities<>(TextDisplay.class);
+
     // custom entities with root consumer
     public static final Entities<ArmorStand> ARMOR_STAND_MARKER = new Entities<>(ArmorStand.class, self -> self.setMarker(true));
     public static final Entities<ArmorStand> ARMOR_STAND_HOLOGRAM = new Entities<>(ArmorStand.class, self -> {

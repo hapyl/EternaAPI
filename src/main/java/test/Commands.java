@@ -1,9 +1,13 @@
 package test;
 
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.ai.AI;
+import me.hapyl.spigotutils.module.ai.MobAI;
+import me.hapyl.spigotutils.module.ai.goal.LookAtPlayerGoal;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
+import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.quest.Quest;
@@ -14,6 +18,7 @@ import me.hapyl.spigotutils.module.record.Replay;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import me.hapyl.spigotutils.module.reflect.npc.Human;
 import org.bukkit.GameMode;
+import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
@@ -151,6 +156,16 @@ public class Commands {
         registerTestCommand("visibility", ((player, args) -> {
             TestVisibility.run(player);
         }));
+
+        registerTestCommand("ai", (player, args) -> {
+            final Pig pig = Entities.PIG.spawn(player.getLocation());
+            final AI pigAI = MobAI.of(pig);
+
+            pigAI.removeAllGoals();
+            System.out.println(pigAI.getRunningGoals());
+
+            pigAI.addGoal(0, new LookAtPlayerGoal(pigAI, 8.0f));
+        });
 
     }
 

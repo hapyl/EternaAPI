@@ -1,9 +1,7 @@
 package me.hapyl.spigotutils.module.parkour;
 
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.event.parkour.ParkourCheckpointEvent;
 import me.hapyl.spigotutils.module.util.cd.InternalCooldownStorage;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
@@ -62,13 +60,19 @@ public class ParkourListener implements Listener {
         if (clickedBlockType == Position.Type.START_OR_FINISH.material()) {
             final Parkour parkour = manager().byStartOrFinish(clickedBlockLocation);
 
-            if (parkour == null || InternalCooldownStorage.PARKOUR_START.isOnCooldown(player)) {
+            if (parkour == null) {
+                return;
+            }
+
+            // Cancel anyway if parkour NOT null
+            ev.setUseInteractedBlock(Event.Result.DENY);
+            ev.setCancelled(true);
+
+            if (InternalCooldownStorage.PARKOUR_START.isOnCooldown(player)) {
                 return;
             }
 
             InternalCooldownStorage.PARKOUR_START.start(player);
-            ev.setUseInteractedBlock(Event.Result.DENY);
-            ev.setCancelled(true);
 
             // Start
             if (parkour.getStart().compare(clickedBlockLocation)) {
@@ -103,25 +107,23 @@ public class ParkourListener implements Listener {
 
         /** Checkpoint */
         else if (clickedBlockType == Position.Type.CHECKPOINT.material()) {
-            if (data == null || InternalCooldownStorage.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
+            if (data == null) {
+                return;
+            }
+
+            ev.setUseInteractedBlock(Event.Result.DENY);
+            ev.setCancelled(true);
+
+            if (InternalCooldownStorage.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
                 return;
             }
 
             InternalCooldownStorage.PARKOUR_CHECKPOINT.start(player);
-            ev.setUseInteractedBlock(Event.Result.DENY);
-            ev.setCancelled(true);
-
             final Position nextCheckpoint = data.getNextCheckpoint();
 
             if (nextCheckpoint != null) {
-                final ParkourCheckpointEvent event = new ParkourCheckpointEvent(
-                        player,
-                        data,
-                        nextCheckpoint,
-                        ParkourCheckpointEvent.Type.REACH
-                );
-                Bukkit.getServer().getPluginManager().callEvent(event);
-                if (event.isCancelled()) {
+                if (data.getParkour() instanceof ParkourHandler handler &&
+                        handler.onCheckpoint(player, data, nextCheckpoint, ParkourHandler.Type.REACH) == ParkourHandler.Response.CANCEL) {
                     return;
                 }
             }

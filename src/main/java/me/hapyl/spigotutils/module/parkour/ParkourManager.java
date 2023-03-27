@@ -125,7 +125,6 @@ public class ParkourManager extends Registry<Position, Parkour> {
             parkour.getFormatter().sendHaventPassedCheckpoint(data);
         }
         else {
-
             if (parkour instanceof ParkourHandler handler &&
                     handler.onCheckpoint(player, data, checkpoint, ParkourHandler.Type.TELEPORT_TO) == ParkourHandler.Response.CANCEL) {
                 return;
