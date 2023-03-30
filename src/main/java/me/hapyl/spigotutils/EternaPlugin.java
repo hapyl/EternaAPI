@@ -1,10 +1,8 @@
 package me.hapyl.spigotutils;
 
-import me.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
-import me.hapyl.spigotutils.builtin.command.QuestCommand;
-import me.hapyl.spigotutils.builtin.command.ReloadAddonsCommand;
-import me.hapyl.spigotutils.builtin.command.ReloadPlayerConfigCommand;
+import me.hapyl.spigotutils.builtin.command.*;
 import me.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
+import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.completer.CompleterListener;
 import me.hapyl.spigotutils.module.hologram.HologramListener;
@@ -46,6 +44,7 @@ public class EternaPlugin extends JavaPlugin {
     private static EternaPlugin plugin;
 
     private EternaRegistry registry;
+    private Updater updater;
 
     @Override
     public void onEnable() {
@@ -88,6 +87,7 @@ public class EternaPlugin extends JavaPlugin {
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
         commandProcessor.registerCommand(new ReloadPlayerConfigCommand("reloadplayerconfig"));
         commandProcessor.registerCommand(new ReloadAddonsCommand("reloadaddons"));
+        commandProcessor.registerCommand(new UpdateEternaCommand("updateEterna"));
 
         // Load configuration file
         this.getConfig().options().copyDefaults(true);
@@ -105,6 +105,10 @@ public class EternaPlugin extends JavaPlugin {
 
         // Load dependencies
         EternaAPI.loadAll();
+
+        // Check for updates
+        this.updater = new Updater();
+        Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
 
         // Register test commands. Ignore this, no one can use this besides my.
         new Test().test();
@@ -151,4 +155,7 @@ public class EternaPlugin extends JavaPlugin {
         return getPlugin().getLogger();
     }
 
+    public Updater getUpdater() {
+        return updater;
+    }
 }

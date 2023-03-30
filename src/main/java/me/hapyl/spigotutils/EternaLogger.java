@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 
 public class EternaLogger {
 
-    private static final String PREFIX = "&b&lEternaAPI&b> &a";
+    public static final String PREFIX = "&b&lEternaAPI&b> &a";
 
     public static void broadcastMessageOP(String string, Object... format) {
         Chat.broadcastOp(PREFIX + string, format);
