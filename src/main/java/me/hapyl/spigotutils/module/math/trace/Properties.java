@@ -8,19 +8,49 @@ import org.bukkit.entity.LivingEntity;
  */
 public class Properties {
 
-    private final double maxDistance;
-    private final double shift;
+    private double maxDistance;
+    private double shift;
+    private double searchRadius;
 
-    public Properties() {
-        this.maxDistance = 24;
-        this.shift = 0.5f;
+    public Properties(double maxDistance, double shift, double searchRadius) {
+        this.maxDistance = maxDistance;
+        this.shift = shift;
+        this.searchRadius = searchRadius;
     }
 
-    public double getMaxDistance() {
+    public Properties(double maxDistance, double shift) {
+        this(maxDistance, shift, 0.5d);
+    }
+
+    public Properties(double maxDistance) {
+        this(maxDistance, 0.5d, 0.5d);
+    }
+
+    public Properties() {
+        this(24.0d, 0.5d, 0.5d);
+    }
+
+    public final void setMaxDistance(double maxDistance) {
+        this.maxDistance = maxDistance;
+    }
+
+    public final void setShift(double shift) {
+        this.shift = shift;
+    }
+
+    public final double getSearchRadius() {
+        return searchRadius;
+    }
+
+    public final void setSearchRadius(double searchRadius) {
+        this.searchRadius = searchRadius;
+    }
+
+    public final double getMaxDistance() {
         return maxDistance;
     }
 
-    public double getShift() {
+    public final double getShift() {
         return shift;
     }
 
