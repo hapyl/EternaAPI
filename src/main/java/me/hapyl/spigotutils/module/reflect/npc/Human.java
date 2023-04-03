@@ -3,11 +3,13 @@ package me.hapyl.spigotutils.module.reflect.npc;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.server.level.EntityPlayer;
+import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,18 +48,18 @@ public interface Human {
     }
 
     /**
-     * Set if NPC is shaking of cold.
-     *
-     * @param shaking - Enable or disable shaking.
-     */
-    void setShaking(boolean shaking);
-
-    /**
      * Returns true if NPC is shaking of cold.
      *
      * @return true if NPC is shaking of cold.
      */
     boolean isShaking();
+
+    /**
+     * Set if NPC is shaking of cold.
+     *
+     * @param shaking - Enable or disable shaking.
+     */
+    void setShaking(boolean shaking);
 
     /**
      * Changes NPC's should entity.
@@ -87,6 +89,13 @@ public interface Human {
      * @return copy of NPC's location.
      */
     Location getLocation();
+
+    /**
+     * Changes NPC's actual location.
+     *
+     * @param location - New location.
+     */
+    void setLocation(Location location);
 
     /**
      * Returns true if NPC can be seen by the player.
@@ -235,15 +244,55 @@ public interface Human {
      * @param yaw   - Yaw.
      * @param pitch - Pitch.
      */
-
     void teleport(double x, double y, double z, float yaw, float pitch);
 
     /**
-     * Changes NPC's actual location.
+     * Teleports the NPC to the given location.
      *
-     * @param location - New location.
+     * @param location - Location.
      */
-    void setLocation(Location location);
+    void teleport(Location location);
+
+    /**
+     * Simulates movement of the  NPC to the given location.
+     *
+     * @param location - Location.
+     * @param speed    - Speed in blocks/s.
+     */
+    void move(Location location, float speed);
+
+    /**
+     * Simulates movement of the NPC to the given location.
+     *
+     * @param x     - X coordinate.
+     * @param y     - Y coordinate.
+     * @param z     - Z coordinate.
+     * @param speed - Speed in blocks/s.
+     */
+    void move(double x, double y, double z, float speed);
+
+    void jump(double height) throws NotImplementedException;
+
+    /**
+     * Returns true if entity is presumably on ground.
+     *
+     * @return true if entity is presumably on ground.
+     */
+    boolean isOnGround();
+
+    /**
+     * Stops moving NPC.
+     *
+     * @return true if stopped, false if it wasn't moving.
+     */
+    boolean stopMoving();
+
+    /**
+     * Pushes NPC by the given vector.
+     *
+     * @param vector - Vector.
+     */
+    void push(Vector vector) throws NotImplementedException;
 
     /**
      * Changes NPC's head rotation.

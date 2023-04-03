@@ -41,17 +41,17 @@ import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.reflect.FieldUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -102,6 +102,8 @@ public class HumanNPC implements Intractable, Human {
     private boolean persistent;
     private int farAwayDist = 40;
     private int lookAtCloseDist;
+
+    private BukkitTask moveTask;
 
     protected final HashMap<Player, Boolean> showingTo = new HashMap<>();
     private final List<NPCEntry> entries = new ArrayList<>();
@@ -541,13 +543,161 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void teleport(double x, double y, double z, float yaw, float pitch) {
-        this.location.setX(x);
-        this.location.setY(y);
-        this.location.setZ(z);
-        this.location.setYaw(yaw);
-        this.location.setPitch(pitch);
+        teleport(new Location(this.location.getWorld(), x, y, z, yaw, pitch));
+    }
+
+    @Override
+    public void teleport(Location location) {
+        this.location.setX(location.getX());
+        this.location.setY(location.getY());
+        this.location.setZ(location.getZ());
+        this.location.setYaw(location.getYaw());
+        this.location.setPitch(location.getPitch());
         this.setLocation(this.location);
         syncText();
+    }
+
+    @Override
+    public void move(Location location, float speed) {
+        stopMoving();
+        lookAt(location);
+
+        location.setYaw(this.location.getYaw());
+        location.setPitch(this.location.getPitch());
+
+        moveTask = new BukkitRunnable() {
+
+            private Location npcLocation = getLocation();
+            private final double distanceToMove = npcLocation.distance(location);
+            private final double speedScaled = distanceToMove / speed;
+
+            private int distance = 0;
+            private double deltaX = (location.getX() - npcLocation.getX()) / speedScaled;
+            private double deltaY = (location.getY() - npcLocation.getY()) / speedScaled;
+            private double deltaZ = (location.getZ() - npcLocation.getZ()) / speedScaled;
+
+            @Override
+            public void run() {
+                if (distance >= speedScaled) {
+                    teleport(location);
+                    stopMoving();
+                    cancel();
+                    return;
+                }
+
+                double newX = npcLocation.getX() + deltaX;
+                double newY = npcLocation.getY() + deltaY;
+                double newZ = npcLocation.getZ() + deltaZ;
+
+                // Handle Gravity
+                boolean onGround = isOnGround();
+
+                // Handle climbing on stairs and slabs
+                final World world = getWorld();
+                final Block block = world.getBlockAt((int) newX, (int) newY, (int) newZ);
+
+                if (!onGround) {
+                    newY -= 0.08 * distance;
+                }
+
+                // Finally, simulate movement.
+                teleport(newX, newY, newZ, location.getYaw(), location.getPitch());
+
+                npcLocation = getLocation();
+                deltaX = (location.getX() - npcLocation.getX()) / (speedScaled - distance);
+                deltaY = (location.getY() - npcLocation.getY()) / (speedScaled - distance);
+                deltaZ = (location.getZ() - npcLocation.getZ()) / (speedScaled - distance);
+
+                distance++;
+            }
+        }.runTaskTimer(EternaPlugin.getPlugin(), 0L, 1L);
+    }
+
+    @Nonnull
+    public World getWorld() {
+        final World world = location.getWorld();
+
+        if (world == null) {
+            throw new IllegalStateException("Cannot move NPC in unloaded world.");
+        }
+
+        return world;
+    }
+
+    @Override
+    public boolean isOnGround() {
+        final Location loc = getLocation();
+        final Block feetBlock = loc.subtract(0, 0.1, 0).getBlock();
+        final Block headBlock = loc.add(0, bukkitEntity().getHeight(), 0).getBlock();
+
+        final boolean isFeetSolid = feetBlock.getType().isSolid();
+        final boolean isHeadSolid = headBlock.getType().isSolid();
+
+        if (isFeetSolid || isHeadSolid) {
+            return true;
+        }
+
+        // Check for carpets
+        if (feetBlock.getType().name().contains("CARPET")) {
+            double carpetHeight = feetBlock.getLocation().getY() + 0.0625; // Carpet is 1/16th of a block thick
+            return loc.getY() <= carpetHeight;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void move(double x, double y, double z, float speed) {
+        move(new Location(getLocation().getWorld(), x, y, z), speed);
+    }
+
+    @Override
+    public boolean stopMoving() {
+        if (moveTask == null || moveTask.isCancelled()) {
+            return false;
+        }
+
+        moveTask.cancel();
+        return true;
+    }
+
+    private void move0(double x, double y, double z) {
+        final Location loc = getLocation();
+        final PacketContainer packet = new PacketContainer(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
+
+        packet.getIntegers().write(0, getId());
+
+        packet.getShorts().write(0, (short) ((x * 32 - loc.getX() * 32) * 128));
+        packet.getShorts().write(1, (short) ((y * 32 - loc.getY() * 32) * 128));
+        packet.getShorts().write(2, (short) ((z * 32 - loc.getZ() * 32) * 128));
+
+        packet.getBytes().write(0, (byte) (loc.getYaw() * 256 / 360));
+        packet.getBytes().write(1, (byte) (loc.getPitch() * 256 / 360));
+
+        packet.getBooleans().write(0, isOnGround());
+
+        for (Player player : getPlayers()) {
+            manager.sendServerPacket(player, packet);
+        }
+
+        syncText();
+    }
+
+    @Override
+    public void jump(double height) {
+        throw new NotImplementedException();
+    }
+
+    private void teleportY(double y) {
+        final Location loc = getLocation();
+        loc.setY(y);
+        teleport(loc);
+    }
+
+    @Override
+    public void push(Vector vector) {
+        throw new NotImplementedException();
+        //human.f(vector.getX(), vector.getY(), vector.getZ());
     }
 
     @Override
