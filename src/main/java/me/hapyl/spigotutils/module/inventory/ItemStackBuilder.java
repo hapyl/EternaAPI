@@ -30,101 +30,12 @@ import java.util.function.Predicate;
 public interface ItemStackBuilder {
 
     /**
-     * Creates player head from texture.
+     * Returns current EventHandler for this builder, cannot be null.
      *
-     * @param texture - Texture to use.
+     * @return current EventHandler for this builder, cannot be null.
      */
-    static ItemStackBuilder playerHead(String texture) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
-    }
-
-    /**
-     * Creates player head from texture from url.
-     *
-     * @param url - Url to texture.
-     */
-    static ItemStackBuilder playerHeadUrl(String url) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
-    }
-
-    /**
-     * Creates leather helmet with provided color.
-     *
-     * @param color - Color to use.
-     */
-    static ItemStackBuilder leatherHat(Color color) {
-        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
-    }
-
-    /**
-     * Creates leather chestplate with provided color.
-     *
-     * @param color - Color to use.
-     */
-    static ItemStackBuilder leatherTunic(Color color) {
-        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
-    }
-
-    /**
-     * Creates leather leggings with provided color.
-     *
-     * @param color - Color to use.
-     */
-    static ItemStackBuilder leatherPants(Color color) {
-        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
-    }
-
-    /**
-     * Creates leather boots with provided color.
-     *
-     * @param color - Color to use.
-     */
-    static ItemStackBuilder leatherBoots(Color color) {
-        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
-    }
-
-    /**
-     * Creates builder of provided material.
-     *
-     * @param material - Material to use.
-     */
-    static ItemStackBuilder of(Material material) {
-        return new ItemBuilder(material);
-    }
-
-    /**
-     * Creates builder of provided material with provided name.
-     *
-     * @param material - Material to use.
-     * @param name     - Name to use.
-     */
-    static ItemStackBuilder of(Material material, String name) {
-        return new ItemBuilder(material).setName(name);
-    }
-
-    /**
-     * Creates builder of provided material with provided name and lore.
-     *
-     * @param material - Material to use.
-     * @param name     - Name to use.
-     * @param lore     - Lore to use.
-     */
-    static ItemStackBuilder of(Material material, String name, String... lore) {
-        final ItemStackBuilder builder = new ItemBuilder(material).setName(name);
-        if (lore != null) {
-            for (String str : lore) {
-                builder.addLore(str);
-            }
-        }
-        return builder;
-    }
-
-    /**
-     * Creates air builder.
-     */
-    static ItemStackBuilder air() {
-        return of(Material.AIR);
-    }
+    @Nonnull
+    ItemEventHandler getEventHandler();
 
     /**
      * Sets a new event handler.
@@ -132,14 +43,6 @@ public interface ItemStackBuilder {
      * @param handler - New event handler.
      */
     ItemStackBuilder setEventHandler(@Nonnull ItemEventHandler handler);
-
-    /**
-     * Returns current EventHandler for this builder, cannot be null.
-     *
-     * @return current EventHandler for this builder, cannot be null.
-     */
-    @Nonnull
-    ItemEventHandler getEventHandler();
 
     /**
      * Returns item's NBT in string format, same as you would use it in give command.
@@ -174,18 +77,18 @@ public interface ItemStackBuilder {
     ItemStackBuilder clone();
 
     /**
-     * Sets if click events from inventory are allowed.
-     *
-     * @param allowInventoryClick - New value.
-     */
-    ItemStackBuilder setAllowInventoryClick(boolean allowInventoryClick);
-
-    /**
      * Returns true if click events from inventory are allowed, false otherwise.
      *
      * @return true if click events from inventory are allowed, false otherwise.
      */
     boolean isAllowInventoryClick();
+
+    /**
+     * Sets if click events from inventory are allowed.
+     *
+     * @param allowInventoryClick - New value.
+     */
+    ItemStackBuilder setAllowInventoryClick(boolean allowInventoryClick);
 
     /**
      * Sets the map view for the builder. Material will be forced to be FILLED_MAP.
@@ -200,14 +103,6 @@ public interface ItemStackBuilder {
      * @param name - New book name.
      */
     ItemStackBuilder setBookName(String name);
-
-    /**
-     * Sets if even should cancel clicks upon click event triggering.
-     * Set to false if using custom checks for click.
-     *
-     * @param cancelClicks - New value.
-     */
-    ItemStackBuilder setCancelClicks(boolean cancelClicks);
 
     /**
      * Sets the book author if material is WRITTEN_BOOK.
@@ -313,20 +208,6 @@ public interface ItemStackBuilder {
     <T> T getNbt(String path, PersistentDataType<T, T> value);
 
     /**
-     * Sets the item amount.
-     *
-     * @param amount - New amount.
-     */
-    ItemStackBuilder setAmount(int amount);
-
-    /**
-     * Sets lore from List<String>.
-     *
-     * @param lore - Lore to set.
-     */
-    ItemStackBuilder setLore(List<String> lore);
-
-    /**
      * Sets smart lore.
      * Smart lore splits automatically at the best places within the chat limit.
      *
@@ -399,13 +280,6 @@ public interface ItemStackBuilder {
      * @throws IndexOutOfBoundsException if line is out of bounds.
      */
     ItemStackBuilder setLore(int line, String lore);
-
-    /**
-     * Sets the item lore. Use __ to split the lines.
-     *
-     * @param lore - Lore to set.
-     */
-    ItemStackBuilder setLore(String lore);
 
     /**
      * Sets the item lore. Use __ to split the lines.
@@ -494,13 +368,6 @@ public interface ItemStackBuilder {
     /**
      * Sets the name of the item.
      *
-     * @param name - Name to set.
-     */
-    ItemStackBuilder setName(String name);
-
-    /**
-     * Sets the name of the item.
-     *
      * @param name         - Name to set.
      * @param replacements - Replacements for the name.
      */
@@ -526,20 +393,6 @@ public interface ItemStackBuilder {
      * Makes the item unbreakable.
      */
     ItemStackBuilder setUnbreakable();
-
-    /**
-     * Changes item unbreakable state.
-     *
-     * @param unbreakable - New state.
-     */
-    ItemStackBuilder setUnbreakable(boolean unbreakable);
-
-    /**
-     * Sets the repair cost on the anvil of the item.
-     *
-     * @param valueInLevels - Value in levels.
-     */
-    ItemStackBuilder setRepairCost(int valueInLevels);
 
     /**
      * Sets potion meta of the item.
@@ -583,24 +436,11 @@ public interface ItemStackBuilder {
     ItemStackBuilder setHeadTextureUrl(String url);
 
     /**
-     * Sets an actual base64 value as textures.
-     * Use Other->Value from minecraft-heads.
-     */
-    ItemStackBuilder setHeadTexture(String base64);
-
-    /**
      * Sets items skull owner.
      *
      * @param owner - Skull owner.
      */
     ItemStackBuilder setSkullOwner(String owner);
-
-    /**
-     * Sets items pure (raw) damage using GENERIC_ATTACK_DAMAGE.
-     *
-     * @param damage - Damage to set.
-     */
-    ItemStackBuilder setPureDamage(double damage);
 
     /**
      * Adds attribute to the item.
@@ -649,18 +489,18 @@ public interface ItemStackBuilder {
     ItemStackBuilder setDurability(int durability);
 
     /**
-     * Changes type of the ItemStack.
-     *
-     * @param material - New type.
-     */
-    ItemStackBuilder setType(Material material);
-
-    /**
      * Returns the type of the builder.
      *
      * @return the type of the builder.
      */
     Material getType();
+
+    /**
+     * Changes type of the ItemStack.
+     *
+     * @param material - New type.
+     */
+    ItemStackBuilder setType(Material material);
 
     /**
      * Skips {@link ItemStackBuilder#build(boolean)} ID checks and only applies item meta, then returns ItemStack.
@@ -711,12 +551,33 @@ public interface ItemStackBuilder {
     String getName();
 
     /**
+     * Sets the name of the item.
+     *
+     * @param name - Name to set.
+     */
+    ItemStackBuilder setName(String name);
+
+    /**
      * Returns current list of lore, or null if no lore.
      *
      * @return current list of lore, or null if no lore.
      */
     @Nullable
     List<String> getLore();
+
+    /**
+     * Sets lore from List<String>.
+     *
+     * @param lore - Lore to set.
+     */
+    ItemStackBuilder setLore(List<String> lore);
+
+    /**
+     * Sets the item lore. Use __ to split the lines.
+     *
+     * @param lore - Lore to set.
+     */
+    ItemStackBuilder setLore(String lore);
 
     /**
      * Gets items lore from start to end.
@@ -744,6 +605,13 @@ public interface ItemStackBuilder {
     int getAmount();
 
     /**
+     * Sets the item amount.
+     *
+     * @param amount - New amount.
+     */
+    ItemStackBuilder setAmount(int amount);
+
+    /**
      * Returns enchantment map of the item.
      *
      * @return enchantment map of the item.
@@ -756,6 +624,13 @@ public interface ItemStackBuilder {
      * @return true if item is unbreakable, false otherwise.
      */
     boolean isUnbreakable();
+
+    /**
+     * Changes item unbreakable state.
+     *
+     * @param unbreakable - New state.
+     */
+    ItemStackBuilder setUnbreakable(boolean unbreakable);
 
     /**
      * Returns predicate error.
@@ -779,6 +654,13 @@ public interface ItemStackBuilder {
     int getRepairCost();
 
     /**
+     * Sets the repair cost on the anvil of the item.
+     *
+     * @param valueInLevels - Value in levels.
+     */
+    ItemStackBuilder setRepairCost(int valueInLevels);
+
+    /**
      * Returns color of the leather armor or null if item is not leather armor.
      *
      * @return color of the leather armor or null if item is not leather armor.
@@ -793,6 +675,12 @@ public interface ItemStackBuilder {
      */
     @Nullable
     String getHeadTexture();
+
+    /**
+     * Sets an actual base64 value as textures.
+     * Use Other->Value from minecraft-heads.
+     */
+    ItemStackBuilder setHeadTexture(String base64);
 
     /**
      * Returns items flags.
@@ -814,6 +702,13 @@ public interface ItemStackBuilder {
      * @return pure (raw) item damage using GENERIC_ATTACK_DAMAGE.
      */
     double getPureDamage();
+
+    /**
+     * Sets items pure (raw) damage using GENERIC_ATTACK_DAMAGE.
+     *
+     * @param damage - Damage to set.
+     */
+    ItemStackBuilder setPureDamage(double damage);
 
     /**
      * Returns custom ID of the item.
@@ -885,4 +780,109 @@ public interface ItemStackBuilder {
      * @return true if item is canceling clicks.
      */
     boolean isCancelClicks();
+
+    /**
+     * Sets if even should cancel clicks upon click event triggering.
+     * Set to false if using custom checks for click.
+     *
+     * @param cancelClicks - New value.
+     */
+    ItemStackBuilder setCancelClicks(boolean cancelClicks);
+
+    /**
+     * Creates player head from texture.
+     *
+     * @param texture - Texture to use.
+     */
+    static ItemStackBuilder playerHead(String texture) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
+    }
+
+    /**
+     * Creates player head from texture from url.
+     *
+     * @param url - Url to texture.
+     */
+    static ItemStackBuilder playerHeadUrl(String url) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
+    }
+
+    /**
+     * Creates leather helmet with provided color.
+     *
+     * @param color - Color to use.
+     */
+    static ItemStackBuilder leatherHat(Color color) {
+        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather chestplate with provided color.
+     *
+     * @param color - Color to use.
+     */
+    static ItemStackBuilder leatherTunic(Color color) {
+        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather leggings with provided color.
+     *
+     * @param color - Color to use.
+     */
+    static ItemStackBuilder leatherPants(Color color) {
+        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather boots with provided color.
+     *
+     * @param color - Color to use.
+     */
+    static ItemStackBuilder leatherBoots(Color color) {
+        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates builder of provided material.
+     *
+     * @param material - Material to use.
+     */
+    static ItemStackBuilder of(Material material) {
+        return new ItemBuilder(material);
+    }
+
+    /**
+     * Creates builder of provided material with provided name.
+     *
+     * @param material - Material to use.
+     * @param name     - Name to use.
+     */
+    static ItemStackBuilder of(Material material, String name) {
+        return new ItemBuilder(material).setName(name);
+    }
+
+    /**
+     * Creates builder of provided material with provided name and lore.
+     *
+     * @param material - Material to use.
+     * @param name     - Name to use.
+     * @param lore     - Lore to use.
+     */
+    static ItemStackBuilder of(Material material, String name, String... lore) {
+        final ItemStackBuilder builder = new ItemBuilder(material).setName(name);
+        if (lore != null) {
+            for (String str : lore) {
+                builder.addLore(str);
+            }
+        }
+        return builder;
+    }
+
+    /**
+     * Creates air builder.
+     */
+    static ItemStackBuilder air() {
+        return of(Material.AIR);
+    }
 }
