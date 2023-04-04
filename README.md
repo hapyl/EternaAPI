@@ -1,5 +1,6 @@
 # EternaAPI
 An API for spigot development made by me.
+
 _Some classes are not mine and authors were credited._
 
 ## Usage
