@@ -8,4 +8,5 @@ _Some classes are not mine and authors were credited._
 * Don't forget about _softdepend_ or _depend_ in your plugin.yml
 
 ## About
+[Wiki](https://github.com/hapyl/EternaAPI/wiki)
 [JavaDocs](https://hapyl.github.io/javadocs/eterna/index.html)
