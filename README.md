@@ -9,6 +9,8 @@ _Some classes are not mine and authors were credited._
 
 ### Maven
 
+[![](https://jitpack.io/v/hapyl/EternaAPI.svg)](https://jitpack.io/#hapyl/EternaAPI)
+
 ```maven
 <repositories>
   <repository>
