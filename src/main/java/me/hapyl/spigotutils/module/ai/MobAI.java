@@ -1,11 +1,10 @@
 package me.hapyl.spigotutils.module.ai;
 
-import me.hapyl.spigotutils.module.ai.goal.Goal;
-import me.hapyl.spigotutils.module.ai.goal.GoalType;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.GoalSelector;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
+import net.minecraft.world.entity.EntityInsentient;
+import net.minecraft.world.entity.ai.goal.PathfinderGoal;
+import net.minecraft.world.entity.ai.goal.PathfinderGoalSelector;
+import net.minecraft.world.entity.ai.goal.PathfinderGoalWrapped;
 import org.bukkit.entity.LivingEntity;
 
 import java.util.Set;
@@ -15,12 +14,10 @@ import java.util.stream.Stream;
 @TestedNMS(version = "1.19.4")
 public class MobAI implements AI {
 
-    private int lastPriority;
-
     private final LivingEntity entity;
-    private final GoalSelector goalSelector;
+    private final PathfinderGoalSelector goalSelector;
 
-    protected MobAI(LivingEntity entity, GoalSelector goalSelector) {
+    public MobAI(LivingEntity entity, PathfinderGoalSelector goalSelector) {
         this.entity = entity;
         this.goalSelector = goalSelector;
     }
@@ -34,57 +31,37 @@ public class MobAI implements AI {
     }
 
     @Override
-    public void addGoal(int priority, Goal goal) {
-        goalSelector.addGoal(priority, goal.getGoal());
+    public void addGoal(int priority, PathfinderGoal goal) {
+        goalSelector.a(priority, goal);
     }
 
     @Override
-    public void addGoal(Goal goal) {
-        addGoal(lastPriority++, goal);
-    }
-
-    @Override
-    public void addGoal(int priority, net.minecraft.world.entity.ai.goal.Goal goal) {
-        goalSelector.addGoal(priority, goal);
-    }
-
-    @Override
-    public <T extends net.minecraft.world.entity.ai.goal.Goal> void removeGoals(GoalType<T> goals) {
-        removeAllGoals(pathfinderGoal -> goals.t().isInstance(pathfinderGoal));
-    }
-
-    @Override
-    public void removeGoal(Goal goal) {
-        goalSelector.removeGoal(goal.getGoal());
-    }
-
-    @Override
-    public void removeGoal(net.minecraft.world.entity.ai.goal.Goal goal) {
-        goalSelector.removeGoal(goal);
+    public void removeGoal(PathfinderGoal goal) {
+        goalSelector.a(goal);
     }
 
     @Override
     public void removeAllGoals() {
-        goalSelector.removeAllGoals(predicate -> true);
+        goalSelector.a(predicate -> true);
     }
 
     @Override
-    public void removeAllGoals(Predicate<net.minecraft.world.entity.ai.goal.Goal> predicate) {
-        goalSelector.removeAllGoals(predicate);
+    public void removeAllGoals(Predicate<PathfinderGoal> predicate) {
+        goalSelector.a(predicate);
     }
 
     @Override
-    public Set<WrappedGoal> getGoals() {
-        return goalSelector.getAvailableGoals();
+    public Set<PathfinderGoalWrapped> getGoals() {
+        return goalSelector.b();
     }
 
     @Override
-    public Stream<WrappedGoal> getRunningGoals() {
-        return goalSelector.getRunningGoals();
+    public Stream<PathfinderGoalWrapped> getRunningGoals() {
+        return goalSelector.c();
     }
 
     @Override
-    public Mob getMob() {
+    public EntityInsentient getMob() {
         return StaticAIAccessor.getMob(entity);
     }
 

@@ -34,11 +34,11 @@ import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.DataWatcherRegistry;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.EnumItemSlot;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
@@ -78,7 +78,7 @@ public class HumanNPC implements Intractable, Human {
     private final ReflectPacket packetDestroy;
 
     private final GameProfile profile;
-    private final ServerPlayer human;
+    private final EntityPlayer human;
     private final Hologram aboveHead;
     private final String npcName;
     private final String hexName;
@@ -154,18 +154,14 @@ public class HumanNPC implements Intractable, Human {
             setSkin(skinOwner);
         }
 
-        this.human = new ServerPlayer(Reflect.getMinecraftServer(), Reflect.getMinecraftWorld(location.getWorld()), profile);
+        this.human = new EntityPlayer(Reflect.getMinecraftServer(), (WorldServer) Reflect.getMinecraftWorld(location.getWorld()), profile);
 
-        this.human.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
-        this.packetAddPlayer = new ReflectPacket(new ClientboundPlayerInfoUpdatePacket(
-                ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER,
-                this.human
-        ));
-
+        this.packetAddPlayer = new ReflectPacket(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.a, this.human));
         this.packetRemovePlayer = new ReflectPacket(new ClientboundPlayerInfoRemovePacket(Lists.newArrayList(this.uuid)));
-        this.packetSpawn = new ReflectPacket(new ClientboundAddPlayerPacket(this.human));
-        this.packetDestroy = new ReflectPacket(new ClientboundRemoveEntitiesPacket(this.human.getBukkitEntity().getEntityId()));
+        this.packetSpawn = new ReflectPacket(new PacketPlayOutNamedEntitySpawn(this.human));
+        this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getBukkitEntity().getEntityId()));
 
         EternaRegistry.getNpcRegistry().register(this);
         this.alive = true;
@@ -293,6 +289,7 @@ public class HumanNPC implements Intractable, Human {
 
         final String finalMessage = chatFormat.replace("{NAME}", this.getPrefix()).replace("{MESSAGE}", msg);
         Chat.sendMessage(player, finalMessage);
+
     }
 
     @Override
@@ -312,8 +309,8 @@ public class HumanNPC implements Intractable, Human {
         return this.addDialogLine(string, Numbers.clamp(string.length(), 20, 100));
     }
 
-    // return true if player can interact and interacted, false otherwise
     public final boolean onClickAuto(Player player) {
+
         // Can interact?
         if (!this.canInteract(player)) {
             final String cannotInteract = this.getNPCResponses().getCannotInteract();
@@ -487,7 +484,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public HumanNPC setPose(NPCPose pose) {
-        human.setPose(pose.getNMSValue());
+        human.b(pose.getNMSValue());
         updateDataWatcher();
 
         if (pose == NPCPose.STANDING) {
@@ -521,7 +518,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public NPCPose getPose() {
-        return NPCPose.fromNMS(human.getPose());
+        return NPCPose.fromNMS(human.al());
     }
 
     @Override
@@ -533,9 +530,8 @@ public class HumanNPC implements Intractable, Human {
     public void lookAt(Location location) {
         this.location.setDirection(location.clone().subtract(this.location).toVector());
         this.setHeadRotation(this.location.getYaw());
-
         ReflectPacket.send(
-                new ClientboundMoveEntityPacket.Rot(
+                new PacketPlayOutEntity.PacketPlayOutEntityLook(
                         this.getId(),
                         (byte) (this.location.getYaw() * 256 / 360),
                         (byte) (this.location.getPitch() * 256 / 360),
@@ -558,13 +554,6 @@ public class HumanNPC implements Intractable, Human {
         this.location.setYaw(location.getYaw());
         this.location.setPitch(location.getPitch());
         this.setLocation(this.location);
-        syncText();
-    }
-
-    public void moveRel(double x, double y, double z) {
-        human.move(MoverType.SELF, new Vec3(x, y, z));
-
-        ReflectPacket.send(new ClientboundTeleportEntityPacket(human), getPlayers());
         syncText();
     }
 
@@ -714,15 +703,15 @@ public class HumanNPC implements Intractable, Human {
     @Override
     public void setLocation(Location location) {
         this.location = location;
-        this.human.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.setHeadRotation(this.location.getYaw());
-        new ReflectPacket(new ClientboundTeleportEntityPacket(this.human)).sendPackets(getPlayers());
+        new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(getPlayers());
         syncText();
     }
 
     @Override
     public void setHeadRotation(float yaw) {
-        new ReflectPacket(new ClientboundRotateHeadPacket(this.human, (byte) ((yaw * 256) / 360))).sendPackets(getPlayers());
+        new ReflectPacket(new PacketPlayOutEntityHeadRotation(this.human, (byte) ((yaw * 256) / 360))).sendPackets(getPlayers());
     }
 
     @Override
@@ -748,7 +737,7 @@ public class HumanNPC implements Intractable, Human {
     }
 
     private void swingArm(boolean b) {
-        new ReflectPacket(new ClientboundAnimatePacket(this.human, b ? 0 : 3)).sendPackets(getPlayers());
+        new ReflectPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3)).sendPackets(getPlayers());
     }
 
     public Collection<Property> getSkin() {
@@ -816,7 +805,7 @@ public class HumanNPC implements Intractable, Human {
         if (Bukkit.getPlayer(targetName) != null) {
             try {
                 final Player player = Bukkit.getPlayer(targetName);
-                final ServerPlayer nmsEntity = Reflect.getMinecraftPlayer(player);
+                final EntityPlayer nmsEntity = Reflect.getMinecraftPlayer(player);
                 final GameProfile profile = Reflect.getGameProfile(nmsEntity);
 
                 final Property textures = profile.getProperties()
@@ -877,10 +866,9 @@ public class HumanNPC implements Intractable, Human {
     }
 
     private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
-        final List<Pair<EquipmentSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
-
+        final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
         list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
-        ReflectPacket.send(new ClientboundSetEquipmentPacket(this.getId(), list), players);
+        ReflectPacket.send(new PacketPlayOutEntityEquipment(this.getId(), list), players);
     }
 
     public NPCEquipment getEquipment() {
@@ -942,30 +930,28 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void setDataWatcherByteValue(int key, byte value) {
-        final SynchedEntityData dataWatcher = getDataWatcher();
-        Reflect.setDataWatcherByteValue(human, key, value);
+        final DataWatcher dataWatcher = getDataWatcher();
+        dataWatcher.b(DataWatcherRegistry.a.a(key), value);
 
-        //updateDataWatcher();
+        updateDataWatcher();
     }
 
     @Override
     public byte getDataWatcherByteValue(int key) {
-        return Reflect.getDataWatcherValue(human, DataWatcherType.BYTE, key);
+        final DataWatcher dataWatcher = getDataWatcher();
+        return dataWatcher.a(DataWatcherRegistry.a.a(key));
     }
 
     @Override
-    public SynchedEntityData getDataWatcher() {
+    public DataWatcher getDataWatcher() {
         return Reflect.getDataWatcher(human);
     }
 
     @SuppressWarnings("all")
     @Nonnull
-    protected Int2ObjectMap<SynchedEntityData.DataItem<?>> getInt2ObjectMap() {
+    protected Int2ObjectMap<DataWatcher.Item<?>> getInt2ObjectMap() {
         try {
-            final SynchedEntityData dataWatcher = getDataWatcher();
-            // itemsById
-
-            return (Int2ObjectMap<SynchedEntityData.DataItem<?>>) FieldUtils.readField(getDataWatcher(), "e", true);
+            return (Int2ObjectMap<DataWatcher.Item<?>>) FieldUtils.readField(getDataWatcher(), "e", true);
         } catch (Exception e) {
             e.printStackTrace();
             return new Int2ObjectOpenHashMap();
@@ -989,12 +975,13 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void playAnimation(NPCAnimation animation) {
-        ReflectPacket.send(new ClientboundAnimatePacket(human, animation.getPos()), getPlayers());
+        ReflectPacket.send(new PacketPlayOutAnimation(this.getHuman(), animation.getPos()), getPlayers());
     }
 
     @Override
     public void updateDataWatcher() {
-        Reflect.updateMetadata(human, getDataWatcher(), getPlayers());
+        final List<DataWatcher.b<?>> list = getDataWatcher().c();
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(this.getId(), list), getPlayers());
     }
 
     @Override
@@ -1059,7 +1046,7 @@ public class HumanNPC implements Intractable, Human {
     }
 
     @Override
-    public ServerPlayer getHuman() {
+    public EntityPlayer getHuman() {
         return human;
     }
 

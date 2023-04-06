@@ -1,24 +1,24 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EnumItemSlot;
 
 // ItemSlot >> EnumItemSlot
 public enum ItemSlot {
 
-    MAINHAND(EquipmentSlot.MAINHAND),
-    OFFHAND(EquipmentSlot.OFFHAND),
-    FEET(EquipmentSlot.FEET),
-    LEGS(EquipmentSlot.LEGS),
-    CHEST(EquipmentSlot.CHEST),
-    HEAD(EquipmentSlot.HEAD);
+    MAINHAND(EnumItemSlot.a),
+    OFFHAND(EnumItemSlot.b),
+    FEET(EnumItemSlot.c),
+    LEGS(EnumItemSlot.d),
+    CHEST(EnumItemSlot.e),
+    HEAD(EnumItemSlot.f);
 
-    private final EquipmentSlot slot;
+    private final EnumItemSlot slot;
 
-    ItemSlot(EquipmentSlot slot) {
+    ItemSlot(EnumItemSlot slot) {
         this.slot = slot;
     }
 
-    public EquipmentSlot getSlot() {
+    public EnumItemSlot getSlot() {
         return slot;
     }
 }

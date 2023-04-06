@@ -14,18 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Represents the API.
- *
- * <div>
- *     Plugin must register itself to use some feature.
- *     (Not yet implemented)
- * </div>
- *
- * <pre>
- *     new EternaAPI(this);
- * </pre>
- */
 public final class EternaAPI {
 
     private static final Map<String, EternaAPI> byName = Maps.newLinkedHashMap();

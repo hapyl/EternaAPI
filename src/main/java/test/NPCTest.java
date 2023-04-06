@@ -26,11 +26,10 @@ public class NPCTest {
             return;
         }
 
-        // empty
         if (npc != null) {
-            npc.moveRel(1, 0, 0);
+            npc.jump(2);
 
-            Chat.sendMessage(player, "moveRel");
+            Chat.sendMessage(player, "jump");
             return;
         }
 

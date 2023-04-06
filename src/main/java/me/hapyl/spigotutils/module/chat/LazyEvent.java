@@ -10,8 +10,8 @@ public class LazyEvent {
     /**
      * Generates an open url click event.
      *
-     * @param url    - Utl to open.
-     * @param format - Format.
+     * @param url    - URL to open.
+     * @param format - Format the url.
      * @return OPEN_URL ClickEvent.
      */
     public static ClickEvent openUrl(String url, @Nullable Object... format) {
@@ -22,7 +22,7 @@ public class LazyEvent {
      * Generates an open file click event.
      *
      * @param file   - File to open.
-     * @param format - Format.
+     * @param format - Format the file.
      * @return OPEN_FILE ClickEvent.
      */
     public static ClickEvent openFile(String file, @Nullable Object... format) {

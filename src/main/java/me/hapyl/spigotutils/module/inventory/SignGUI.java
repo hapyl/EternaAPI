@@ -5,8 +5,8 @@ import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.util.Runnables;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.network.protocol.game.PacketPlayOutOpenSignEditor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -161,7 +161,7 @@ public abstract class SignGUI {
     private void createPacketAndSend() {
         player.sendBlockChange(location, Material.OAK_SIGN.createBlockData());
         player.sendSignChange(location, this.lines);
-        ReflectPacket.send(new ClientboundOpenSignEditorPacket(new BlockPos(
+        ReflectPacket.send(new PacketPlayOutOpenSignEditor(new BlockPosition(
                 location.getBlockX(),
                 location.getBlockY(),
                 location.getBlockZ()
