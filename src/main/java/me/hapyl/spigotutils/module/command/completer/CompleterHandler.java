@@ -7,6 +7,12 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Completer Handler for SimpleCommand.
+ *
+ * It is used to provide visual feedback to the user when they are typing a command.
+ * Look at wiki for more details.
+ */
 public class CompleterHandler {
 
     private final int index;
@@ -23,16 +29,31 @@ public class CompleterHandler {
         return new CompleterHandler(index);
     }
 
+    /**
+     * String to display if the value is valid.
+     *
+     * @param string - String to display.
+     */
     public CompleterHandler ifValidValue(String string) {
         valid = string;
         return this;
     }
 
+    /**
+     * String to display if the value is invalid.
+     *
+     * @param string - String to display.
+     */
     public CompleterHandler ifInvalidValue(String string) {
         invalid = string;
         return this;
     }
 
+    /**
+     * Adds custom checker to display.
+     *
+     * @param checker - Checker.
+     */
     public CompleterHandler custom(@Nonnull Checker checker) {
         this.checker = checker;
         return this;

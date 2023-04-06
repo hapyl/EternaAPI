@@ -2,13 +2,17 @@ package me.hapyl.spigotutils.module.collection;
 
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.module.util.Action;
+import me.hapyl.spigotutils.module.util.LinkedKeyValMap;
 
 import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
  * Pair node impl.
+ *
+ * @deprecated {@link LinkedKeyValMap}
  */
+@Deprecated
 public class Pairs<L, R> {
 
     private final Set<Node> nodes;

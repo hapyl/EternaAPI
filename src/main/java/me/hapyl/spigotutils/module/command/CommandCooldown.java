@@ -59,6 +59,12 @@ public class CommandCooldown {
         return false;
     }
 
+    /**
+     * Returns true if player is currently on cooldown and stops the cooldown if it's over.
+     *
+     * @param player - Player to test.
+     * @return - True if player is on cooldown, false otherwise.
+     */
     public boolean hasCooldown(Player player) {
         final long passed = System.currentTimeMillis() - getCooldown(player);
         if (passed >= (this.command.getCooldownTick() * 50L)) {
@@ -68,18 +74,40 @@ public class CommandCooldown {
         return true;
     }
 
+    /**
+     * Returns time left in milliseconds.
+     *
+     * @param player - Player to test.
+     * @return - Time left in milliseconds.
+     */
     public long getTimeLeft(Player player) {
         return (this.command.getCooldownTick() * 50L) - (System.currentTimeMillis() - getCooldown(player));
     }
 
+    /**
+     * Returns time when player used the command at in millis.
+     *
+     * @param player - Player to test.
+     * @return - Time when player used the command at in millis.
+     */
     private long getCooldown(Player player) {
         return this.usedAt.getOrDefault(player.getUniqueId(), 0L);
     }
 
+    /**
+     * Starts cooldown for player.
+     *
+     * @param player - Player to start cooldown for.
+     */
     public void startCooldown(Player player) {
         this.usedAt.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
+    /**
+     * Stops cooldown for player.
+     *
+     * @param player - Player to stop cooldown for.
+     */
     public void stopCooldown(Player player) {
         this.usedAt.remove(player.getUniqueId());
     }

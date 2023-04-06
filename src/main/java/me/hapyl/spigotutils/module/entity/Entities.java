@@ -278,6 +278,19 @@ public final class Entities<T extends Entity> {
     }
 
     /**
+     * Kills all spawned entities for a plugin.
+     *
+     * @param plugin - plugin to kill spawned entities for.
+     */
+    public static void killSpawned(JavaPlugin plugin) {
+        final Set<Entity> set = getSpawned(plugin);
+        for (Entity entity : set) {
+            entity.remove();
+        }
+        set.clear();
+    }
+
+    /**
      * @deprecated {@link Entities#getSpawned(JavaPlugin)}
      */
     @Deprecated
@@ -292,6 +305,12 @@ public final class Entities<T extends Entity> {
         return getSpawned(ETERNA_PLUGIN);
     }
 
+    /**
+     * Gets a set of spawned entities for a plugin.
+     *
+     * @param plugin - plugin to get spawned entities for.
+     * @return set of spawned entities.
+     */
     public static Set<Entity> getSpawned(JavaPlugin plugin) {
         return spawnedByPlugin.computeIfAbsent(plugin, s -> Sets.newHashSet());
     }
@@ -300,14 +319,12 @@ public final class Entities<T extends Entity> {
         getSpawned(plugin).add(entity);
     }
 
-    public static void killSpawned(JavaPlugin plugin) {
-        final Set<Entity> set = getSpawned(plugin);
-        for (Entity entity : set) {
-            entity.remove();
-        }
-        set.clear();
-    }
-
+    /**
+     * Returns an entity by its name.
+     *
+     * @param name - name of the entity.
+     * @return entity or null if not found.
+     */
     @Nullable
     public static Entities<? extends Entity> byName(String name) {
         return byName.getOrDefault(name.toLowerCase(Locale.ROOT), null);

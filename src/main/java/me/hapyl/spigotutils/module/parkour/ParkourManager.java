@@ -2,11 +2,9 @@ package me.hapyl.spigotutils.module.parkour;
 
 import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.event.parkour.ParkourEvent;
 import me.hapyl.spigotutils.module.player.EffectType;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.registry.Registry;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -155,12 +153,6 @@ public class ParkourManager extends Registry<Position, Parkour> {
         }
 
         return false;
-    }
-
-    @Deprecated
-    private boolean tryEventCheckCancel(ParkourEvent event) {
-        Bukkit.getServer().getPluginManager().callEvent(event);
-        return event.isCancelled();
     }
 
     public void quitParkour(Player player) {

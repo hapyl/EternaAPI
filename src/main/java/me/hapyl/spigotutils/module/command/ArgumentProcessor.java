@@ -11,6 +11,13 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Dynamically processes all methods with {@link ArgumentSensitive} annotation.
+ *
+ * @apiNote Though seemed like a good idea, this class is not used in the plugin.
+ * @deprecated Not removing this, but not handling either.
+ */
+@Deprecated()
 public class ArgumentProcessor {
 
     private final SimpleCommand command;

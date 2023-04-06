@@ -12,8 +12,13 @@ import java.util.Objects;
 
 /**
  * This class allows to create ropes between two areas.
+ *
+ * @deprecated Bats can't be leashed.
  */
+@Deprecated
 public class Rope {
+
+    // FIXME (hapyl): 006, Apr 6, 2023: Bats can't be leashed.
 
     private boolean removeAtServerRestart;
     private int id;
