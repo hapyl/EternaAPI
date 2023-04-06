@@ -87,8 +87,17 @@ public class EntityUtils {
         setCollision(entity, flag, Arrays.stream(players).toList());
     }
 
+    /**
+     * Collision status.
+     */
     public enum Collision {
+        /**
+         * Allows collision. (default)
+         */
         ALLOW,
+        /**
+         * Deny collision.
+         */
         DENY
     }
 

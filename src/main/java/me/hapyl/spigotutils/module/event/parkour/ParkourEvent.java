@@ -21,6 +21,7 @@ public class ParkourEvent extends PlayerEvent implements Cancellable {
     public ParkourEvent(Player who, Data data) {
         super(who);
         this.data = data;
+        throw new IllegalStateException("PlayerEvents are no longer supported");
     }
 
     /**
