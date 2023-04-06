@@ -1,10 +1,8 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
-import net.minecraft.world.entity.ai.goal.PathfinderGoal;
-
 public class Goal {
 
-    protected PathfinderGoal goal;
+    protected net.minecraft.world.entity.ai.goal.Goal goal;
 
     private Goal() {
     }
@@ -13,11 +11,11 @@ public class Goal {
         return new Goal();
     }
 
-    public Goal(PathfinderGoal goal) {
+    public Goal(net.minecraft.world.entity.ai.goal.Goal goal) {
         this.goal = goal;
     }
 
-    public PathfinderGoal getGoal() {
+    public net.minecraft.world.entity.ai.goal.Goal getGoal() {
         return goal;
     }
 }

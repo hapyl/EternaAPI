@@ -3,7 +3,7 @@ package test;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.ai.AI;
 import me.hapyl.spigotutils.module.ai.MobAI;
-import me.hapyl.spigotutils.module.ai.goal.RandomlyStrollGoal;
+import me.hapyl.spigotutils.module.ai.goal.*;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
@@ -18,6 +18,9 @@ import me.hapyl.spigotutils.module.record.Replay;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import me.hapyl.spigotutils.module.reflect.npc.Human;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.potion.PotionEffectType;
@@ -159,18 +162,21 @@ public class Commands {
 
         registerTestCommand("ai", (player, args) -> {
             final Wolf entity = Entities.WOLF.spawn(player.getLocation());
+            final LivingEntity sheep = Entities.SHEEP.spawn(player.getLocation());
             final AI ai = MobAI.of(entity);
 
             ai.removeAllGoals();
-            ai.addGoal(0, new RandomlyStrollGoal(ai, 2.0d));
+            ai.addGoal(new AvoidTargetGoal(ai, EntityType.PLAYER, 5, 1.0d, 2.0d));
+            ai.addGoal(new FollowEntityGoal(ai, sheep, 1.0d, 1.0f, 1.0f));
+            ai.addGoal(new LookAtPlayerGoal(ai, 8.0f));
+            ai.addGoal(new RandomlyLookAroundGoal(ai));
+            ai.addGoal(new RandomlyStrollGoal(ai, 1.0f));
+            ai.addGoal(new TemptGoal(ai, Material.WHEAT, 1.0f, false));
 
             ai.getGoals().forEach(goal -> {
                 System.out.println(goal.getClass().getSimpleName());
             });
 
-        });
-
-        registerTestCommand("mappings", (a, b) -> {
         });
 
     }

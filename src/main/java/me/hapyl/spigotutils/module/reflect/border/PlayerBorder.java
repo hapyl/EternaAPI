@@ -62,7 +62,7 @@ public class PlayerBorder extends Holder<Player> {
             case BORDER_GREEN -> {
                 final net.minecraft.world.level.border.WorldBorder netBorder = Reflect.getNetWorldBorder(border);
                 if (netBorder != null) {
-                    netBorder.a(size - 0.1d, size, Long.MAX_VALUE);
+                    netBorder.lerpSizeBetween(size - 0.1d, size, Long.MAX_VALUE);
                 }
             }
         }

@@ -1,11 +1,12 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
+import com.comphenix.protocol.wrappers.BlockPosition;
 import me.hapyl.spigotutils.module.ai.AI;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.entity.EntityCreature;
-import net.minecraft.world.entity.ai.goal.PathfinderGoalGotoTarget;
-import net.minecraft.world.level.IWorldReader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
+import net.minecraft.world.level.LevelReader;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -16,23 +17,25 @@ public class MoveToGoal extends Goal {
     public MoveToGoal(AI ai, Location location, double speedModifier, int range, int heightRange) {
         super(null);
 
-        goal = new PathfinderGoalGotoTarget(ai.getMob(EntityCreature.class), speedModifier, range, heightRange) {
+        goal = new MoveToBlockGoal(ai.getMob(PathfinderMob.class), speedModifier, range, heightRange) {
             @Override
-            protected boolean a(IWorldReader iWorldReader, BlockPosition blockPosition) {
-                if (iWorldReader instanceof WorldServer worldServer) {
-                    final World world = Bukkit.getWorld(worldServer.J.g());
+            protected boolean isValidTarget(LevelReader levelReader, BlockPos blockPos) {
+                if (levelReader instanceof ServerLevel worldServer) {
+                    final String levelName = worldServer.J.getLevelName();
+                    final World world = Bukkit.getWorld(levelName);
+
                     if (world == null) {
-                        System.out.println(worldServer.J.g());
                         return false;
                     }
 
-                    return isValidTarget(world, world.getBlockAt(blockPosition.u(), blockPosition.v(), blockPosition.w()));
+                    return MoveToGoal.this.isValidTarget(world, world.getBlockAt(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
                 }
 
-                System.out.println("not worldServer");
                 return false;
             }
         };
+
+        // will throw error
 
         try {
             FieldUtils.writeField(

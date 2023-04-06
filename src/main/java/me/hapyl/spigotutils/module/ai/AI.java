@@ -2,9 +2,8 @@ package me.hapyl.spigotutils.module.ai;
 
 import me.hapyl.spigotutils.module.ai.goal.Goal;
 import me.hapyl.spigotutils.module.ai.goal.GoalType;
-import net.minecraft.world.entity.EntityInsentient;
-import net.minecraft.world.entity.ai.goal.PathfinderGoal;
-import net.minecraft.world.entity.ai.goal.PathfinderGoalWrapped;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 
 import java.util.Set;
 import java.util.function.Predicate;
@@ -21,20 +20,27 @@ public interface AI {
     void addGoal(int priority, Goal goal);
 
     /**
+     * Adds goal with next priority.
+     *
+     * @param goal - Goal to add.
+     */
+    void addGoal(Goal goal);
+
+    /**
      * Adds a new goal to the mob.
      *
      * @param priority - Priority of the goal, lower is higher priority.
      * @param goal     - Goal to add.
      */
     @Deprecated
-    void addGoal(int priority, PathfinderGoal goal);
+    void addGoal(int priority, net.minecraft.world.entity.ai.goal.Goal goal);
 
     /**
      * Removes all goals of the specified type.
      *
      * @param goals - Type of goals to remove.
      */
-    <T extends PathfinderGoal> void removeGoals(GoalType<T> goals);
+    <T extends net.minecraft.world.entity.ai.goal.Goal> void removeGoals(GoalType<T> goals);
 
     /**
      * Removes a goal from the mob.
@@ -49,7 +55,7 @@ public interface AI {
      * @param goal - Goal to remove.
      */
     @Deprecated
-    void removeGoal(PathfinderGoal goal);
+    void removeGoal(net.minecraft.world.entity.ai.goal.Goal goal);
 
     /**
      * Removes all goals from the mob.
@@ -61,28 +67,28 @@ public interface AI {
      *
      * @param predicate - Predicate to match.
      */
-    void removeAllGoals(Predicate<PathfinderGoal> predicate);
+    void removeAllGoals(Predicate<net.minecraft.world.entity.ai.goal.Goal> predicate);
 
     /**
      * Returns all goals of the mob.
      *
      * @return - Set of goals.
      */
-    Set<PathfinderGoalWrapped> getGoals();
+    Set<WrappedGoal> getGoals();
 
     /**
      * Returns all running goals of the mob.
      *
      * @return - Stream of running goals.
      */
-    Stream<PathfinderGoalWrapped> getRunningGoals();
+    Stream<WrappedGoal> getRunningGoals();
 
     /**
      * Returns the mob that this AI is attached to.
      *
      * @return - Mob.
      */
-    EntityInsentient getMob();
+    Mob getMob();
 
     default <T> T getMob(Class<T> clazz) {
         if (!clazz.isInstance(getMob())) {

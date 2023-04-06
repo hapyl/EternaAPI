@@ -19,6 +19,6 @@ public class StringSoundEntry extends StringEntry {
 	@Override
 	public void invokeEntry(HumanNPC npc, Player player) {
 		super.invokeEntry(npc, player);
-		player.playSound(player.getLocation(), this.sound, SoundCategory.RECORDS, 10, this.pitch);
+		player.playSound(npc.getLocation(), this.sound, SoundCategory.RECORDS, 10, this.pitch);
 	}
 }
