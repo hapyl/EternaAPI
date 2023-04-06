@@ -17,10 +17,6 @@ public class HologramArmorStand {
     private final ArmorStand bukkit;
     private Location location;
 
-    private final ReflectPacket packetSpawn;
-    private final ReflectPacket packetMetadata;
-    private final ReflectPacket packetRemove;
-
     protected HologramArmorStand(Location location, String name) {
         this.armorStand = new EntityArmorStand(
                 Reflect.getMinecraftWorld(location.getWorld()),
@@ -40,18 +36,18 @@ public class HologramArmorStand {
         bukkit.setCustomNameVisible(true);
 
         // Create packets
-        packetSpawn = new ReflectPacket(new PacketPlayOutSpawnEntity(armorStand));
-        packetMetadata = new ReflectPacket(new PacketPlayOutEntityMetadata(bukkit.getEntityId(), Reflect.getDataWatcher(armorStand).c()));
-        packetRemove = new ReflectPacket(new PacketPlayOutEntityDestroy(bukkit.getEntityId()));
     }
 
     public void show(Player player) {
-        packetSpawn.sendPackets(player);
-        packetMetadata.sendPackets(player);
+        ReflectPacket.send(new PacketPlayOutSpawnEntity(armorStand), player);
+        ReflectPacket.send(
+                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), Reflect.getDataWatcherNonDefaultValues(armorStand)),
+                player
+        );
     }
 
     public void hide(Player player) {
-        packetRemove.sendPackets(player);
+        ReflectPacket.send(new PacketPlayOutEntityDestroy(bukkit.getEntityId()), player);
     }
 
     public void setLocation(Location location) {

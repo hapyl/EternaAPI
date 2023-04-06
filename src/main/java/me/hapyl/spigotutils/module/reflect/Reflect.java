@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
@@ -42,6 +43,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Useful utility class, which was indented to use reflection, hence the name Reflect.
@@ -137,6 +139,7 @@ public final class Reflect {
         if (players == null || players.length == 0) {
             return;
         }
+
         updateMetadata(entity, dataWatcher, players);
     }
 
@@ -449,6 +452,17 @@ public final class Reflect {
         return entity.aj();
     }
 
+    @Nonnull
+    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(DataWatcher dataWatcher) {
+        final List<DataWatcher.b<?>> values = dataWatcher.c();
+        return values == null ? Lists.newArrayList() : values;
+    }
+
+    @Nonnull
+    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(net.minecraft.world.entity.Entity entity) {
+        return getDataWatcherNonDefaultValues(getDataWatcher(entity));
+    }
+
     /**
      * Shows hidden entity for viewers.
      *
@@ -481,7 +495,8 @@ public final class Reflect {
         if (netEntity == null) {
             return;
         }
-        ReflectPacket.send(new PacketPlayOutSpawnEntity(netEntity), viewers);
+
+        createEntity(netEntity, viewers);
     }
 
     /**

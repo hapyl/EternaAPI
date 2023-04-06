@@ -6,15 +6,12 @@ import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.registry.EternaRegistry;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -189,6 +186,10 @@ public class Hologram implements Holo {
         }
 
         for (Player player : players) {
+            if (isShowingTo(player)) {
+                continue;
+            }
+
             showingTo.put(player, true);
             packets.forEach(hologram -> {
                 hologram.show(player);
@@ -319,10 +320,7 @@ public class Hologram implements Holo {
     }
 
     public void updateMetadata(EntityArmorStand stand, Player player) {
-        final ArmorStand bukkit = (ArmorStand) stand.getBukkitEntity();
-        final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(bukkit.getEntityId(), Reflect.getDataWatcher(stand).c());
-
-        ReflectPacket.send(packet, player);
+        Reflect.updateMetadata(stand, player);
     }
 
     @Override

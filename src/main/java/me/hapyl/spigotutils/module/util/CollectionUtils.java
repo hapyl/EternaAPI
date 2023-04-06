@@ -402,11 +402,11 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns the random element from the set.
+     * Returns a random element from the set.
      *
      * @param hashSet - set to get from.
      * @param <E>     - type of the set.
-     * @return the random element.
+     * @return a random element.
      */
     @Nullable
     public static <E> E randomElement(Set<E> hashSet) {
@@ -414,26 +414,38 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns the random element from the set or def if set is empty.
+     * Returns a random element from the set or first if set is empty.
+     *
+     * @param hashSet - set to get from.
+     * @return a random element.
+     */
+    @Nullable
+    public static <E> E randomElementOrFirst(Set<E> hashSet) {
+        return randomElement(hashSet, get(hashSet, 0));
+    }
+
+    /**
+     * Returns a random element from the set or def if set is empty.
      *
      * @param hashSet - set to get from.
      * @param def     - default value.
      * @param <E>     - type of the set.
-     * @return the random element.
+     * @return a random element.
      */
     public static <E> E randomElement(Set<E> hashSet, E def) {
         if (hashSet.isEmpty()) {
             return def;
         }
+
         return getOrDefault(hashSet, ThreadLocalRandom.current().nextInt(hashSet.size()), def);
     }
 
     /**
-     * Returns the random element from the list.
+     * Returns a random element from the list.
      *
      * @param array - array to get from.
      * @param <E>   - type of the array.
-     * @return the random element.
+     * @return a random element.
      */
     @Nullable
     public static <E> E randomElement(E[] array) {
@@ -441,12 +453,23 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns the random element from the list or default value if array is empty.
+     * Returns a random element from the array or first element if array is empty.
+     *
+     * @param array - array to get from.
+     * @return a random element.
+     */
+    @Nullable
+    public static <E> E randomElementOrFirst(E[] array) {
+        return randomElement(array, array.length == 0 ? null : array[0]);
+    }
+
+    /**
+     * Returns a random element from the list or default value if array is empty.
      *
      * @param array - array to get from.
      * @param def   - default value.
      * @param <E>   - type of the array.
-     * @return the random element.
+     * @return a random element.
      */
     public static <E> E randomElement(E[] array, E def) {
         if (array.length == 0) {
@@ -456,11 +479,11 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns the random element from the list.
+     * Returns a random element from the list.
      *
      * @param list - list to get from.
      * @param <E>  - type of the list.
-     * @return the random element.
+     * @return a random element.
      */
     @Nullable
     public static <E> E randomElement(List<E> list) {
@@ -468,12 +491,23 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns the random element from the list or default value if list is empty.
+     * Returns a random element from the list or first element if list is empty.
+     *
+     * @param list - list to get from.
+     * @return a random element.
+     */
+    @Nullable
+    public static <E> E randomElementOrFirst(List<E> list) {
+        return randomElement(list, get(list, 0));
+    }
+
+    /**
+     * Returns a random element from the list or default value if list is empty.
      *
      * @param list - list to get from.
      * @param def  - default value.
      * @param <E>  - type of the list.
-     * @return the random element.
+     * @return a random element.
      */
     public static <E> E randomElement(List<E> list, E def) {
         if (list.isEmpty()) {

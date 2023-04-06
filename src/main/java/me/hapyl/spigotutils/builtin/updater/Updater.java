@@ -4,7 +4,6 @@ import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.chat.LazyEvent;
-import me.hapyl.spigotutils.module.util.Validate;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -12,23 +11,20 @@ import org.bukkit.entity.Player;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
 
 public final class Updater {
 
-    private final String URL = "https://api.github.com/repos/hapyl/EternaAPI/releases/latest";
-    private final Logger logger;
+    private static final String URL = "https://api.github.com/repos/hapyl/EternaAPI/releases/latest";
+    private static final String VERSION_REGEX = "-?SNAPSHOT.*";
 
     private String pluginVersion;
     private String latestVersion;
 
-    private int pluginVersionInt;
-    private int latestVersionInt;
-
     private String downloadUrl;
 
+    private UpdateResult lastResult;
+
     public Updater() {
-        this.logger = EternaPlugin.getPlugin().getLogger();
     }
 
     public void checkForUpdatesAndGiveLink() {
@@ -40,7 +36,14 @@ public final class Updater {
     }
 
     public void broadcastLink() {
-        EternaLogger.broadcastMessageOP("&aAn update available! Your version: %s, latest version: %s.", pluginVersion, latestVersion);
+        final String updateMessage = String.format(
+                "&aUpdate is available! Your version: %s, latest version: %s.",
+                pluginVersion,
+                latestVersion
+        );
+
+        EternaLogger.broadcastMessageOP(updateMessage);
+        EternaLogger.broadcastMessageConsole(updateMessage);
 
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.isOp()) {
@@ -66,21 +69,50 @@ public final class Updater {
             this.pluginVersion = EternaPlugin.getPlugin().getDescription().getVersion();
             this.latestVersion = StringUtils.substringBetween(jsonText.trim(), "\"tag_name\":\"", "\"");
 
-            this.pluginVersionInt = intVersion(pluginVersion);
-            this.latestVersionInt = intVersion(latestVersion);
-
             stream.close();
 
-            if (latestVersionInt > pluginVersionInt) {
-                downloadUrl = StringUtils.substringBetween(jsonText.trim(), "\"browser_download_url\":\"", "\"");
-                return UpdateResult.OUTDATED;
-            }
-            else if (pluginVersionInt > latestVersionInt) {
-                return UpdateResult.DEVELOPMENT;
+            final UpdateResult updateResult = compareVersions(pluginVersion, latestVersion);
+
+            if (updateResult == UpdateResult.OUTDATED) {
+                this.downloadUrl = StringUtils.substringBetween(jsonText.trim(), "\"browser_download_url\":\"", "\"");
             }
 
-            return UpdateResult.UP_TO_DATE;
+            lastResult = updateResult;
+            return updateResult;
+
         } catch (Exception ignored) {
+            lastResult = UpdateResult.INVALID;
+            return UpdateResult.INVALID;
+        }
+    }
+
+    public UpdateResult getLastResult() {
+        return lastResult;
+    }
+
+    private UpdateResult compareVersions(String current, String remote) {
+        current = current.replaceFirst(VERSION_REGEX, "");
+        remote = remote.replaceFirst(VERSION_REGEX, "");
+
+        try {
+            final String[] currentParts = current.split("\\.");
+            final String[] remoteParts = remote.split("\\.");
+
+            int length = Math.max(currentParts.length, remoteParts.length);
+            for (int i = 0; i < length; i++) {
+                final int thisPart = i < currentParts.length ? Integer.parseInt(currentParts[i]) : 0;
+                final int thatPart = i < remoteParts.length ? Integer.parseInt(remoteParts[i]) : 0;
+
+                if (thisPart < thatPart) {
+                    return UpdateResult.OUTDATED;
+                }
+                if (thisPart > thatPart) {
+                    return UpdateResult.DEVELOPMENT;
+                }
+            }
+            return UpdateResult.UP_TO_DATE;
+        } catch (Exception e) {
+            e.printStackTrace();
             return UpdateResult.INVALID;
         }
     }
@@ -93,27 +125,8 @@ public final class Updater {
         return latestVersion;
     }
 
-    public int getPluginVersionInt() {
-        return pluginVersionInt;
-    }
-
-    public int getLatestVersionInt() {
-        return latestVersionInt;
-    }
-
     public String getDownloadUrl() {
         return downloadUrl;
-    }
-
-    private int intVersion(String version) {
-        final String[] split = version.split("\\.");
-        final StringBuilder builder = new StringBuilder();
-
-        for (String s : split) {
-            builder.append(s);
-        }
-
-        return Validate.getInt(builder.toString().replace("-SNAPSHOT", ""));
     }
 
     private String readAll(Reader rd) throws IOException {

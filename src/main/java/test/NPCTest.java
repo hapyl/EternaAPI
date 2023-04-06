@@ -26,6 +26,7 @@ public class NPCTest {
             return;
         }
 
+        // empty
         if (npc != null) {
             npc.jump(2);
 
