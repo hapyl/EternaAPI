@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 
 /**
  * Easy access hover event builder.
+ * {@link LazyEvent}
  */
 public enum LazyHoverEvent {
 

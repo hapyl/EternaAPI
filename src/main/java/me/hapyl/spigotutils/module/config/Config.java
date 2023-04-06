@@ -12,6 +12,9 @@ import java.util.function.BiConsumer;
 
 /**
  * Creates config file.
+ *
+ * Supports '/' as path separator.
+ * Defaults to 'plugins/PLUGIN/HERE.yml' if path doesn't have separator.
  */
 public class Config {
 

@@ -12,7 +12,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-// This class parses .nbs file into playable song.
+/**
+ * Parser for .nbs files into {@link Song}.
+ */
 public class Parser {
 
     private final DataInputStream data;

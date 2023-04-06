@@ -350,7 +350,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
         return Objects.hash(name, start, finish, difficulty, checkpoints);
     }
 
-    private Hologram createHologram(String... strings) {
+    protected Hologram createHologram(String... strings) {
         final Hologram hologram = new Hologram().addLines(strings);
         this.holograms.add(hologram);
         return hologram;
@@ -439,4 +439,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
         };
     }
 
+    public Set<Hologram> getHolograms() {
+        return holograms;
+    }
 }

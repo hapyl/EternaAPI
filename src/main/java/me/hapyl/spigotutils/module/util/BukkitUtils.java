@@ -376,9 +376,27 @@ public class BukkitUtils {
      * @param x - X.
      * @param y - Y.
      * @param z - Z.
-     * @return new centered location in default world.
+     * @return new location in default world.
      */
     public static Location defLocation(double x, double y, double z) {
         return new Location(Bukkit.getWorlds().get(0), x, y, z);
+    }
+
+    /**
+     * Returns new centered location in default world.
+     *
+     * @param x     - X.
+     * @param y     - Y.
+     * @param z     - Z.
+     * @param yaw   - Yaw.
+     * @param pitch - Pitch.
+     * @return new location in default world.
+     */
+    public static Location defLocation(double x, double y, double z, float yaw, float pitch) {
+        final Location location = defLocation(x, y, z);
+        location.setYaw(yaw);
+        location.setPitch(pitch);
+
+        return location;
     }
 }

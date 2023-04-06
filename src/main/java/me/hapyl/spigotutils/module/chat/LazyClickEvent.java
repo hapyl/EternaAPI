@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 /**
  * Easy access click event builder.
+ * {@link LazyEvent}
  */
 public enum LazyClickEvent {
 
