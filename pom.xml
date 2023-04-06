@@ -6,7 +6,7 @@
 
     <groupId>me.hapyl</groupId>
     <artifactId>EternaAPI</artifactId>
-    <version>2.9.5-SNAPSHOT</version>
+    <version>2.9.6-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>EternaAPI</name>
     <description>An API for Spigot development.</description>
@@ -30,16 +30,56 @@
                 </configuration>
             </plugin>
 
-            <!-- Copy Rename -->
+            <!-- Mappings -->
+            <plugin>
+                <groupId>net.md-5</groupId>
+                <artifactId>specialsource-maven-plugin</artifactId>
+                <version>1.2.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-obf</id>
+                        <configuration>
+                            <srgIn>org.spigotmc:minecraft-server:1.19.4-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
+                            <reverse>true</reverse>
+                            <remappedDependencies>org.spigotmc:spigot:1.19.4-R0.1-SNAPSHOT:jar:remapped-mojang
+                            </remappedDependencies>
+                            <remappedArtifactAttached>true</remappedArtifactAttached>
+                            <remappedClassifierName>remapped-obf</remappedClassifierName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-spigot</id>
+                        <configuration>
+                            <inputFile>
+                                ${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar
+                            </inputFile>
+                            <srgIn>org.spigotmc:minecraft-server:1.19.4-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
+                            <remappedDependencies>org.spigotmc:spigot:1.19.4-R0.1-SNAPSHOT:jar:remapped-obf
+                            </remappedDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Copy to Test Servers -->
             <plugin>
                 <groupId>com.coderplus.maven.plugins</groupId>
                 <artifactId>copy-rename-maven-plugin</artifactId>
                 <version>1.0</version>
                 <executions>
 
+                    <!-- Copy to Building Server -->
                     <execution>
                         <id>copy-file</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy</goal>
                         </goals>
@@ -49,9 +89,10 @@
                         </configuration>
                     </execution>
 
+                    <!-- Copy to CF Server-->
                     <execution>
                         <id>copy-file-18</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy</goal>
                         </goals>
@@ -64,6 +105,7 @@
             </plugin>
 
         </plugins>
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -90,13 +132,6 @@
             <id>dmulloy2-repo</id>
             <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
-
-        <!--        test-->
-        <repository>
-            <id>ranull-repo-external</id>
-            <url>https://repo.ranull.com/maven/external/</url>
-        </repository>
-
     </repositories>
 
     <!--    Dependencies-->

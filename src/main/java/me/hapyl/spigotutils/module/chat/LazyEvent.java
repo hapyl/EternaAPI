@@ -7,10 +7,24 @@ import javax.annotation.Nullable;
 
 public class LazyEvent {
 
+    /**
+     * Generates an open url click event.
+     *
+     * @param url    - Utl to open.
+     * @param format - Format.
+     * @return OPEN_URL ClickEvent.
+     */
     public static ClickEvent openUrl(String url, @Nullable Object... format) {
         return LazyClickEvent.OPEN_URL.of(url, format);
     }
 
+    /**
+     * Generates an open file click event.
+     *
+     * @param file   - File to open.
+     * @param format - Format.
+     * @return OPEN_FILE ClickEvent.
+     */
     public static ClickEvent openFile(String file, @Nullable Object... format) {
         return LazyClickEvent.OPEN_FILE.of(file, format);
     }

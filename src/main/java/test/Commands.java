@@ -3,6 +3,7 @@ package test;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.ai.AI;
 import me.hapyl.spigotutils.module.ai.MobAI;
+import me.hapyl.spigotutils.module.ai.goal.RandomlyStrollGoal;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
@@ -17,8 +18,8 @@ import me.hapyl.spigotutils.module.record.Replay;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import me.hapyl.spigotutils.module.reflect.npc.Human;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Wolf;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
@@ -157,13 +158,19 @@ public class Commands {
         }));
 
         registerTestCommand("ai", (player, args) -> {
-            final Pig pig = Entities.PIG.spawn(player.getLocation());
-            final AI pigAI = MobAI.of(pig);
+            final Wolf entity = Entities.WOLF.spawn(player.getLocation());
+            final AI ai = MobAI.of(entity);
 
-            pigAI.removeAllGoals();
-            System.out.println(pigAI.getRunningGoals());
+            ai.removeAllGoals();
+            ai.addGoal(0, new RandomlyStrollGoal(ai, 2.0d));
 
-            //pigAI.addGoal(0, new LookAtPlayerGoal(pigAI, 8.0f));
+            ai.getGoals().forEach(goal -> {
+                System.out.println(goal.getClass().getSimpleName());
+            });
+
+        });
+
+        registerTestCommand("mappings", (a, b) -> {
         });
 
     }

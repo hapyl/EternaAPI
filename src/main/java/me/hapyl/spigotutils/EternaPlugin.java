@@ -39,6 +39,9 @@ import java.io.File;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+/**
+ * Represents EternaAPI plugin.
+ */
 public class EternaPlugin extends JavaPlugin {
 
     private static EternaPlugin plugin;

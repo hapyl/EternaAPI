@@ -4,13 +4,20 @@ import net.minecraft.world.entity.ai.goal.PathfinderGoal;
 
 public class Goal {
 
-    private final PathfinderGoal minecraftGoal;
+    protected PathfinderGoal goal;
 
-    public Goal(PathfinderGoal minecraftGoal) {
-        this.minecraftGoal = minecraftGoal;
+    private Goal() {
     }
 
-    public PathfinderGoal getMinecraftGoal() {
-        return minecraftGoal;
+    protected static Goal empty() {
+        return new Goal();
+    }
+
+    public Goal(PathfinderGoal goal) {
+        this.goal = goal;
+    }
+
+    public PathfinderGoal getGoal() {
+        return goal;
     }
 }
