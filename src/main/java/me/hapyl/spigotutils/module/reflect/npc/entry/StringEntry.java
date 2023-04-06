@@ -7,17 +7,17 @@ import org.bukkit.entity.Player;
 
 public class StringEntry extends NPCEntry {
 
-    private final String stringEntry;
+	private final String stringEntry;
 
-    public StringEntry(String stringEntry, int delay) {
-        super(delay);
-        this.stringEntry = stringEntry;
-    }
+	public StringEntry(String stringEntry, int delay) {
+		super(delay);
+		this.stringEntry = stringEntry;
+	}
 
-    @Override
-    public void invokeEntry(HumanNPC npc, Player player) {
-        npc.sendNpcMessage(player, this.stringEntry);
-        player.playSound(npc.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, SoundCategory.RECORDS, 2, 1.0f);
-    }
+	@Override
+	public void invokeEntry(HumanNPC npc, Player player) {
+		npc.sendNpcMessage(player, this.stringEntry);
+		player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, SoundCategory.RECORDS, 2, 1.0f);
+	}
 
 }

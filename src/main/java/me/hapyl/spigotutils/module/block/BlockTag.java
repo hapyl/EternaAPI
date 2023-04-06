@@ -24,6 +24,7 @@ public final class BlockTag {
 
         private final Material[] materials;
 
+
         RedstoneComponent(Material... materials) {
             this.materials = materials;
         }

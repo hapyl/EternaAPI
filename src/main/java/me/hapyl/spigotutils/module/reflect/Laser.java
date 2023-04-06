@@ -4,9 +4,9 @@ import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.reflect.packet.Packets;
 import me.hapyl.spigotutils.module.util.TeamHelper;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.Squid;
-import net.minecraft.world.entity.monster.Guardian;
+import net.minecraft.world.entity.EntityLiving;
+import net.minecraft.world.entity.animal.EntitySquid;
+import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -23,8 +23,8 @@ public class Laser {
     private final Location start;
     private final Location end;
 
-    private Guardian guardian;
-    private Squid squid;
+    private EntityGuardian guardian;
+    private EntitySquid squid;
 
     public Laser(Location start, Location end) {
         this.start = start;
@@ -93,10 +93,10 @@ public class Laser {
             return;
         }
 
-        guardian = new Guardian(Entities.NMS.GUARDIAN, Reflect.getMinecraftWorld(this.start.getWorld()));
+        guardian = new EntityGuardian(Entities.NMS.GUARDIAN, Reflect.getMinecraftWorld(this.start.getWorld()));
         Reflect.setEntityLocation(guardian, start);
 
-        squid = new Squid(Entities.NMS.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
+        squid = new EntitySquid(Entities.NMS.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
         Reflect.setEntityLocation(squid, end);
     }
 
@@ -107,7 +107,7 @@ public class Laser {
         return b;
     }
 
-    private void removeCollision(LivingEntity entity, Player... players) {
+    private void removeCollision(EntityLiving entity, Player... players) {
         final Entity bukkitEntity = entity.getBukkitEntity();
         for (Player player : players) {
             TeamHelper.FAKE_ENTITY.addToTeam(player.getScoreboard(), bukkitEntity);

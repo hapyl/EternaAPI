@@ -1,8 +1,8 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.server.level.EntityPlayer;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -393,7 +393,7 @@ public interface Human {
      *
      * @return The data watcher of the NPC.
      */
-    SynchedEntityData getDataWatcher();
+    DataWatcher getDataWatcher();
 
     /**
      * Hides this NPC's name. <i>NPC's name is actually a {@link HumanNPC#getHexName()}.</i>
@@ -450,7 +450,7 @@ public interface Human {
      *
      * @return the human entity
      */
-    ServerPlayer getHuman();
+    EntityPlayer getHuman();
 
     /**
      * Hides display name of this NPC.
