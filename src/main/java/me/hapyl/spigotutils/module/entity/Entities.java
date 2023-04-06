@@ -5,10 +5,6 @@ import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Validate;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.animal.EntitySquid;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
-import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.*;
@@ -33,9 +29,21 @@ public final class Entities<T extends Entity> {
 
     public static class NMS {
 
-        public static final EntityTypes<EntityGuardian> GUARDIAN = EntityTypes.V;
-        public static final EntityTypes<EntitySquid> SQUID = EntityTypes.aT;
-        public static final EntityTypes<EntityArmorStand> ARMOR_STAND = EntityTypes.d;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Guardian> GUARDIAN = net.minecraft.world.entity.EntityType.GUARDIAN;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.animal.Squid> SQUID = net.minecraft.world.entity.EntityType.SQUID;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.decoration.ArmorStand> ARMOR_STAND = net.minecraft.world.entity.EntityType.ARMOR_STAND;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.EnderMan> ENDERMAN = net.minecraft.world.entity.EntityType.ENDERMAN;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Creeper> CREEPER = net.minecraft.world.entity.EntityType.CREEPER;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Skeleton> SKELETON = net.minecraft.world.entity.EntityType.SKELETON;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Slime> SLIME = net.minecraft.world.entity.EntityType.SLIME;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Spider> SPIDER = net.minecraft.world.entity.EntityType.SPIDER;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Zombie> ZOMBIE = net.minecraft.world.entity.EntityType.ZOMBIE;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.ZombieVillager> ZOMBIE_VILLAGER = net.minecraft.world.entity.EntityType.ZOMBIE_VILLAGER;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Witch> WITCH = net.minecraft.world.entity.EntityType.WITCH;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Endermite> ENDERMITE = net.minecraft.world.entity.EntityType.ENDERMITE;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Ghast> GHAST = net.minecraft.world.entity.EntityType.GHAST;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.ZombifiedPiglin> ZOMBIFIER_PIGLIN = net.minecraft.world.entity.EntityType.ZOMBIFIED_PIGLIN;
+        public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.monster.Blaze> BLAZE = net.minecraft.world.entity.EntityType.BLAZE;
 
     }
 

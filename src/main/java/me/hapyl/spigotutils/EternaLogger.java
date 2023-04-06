@@ -4,6 +4,9 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+/**
+ * Represents API logger.
+ */
 public class EternaLogger {
 
     public static final String PREFIX = "&b&lEternaAPI&b> &a";

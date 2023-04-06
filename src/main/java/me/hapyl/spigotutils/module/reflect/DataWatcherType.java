@@ -1,20 +1,20 @@
 package me.hapyl.spigotutils.module.reflect;
 
-import net.minecraft.network.syncher.DataWatcherRegistry;
-import net.minecraft.network.syncher.DataWatcherSerializer;
+import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.network.syncher.EntityDataSerializers;
 
 public class DataWatcherType<T> {
 
-    public static final DataWatcherType<Byte> BYTE = new DataWatcherType<>(Byte.class, DataWatcherRegistry.a);
-    public static final DataWatcherType<Integer> INT = new DataWatcherType<>(Integer.class, DataWatcherRegistry.b);
-    public static final DataWatcherType<Float> FLOAT = new DataWatcherType<>(Float.class, DataWatcherRegistry.d);
-    public static final DataWatcherType<String> STR = new DataWatcherType<>(String.class, DataWatcherRegistry.e);
-    public static final DataWatcherType<Boolean> BOOL = new DataWatcherType<>(Boolean.class, DataWatcherRegistry.k);
+    public static final DataWatcherType<Byte> BYTE = new DataWatcherType<>(Byte.class, EntityDataSerializers.BYTE);
+    public static final DataWatcherType<Integer> INT = new DataWatcherType<>(Integer.class, EntityDataSerializers.INT);
+    public static final DataWatcherType<Float> FLOAT = new DataWatcherType<>(Float.class, EntityDataSerializers.FLOAT);
+    public static final DataWatcherType<String> STR = new DataWatcherType<>(String.class, EntityDataSerializers.STRING);
+    public static final DataWatcherType<Boolean> BOOL = new DataWatcherType<>(Boolean.class, EntityDataSerializers.BOOLEAN);
 
     private final Class<T> clazz;
-    private final DataWatcherSerializer<T> fieldName;
+    private final EntityDataSerializer<T> fieldName;
 
-    private DataWatcherType(Class<T> clazz, DataWatcherSerializer<T> fieldName) {
+    private DataWatcherType(Class<T> clazz, EntityDataSerializer<T> fieldName) {
         this.clazz = clazz;
         this.fieldName = fieldName;
     }
@@ -23,7 +23,7 @@ public class DataWatcherType<T> {
         return this.clazz;
     }
 
-    public DataWatcherSerializer<T> get() {
+    public EntityDataSerializer<T> get() {
         return fieldName;
     }
 

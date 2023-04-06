@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils;
 
-import me.hapyl.spigotutils.builtin.command.*;
+import me.hapyl.spigotutils.builtin.command.EternaCommand;
+import me.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
 import me.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
@@ -38,6 +39,9 @@ import java.io.File;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+/**
+ * Represents EternaAPI plugin.
+ */
 public class EternaPlugin extends JavaPlugin {
 
     private static EternaPlugin plugin;
@@ -81,11 +85,8 @@ public class EternaPlugin extends JavaPlugin {
 
         // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);
-        commandProcessor.registerCommand(new QuestCommand("questjournal"));
+        commandProcessor.registerCommand(new EternaCommand("eterna"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
-        commandProcessor.registerCommand(new ReloadPlayerConfigCommand("reloadplayerconfig"));
-        commandProcessor.registerCommand(new ReloadAddonsCommand("reloadaddons"));
-        commandProcessor.registerCommand(new UpdateEternaCommand("updateEterna"));
 
         // Load configuration file
         this.getConfig().options().copyDefaults(true);
