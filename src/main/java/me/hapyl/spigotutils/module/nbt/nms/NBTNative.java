@@ -2,8 +2,8 @@ package me.hapyl.spigotutils.module.nbt.nms;
 
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.MojangsonParser;
+import net.minecraft.nbt.NBTTagCompound;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -20,13 +20,13 @@ public class NBTNative {
     );
 
     @Nonnull
-    public static CompoundTag getCompound(ItemStack item) {
+    public static NBTTagCompound getCompound(ItemStack item) {
         final net.minecraft.world.item.ItemStack nms = asNMSCopy(item);
-        return nms.getOrCreateTag();
+        return nms.v();
     }
 
-    public static CompoundTag getCompoundOrCreate(net.minecraft.world.item.ItemStack nmsItem) {
-        return nmsItem.hasTag() ? nmsItem.getTag() : new CompoundTag();
+    public static NBTTagCompound getCompoundOrCreate(net.minecraft.world.item.ItemStack nmsItem) {
+        return nmsItem.t() ? nmsItem.u() : new NBTTagCompound();
     }
 
     public static net.minecraft.world.item.ItemStack asNMSCopy(ItemStack stack) {
@@ -40,16 +40,15 @@ public class NBTNative {
     public static ItemStack setNbt(@Nonnull ItemStack itemStack, @Nonnull String nbt) {
         if (nbt.startsWith("{") && nbt.endsWith("}")) {
             try {
-
-                final CompoundTag compound = NbtUtils.snbtToStructure(nbt);
+                final NBTTagCompound compound = MojangsonParser.a(nbt);
                 final net.minecraft.world.item.ItemStack nmsItem = asNMSCopy(itemStack);
 
-                final CompoundTag original = getCompoundOrCreate(nmsItem);
-                original.merge(compound);
+                final NBTTagCompound original = getCompoundOrCreate(nmsItem);
+                original.a(compound);
 
                 // Set NBT to the item if was empty
-                if (!nmsItem.hasTag()) {
-                    nmsItem.setTag(compound);
+                if (!nmsItem.t()) {
+                    nmsItem.c(compound);
                 }
 
                 return NBTNative.asBukkitCopy(nmsItem);

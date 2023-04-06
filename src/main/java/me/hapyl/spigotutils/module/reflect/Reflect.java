@@ -13,18 +13,17 @@ import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import me.hapyl.spigotutils.module.util.ThreadRandom;
 import me.hapyl.spigotutils.module.util.Validate;
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
+import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
+import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
 import org.apache.commons.lang.reflect.MethodUtils;
@@ -88,13 +87,13 @@ public final class Reflect {
     }
 
     /**
-     * Sends a {@link ClientboundTeleportEntityPacket} packet to players.
+     * Sends a {@link PacketPlayOutEntityTeleport} packet to players.
      *
      * @param entity  - Entity to update location of.
      * @param players - Players to update location for.
      */
     public static void updateEntityLocation(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.send(new ClientboundTeleportEntityPacket(entity), players);
+        ReflectPacket.send(new PacketPlayOutEntityTeleport(entity), players);
     }
 
     /**
@@ -106,17 +105,17 @@ public final class Reflect {
      * @param location - Location.
      */
     public static void setEntityLocation(net.minecraft.world.entity.Entity entity, Location location) {
-        entity.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**
-     * Sends a {@link ClientboundRemoveEntitiesPacket} packet to players.
+     * Sends a {@link PacketPlayOutEntityDestroy} packet to players.
      *
      * @param entity  - Entity to remove.
      * @param players - Players.
      */
     public static void destroyEntity(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.send(new ClientboundRemoveEntitiesPacket(entity.getBukkitEntity().getEntityId()), players);
+        ReflectPacket.send(new PacketPlayOutEntityDestroy(entity.getBukkitEntity().getEntityId()), players);
     }
 
     /**
@@ -132,8 +131,8 @@ public final class Reflect {
      * @param <T>     - Type of the value.
      */
     public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, @Nullable Player... players) {
-        final SynchedEntityData dataWatcher = getDataWatcher(entity);
-        setDataWatcherValue0(dataWatcher, type.get().createAccessor(key), value);
+        final DataWatcher dataWatcher = getDataWatcher(entity);
+        setDataWatcherValue0(dataWatcher, type.get().a(key), value);
 
         if (players == null || players.length == 0) {
             return;
@@ -142,9 +141,8 @@ public final class Reflect {
     }
 
     public static <T> T getDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key) {
-        final SynchedEntityData dataWatcher = getDataWatcher(entity);
-
-        return dataWatcher.get(type.get().createAccessor(key));
+        final DataWatcher dataWatcher = getDataWatcher(entity);
+        return dataWatcher.a(type.get().a(key));
     }
 
     /**
@@ -160,9 +158,9 @@ public final class Reflect {
     }
 
     @Super
-    public static <T> void setDataWatcherValue0(SynchedEntityData dataWatcher, EntityDataAccessor<T> type, T object) {
+    public static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T object) {
         try {
-            dataWatcher.set(type, object);
+            dataWatcher.b(type, object);
             //            final Method method = dataWatcher.getClass().getDeclaredMethod("c", DataWatcherObject.class, Object.class);
             //            method.setAccessible(true);
             //            method.invoke(dataWatcher, type, object);
@@ -179,12 +177,12 @@ public final class Reflect {
      * @param watcher - DataWatcher.
      * @param players - Players who will see the update.
      */
-    public static void updateMetadata(net.minecraft.world.entity.Entity entity, SynchedEntityData watcher, Player... players) {
-        ReflectPacket.send(new ClientboundSetEntityDataPacket(getEntityId(entity), watcher.getNonDefaultValues()), players);
+    public static void updateMetadata(net.minecraft.world.entity.Entity entity, DataWatcher watcher, Player... players) {
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(getEntityId(entity), watcher.c()), players);
     }
 
     public static void updateMetadata(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.send(new ClientboundSetEntityDataPacket(getEntityId(entity), getDataWatcher(entity).getNonDefaultValues()), players);
+        ReflectPacket.send(new PacketPlayOutEntityMetadata(getEntityId(entity), getDataWatcher(entity).c()), players);
     }
 
     /**
@@ -194,7 +192,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(net.minecraft.world.entity.Entity entity) {
-        return entity.getId();
+        return entity.af();
     }
 
     @Nullable
@@ -392,9 +390,9 @@ public final class Reflect {
      * @return BlockPosition.
      */
     @Nonnull
-    public static BlockPos getBlockPosition(Block block) {
+    public static BlockPosition getBlockPosition(Block block) {
         final Location location = block.getLocation();
-        return new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        return new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     public static void showBlockBreakAnimation(Block block, int stage, Player... players) {
@@ -440,15 +438,15 @@ public final class Reflect {
      * @param players - Who entity will be hidden for.
      */
     public static void hideEntity(Entity entity, Player... players) {
-        ReflectPacket.send(new ClientboundRemoveEntitiesPacket(entity.getEntityId()), players);
+        ReflectPacket.send(new PacketPlayOutEntityDestroy(entity.getEntityId()), players);
     }
 
     public static void createEntity(net.minecraft.world.entity.Entity netEntity, Player... players) {
-        ReflectPacket.send(new ClientboundAddEntityPacket(netEntity, getEntityId(netEntity)), players);
+        ReflectPacket.send(new PacketPlayOutSpawnEntity(netEntity, getEntityId(netEntity)), players);
     }
 
-    public static SynchedEntityData getDataWatcher(net.minecraft.world.entity.Entity entity) {
-        return entity.getEntityData();
+    public static DataWatcher getDataWatcher(net.minecraft.world.entity.Entity entity) {
+        return entity.aj();
     }
 
     /**
@@ -483,8 +481,7 @@ public final class Reflect {
         if (netEntity == null) {
             return;
         }
-
-        createEntity(netEntity, viewers);
+        ReflectPacket.send(new PacketPlayOutSpawnEntity(netEntity), viewers);
     }
 
     /**
@@ -539,8 +536,8 @@ public final class Reflect {
             return;
         }
 
-        final ServerPlayer mc = getMinecraftPlayer(player);
-        mc.connection.send(packet);
+        final EntityPlayer mc = getMinecraftPlayer(player);
+        mc.b.a(packet);
     }
 
     /**
@@ -579,8 +576,8 @@ public final class Reflect {
         return getGameProfile(getMinecraftPlayer(player));
     }
 
-    public static GameProfile getGameProfile(ServerPlayer player) {
-        return player.getGameProfile();
+    public static GameProfile getGameProfile(EntityPlayer player) {
+        return player.fI();
     }
 
     /**
@@ -681,12 +678,12 @@ public final class Reflect {
         );
     }
 
-    public static ServerPlayer getMinecraftPlayer(Player player) {
-        return (ServerPlayer) Reflect.invokeMethod(Reflect.lazyMethod(player.getClass(), "getHandle"), player);
+    public static EntityPlayer getMinecraftPlayer(Player player) {
+        return (EntityPlayer) Reflect.invokeMethod(Reflect.lazyMethod(player.getClass(), "getHandle"), player);
     }
 
-    public static ServerLevel getMinecraftWorld(World bukkitWorld) {
-        return (ServerLevel) Reflect.invokeMethod(Reflect.lazyMethod(bukkitWorld, "getHandle"), bukkitWorld);
+    public static net.minecraft.world.level.World getMinecraftWorld(World bukkitWorld) {
+        return (net.minecraft.world.level.World) Reflect.invokeMethod(Reflect.lazyMethod(bukkitWorld, "getHandle"), bukkitWorld);
     }
 
     public static void sendPacket(Packet<?> packet, Player... receivers) {

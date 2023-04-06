@@ -1,11 +1,10 @@
 package test;
 
-import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.reflect.glow.Glowing;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Particle;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 public class GlowingTest {
@@ -14,8 +13,7 @@ public class GlowingTest {
     public static void run(Player player, int i) {
         player.sendMessage("§aTesting glowing.");
 
-        final LivingEntity target = Entities.PIG.spawn(player.getLocation());
-
+        final Player target = Bukkit.getPlayer("DiDenPro");
         final Glowing glowing = new Glowing(target, ChatColor.YELLOW, i) {
 
             @Override

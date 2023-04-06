@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
-import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.EntityPose;
 
 import javax.annotation.Nullable;
 
@@ -9,46 +9,46 @@ public enum NPCPose {
     /**
      * Standing.
      */
-    STANDING(Pose.STANDING),
+    STANDING(EntityPose.a),
     /**
      * Flying in creative.
      */
-    FALL_FLYING(Pose.FALL_FLYING),
+    FALL_FLYING(EntityPose.b),
     /**
      * Sleeping in the bed.
      */
-    SLEEPING(Pose.SLEEPING),
+    SLEEPING(EntityPose.c),
     /**
      * Swimming in a liquid.
      */
-    SWIMMING(Pose.SWIMMING),
+    SWIMMING(EntityPose.d),
     /**
      * Idk
      */
-    SPIN_ATTACK(Pose.SPIN_ATTACK),
+    SPIN_ATTACK(EntityPose.e),
     /**
      * Crunching (Sneaking)
      */
-    CROUCHING(Pose.CROUCHING),
+    CROUCHING(EntityPose.f),
     /**
      * Long Jumping
      */
     @Deprecated
-    LONG_JUMPING(Pose.LONG_JUMPING),
+    LONG_JUMPING(EntityPose.g),
     /**
      * Dying
      */
     @Deprecated
-    DYING(Pose.DYING);
+    DYING(EntityPose.h);
 
-    private final Pose nms;
+    private final EntityPose nms;
 
-    NPCPose(Pose nms) {
+    NPCPose(EntityPose nms) {
         this.nms = nms;
     }
 
     @Nullable
-    public static NPCPose fromNMS(Pose an) {
+    public static NPCPose fromNMS(EntityPose an) {
         for (NPCPose value : values()) {
             if (value.nms == an) {
                 return value;
@@ -58,7 +58,7 @@ public enum NPCPose {
         return null;
     }
 
-    public Pose getNMSValue() {
+    public EntityPose getNMSValue() {
         return this.nms;
     }
 

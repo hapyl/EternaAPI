@@ -1,13 +1,11 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
-import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
-
 public enum NPCAnimation {
 
     /**
      * Swings main hand (right hand).
      */
-    SWING_MAIN_HAND(ClientboundAnimatePacket.SWING_MAIN_HAND),
+    SWING_MAIN_HAND(0),
     /**
      * Glows character red with alpha.
      */
@@ -15,19 +13,19 @@ public enum NPCAnimation {
     /**
      * Idk
      */
-    LEAVE_BED(ClientboundAnimatePacket.WAKE_UP),
+    LEAVE_BED(2),
     /**
      * Swings off hand (left hand).
      */
-    SWING_OFF_HAND(ClientboundAnimatePacket.SWING_OFF_HAND),
+    SWING_OFF_HAND(3),
     /**
      * Idk
      */
-    CRITICAL_EFFECT(ClientboundAnimatePacket.CRITICAL_HIT),
+    CRITICAL_EFFECT(4),
     /**
      * Idk
      */
-    MAGIC_CRITICAL_EFFECT(ClientboundAnimatePacket.MAGIC_CRITICAL_HIT);
+    MAGIC_CRITICAL_EFFECT(5);
 
     private final int pos;
 

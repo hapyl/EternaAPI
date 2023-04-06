@@ -30,56 +30,13 @@
                 </configuration>
             </plugin>
 
-            <!-- Mappings -->
-            <plugin>
-                <groupId>net.md-5</groupId>
-                <artifactId>specialsource-maven-plugin</artifactId>
-                <version>1.2.2</version>
-                <executions>
-
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>remap</goal>
-                        </goals>
-                        <id>remap-obf</id>
-                        <configuration>
-                            <srgIn>org.spigotmc:minecraft-server:1.19.4-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
-                            <reverse>true</reverse>
-                            <remappedDependencies>org.spigotmc:spigot:1.19.4-R0.1-SNAPSHOT:jar:remapped-mojang
-                            </remappedDependencies>
-                            <remappedArtifactAttached>true</remappedArtifactAttached>
-                            <remappedClassifierName>remapped-obf</remappedClassifierName>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>remap</goal>
-                        </goals>
-                        <id>remap-spigot</id>
-                        <configuration>
-                            <inputFile>
-                                ${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar
-                            </inputFile>
-                            <srgIn>org.spigotmc:minecraft-server:1.19.4-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
-                            <remappedDependencies>org.spigotmc:spigot:1.19.4-R0.1-SNAPSHOT:jar:remapped-obf
-                            </remappedDependencies>
-                        </configuration>
-                    </execution>
-
-                </executions>
-            </plugin>
-
-            <!-- Copy to Test Servers -->
+            <!-- Copy Rename -->
             <plugin>
                 <groupId>com.coderplus.maven.plugins</groupId>
                 <artifactId>copy-rename-maven-plugin</artifactId>
                 <version>1.0</version>
                 <executions>
 
-                    <!-- Copy to Building Server -->
                     <execution>
                         <id>copy-file</id>
                         <phase>package</phase>
@@ -87,13 +44,11 @@
                             <goal>copy</goal>
                         </goals>
                         <configuration>
-                            <ignoreFileNotFoundOnIncremental>true</ignoreFileNotFoundOnIncremental>
                             <sourceFile>${project.build.directory}/${project.build.finalName}.jar</sourceFile>
                             <destinationFile>E:/_Server18/plugins/${project.name}.jar</destinationFile>
                         </configuration>
                     </execution>
 
-                    <!-- Copy to CF Server-->
                     <execution>
                         <id>copy-file-18</id>
                         <phase>package</phase>
@@ -101,7 +56,6 @@
                             <goal>copy</goal>
                         </goals>
                         <configuration>
-                            <ignoreFileNotFoundOnIncremental>true</ignoreFileNotFoundOnIncremental>
                             <sourceFile>${project.build.directory}/${project.build.finalName}.jar</sourceFile>
                             <destinationFile>E:/_ServerCF/plugins/${project.name}.jar</destinationFile>
                         </configuration>
@@ -110,7 +64,6 @@
             </plugin>
 
         </plugins>
-
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -147,7 +100,6 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.19.4-R0.1-SNAPSHOT</version>
-            <classifier>remapped-mojang</classifier>
             <scope>provided</scope>
         </dependency>
 

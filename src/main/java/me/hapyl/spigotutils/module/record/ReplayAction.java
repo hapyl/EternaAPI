@@ -11,7 +11,7 @@ public enum ReplayAction {
     SNEAKING(human -> human.setPose(NPCPose.CROUCHING), human -> human.setPose(NPCPose.STANDING)),
     SLEEPING(human -> human.setPose(NPCPose.SLEEPING), human -> human.setPose(NPCPose.STANDING)),
     SWIMMING(human -> human.setPose(NPCPose.SWIMMING), human -> human.setPose(NPCPose.STANDING)),
-    ON_FIRE(human -> human.bukkitEntity().setFireTicks(20)),
+    ON_FIRE(human -> human.bukkitEntity().setFireTicks(2)),
     TAKE_DAMAGE(human -> human.playAnimation(NPCAnimation.TAKE_DAMAGE)),
     ATTACK_MAIN_HAND(human -> human.playAnimation(NPCAnimation.SWING_MAIN_HAND)),
     ATTACK_OFF_HAND(human -> human.playAnimation(NPCAnimation.SWING_OFF_HAND));
