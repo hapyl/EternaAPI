@@ -2,13 +2,13 @@ package me.hapyl.spigotutils.module.reflect;
 
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.util.Runnables;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
-import net.minecraft.network.protocol.game.PacketPlayOutTileEntityData;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.TileEntityTypes;
-import net.minecraft.world.level.block.state.IBlockData;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -226,36 +226,37 @@ public class BoundingBox {
         hide();
 
         Runnables.runLater(() -> {
-            final IBlockData blockData = Blocks.oW.o();
+
+            final BlockState blockData = Blocks.STRUCTURE_BLOCK.defaultBlockState();
 
             final int minX = getMinX();
             final int minY = getMinY() - 10; // -10 to offset structure block
             final int minZ = getMinZ();
 
             this.fakeBlockLocation = new Location(start.getWorld(), minX, minY, minZ);
-            final BlockPosition blockPosition = new BlockPosition(minX, minY, minZ);
-            final NBTTagCompound nbt = new NBTTagCompound();
+            final BlockPos blockPosition = new BlockPos(minX, minY, minZ);
+            final CompoundTag nbt = new CompoundTag();
 
-            nbt.a("name", "bb:" + player.getName());
-            nbt.a("author", player.getName());
-            nbt.a("posX", 0);
-            nbt.a("posY", 10); // compensate the block offset
-            nbt.a("posZ", 0);
-            nbt.a("sizeX", getSizeX());
-            nbt.a("sizeY", getSizeY());
-            nbt.a("sizeZ", getSizeZ());
-            nbt.a("rotation", "NONE");
-            nbt.a("mirror", "NONE");
-            nbt.a("mode", "SAVE");
-            nbt.a("ignoreEntities", (byte) 1);
-            nbt.a("showboundingbox", (byte) 1);
+            nbt.putString("name", "bb:" + player.getName());
+            nbt.putString("author", player.getName());
+            nbt.putInt("posX", 0);
+            nbt.putInt("posY", 10); // compensate the block offset
+            nbt.putInt("posZ", 0);
+            nbt.putInt("sizeX", getSizeX());
+            nbt.putInt("sizeY", getSizeY());
+            nbt.putInt("sizeZ", getSizeZ());
+            nbt.putString("rotation", "NONE");
+            nbt.putString("mirror", "NONE");
+            nbt.putString("mode", "SAVE");
+            nbt.putByte("ignoreEntities", (byte) 1);
+            nbt.putByte("showboundingbox", (byte) 1);
 
             try {
                 final Constructor<?> constructor = Reflect.getConstructor(
                         "net.minecraft.network.protocol.game.PacketPlayOutTileEntityData",
-                        BlockPosition.class,
-                        TileEntityTypes.class,
-                        NBTTagCompound.class
+                        BlockPos.class,
+                        BlockEntityType.class,
+                        CompoundTag.class
                 );
 
                 if (constructor == null) {
@@ -263,12 +264,13 @@ public class BoundingBox {
                 }
 
                 constructor.setAccessible(true);
-                final PacketPlayOutTileEntityData packetPlayOutTileEntityData = (PacketPlayOutTileEntityData) constructor.newInstance(
+                final ClientboundBlockEntityDataPacket packetPlayOutTileEntityData = (ClientboundBlockEntityDataPacket) constructor.newInstance(
                         blockPosition,
-                        TileEntityTypes.u,
+                        BlockEntityType.STRUCTURE_BLOCK,
                         nbt
                 );
-                final PacketPlayOutBlockChange packetPlayOutBlockChange = new PacketPlayOutBlockChange(blockPosition, blockData);
+
+                final ClientboundBlockUpdatePacket packetPlayOutBlockChange = new ClientboundBlockUpdatePacket(blockPosition, blockData);
 
                 Reflect.sendPacket(player, packetPlayOutBlockChange);
                 Reflect.sendPacket(player, packetPlayOutTileEntityData);

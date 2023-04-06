@@ -31,12 +31,12 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
     public NoteBlockStudioCommand(String str) {
         super(str);
-        this.radio = EternaPlugin.getPlugin().getSongPlayer();
-        this.setAliases("radio");
-        this.setDescription(
-                "Allows admins to play \".nbs\" format song! Only one instance of radio may exists per server. Once song played once it " +
-                        "will be cached into memory.");
-        this.setUsage("nbs play/stop/pause/list/info/add/skip [SongPath/CachedSongName]");
+        radio = EternaPlugin.getPlugin().getSongPlayer();
+        setAliases("radio");
+        setDescription(
+                "Allows admins to play \".nbs\" format song! Only one instance of radio may exists per server. Once song played once it will be cached into memory."
+        );
+        setUsage("nbs play/stop/pause/list/info/add/skip [SongPath/CachedSongName]");
     }
 
     @Override
@@ -207,7 +207,6 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
     }
 
     private void displayListOfCachedSongs(Player player) {
-
         if (SongStorage.getNames().isEmpty()) {
             radio.sendMessage(
                     player,
