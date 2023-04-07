@@ -40,7 +40,7 @@ public final class EternaAPI {
 
     public EternaAPI(@Nonnull JavaPlugin plugin, boolean silent) {
         if (exists(plugin.getName())) {
-            throw new IllegalArgumentException("Plugin named '%s' is already registered in EternaAPI!");
+            throw new IllegalArgumentException("Plugin named '%s' is already registered in EternaAPI!".formatted(plugin.getName()));
         }
 
         this.plugin = plugin;

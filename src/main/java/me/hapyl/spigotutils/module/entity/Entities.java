@@ -153,13 +153,12 @@ public final class Entities<T extends Entity> {
     public static final Entities<GlowSquid> GLOW_SQUID = new Entities<>(GlowSquid.class);
     public static final Entities<Goat> GOAT = new Entities<>(Goat.class);
     public static final Entities<Marker> MARKER = new Entities<>(Marker.class);
-
     public static final Entities<Allay> ALLAY = new Entities<>(Allay.class);
     public static final Entities<ChestBoat> CHEST_BOAT = new Entities<>(ChestBoat.class);
     public static final Entities<Frog> FROG = new Entities<>(Frog.class);
     public static final Entities<Tadpole> TADPOLE = new Entities<>(Tadpole.class);
     public static final Entities<Warden> WARDEN = new Entities<>(Warden.class);
-    public static final Entities<Camel> CAMEL = new Entities<>(Camel.class);
+    @Experimental public static final Entities<Camel> CAMEL = new Entities<>(Camel.class);
     public static final Entities<BlockDisplay> BLOCK_DISPLAY = new Entities<>(BlockDisplay.class);
     public static final Entities<Interaction> INTERACTION = new Entities<>(Interaction.class);
     public static final Entities<ItemDisplay> ITEM_DISPLAY = new Entities<>(ItemDisplay.class);

@@ -8,6 +8,7 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import me.hapyl.spigotutils.module.entity.Entities;
+import me.hapyl.spigotutils.module.entity.Rope;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.quest.Quest;
@@ -17,12 +18,15 @@ import me.hapyl.spigotutils.module.record.Record;
 import me.hapyl.spigotutils.module.record.Replay;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import me.hapyl.spigotutils.module.reflect.npc.Human;
+import me.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
@@ -34,23 +38,35 @@ import java.util.UUID;
  * This is a mess class that is supposed to be a mess class.
  * Ignore this, only me 😊 can use this.
  */
-public class Commands {
+public class RuntimeCommandsTest {
 
-    public static void createCommands() {
+    private static JavaPlugin tester;
+
+    public RuntimeCommandsTest(JavaPlugin tester) {
+        if (RuntimeCommandsTest.tester != null) {
+            throw new IllegalStateException("Already testing by %s.".formatted(RuntimeCommandsTest.tester.getName()));
+        }
+
+        RuntimeCommandsTest.tester = tester;
+        createCommands();
+    }
+
+    private void createCommands() {
+
         registerTestCommand("pose", NPCPoseTest::work);
 
-        registerTestCommand("holo", HologramTest::run);
-        registerTestCommand("npc", (p, a) -> NPCTest.create(p, a.length >= 1 ? a[0] : p.getName()));
-        registerTestCommand("scoreboard", ScoreboardTest::create);
+        registerTestCommand("holo", HologramTest::test);
+        registerTestCommand("npc", (p, a) -> NPCTest.test(p, a.length >= 1 ? a[0] : p.getName()));
+        registerTestCommand("scoreboard", ScoreboardTest::test);
         registerTestCommand(
                 "showplugins",
                 (p, a) -> p.sendMessage(Arrays.toString(EternaPlugin.getPlugin().getServer().getPluginManager().getPlugins()))
         );
-        registerTestCommand("signgui", (p, a) -> SignGUITest.run(p, Numbers.getInt(a[0], 1)));
-        registerTestCommand("glowing", (p, a) -> GlowingTest.run(p, a.length >= 1 ? NumberConversions.toInt(a[0]) : 40));
+        registerTestCommand("signgui", (p, a) -> SignGUITest.test(p, Numbers.getInt(a[0], 1)));
+        registerTestCommand("glowing", (p, a) -> GlowingTest.test(p, a.length >= 1 ? NumberConversions.toInt(a[0]) : 40));
 
         registerTestCommand("laser", (p, a) -> LaserTest.test(p.getPlayer()));
-        registerTestCommand("gui", (p, a) -> GUITest.test(p));
+        registerTestCommand("gui", (p, a) -> PlayerAutoGUITest.test(p));
         registerTestCommand("abandonallquests", (player, args) -> {
             for (QuestProgress progress : QuestManager.current().getActiveQuests(player)) {
                 progress.abandon();
@@ -153,11 +169,11 @@ public class Commands {
         });
 
         registerTestCommand("tablist", (player, args) -> {
-            TablistTest.run(player, args.length == 1 ? args[0] : "");
+            TablistTest.test(player, args.length == 1 ? args[0] : "");
         });
 
         registerTestCommand("visibility", ((player, args) -> {
-            TestVisibility.run(player);
+            VisibilityTest.test(player);
         }));
 
         registerTestCommand("ai", (player, args) -> {
@@ -177,6 +193,18 @@ public class Commands {
                 System.out.println(goal.getClass().getSimpleName());
             });
 
+        });
+
+        registerTestCommand("rope", (player, args) -> {
+            final Location location = player.getLocation();
+            final Rope rope = new Rope(location, location.clone().add(7.0d, 3.0d, 0.0d)).spawn();
+
+            Chat.sendMessage(player, "&aCreated rope");
+
+            Runnables.runLater(() -> {
+                rope.remove();
+                Chat.sendMessage(player, "&aRemoved rope");
+            }, 80);
         });
 
     }

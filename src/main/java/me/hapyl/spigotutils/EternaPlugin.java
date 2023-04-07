@@ -33,7 +33,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
-import test.Test;
+import test.RuntimeCommandsTest;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -109,8 +109,8 @@ public class EternaPlugin extends JavaPlugin {
         this.updater = new Updater();
         Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
 
-        // Register test commands. Ignore this, no one can use this besides my.
-        new Test().test();
+        // Register me.hapyl.spigotutils.test commands. Ignore this, no one can use this besides my.
+        new RuntimeCommandsTest(this);
     }
 
     public EternaRegistry getRegistry() {

@@ -5,14 +5,18 @@ import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import me.hapyl.spigotutils.module.reflect.npc.NPCPose;
 import org.bukkit.entity.Player;
 
-public class NPCPoseTest {
+@RuntimeStaticTest
+public final class NPCPoseTest {
 
-    private static HumanNPC npc;
+    private NPCPoseTest() {
+    }
 
-    public static void work(Player player, String[] args) {
+    static HumanNPC npc;
+
+    static void work(Player player, String[] args) {
         if (args.length == 0) {
             if (npc == null) {
-                npc = new HumanNPC(player.getLocation(), "Test", player.getName());
+                npc = new HumanNPC(player.getLocation(), "test.Test", player.getName());
                 npc.show(player);
                 Chat.sendMessage(player, "&aCreated NPC!");
             }

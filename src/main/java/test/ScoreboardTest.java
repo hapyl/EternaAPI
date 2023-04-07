@@ -3,17 +3,23 @@ package test;
 import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import org.bukkit.entity.Player;
 
+@RuntimeStaticTest
 public class ScoreboardTest {
 
-    private static Scoreboarder scoreboarder;
+    private ScoreboardTest() {
+    }
 
-    public static void create(Player player, String[] strings) {
+    static Scoreboarder scoreboarder;
+
+    static void test(Player player, String[] strings) {
         if (scoreboarder == null) {
-            scoreboarder = new Scoreboarder("&a&lScoreboarder Test");
+            scoreboarder = new Scoreboarder("&a&lScoreboarder test.Test");
         }
 
-        scoreboarder.setLines(strings.length > 0 ? strings : new String[] { "Line1", "Line2", "Line3", "",
-                                                                            "hapyl.net" });
+        scoreboarder.setLines(strings.length > 0 ? strings : new String[] {
+                "Line1", "Line2", "Line3", "",
+                "hapyl.net"
+        });
         scoreboarder.addPlayer(player);
 
     }

@@ -8,10 +8,13 @@ import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
-public class GlowingTest {
+@RuntimeStaticTest
+public final class GlowingTest {
 
+    private GlowingTest() {
+    }
 
-    public static void run(Player player, int i) {
+    static void test(Player player, int i) {
         player.sendMessage("§aTesting glowing.");
 
         final LivingEntity target = Entities.PIG.spawn(player.getLocation());
@@ -30,5 +33,6 @@ public class GlowingTest {
         glowing.addPlayer(player);
         glowing.start();
     }
+
 
 }

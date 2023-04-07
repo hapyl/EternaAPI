@@ -104,7 +104,7 @@ public final class EternaRegistry {
         runSafe(parkourManager::restoreAllData, "Parkour Save (Some entities might be alive.)");
         runSafe(npcRegistry::removeAll, "NPC Removal (Some NPC's might be alive.)");
         runSafe(hologramRegistry::removeAll, "Hologram Removal (Some Armor Stands might be visible.)");
-        runSafe(ropeRegistry::removeAll, "Rope Removal (Some bats might be alive.)");
+        //runSafe(ropeRegistry::removeAll, "Rope Removal (Some bats might be alive.)");
 
         init = false;
     }

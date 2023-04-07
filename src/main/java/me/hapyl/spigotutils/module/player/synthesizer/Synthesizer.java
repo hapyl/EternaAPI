@@ -81,13 +81,13 @@ public class Synthesizer {
     public void onStopPlaying(Set<Player> players) {
     }
 
+    public long getBPT() {
+        return bpt;
+    }
+
     public Synthesizer setBPT(long bpt) {
         this.bpt = Numbers.clamp(bpt, 0, 1000);
         return this;
-    }
-
-    public long getBPT() {
-        return bpt;
     }
 
     public Track addTrack(String str) {
@@ -96,15 +96,15 @@ public class Synthesizer {
         return track;
     }
 
-    // static members
-    public static Track singleTrack(String track) {
-        return new Synthesizer().addTrack(track);
-    }
-
     private Set<Player> combinePlayers(Player player, Player... other) {
         final Set<Player> set = Sets.newHashSet();
         set.add(player);
         set.addAll(Arrays.asList(other));
         return set;
+    }
+
+    // static members
+    public static Track singleTrack(String track) {
+        return new Synthesizer().addTrack(track);
     }
 }

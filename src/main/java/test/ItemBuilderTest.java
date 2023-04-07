@@ -2,12 +2,23 @@ package test;
 
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class ItemBuilderTest {
+@RuntimeStaticTest
+public final class ItemBuilderTest {
 
-    public static final ItemStack ITEM_TEST = new ItemBuilder(Material.STONE, "id").setName("&atest item").addClickEvent(pl -> {
-        pl.sendMessage("YOU CLICKED!!!");
-    }).setAllowInventoryClick(true).build();
+    private ItemBuilderTest() {
+    }
+
+    static final ItemStack ITEM_TEST = new ItemBuilder(Material.STONE, "id")
+            .setName("&aTest Item")
+            .addClickEvent(pl -> pl.sendMessage("YOU CLICKED!!!"))
+            .setAllowInventoryClick(true)
+            .build();
+
+    static void test(Player player) {
+        player.getInventory().addItem(ITEM_TEST);
+    }
 
 }
