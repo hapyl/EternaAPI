@@ -65,6 +65,11 @@ public class ThreadRandom {
         return ThreadLocalRandom.current().nextBoolean();
     }
 
+    public static boolean nextDoubleAndCheckBetween(float origin, float bound) {
+        final double random = Math.random();
+        return random >= origin && random < bound;
+    }
+
     public static boolean nextFloatAndCheckBetween(float origin, float bound) {
         Validate.isTrue(
                 origin >= 0.0f && bound <= 1.0f,
