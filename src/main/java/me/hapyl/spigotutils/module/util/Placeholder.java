@@ -1,24 +1,36 @@
 package me.hapyl.spigotutils.module.util;
 
 /**
- * A formatter that is similar to String.format but uses {} instead of %s. The insides of the {} can signify the name of the argument to be replaced, though the argument is only used for better readability.
- * Examples: "My name is {name}!", Will be formatted with a name, and it is clear that placeholder is for a name.
+ * A placeholder formatter for strings.
+ *
+ * Uses {} as the placeholder.
+ * Placeholder can have body for better readability.
+ *
+ * Examples:
+ * <pre>
+ *     Placeholder.format("My name is {name}!", "hapyl");
+ *     // My name is hapyl!
+ *
+ *     Placeholder.format("I like {food} with {} on top!", "pizza", "pineapple");
+ *     // I like pizza with pineapple on top!
+ *
+ * </pre>
  */
 public class Placeholder {
 
-    private static final String PLACEHOLDER_FORMAT = "{}";
+    public static final char OPEN_CHAR = '{';
+    public static final char CLOSE_CHAR = '}';
 
-    private final String inputString;
-    private final int expectedFormat;
+    private String string;
 
     /**
      * Creates a new placeholder with the given input string.
      *
-     * @param inputString - the input string to be formatted.
+     * @param string - the input string to be formatted.
+     * @see Placeholder#format(String, Object...)
      */
-    public Placeholder(String inputString) {
-        this.inputString = inputString;
-        this.expectedFormat = this.countExpectedFormat();
+    public Placeholder(String string) {
+        this.string = string;
     }
 
     /**
@@ -33,83 +45,51 @@ public class Placeholder {
     }
 
     /**
+     * Formats the given input string with the given format with COLOR formatter.
+     *
+     * @param input  - the input string to be formatted.
+     * @param format - the format to be used.
+     * @return the formatted string.
+     */
+    public static String formatColor(String input, Object... format) {
+        return new Placeholder(input).format(PlaceholderFormatter.COLOR, format);
+    }
+
+    /**
      * Formats the given input string with the given format.
      *
      * @param format - the format to be used.
      * @return the formatted string.
      */
-    public String format(Object... format) {
-        return this.placeHold(format);
+    public final String format(Object... format) {
+        return format(PlaceholderFormatter.DEFAULT, format);
     }
 
-    // Worker
-    protected String placeHold(Object... format) {
-        // nothing to format
-        if (!isAnythingToReplace()) {
-            return this.inputString;
+    /**
+     * Formats the given input string with the given format.
+     *
+     * @param formatter - the formatter to be used.
+     * @param format    - the format to be used.
+     * @return the formatted string.
+     */
+    public final String format(PlaceholderFormatter formatter, Object... format) {
+        if (format == null || format.length == 0) {
+            return this.string;
         }
 
-        final StringBuilder builder = new StringBuilder();
-        final char[] chars = this.inputString.toCharArray();
-
-        boolean reading = false;
-        int nextFormat = 0;
-
-        for (final char c : chars) {
-
-            if (reading) {
-                // if reading and closing append format
-                if (c == '}') {
-                    builder.append(format[nextFormat++]);
-                    reading = false;
-                }
-                continue;
-            }
-
-            // starting to read
-            if (c == '{') {
-                // skip if out of bounds
-                if (nextFormat >= format.length) {
-                    builder.append(c);
-                    continue;
-                }
-                reading = true;
-                continue;
-            }
-            builder.append(c);
+        for (Object obj : format) {
+            this.string = this.string.replaceFirst("\\" + OPEN_CHAR + ".*?" + CLOSE_CHAR, formatter.format(obj));
         }
 
-        return builder.toString();
-
-    }
-
-    private int countExpectedFormat() {
-        int count = 0;
-        boolean isOpen = false;
-        for (final char c : this.inputString.toCharArray()) {
-            if (c == '}' && isOpen) {
-                ++count;
-                isOpen = false;
-                continue;
-            }
-            if (c == '{' && !isOpen) {
-                isOpen = true;
-            }
-        }
-        return count;
-    }
-
-    private boolean isAnythingToReplace() {
-        return this.inputString.contains(Placeholder.PLACEHOLDER_FORMAT)
-                || (this.inputString.contains("{") || this.inputString.contains("}"));
+        return this.string;
     }
 
     public String getString() {
-        return inputString;
+        return string;
     }
 
     @Override
     public String toString() {
-        return String.format("Placeholder{input = %s , expectedVarLen = %s}", this.inputString, this.expectedFormat);
+        return this.string;
     }
 }

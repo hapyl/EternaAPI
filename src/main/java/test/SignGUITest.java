@@ -4,10 +4,20 @@ import me.hapyl.spigotutils.module.inventory.Response;
 import me.hapyl.spigotutils.module.inventory.SignGUI;
 import org.bukkit.entity.Player;
 
+@RuntimeStaticTest
 public class SignGUITest {
 
-    public static void run(Player player, int i) {
+    private SignGUITest() {
+    }
+
+    static void test(Player player, int i) {
         switch (i) {
+            default -> new SignGUI(player) {
+                @Override
+                public void onResponse(Response response) {
+                    response.getPlayer().sendMessage(response.getAsString());
+                }
+            };
             case 1 -> new SignGUI(player, "1") {
                 @Override
                 public void onResponse(Response response) {

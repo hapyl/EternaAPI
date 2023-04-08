@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.registry;
 
 import com.google.common.collect.Maps;
-import me.hapyl.spigotutils.EternaPlugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 
 public abstract class Registry<K, V> {
 
-    private final EternaPlugin plugin;
+    private final JavaPlugin owningPlugin;
 
     protected final Map<K, V> registry = Maps.newLinkedHashMap();
 
@@ -22,17 +22,17 @@ public abstract class Registry<K, V> {
      *
      * @param plugin - Eterna Main.
      */
-    public Registry(EternaPlugin plugin) {
-        this.plugin = plugin;
+    public Registry(JavaPlugin plugin) {
+        this.owningPlugin = plugin;
     }
 
     /**
-     * Returns Eterna Main.
+     * Returns plugin that owns this registry.
      *
-     * @return Eterna Main.
+     * @return plugin that owns this registry.
      */
-    public final EternaPlugin getPlugin() {
-        return plugin;
+    public final JavaPlugin getPlugin() {
+        return owningPlugin;
     }
 
     /**
@@ -65,6 +65,7 @@ public abstract class Registry<K, V> {
         if (registry.containsKey(k)) {
             return;
         }
+
         registry.put(k, v);
     }
 

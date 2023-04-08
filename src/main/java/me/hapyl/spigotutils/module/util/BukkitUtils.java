@@ -14,6 +14,7 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -27,6 +28,10 @@ import java.util.Collection;
 public class BukkitUtils {
 
     private static final JavaPlugin PLUGIN = EternaPlugin.getPlugin();
+    /**
+     * Minecraft's gravity constant.
+     */
+    public static final double GRAVITY = 0.08d;
 
     /**
      * Stringifies location to readable format: "x, y, z"
@@ -75,6 +80,26 @@ public class BukkitUtils {
         else {
             return String.format(format, location.getX(), location.getY(), location.getZ());
         }
+    }
+
+    /**
+     * Create vector with velocity of provided distance in Y direction.
+     *
+     * @param distance - Distance to travel.
+     * @return vector with velocity of provided distance in Y direction.
+     */
+    public static Vector vector3Y(double distance) {
+        return new Vector(0.0d, sqrtDistance(distance), 0.0d);
+    }
+
+    /**
+     * Squares the distance to (2 * distance * GRAVITY).
+     *
+     * @param distance - Distance to square.
+     * @return squared distance.
+     */
+    public static double sqrtDistance(double distance) {
+        return Math.sqrt(2 * distance * GRAVITY);
     }
 
     /**

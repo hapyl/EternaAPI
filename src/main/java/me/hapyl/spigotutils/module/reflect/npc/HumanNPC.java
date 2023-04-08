@@ -35,7 +35,6 @@ import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
-import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EnumItemSlot;
@@ -930,16 +929,12 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void setDataWatcherByteValue(int key, byte value) {
-        final DataWatcher dataWatcher = getDataWatcher();
-        dataWatcher.b(DataWatcherRegistry.a.a(key), value);
-
-        updateDataWatcher();
+        Reflect.setDataWatcherByteValue(human, key, value);
     }
 
     @Override
     public byte getDataWatcherByteValue(int key) {
-        final DataWatcher dataWatcher = getDataWatcher();
-        return dataWatcher.a(DataWatcherRegistry.a.a(key));
+        return Reflect.getDataWatcherValue(human, DataWatcherType.BYTE, key);
     }
 
     @Override
@@ -980,8 +975,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void updateDataWatcher() {
-        final List<DataWatcher.b<?>> list = getDataWatcher().c();
-        ReflectPacket.send(new PacketPlayOutEntityMetadata(this.getId(), list), getPlayers());
+        Reflect.updateMetadata(human, getDataWatcher(), getPlayers());
     }
 
     @Override

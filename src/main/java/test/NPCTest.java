@@ -6,11 +6,15 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class NPCTest {
+@RuntimeStaticTest
+public final class NPCTest {
 
-    public static HumanNPC npc;
+    private NPCTest() {
+    }
 
-    public static void create(Player player, String name) {
+    static HumanNPC npc;
+
+    static void test(Player player, String name) {
         if (name.equalsIgnoreCase("push")) {
             final Vector vector = player.getLocation().getDirection().normalize().multiply(2.0d);
             npc.push(vector);
@@ -26,6 +30,7 @@ public class NPCTest {
             return;
         }
 
+        // empty
         if (npc != null) {
             npc.jump(2);
 

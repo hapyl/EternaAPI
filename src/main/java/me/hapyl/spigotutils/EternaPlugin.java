@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils;
 
-import me.hapyl.spigotutils.builtin.command.*;
+import me.hapyl.spigotutils.builtin.command.EternaCommand;
+import me.hapyl.spigotutils.builtin.command.NoteBlockStudioCommand;
 import me.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
@@ -32,12 +33,15 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
-import test.Test;
+import test.RuntimeCommandsTest;
 
 import java.io.File;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+/**
+ * Represents EternaAPI plugin.
+ */
 public class EternaPlugin extends JavaPlugin {
 
     private static EternaPlugin plugin;
@@ -81,11 +85,8 @@ public class EternaPlugin extends JavaPlugin {
 
         // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);
-        commandProcessor.registerCommand(new QuestCommand("questjournal"));
+        commandProcessor.registerCommand(new EternaCommand("eterna"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
-        commandProcessor.registerCommand(new ReloadPlayerConfigCommand("reloadplayerconfig"));
-        commandProcessor.registerCommand(new ReloadAddonsCommand("reloadaddons"));
-        commandProcessor.registerCommand(new UpdateEternaCommand("updateEterna"));
 
         // Load configuration file
         this.getConfig().options().copyDefaults(true);
@@ -108,8 +109,8 @@ public class EternaPlugin extends JavaPlugin {
         this.updater = new Updater();
         Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
 
-        // Register test commands. Ignore this, no one can use this besides my.
-        new Test().test();
+        // Register me.hapyl.spigotutils.test commands. Ignore this, no one can use this besides my.
+        new RuntimeCommandsTest(this);
     }
 
     public EternaRegistry getRegistry() {

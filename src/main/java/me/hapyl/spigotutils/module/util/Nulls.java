@@ -94,4 +94,36 @@ public class Nulls {
         return !anyNull(obj);
     }
 
+    /**
+     * Counts amount of null objects.
+     *
+     * @param obj - Objects to check.
+     * @return - Amount of null objects.
+     */
+    public static int countNulls(Object... obj) {
+        int count = 0;
+        for (Object o : obj) {
+            if (o == null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Counts amount of non-null objects.
+     *
+     * @param obj - Objects to check.
+     * @return - Amount of non-null objects.
+     */
+    public static int countNonNulls(Object... obj) {
+        int count = 0;
+        for (Object o : obj) {
+            if (o != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
 }

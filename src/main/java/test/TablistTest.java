@@ -4,11 +4,15 @@ import me.hapyl.spigotutils.module.player.tablist.PingBars;
 import me.hapyl.spigotutils.module.player.tablist.Tablist;
 import org.bukkit.entity.Player;
 
+@RuntimeStaticTest
 public class TablistTest {
 
-    public static Tablist tablist;
+    private TablistTest() {
+    }
 
-    public static void run(Player player, String args) {
+    static Tablist tablist;
+
+    static void test(Player player, String args) {
         if (tablist != null && args.equalsIgnoreCase("reset")) {
             tablist.destroy();
             tablist = null;

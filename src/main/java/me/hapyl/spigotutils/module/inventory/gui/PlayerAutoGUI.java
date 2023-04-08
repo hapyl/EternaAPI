@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * This GUI will autofill the inventory with the items provided by the {@link SmartComponent}.
  */
-public abstract class PlayerAutoGUI extends PlayerGUI {
+public class PlayerAutoGUI extends PlayerGUI {
 
     private final SmartComponent component;
     private SlotPattern pattern;
