@@ -258,7 +258,7 @@ public class BukkitUtils {
      */
     @CheckForNull
     public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location) {
-        return getClosestEntityTo(collection, location, new EntityType[0]);
+        return getClosestEntityTo(collection, location, new EntityType[] {});
     }
 
     /**

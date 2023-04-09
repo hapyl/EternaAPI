@@ -16,8 +16,7 @@ public class LocationHelper {
      * @return location behind center.
      */
     public static Location getBehind(Location location, double offset) {
-        offset = validateOffset(offset);
-        return offsetLocation(location, -offset);
+        return offsetLocation(location, -validateOffset(offset));
     }
 
     /**
@@ -28,8 +27,7 @@ public class LocationHelper {
      * @return location in front of center.
      */
     public static Location getInFront(Location location, double offset) {
-        offset = validateOffset(offset);
-        return offsetLocation(location, offset);
+        return offsetLocation(location, validateOffset(offset));
     }
 
     /**
@@ -38,9 +36,8 @@ public class LocationHelper {
      * @param location - Center.
      * @return vector with offset to the left of the center.
      */
-    public static Vector getToTheLeft(Location location) {
-        final Vector vector = normalizeVector(location);
-        return new Vector(vector.getZ(), 0.0d, -vector.getX()).normalize();
+    public static Vector getVectorToTheLeft(Location location) {
+        return normalizeVector(location).setY(0.0d).rotateAroundY(Math.PI / 2);
     }
 
     /**
@@ -49,9 +46,8 @@ public class LocationHelper {
      * @param location - Center.
      * @return vector with offset to the right of the center.
      */
-    public static Vector getToTheRight(Location location) {
-        final Vector vector = normalizeVector(location);
-        return new Vector(-vector.getZ(), 0.0d, vector.getX()).normalize();
+    public static Vector getVectorToTheRight(Location location) {
+        return normalizeVector(location).setY(0.0d).rotateAroundY(-Math.PI / 2);
     }
 
     /**
@@ -62,9 +58,7 @@ public class LocationHelper {
      * @return location with offset to the left of the center.
      */
     public static Location getToTheLeft(Location location, double offset) {
-        offset = validateOffset(offset);
-        location.add(getToTheLeft(location).multiply(offset));
-        return location;
+        return location.clone().add(getVectorToTheLeft(location).multiply(validateOffset(offset)));
     }
 
     /**
@@ -75,13 +69,11 @@ public class LocationHelper {
      * @return location with offset to the right of the center.
      */
     public static Location getToTheRight(Location location, double offset) {
-        offset = validateOffset(offset);
-        location.add(getToTheRight(location).multiply(offset));
-        return location;
+        return location.clone().add(getVectorToTheRight(location).multiply(validateOffset(offset)));
     }
 
     private static Vector normalizeVector(Location location) {
-        return location.getDirection().normalize();
+        return location.getDirection().clone().normalize();
     }
 
     private static double validateOffset(double offset) {
@@ -90,7 +82,7 @@ public class LocationHelper {
 
     private static Location offsetLocation(Location location, double offset) {
         final Vector vector = normalizeVector(location).multiply(offset);
-        return location.add(vector);
+        return location.clone().add(vector);
     }
 
 }
