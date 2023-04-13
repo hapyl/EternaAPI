@@ -38,7 +38,7 @@ import java.util.UUID;
  * This is a mess class that is supposed to be a mess class.
  * Ignore this, only me 😊 can use this.
  */
-public class RuntimeCommandsTest {
+public final class RuntimeCommandsTest {
 
     private static JavaPlugin tester;
 
@@ -171,10 +171,6 @@ public class RuntimeCommandsTest {
         registerTestCommand("tablist", (player, args) -> {
             TablistTest.test(player, args.length == 1 ? args[0] : "");
         });
-
-        registerTestCommand("visibility", ((player, args) -> {
-            VisibilityTest.test(player);
-        }));
 
         registerTestCommand("ai", (player, args) -> {
             final Wolf entity = Entities.WOLF.spawn(player.getLocation());

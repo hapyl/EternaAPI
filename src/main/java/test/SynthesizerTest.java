@@ -4,7 +4,7 @@ import me.hapyl.spigotutils.module.player.synthesizer.Synthesizer;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public class SynthesizerTest {
+public final class SynthesizerTest {
 
     private SynthesizerTest() {
     }
