@@ -1,15 +1,19 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.registry.Registry;
+import me.hapyl.spigotutils.module.util.DependencyInjector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Set;
 
-public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
+public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
+
+    private final Map<Player, Set<Glowing>> playerGlowing;
 
     /**
      * Single entity may have multiple glowing tasks
@@ -18,6 +22,7 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
      */
     public GlowingRegistry(EternaPlugin plugin) {
         super(plugin);
+        playerGlowing = Maps.newHashMap();
     }
 
     /**

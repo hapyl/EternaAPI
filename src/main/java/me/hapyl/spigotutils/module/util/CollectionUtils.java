@@ -157,7 +157,7 @@ public class CollectionUtils {
         return wrapToString(collection, Wrap.DEFAULT);
     }
 
-    public static <K, V> String wrapToString(Map<K, V> map, Wrap.Map<K, V> wrap) {
+    public static <K, V> String wrapToString(Map<K, V> map, Wrap.MapWrap<K, V> wrap) {
         final StringBuilder builder = new StringBuilder(wrap.start());
 
         int i = 0;

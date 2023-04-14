@@ -49,14 +49,14 @@ public interface Wrap {
         };
     }
 
-    interface Map<K, V> extends Wrap {
+    interface MapWrap<K, V> extends Wrap {
 
-        Wrap.Map<?, ?> DEFAULT = of("[", ", ", "]", (key, value) -> key + " = " + value);
+        MapWrap<?, ?> DEFAULT = of("[", ", ", "]", (key, value) -> key + " = " + value);
 
         String keyToValue(K key, V value);
 
-        static <K, V> Wrap.Map<K, V> of(String start, String between, String end, BiFunction<K, V, String> function) {
-            return new Wrap.Map<>() {
+        static <K, V> MapWrap<K, V> of(String start, String between, String end, BiFunction<K, V, String> function) {
+            return new MapWrap<>() {
 
                 @Override
                 public String keyToValue(K key, V value) {
