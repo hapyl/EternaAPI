@@ -1,7 +1,7 @@
 # EternaAPI >> An API for Spigot development.
 
 * Provides builders for ItemStacks, Scoreboards, Particles, Commands ect.
-* Allows per-player Glowing, WorldBorder, Entity Visibility etc.
+* Allows per-player Glowing, WorldBorder, ~~Entity Visibility~~ etc.
 * Customizable Parkour, Quests system.
 * A lot of utilities.
 
