@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
+import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.ArraySize;
 import org.bukkit.Bukkit;
@@ -14,6 +15,7 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
 import javax.annotation.CheckForNull;
@@ -21,17 +23,44 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Some utils for things that are done regularly by me.
  */
 public class BukkitUtils {
 
-    private static final JavaPlugin PLUGIN = EternaPlugin.getPlugin();
     /**
      * Minecraft's gravity constant.
      */
     public static final double GRAVITY = 0.08d;
+    private static final JavaPlugin PLUGIN = EternaPlugin.getPlugin();
+
+    /**
+     * Returns array item on provided index if exists, def otherwise.
+     *
+     * @param array - Array.
+     * @param index - Index of item.
+     * @param def   - Default item to return, if index >= array.length.
+     * @return Returns array item on provided index if exists, def otherwise.
+     */
+    public <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
+        if (index >= array.length) {
+            return def;
+        }
+        return array[index];
+    }
+
+    /**
+     * Returns array item on provided index if exists, null otherwise.
+     *
+     * @param array - Array.
+     * @param index - Index.
+     * @return Returns array item on provided index if exists, null otherwise.
+     */
+    public <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
+        return arrayItemOr(array, index, null);
+    }
 
     /**
      * Stringifies location to readable format: "x, y, z"
@@ -154,32 +183,6 @@ public class BukkitUtils {
      */
     public static Location newLocation(Location location) {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-    }
-
-    /**
-     * Returns array item on provided index if exists, def otherwise.
-     *
-     * @param array - Array.
-     * @param index - Index of item.
-     * @param def   - Default item to return, if index >= array.length.
-     * @return Returns array item on provided index if exists, def otherwise.
-     */
-    public <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
-        if (index >= array.length) {
-            return def;
-        }
-        return array[index];
-    }
-
-    /**
-     * Returns array item on provided index if exists, null otherwise.
-     *
-     * @param array - Array.
-     * @param index - Index.
-     * @return Returns array item on provided index if exists, null otherwise.
-     */
-    public <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
-        return arrayItemOr(array, index, null);
     }
 
     /**
@@ -423,5 +426,26 @@ public class BukkitUtils {
         location.setPitch(pitch);
 
         return location;
+    }
+
+    /**
+     * Returns team with the same name from all players.
+     * This is useful for per-player scoreboards, since teams are
+     * scoreboard based.
+     *
+     * @param name - Name of the team.
+     * @return hashset with teams with the same name from all players.
+     */
+    public static Set<Team> getTeamsFromAllPlayers(String name) {
+        final Set<Team> teams = Sets.newHashSet();
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            final Team team = player.getScoreboard().getTeam(name);
+            if (team != null) {
+                teams.add(team);
+            }
+        }
+
+        return teams;
     }
 }
