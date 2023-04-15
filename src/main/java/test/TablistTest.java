@@ -5,7 +5,7 @@ import me.hapyl.spigotutils.module.player.tablist.Tablist;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public class TablistTest {
+public final class TablistTest {
 
     private TablistTest() {
     }

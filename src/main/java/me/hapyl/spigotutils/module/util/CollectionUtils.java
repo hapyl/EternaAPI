@@ -148,6 +148,37 @@ public class CollectionUtils {
     }
 
     /**
+     * Wraps collection to a string according to default wrap.
+     *
+     * @param collection - collection to wrap.
+     * @return the wrapped string.
+     */
+    public static <E> String wrapToString(Collection<E> collection) {
+        return wrapToString(collection, Wrap.DEFAULT);
+    }
+
+    public static <K, V> String wrapToString(Map<K, V> map, Wrap.MapWrap<K, V> wrap) {
+        final StringBuilder builder = new StringBuilder(wrap.start());
+
+        int i = 0;
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            if (i != 0) {
+                builder.append(wrap.between());
+            }
+
+            builder.append(wrap.keyToValue(entry.getKey(), entry.getValue()));
+
+            i++;
+        }
+
+        return builder.toString();
+    }
+
+    static {
+
+    }
+
+    /**
      * Wraps array to string using default wrap
      *
      * @param array - array to wrap.

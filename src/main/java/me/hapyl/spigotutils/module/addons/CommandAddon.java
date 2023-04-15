@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public class CommandAddon extends EternaAddon {
+public class CommandAddon extends Addon {
 
     @AddonField
     private Player player;

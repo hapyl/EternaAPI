@@ -7,7 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public class PlayerAutoGUITest {
+public final class PlayerAutoGUITest {
 
     private PlayerAutoGUITest() {
     }

@@ -1,15 +1,17 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.registry.Registry;
+import me.hapyl.spigotutils.module.util.DependencyInjector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
-import java.util.Set;
+import java.util.Map;
 
-public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
+public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
+
+    private final Map<Player, GlowingData> playerGlowing;
 
     /**
      * Single entity may have multiple glowing tasks
@@ -18,41 +20,31 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
      */
     public GlowingRegistry(EternaPlugin plugin) {
         super(plugin);
+        playerGlowing = Maps.newHashMap();
     }
 
     /**
      * Adds glowing for entity.
      *
-     * @param entity  - Entity.
      * @param glowing - Glowing.
      */
-    public void addGlowing(Entity entity, Glowing glowing) {
-        // Only allow one glowing entity task per player
-        // aka: If entity already glows for the player, stop it.
-        for (Player player : glowing.getPlayers()) {
-            final Glowing existing = getGlowing(entity, player);
-            if (existing != null) {
-                existing.forceStop();
-            }
-        }
+    public void addGlowing(Glowing glowing) {
+        final Player player = glowing.getPlayer();
+        final Entity entity = glowing.getEntity();
 
-        final Set<Glowing> set = getGlowing(entity);
-        set.add(glowing);
-
-        this.registry.put(entity, set);
+        getGlowing(player).add(entity, glowing);
     }
 
     /**
      * Removes glowing from entity.
      *
-     * @param entity  - Entity.
      * @param glowing - Glowing.
      */
-    public void removeGlowing(Entity entity, Glowing glowing) {
-        final Set<Glowing> set = getGlowing(entity);
-        set.remove(glowing);
+    protected void removeGlowing(Glowing glowing) {
+        final Player player = glowing.getPlayer();
+        final Entity entity = glowing.getEntity();
 
-        this.registry.put(entity, set);
+        getGlowing(player).remove(entity);
     }
 
     /**
@@ -60,58 +52,47 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
      *
      * @param entity - Entity.
      */
-    public void stopGlowing(Entity entity) {
-        final Set<Glowing> set = getGlowing(entity);
+    protected void stopGlowing(Player player, Entity entity) {
+        final GlowingData data = getGlowing(player);
+        final Glowing glowing = data.getGlowing(entity);
 
-        for (Glowing glow : set) {
-            glow.stop();
+        if (glowing != null) {
+            glowing.forceStop();
+        }
+
+        data.remove(entity);
+    }
+
+    protected void stopGlowing(Entity entity) {
+        for (GlowingData data : playerGlowing.values()) {
+            final Glowing glowing = data.getGlowing(entity);
+
+            if (glowing != null) {
+                glowing.forceStop();
+            }
+
+            data.remove(entity);
         }
     }
 
-    public void removeGlowing(Entity entity) {
-        this.registry.remove(entity);
-    }
-
-    public Set<Glowing> getGlowing(Entity entity) {
-        return registry.getOrDefault(entity, Sets.newConcurrentHashSet());
+    public GlowingData getGlowing(Player player) {
+        return playerGlowing.computeIfAbsent(player, GlowingData::new);
     }
 
     @Nullable
-    public Glowing getGlowing(Entity entity, Player viewer) {
-        final Set<Glowing> glowings = getGlowing(entity);
-        for (Glowing glow : glowings) {
-            if (glow.isPlayer(viewer) && glow.getDuration() > 0) {
-                return glow;
-            }
-        }
-
-        return null;
+    public Glowing getGlowing(Player player, Entity entity) {
+        return getGlowing(player).getGlowing(entity);
     }
 
-    public boolean isGlowing(Entity entity) {
-        return !getGlowing(entity).isEmpty();
-    }
-
-    public boolean isGlowing(Entity entity, Player player) {
-        final Set<Glowing> set = getGlowing(entity);
-        if (set.isEmpty()) {
-            return false;
-        }
-
-        for (Glowing glow : set) {
-            if (glow.isPlayer(player) && glow.isGlowing()) {
-                return true;
-            }
-        }
-
-        return false;
+    public boolean isGlowing(Player player, Entity entity) {
+        return getGlowing(player).isGlowing(entity);
     }
 
     @Nullable
     public Entity getById(int entityId) {
-        for (Entity entity : getKeys()) {
-            if (entity.getEntityId() == entityId) {
-                return entity;
+        for (GlowingData value : playerGlowing.values()) {
+            if (value.byId(entityId) != null) {
+                return value.byId(entityId);
             }
         }
 
@@ -119,6 +100,6 @@ public class GlowingRegistry extends Registry<Entity, Set<Glowing>> {
     }
 
     public void tickAll() {
-        forEachValues(set -> set.forEach(Glowing::tick));
+        playerGlowing.values().forEach(GlowingData::tickAll);
     }
 }

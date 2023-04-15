@@ -14,6 +14,5 @@ public class PluginLibrary {
     }
 
     public void load() {
-
     }
 }

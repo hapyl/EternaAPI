@@ -4,7 +4,7 @@ import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public class ScoreboardTest {
+public final class ScoreboardTest {
 
     private ScoreboardTest() {
     }

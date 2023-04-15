@@ -7,24 +7,22 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
+import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.Ticking;
-import me.hapyl.spigotutils.module.util.TeamHelper;
-import me.hapyl.spigotutils.module.util.Validate;
-import org.bukkit.Bukkit;
+import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
+import net.minecraft.world.scores.ScoreboardTeam;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.UUID;
 
 /**
  * Allows to create per-player glowing.
@@ -32,16 +30,14 @@ import java.util.Set;
 public class Glowing implements Ticking, GlowingListener {
 
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-
+    private final Player player; // only one player per glowing is now allowed
+    private final Entity entity;
     private ChatColor color;
     private int duration;
-    private boolean everyoneIsListener;
-
     private boolean status;
-    private ChatColor oldTeamColor;
-
-    private final Set<Player> players;
-    private final Entity entity;
+    private Team team;
+    @Nullable
+    private Team realTeam;
 
     /**
      * Creates a glowing object.
@@ -49,8 +45,8 @@ public class Glowing implements Ticking, GlowingListener {
      * @param entity   - Entity to glow.
      * @param duration - Glow duration.
      */
-    public Glowing(Entity entity, int duration) {
-        this(entity, ChatColor.WHITE, duration);
+    public Glowing(Player player, Entity entity, int duration) {
+        this(player, entity, ChatColor.WHITE, duration);
     }
 
     /**
@@ -61,55 +57,44 @@ public class Glowing implements Ticking, GlowingListener {
      * @param duration - Glow duration.
      */
     @Super
-    public Glowing(Entity entity, ChatColor color, int duration) {
+    public Glowing(Player player, Entity entity, ChatColor color, int duration) {
+        this.player = player;
         this.entity = entity;
         this.duration = duration;
-        this.everyoneIsListener = false;
         this.status = false;
-        this.players = Sets.newHashSet();
         this.setColor(color);
 
-        EternaPlugin.getPlugin().getGlowingManager().addGlowing(entity, this);
-    }
-
-    // static shortcuts
-    public static void glow(Entity entity, ChatColor color, int duration, @Nullable Player... viewers) {
-        final Glowing glowing = new Glowing(entity, color, duration);
-        glowing.addPlayerOrGlobal(viewers);
-        glowing.glow();
-    }
-
-    public static void glowInfinitly(Entity entity, ChatColor color, @Nullable Player... viewers) {
-        glow(entity, color, Integer.MAX_VALUE, viewers);
-    }
-
-    public static void stopGlowing(Entity entity) {
-        final GlowingRegistry glowingManager = EternaPlugin.getPlugin().getGlowingManager();
-        glowingManager.stopGlowing(entity);
-    }
-
-    public static void stopGlowing(Entity entity, Player player) {
-        final GlowingRegistry glowingManager = EternaPlugin.getPlugin().getGlowingManager();
-        final Glowing glowing = glowingManager.getGlowing(entity, player);
-        if (glowing == null) {
-            return;
-        }
-
-        glowing.forceStop();
+        EternaPlugin.getPlugin().getGlowingManager().addGlowing(this);
     }
 
     @Override
     public void onGlowingStart() {
-
     }
 
     @Override
     public void onGlowingStop() {
-
     }
 
     @Override
     public void onGlowingTick() {
+    }
+
+    /**
+     * Returns entity that is glowing.
+     *
+     * @return entity that is glowing.
+     */
+    public final Entity getEntity() {
+        return entity;
+    }
+
+    /**
+     * Returns current color of glowing.
+     *
+     * @return current color of glowing.
+     */
+    public final ChatColor getColor() {
+        return color;
     }
 
     /**
@@ -118,51 +103,20 @@ public class Glowing implements Ticking, GlowingListener {
      * @param color - New Color.
      */
     public final void setColor(ChatColor color) {
-        Validate.isTrue(color.isColor(), "color must be color, not formatter!");
         this.color = color;
+
         if (isGlowing()) {
             updateTeamColor();
         }
     }
 
-    protected void createPacket(boolean flag) {
-        final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-        packet.getIntegers().write(0, entity.getEntityId());
-
-        final WrappedDataWatcher dataWatcher = WrappedDataWatcher.getEntityWatcher(entity);
-        final WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.get(Byte.class);
-        final StructureModifier<List<WrappedDataValue>> modifier = packet.getDataValueCollectionModifier();
-
-        final byte bitMask = dataWatcher.getByte(0);
-
-        modifier.write(0, List.of(new WrappedDataValue(0, serializer, !flag ? bitMask : (byte) (bitMask | 0x40))));
-
-        try {
-            if (isEveryoneIsListener()) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    manager.sendServerPacket(player, packet);
-                }
-            }
-            else {
-                for (Player player : players) {
-                    manager.sendServerPacket(player, packet);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public final Entity getEntity() {
-        return entity;
-    }
-
-    public final ChatColor getColor() {
-        return color;
-    }
-
-    public final Set<Player> getPlayers() {
-        return players;
+    /**
+     * Returns player who entity is glowing for.
+     *
+     * @return player who entity is glowing for.
+     */
+    public final Player getPlayer() {
+        return player;
     }
 
     @Override
@@ -171,10 +125,7 @@ public class Glowing implements Ticking, GlowingListener {
             return;
         }
 
-        boolean lastTick = duration-- <= 0;
-
-        // Fix team color if other glowing interrupted
-        tryFixTeam();
+        boolean lastTick = --duration <= 0;
 
         if (lastTick) {
             forceStop();
@@ -184,67 +135,6 @@ public class Glowing implements Ticking, GlowingListener {
         this.onGlowingTick();
     }
 
-    private void tryFixTeam() {
-        for (Player player : getPlayers()) {
-            final Team team = getTeamOrCreate(player);
-
-            if (team.getColor() == this.color) {
-                continue;
-            }
-
-            team.setColor(this.color);
-        }
-    }
-
-    public final boolean isEveryoneIsListener() {
-        return everyoneIsListener;
-    }
-
-    /**
-     * Makes every online player a viewer.
-     *
-     * @param flag - true to make everyone a viewer.
-     */
-    public final void setEveryoneIsListener(boolean flag) {
-        this.everyoneIsListener = flag;
-    }
-
-    /**
-     * Adds a viewer for this glowing.
-     * <b>Glowing viewers must be assigned BEFORE {@link Glowing#glow()} is called!</b>
-     *
-     * @param player - Player.
-     */
-    public final void addPlayer(Player player) {
-        this.players.add(player);
-    }
-
-    public final void addPlayer(Player... players) {
-        this.players.addAll(Arrays.asList(players));
-    }
-
-    public final void addPlayer(Collection<Player> players) {
-        this.players.addAll(players);
-    }
-
-    public final void addPlayerOrGlobal(Player... players) {
-        if (players == null || players.length == 0) {
-            setEveryoneIsListener(true);
-        }
-        else {
-            addPlayer(players);
-        }
-    }
-
-    /**
-     * Removes a viewer for this glowing.
-     *
-     * @param player - Player.
-     */
-    public final void removePlayer(Player player) {
-        this.players.remove(player);
-    }
-
     /**
      * Returns true is player can see the glowing.
      *
@@ -252,7 +142,7 @@ public class Glowing implements Ticking, GlowingListener {
      * @return true is player can see the glowing.
      */
     public final boolean isPlayer(Player player) {
-        return this.players.contains(player);
+        return this.player == player;
     }
 
     /**
@@ -275,7 +165,12 @@ public class Glowing implements Ticking, GlowingListener {
      * Stars the glowing.
      */
     public final void start() {
-        this.status = true;
+        if (status) {
+            return;
+        }
+
+        status = true;
+        realTeam = player.getScoreboard().getEntryTeam(getEntityName()); // save real team for later
         createPacket(true);
         createTeam(true);
 
@@ -294,80 +189,110 @@ public class Glowing implements Ticking, GlowingListener {
      * This calls all onStop methods instead of setting duration to 0.
      */
     public final void forceStop() {
-        status = false;
+        status = false; // no check for status because it's force
 
         createPacket(false);
         createTeam(false);
-        EternaPlugin.getPlugin().getGlowingManager().removeGlowing(entity, this);
         this.onGlowingStop();
     }
 
+    protected void createPacket(boolean flag) {
+        final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+        packet.getIntegers().write(0, entity.getEntityId());
+
+        final WrappedDataWatcher dataWatcher = WrappedDataWatcher.getEntityWatcher(entity);
+        final WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.get(Byte.class);
+        final StructureModifier<List<WrappedDataValue>> modifier = packet.getDataValueCollectionModifier();
+
+        final byte bitMask = dataWatcher.getByte(0);
+
+        modifier.write(0, List.of(new WrappedDataValue(0, serializer, !flag ? bitMask : (byte) (bitMask | 0x40))));
+
+        try {
+            manager.sendServerPacket(player, packet);
+        } catch (Exception e) {
+            EternaPlugin.getPlugin().getLogger().severe("Could not parse glowing!");
+            e.printStackTrace();
+        }
+    }
+
     protected void updateTeamColor() {
-        players.forEach(player -> getTeamOrCreate(player).setColor(this.color));
+        team.setColor(color);
+        Reflect.sendPacket(player, PacketPlayOutScoreboardTeam.a(getTeamAsNms(), false));
+    }
+
+    private ScoreboardTeam getTeamAsNms() {
+        return Reflect.getNetTeam(player.getScoreboard(), team.getName());
     }
 
     private void createTeam(boolean flag) {
-        if (players.isEmpty()) {
-            return;
-        }
-
-        // Create team
-        players.forEach(player -> {
-            if (flag) {
-                final Team team = getTeamOrCreate(player);
-                team.addEntry(getEntityName());
-            }
-            else {
-                deleteTeam(player);
-            }
-        });
-    }
-
-    /**
-     * This doesn't actually delete anything, just removes target from a team.
-     */
-    private void deleteTeam(Player player) {
-        final Team entryTeam = player.getScoreboard().getEntryTeam(getEntityName());
-        if (entryTeam == null) {
-            return;
-        }
-
-        // restore color if team is not fake
-        if (oldTeamColor != null) {
-            entryTeam.setColor(oldTeamColor);
-            oldTeamColor = null;
-        }
-
-        // if fake team, remove target from that team
-        if (TeamHelper.GLOWING.compareName(entryTeam.getName())) {
-            entryTeam.removeEntry(getEntityName());
-        }
-    }
-
-    /**
-     * This creates (or gets) a glowing for specific scoreboard and applies color to it.
-     * If target is a player, then store their old team to restore after glowing is over.
-     */
-    private Team getTeamOrCreate(Player player) {
         final Scoreboard scoreboard = player.getScoreboard();
 
-        // test for existing team
-        Team team = scoreboard.getEntryTeam(getEntityName());
+        // Create team
+        if (flag) {
+            team = scoreboard.registerNewTeam("glowing_" + UUID.randomUUID());
 
-        if (team == null) {
-            team = TeamHelper.GLOWING.getTeam(scoreboard);
+            if (realTeam != null) {
+                for (Team.Option value : Team.Option.values()) {
+                    team.setOption(value, realTeam.getOption(value));
+                }
+
+                team.setPrefix(realTeam.getPrefix());
+                team.setSuffix(realTeam.getSuffix());
+                team.setCanSeeFriendlyInvisibles(realTeam.canSeeFriendlyInvisibles());
+            }
+
+            Reflect.sendPacket(PacketPlayOutScoreboardTeam.a(getTeamAsNms(), true)); // create team
+            Reflect.sendPacket(PacketPlayOutScoreboardTeam.a(getTeamAsNms())); // setup team
+            Reflect.sendPacket(
+                    player,
+                    PacketPlayOutScoreboardTeam.a(getTeamAsNms(), getEntityName(), PacketPlayOutScoreboardTeam.a.a)
+            ); // add to the team
+
+            updateTeamColor();
         }
-        // store team color if using existing
         else {
-            oldTeamColor = team.getColor();
+            team.unregister();
+            //Reflect.deleteNetTeam(scoreboard, team);
+
+            // Update entity's real team
+            final Team realTeam = scoreboard.getEntryTeam(getEntityName());
+
+            if (realTeam == null) {
+                return;
+            }
+
+            realTeam.addEntry(getEntityName());
         }
 
-        team.setColor(this.color);
-        return team;
     }
-    // returns either player's name or entities UUID to use as entry in a team
 
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
+    }
+
+    // static members
+    public static void glow(Entity entity, ChatColor color, int duration, @Nonnull Player... viewers) {
+        for (Player viewer : viewers) {
+            glow(viewer, entity, color, duration);
+        }
+    }
+
+    public static void glow(Player player, Entity entity, ChatColor color, int duration) {
+        new Glowing(player, entity, color, duration).glow();
+    }
+
+    public static void glowInfinitly(Entity entity, ChatColor color, @Nonnull Player... viewers) {
+        for (Player viewer : viewers) {
+            new Glowing(viewer, entity, color, Integer.MAX_VALUE).glow();
+        }
+    }
+
+    public static void stopGlowing(Player player, Entity entity) {
+        EternaPlugin.getPlugin().getGlowingManager().stopGlowing(player, entity);
+    }
+
+    public static void stopGlowing(Entity entity) {
+        EternaPlugin.getPlugin().getGlowingManager().stopGlowing(entity);
     }
 }

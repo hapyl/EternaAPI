@@ -31,7 +31,7 @@ public class GlowingListener extends ProtocolListener {
         final Player player = event.getPlayer();
         final Entity entity = manager.getById(entityId);
 
-        if (packet.getMeta("ignore").isPresent() || entity == null || !manager.isGlowing(entity, player)) {
+        if (packet.getMeta("ignore").isPresent() || entity == null || !manager.isGlowing(player, entity)) {
             return;
         }
 

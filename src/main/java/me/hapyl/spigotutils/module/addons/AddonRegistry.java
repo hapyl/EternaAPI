@@ -7,7 +7,7 @@ import me.hapyl.spigotutils.registry.Registry;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-public final class AddonRegistry extends Registry<String, EternaAddon> {
+public final class AddonRegistry extends Registry<String, Addon> {
 
     public AddonRegistry(EternaPlugin plugin) {
         super(plugin);

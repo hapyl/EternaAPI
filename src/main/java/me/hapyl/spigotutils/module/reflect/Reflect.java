@@ -9,7 +9,6 @@ import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.chat.Chat;
-import me.hapyl.spigotutils.module.error.EternaException;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import me.hapyl.spigotutils.module.util.ThreadRandom;
@@ -27,6 +26,7 @@ import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.scores.ScoreboardTeam;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -35,6 +35,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,17 +58,19 @@ public final class Reflect {
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
     private Reflect() {
-        throw new EternaException("A reference call of static Reflect class!");
     }
 
     /**
-     * @param name - Name of the target class.
-     * @return NMS class if exists, null otherwise
+     * Returns a 'net.minecraft.server' class.
+     * Note that you <b>must</b> include the full path the class.
+     *
+     * @param path - Path of the class.
+     * @return net.minecraft.server class if exists, null otherwise
      */
     @Nullable
-    public static Class<?> getNetClass(String name) {
+    public static Class<?> getNetClass(String path) {
         try {
-            return Class.forName("net.minecraft.server." + name);
+            return Class.forName("net.minecraft.server." + path);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             return null;
@@ -75,13 +78,16 @@ public final class Reflect {
     }
 
     /**
-     * @param name - Name of the target class.
-     * @return CraftBukkit class if exists, null otherwise
+     * Returns a 'org.bukkit.craftbukkit' class.
+     * Note that you <b>must</b> include the full path the class.
+     *
+     * @param path - Path of the class.
+     * @return org.bukkit.craftbukkit class if exists, null otherwise
      */
     @Nullable
-    public static Class<?> getCraftClass(String name) {
+    public static Class<?> getCraftClass(String path) {
         try {
-            return Class.forName("org.bukkit.craftbukkit." + getVersion() + "." + name);
+            return Class.forName("org.bukkit.craftbukkit." + getVersion() + "." + path);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             return null;
@@ -125,6 +131,8 @@ public final class Reflect {
      * Please follow <a href="https://wiki.vg/Entity_metadata#Entity_Metadata_Format">https://wiki.vg/Entity_metadata#Entity_Metadata_Format</a>
      * format.
      *
+     * This method also updates the entity's metadata!
+     *
      * @param entity  - Entity.
      * @param type    - Value type.
      * @param key     - Key or index.
@@ -143,13 +151,22 @@ public final class Reflect {
         updateMetadata(entity, dataWatcher, players);
     }
 
+    /**
+     * Gets the value from entities data watcher.
+     *
+     * @param entity - Entity.
+     * @param type   - Type.
+     * @param key    - Key.
+     * @param <T>    - Type of the value.
+     * @return Value.
+     */
     public static <T> T getDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key) {
         final DataWatcher dataWatcher = getDataWatcher(entity);
         return dataWatcher.a(type.get().a(key));
     }
 
     /**
-     * Sets DataWatcher byte value.
+     * Sets entity's DataWatcher byte value.
      *
      * @param entity  - Entity.
      * @param key     - Key or index.
@@ -160,14 +177,18 @@ public final class Reflect {
         setDataWatcherValue(entity, DataWatcherType.BYTE, key, value, viewers);
     }
 
+    /**
+     * Sets entity's DataWatcher value.
+     *
+     * @param dataWatcher - DataWatcher.
+     * @param type        - Type.
+     * @param value       - Value.
+     * @param <T>         - Type of the value.
+     */
     @Super
-    public static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T object) {
+    public static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T value) {
         try {
-            dataWatcher.b(type, object);
-            //            final Method method = dataWatcher.getClass().getDeclaredMethod("c", DataWatcherObject.class, Object.class);
-            //            method.setAccessible(true);
-            //            method.invoke(dataWatcher, type, object);
-            //            method.setAccessible(false);
+            dataWatcher.b(type, value);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -523,12 +544,10 @@ public final class Reflect {
         return invokeMethod(lazyMethod(craftServer.getClass(), "getServer"), craftServer);
     }
 
-
     @Deprecated
     public static void damageEntity(Player player, double damage) {
         player.damage(damage);
     }
-
 
     /**
      * Sends the packet to the player.
@@ -701,12 +720,24 @@ public final class Reflect {
         return (net.minecraft.world.level.World) Reflect.invokeMethod(Reflect.lazyMethod(bukkitWorld, "getHandle"), bukkitWorld);
     }
 
+    /**
+     * Sends a native packet to players.
+     *
+     * @param packet    - Packet.
+     * @param receivers - Players.
+     */
     public static void sendPacket(Packet<?> packet, Player... receivers) {
         for (final Player receiver : receivers) {
             sendPacket(receiver, packet);
         }
     }
 
+    /**
+     * Returns the NMS itemstack from a bukkit itemstack.
+     *
+     * @param bukkitItem - Bukkit itemstack.
+     * @return NMS itemstack.
+     */
     public static ItemStack bukkitItemToNMS(org.bukkit.inventory.ItemStack bukkitItem) {
         return (ItemStack) invokeMethod(
                 getCraftMethod("inventory.CraftItemStack", "asNMSCopy", org.bukkit.inventory.ItemStack.class),
@@ -715,6 +746,12 @@ public final class Reflect {
         );
     }
 
+    /**
+     * Sends a protocol packet to players.
+     *
+     * @param packet    - Packet.
+     * @param receivers - Players.
+     */
     public static void sendPacket(PacketContainer packet, Player... receivers) {
         try {
             for (Player receiver : receivers) {
@@ -723,6 +760,98 @@ public final class Reflect {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Returns the NMS scoreboard from a bukkit scoreboard.
+     *
+     * @param scoreboard - Bukkit scoreboard.
+     * @return NMS scoreboard.
+     */
+    @Nullable
+    public static net.minecraft.world.scores.Scoreboard getNetScoreboard(Scoreboard scoreboard) {
+        try {
+            return (net.minecraft.world.scores.Scoreboard) MethodUtils.invokeMethod(scoreboard, "getHandle", null);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Returns the NMS scoreboard team from a bukkit scoreboard.
+     *
+     * @param scoreboard - Bukkit scoreboard.
+     * @param teamName   - Name of the team.
+     * @return NMS scoreboard team.
+     */
+    @Nullable
+    public static ScoreboardTeam getNetTeam(Scoreboard scoreboard, String teamName) {
+        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
+        if (netScoreboard == null) {
+            throw new IllegalArgumentException("cannot retrieve team from nul scoreboard!");
+        }
+
+        return netScoreboard.f(teamName);
+    }
+
+    @Nullable
+    public static ScoreboardTeam getNetTeam(Scoreboard scoreboard, ScoreboardTeam team) {
+        if (team == null) {
+            return null;
+        }
+
+        return getNetTeam(scoreboard, team.b());
+    }
+
+    /**
+     * Creates a new NMS scoreboard team.
+     *
+     * @param scoreboard - Bukkit scoreboard.
+     * @param teamName   - Name of the team.
+     * @return NMS scoreboard team.
+     */
+    public static ScoreboardTeam createNetTeam(Scoreboard scoreboard, String teamName) {
+        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
+
+        if (netScoreboard == null) {
+            throw new IllegalArgumentException("cannot create team for null scoreboard!");
+        }
+
+        return netScoreboard.g(teamName);
+    }
+
+    /**
+     * Deletes a NMS scoreboard team.
+     *
+     * @param scoreboard - Bukkit scoreboard.
+     * @param teamName   - Name of the team.
+     * @return true if the team was deleted, false otherwise.
+     */
+    public static void deleteNetTeam(Scoreboard scoreboard, String teamName) {
+        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
+
+        if (netScoreboard == null) {
+            throw new IllegalArgumentException("cannot delete team from null scoreboard!");
+        }
+
+        final ScoreboardTeam team = getNetTeam(scoreboard, teamName);
+
+        if (team == null) {
+            return;
+        }
+
+        netScoreboard.d(team);
+    }
+
+    public static void deleteNetTeam(Scoreboard scoreboard, ScoreboardTeam netTeam) {
+        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
+
+        if (netTeam == null || netScoreboard == null) {
+            throw new IllegalArgumentException("either net scoreboard or net team is null");
+        }
+
+        netScoreboard.d(netTeam);
     }
 
 }

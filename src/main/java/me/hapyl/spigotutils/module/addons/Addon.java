@@ -4,14 +4,14 @@ package me.hapyl.spigotutils.module.addons;
  * Eterna Addons are a third party
  * script files that loaded at runtime.
  */
-public abstract class EternaAddon {
+public abstract class Addon {
 
     private final String name;
     private final Type type;
 
     private String author;
 
-    protected EternaAddon(String name, Type type) {
+    protected Addon(String name, Type type) {
         this.name = name;
         this.type = type;
     }
@@ -36,6 +36,5 @@ public abstract class EternaAddon {
 
     // Parses global stuff
     protected final void parseSuper() {
-
     }
 }
