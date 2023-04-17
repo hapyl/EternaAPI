@@ -252,17 +252,17 @@ public class Glowing implements Ticking, GlowingListener {
             updateTeamColor();
         }
         else {
-            team.unregister();
-            //Reflect.deleteNetTeam(scoreboard, team);
-
             // Update entity's real team
             final Team realTeam = scoreboard.getEntryTeam(getEntityName());
 
-            if (realTeam == null) {
-                return;
+            if (realTeam != null) {
+                realTeam.addEntry(getEntityName());
             }
 
-            realTeam.addEntry(getEntityName());
+            // First add to real team then unregister?
+            if (team != null && scoreboard.getTeam(team.getName()) != null) {
+                team.unregister();
+            }
         }
 
     }
