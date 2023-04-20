@@ -13,7 +13,7 @@ public final class Interpolators {
         return res;
     };
 
-    public static final Interpolator QUADRATIC_SLOT_TO_FAST = (from, to, max) -> {
+    public static final Interpolator QUADRATIC_SLOW_TO_FAST = (from, to, max) -> {
         final double[] res = new double[max];
         double a = (to - from) / (max * max);
         for (int i = 0; i < res.length; i++) {

@@ -203,6 +203,10 @@ public final class RuntimeCommandsTest {
             }, 80);
         });
 
+        registerTestCommand("pagegui", (player, args) -> {
+            new PlayerPageGUITest(player);
+        });
+
     }
 
     private static final CommandProcessor processor = new CommandProcessor();

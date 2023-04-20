@@ -25,8 +25,10 @@ public class ParkourListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerJoin(PlayerJoinEvent ev) {
+        final Player player = ev.getPlayer();
+
         manager().getRegisteredParkours().forEach(p -> {
-            p.showHolograms(ev.getPlayer());
+            p.showHolograms(player);
         });
     }
 

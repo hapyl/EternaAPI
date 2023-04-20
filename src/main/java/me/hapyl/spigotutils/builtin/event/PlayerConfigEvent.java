@@ -1,7 +1,11 @@
 package me.hapyl.spigotutils.builtin.event;
 
+import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.builtin.updater.UpdateResult;
+import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.annotate.BuiltIn;
 import me.hapyl.spigotutils.registry.EternaRegistry;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -16,7 +20,21 @@ public final class PlayerConfigEvent implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerJoinEvent(PlayerJoinEvent ev) {
-        EternaRegistry.getConfigManager().getConfig(ev.getPlayer()).loadAll();
+        final Player player = ev.getPlayer();
+
+        EternaRegistry.getConfigManager().getConfig(player).loadAll();
+
+        // Operator checks
+        if (!player.isOp()) {
+            return;
+        }
+
+        final Updater updater = EternaPlugin.getPlugin().getUpdater();
+        final UpdateResult lastUpdateResult = updater.getLastResult();
+
+        if (lastUpdateResult == UpdateResult.OUTDATED) {
+            updater.sendLink(player);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * A powerful GUI creator class.
  * Allows to add items, click events, close and open events or even add your own listener.
- *
+ * <p>
  * It is recommended to use {@link PlayerGUI} or it's subclasses instead of this class.
  */
 public class GUI {
@@ -37,17 +37,14 @@ public class GUI {
     private final int size;
 
     private final Set<Integer> ignoredClicks;
-
+    private final Properties properties;
+    private final Map<Integer, GUIClick> bySlot;
+    private final Inventory inventory;
     private Action openEvent;
     private Action closeEvent;
     private me.hapyl.spigotutils.module.inventory.gui.EventListener listener;
     private GUIEventHandler eventHandler;
-
-    private final Properties properties;
     private CancelType cancelType;
-
-    private final Map<Integer, GUIClick> bySlot;
-    private final Inventory inventory;
 
     public GUI(String name, int rows) {
         this.name = name;
@@ -60,12 +57,92 @@ public class GUI {
     }
 
     /**
-     * Sets a new cancel type for this GUI.
+     * Create a hierarchy of string separated by {@link GUI#ARROW_FORWARD}.
+     * Useful for sub menu creations.
      *
-     * @param cancelType - CancelType.
+     * @param strings - Titles.
+     * @return strings separated by {@link GUI#ARROW_FORWARD}.
      */
-    public void setCancelType(CancelType cancelType) {
-        this.cancelType = cancelType;
+    public static String menuArrowSplit(String... strings) {
+        if (strings.length == 0) {
+            return "Default Name";
+        }
+        if (strings.length == 1) {
+            return strings[0];
+        }
+        final StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < strings.length; i++) {
+            builder.append(strings[i].trim());
+            if (i != (strings.length - 1)) {
+                builder.append(" ").append(ARROW_FORWARD).append(" ");
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Returns a minimum GUI size required to put items to.
+     *
+     * @param collection - Collection of items.
+     */
+    public static int getSmartMenuSize(Collection<?> collection) {
+        return (int) Math.ceil((float) collection.size() / 5);
+    }
+
+    /**
+     * Returns a minimum GUI size required to put items to.
+     *
+     * @param collection - Array of items.
+     */
+    public static <T> int getSmartMenuSize(T[] collection) {
+        return (int) Math.ceil((float) collection.length / 5);
+    }
+
+    /**
+     * Returns players current GUI that is opened, or null if no GUI.
+     *
+     * @param player - Player.
+     * @return players current GUI that is opened, or null if no GUI.
+     */
+    @Nullable
+    public static GUI getPlayerGUI(Player player) {
+        return playerInventory.getOrDefault(player.getUniqueId(), null);
+    }
+
+    /**
+     * Returns players previous GUI or null if never had previous GUI.
+     *
+     * @param player - Player.
+     * @return players previous GUI or null if never had previous GUI.
+     */
+    @Nullable
+    public static GUI getPlayerLastGUI(Player player) {
+        return lastPlayerInventory.get(player.getUniqueId());
+    }
+
+    protected static void setPlayerGUI(Player player, GUI gui) {
+        playerInventory.put(player.getUniqueId(), gui);
+    }
+
+    protected static void removePlayerGUI(Player player) {
+        final GUI playerGUI = getPlayerGUI(player);
+        if (playerGUI == null) {
+            return;
+        }
+
+        playerInventory.remove(player.getUniqueId());
+        lastPlayerInventory.put(player.getUniqueId(), playerGUI);
+    }
+
+    /**
+     * Clears all players GUIs.
+     */
+    public static void clearAll() {
+        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            onlinePlayer.closeInventory();
+            removePlayerGUI(onlinePlayer);
+        }
+        playerInventory.clear();
     }
 
     /**
@@ -75,6 +152,15 @@ public class GUI {
      */
     public CancelType getCancelType() {
         return cancelType;
+    }
+
+    /**
+     * Sets a new cancel type for this GUI.
+     *
+     * @param cancelType - CancelType.
+     */
+    public void setCancelType(CancelType cancelType) {
+        this.cancelType = cancelType;
     }
 
     /**
@@ -95,13 +181,13 @@ public class GUI {
         this.listener = listener;
     }
 
-    public final void setEventHandler(@Nullable GUIEventHandler handler) {
-        this.eventHandler = handler;
-    }
-
     @Nullable
     public GUIEventHandler getEventHandler() {
         return eventHandler;
+    }
+
+    public final void setEventHandler(@Nullable GUIEventHandler handler) {
+        this.eventHandler = handler;
     }
 
     /**
@@ -217,6 +303,8 @@ public class GUI {
         return inventory.getItem(slot);
     }
 
+    // Private Set Item (super)
+
     @Nullable
     public final GUIClick getClick(int slot) {
         return bySlot.get(slot);
@@ -299,8 +387,6 @@ public class GUI {
     public final void setItem(int slot, @Nullable ItemStack item) {
         setItem(slot, item, (Action) null);
     }
-
-    // Private Set Item (super)
 
     protected void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
         if (slot > this.size) {
@@ -462,30 +548,6 @@ public class GUI {
     }
 
     /**
-     * Create a hierarchy of string separated by {@link GUI#ARROW_FORWARD}.
-     * Useful for sub menu creations.
-     *
-     * @param strings - Titles.
-     * @return strings separated by {@link GUI#ARROW_FORWARD}.
-     */
-    public static String menuArrowSplit(String... strings) {
-        if (strings.length == 0) {
-            return "Default Name";
-        }
-        if (strings.length == 1) {
-            return strings[0];
-        }
-        final StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < strings.length; i++) {
-            builder.append(strings[i].trim());
-            if (i != (strings.length - 1)) {
-                builder.append(" ").append(ARROW_FORWARD).append(" ");
-            }
-        }
-        return builder.toString();
-    }
-
-    /**
      * Fills items from start to end inside the gui.
      *
      * @param start - Start index.
@@ -590,8 +652,16 @@ public class GUI {
         return openEvent;
     }
 
+    public final void setOpenEvent(Action open) {
+        this.openEvent = open;
+    }
+
     public Action getCloseEvent() {
         return closeEvent;
+    }
+
+    public final void setCloseEvent(Action close) {
+        this.closeEvent = close;
     }
 
     private GUIClick getOrNew(int slot, Action action) {
@@ -673,24 +743,6 @@ public class GUI {
     }
 
     /**
-     * Returns a minimum GUI size required to put items to.
-     *
-     * @param collection - Collection of items.
-     */
-    public static int getSmartMenuSize(Collection<?> collection) {
-        return (int) Math.ceil((float) collection.size() / 5);
-    }
-
-    /**
-     * Returns a minimum GUI size required to put items to.
-     *
-     * @param collection - Array of items.
-     */
-    public static <T> int getSmartMenuSize(T[] collection) {
-        return (int) Math.ceil((float) collection.length / 5);
-    }
-
-    /**
      * Returns BukkitInventory of this GUI.
      *
      * @return BukkitInventory of this GUI.
@@ -708,6 +760,8 @@ public class GUI {
         removePlayerGUI(player);
         player.closeInventory();
     }
+
+    // static members
 
     /**
      * Opens this GUI to player. This creates GUI instance.
@@ -767,61 +821,8 @@ public class GUI {
         return this.getInventory().getSize();
     }
 
-    // static members
-
-    /**
-     * Returns players current GUI that is opened, or null if no GUI.
-     *
-     * @param player - Player.
-     * @return players current GUI that is opened, or null if no GUI.
-     */
-    @Nullable
-    public static GUI getPlayerGUI(Player player) {
-        return playerInventory.getOrDefault(player.getUniqueId(), null);
-    }
-
-    /**
-     * Returns players previous GUI or null if never had previous GUI.
-     *
-     * @param player - Player.
-     * @return players previous GUI or null if never had previous GUI.
-     */
-    @Nullable
-    public static GUI getPlayerLastGUI(Player player) {
-        return lastPlayerInventory.get(player.getUniqueId());
-    }
-
-    protected static void setPlayerGUI(Player player, GUI gui) {
-        playerInventory.put(player.getUniqueId(), gui);
-    }
-
-    protected static void removePlayerGUI(Player player) {
-        final GUI playerGUI = getPlayerGUI(player);
-        if (playerGUI == null) {
-            return;
-        }
-
-        playerInventory.remove(player.getUniqueId());
-        lastPlayerInventory.put(player.getUniqueId(), playerGUI);
-    }
-
-    /**
-     * Clears all players GUIs.
-     */
-    public static void clearAll() {
-        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.closeInventory();
-            removePlayerGUI(onlinePlayer);
-        }
-        playerInventory.clear();
-    }
-
-    @Deprecated
-    /**
-     * @deprecated {@link GUI#properties}
-     */
-    public final void setRespectItemClick(boolean respectItemClick) {
-        properties.setRespectItemClick(respectItemClick);
+    public int getRows() {
+        return this.size / 9;
     }
 
     @Deprecated
@@ -830,6 +831,14 @@ public class GUI {
      */
     public final boolean isRespectItemClick() {
         return properties.isRespectItemClick();
+    }
+
+    @Deprecated
+    /**
+     * @deprecated {@link GUI#properties}
+     */
+    public final void setRespectItemClick(boolean respectItemClick) {
+        properties.setRespectItemClick(respectItemClick);
     }
 
     @Deprecated
@@ -882,14 +891,6 @@ public class GUI {
 
     public final boolean compareInventory(Inventory inventory) {
         return this.inventory.equals(inventory);
-    }
-
-    public final void setCloseEvent(Action close) {
-        this.closeEvent = close;
-    }
-
-    public final void setOpenEvent(Action open) {
-        this.openEvent = open;
     }
 
     public final void clearItems() {

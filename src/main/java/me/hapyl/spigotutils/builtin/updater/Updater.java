@@ -23,6 +23,7 @@ public final class Updater {
     private String downloadUrl;
 
     private UpdateResult lastResult;
+    private String updateMessage = "";
 
     public Updater() {
     }
@@ -36,27 +37,35 @@ public final class Updater {
     }
 
     public void broadcastLink() {
-        final String updateMessage = String.format(
+        updateMessage = String.format(
                 "&aUpdate is available! Your version: %s, latest version: %s.",
                 pluginVersion,
                 latestVersion
         );
 
-        EternaLogger.broadcastMessageOP(updateMessage);
-        EternaLogger.broadcastMessageConsole(updateMessage);
-
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.isOp()) {
-                Chat.sendClickableHoverableMessage(
-                        online,
-                        LazyEvent.openUrl(downloadUrl),
-                        LazyEvent.showText("&7Click here to download!"),
-                        EternaLogger.PREFIX + "&e&lCLICK HERE &ato download!"
-                );
+                sendLink(online);
             }
         }
 
+        // Console
+        EternaLogger.broadcastMessageConsole(updateMessage);
         EternaLogger.broadcastMessageConsole("&aDownload here: &e" + downloadUrl);
+    }
+
+    public void sendLink(Player player) {
+        if (updateMessage.isEmpty()) {
+            return;
+        }
+
+        Chat.sendMessage(player, updateMessage);
+        Chat.sendClickableHoverableMessage(
+                player,
+                LazyEvent.openUrl(downloadUrl),
+                LazyEvent.showText("&7Click here to download!"),
+                EternaLogger.PREFIX + "&e&lCLICK HERE &ato download!"
+        );
     }
 
     public UpdateResult checkForUpdates() {
