@@ -9,7 +9,6 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
-import java.util.concurrent.ThreadLocalRandom;
 
 @RuntimeStaticTest
 final class PlayerPageGUITest extends PlayerPageGUI<String> {
@@ -18,7 +17,7 @@ final class PlayerPageGUITest extends PlayerPageGUI<String> {
         super(player, "Player Page GUI Test", 5);
 
         setFit(Fit.SLIM);
-        setContents(lorem(ThreadLocalRandom.current().nextInt(15, 69)));
+        setEmptyContentsItem(null);
 
         openInventory(1);
     }

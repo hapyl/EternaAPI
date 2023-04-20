@@ -139,6 +139,9 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         clearEverything();
 
         if (contents.isEmpty()) {
+            if (emptyContentsItem != null) {
+                setItem(getSize() / 2, emptyContentsItem);
+            }
             super.openInventory();
             return;
         }
