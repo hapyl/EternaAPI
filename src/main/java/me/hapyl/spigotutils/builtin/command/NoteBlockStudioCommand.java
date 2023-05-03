@@ -6,20 +6,20 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.chat.LazyClickEvent;
 import me.hapyl.spigotutils.module.chat.LazyHoverEvent;
 import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
-import me.hapyl.spigotutils.module.nbs.Parser;
 import me.hapyl.spigotutils.module.player.song.Song;
 import me.hapyl.spigotutils.module.player.song.SongPlayer;
 import me.hapyl.spigotutils.module.player.song.SongQueue;
-import me.hapyl.spigotutils.module.player.song.SongStorage;
+import me.hapyl.spigotutils.module.player.song.SongRegistry;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Queue;
 
 /**
  * Built in command for playing nbs files.
@@ -42,6 +42,13 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         final Player player = (Player) sender;
+        final SongRegistry registry = getRegistry();
+
+        if (registry.isLock()) {
+            radio.sendMessage(sender, "&cCannot use while parsing songs, please wait!");
+            return;
+        }
+
         if (args.length >= 1) {
             final String argument0 = args[0].toLowerCase(Locale.ROOT);
             switch (argument0) {
@@ -81,14 +88,22 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
                     this.displayListOfCachedSongs(player);
                 }
 
+                case "reload" -> {
+                    radio.stopPlaying();
+                    radio.sendMessage(player, "Reloading...");
+
+                    registry.reload(i -> {
+                        radio.sendMessage(player, "Successfully loaded %s songs!", i);
+                    });
+                }
+
                 // queue related commands
                 case "queue" -> {
                     final SongQueue queue = radio.getQueue();
                     final Queue<Song> list = queue.getQueue();
                     if (list.isEmpty()) {
                         radio.sendMessage(player, "No songs in the queue.");
-                    }
-                    else {
+                    } else {
                         final StringBuilder builder = new StringBuilder();
                         int i = 0;
                         for (final Song song : list) {
@@ -106,11 +121,13 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
                 case "add" -> {
                     // radio add (...)
                     final StringBuilder builder = new StringBuilder();
+
                     for (int i = 1; i < args.length; i++) {
                         builder.append(args[i]).append(" ");
                     }
+
                     final String name = builder.toString().trim();
-                    final Song song = findSong(name);
+                    final Song song = registry.byName(name);
 
                     if (song == null) {
                         radio.sendMessage(player, "&cCouldn't find song named \"%s\"!", name);
@@ -133,11 +150,12 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
             if (args.length >= 2) {
                 if (argument0.equalsIgnoreCase("play")) {
                     final StringBuilder builder = new StringBuilder();
+
                     for (int i = 1; i < args.length; i++) {
                         builder.append(args[i]).append(" ");
                     }
 
-                    final Song song = findSong(builder.toString());
+                    final Song song = registry.byName(builder.toString());
                     if (song == null) {
                         radio.sendMessage(player, "&cCouldn't find a nbs file named \"%s\"!", builder.toString());
                         return;
@@ -153,64 +171,13 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
         this.sendInvalidUsageMessage(player);
     }
 
-    @Nullable
-    private Song findSong(String name) {
-        // Add extension if not added
-        name = name.trim();
-        name = name.endsWith(".nbs") ? name : name + ".nbs";
-        final String nameWithoutNbs = name.replace(".nbs", "");
-
-        // find song in cache
-        if (SongStorage.alreadyParsed(nameWithoutNbs)) {
-            return SongStorage.getSong(nameWithoutNbs);
-        }
-        // else try and find the file
-        else {
-            File file = new File(EternaPlugin.getPlugin().getDataFolder() + "/songs", name);
-
-            // if exact name does not find the file then try and find similar one
-            if (!file.exists()) {
-                final File parent = file.getParentFile();
-                if (parent == null || parent.listFiles() == null) {
-                    return null;
-                }
-
-                final File[] files = parent.listFiles();
-                if (files == null) {
-                    return null;
-                }
-
-                for (final File otherFile : files) {
-                    if (otherFile.getName().toLowerCase(Locale.ROOT).contains(nameWithoutNbs)) {
-                        file = otherFile;
-                        break;
-                    }
-                }
-            }
-
-            if (!file.exists()) {
-                return null;
-            }
-
-            final Parser parses = new Parser(file);
-            parses.parse();
-            final Song song = parses.getSong();
-
-            if (song == null) {
-                return null;
-            }
-
-            SongStorage.addSong(nameWithoutNbs, song);
-            return song;
-
-        }
-    }
-
     private void displayListOfCachedSongs(Player player) {
-        if (SongStorage.getNames().isEmpty()) {
+        final SongRegistry registry = getRegistry();
+
+        if (!registry.anySongs()) {
             radio.sendMessage(
                     player,
-                    "&cSong Storage does not have any stored songs yet! Play it once to save it into memory."
+                    "&cThere are no songs loaded, add them into 'plugins/%s/songs' folder and run 'nbs reload'!".formatted(EternaPlugin.getPlugin().getName())
             );
             return;
         }
@@ -219,15 +186,17 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
         final ComponentBuilder builder = new ComponentBuilder();
         int index = 0;
-        for (final String name : SongStorage.getNames()) {
-            builder.append(createClickable(name));
-            if (index++ != (SongStorage.getNames().size() - 1)) {
+        final List<String> names = registry.listNames();
+
+        for (final String name : names) {
+            if (index++ != 0) {
                 builder.append(ChatColor.GRAY + ", ");
             }
+
+            builder.append(createClickable(name));
         }
 
         radio.sendMessage(player, builder.create());
-
     }
 
     private BaseComponent[] createClickable(String name) {
@@ -255,14 +224,16 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return completerSort(Arrays.asList("play", "stop", "list", "pause", "info", "queue", "add", "skip"), args);
-        }
-
-        else if (args.length >= 2 && args[0].equalsIgnoreCase("play")) {
-            return completerSort(new ArrayList<>(SongStorage.getNames()), args);
+            return completerSort(Arrays.asList("play", "stop", "list", "pause", "info", "queue", "add", "skip", "reload"), args);
+        } else if (args.length >= 2 && args[0].equalsIgnoreCase("play")) {
+            return completerSort(getRegistry().listNames(), args);
         }
 
         return null;
+    }
+
+    private SongRegistry getRegistry() {
+        return EternaPlugin.getPlugin().getRegistry().songRegistry;
     }
 
 }

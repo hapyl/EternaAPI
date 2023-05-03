@@ -419,7 +419,8 @@ public class ItemBuilder implements ItemStackBuilder {
         try {
             this.meta.setLore(Arrays.asList(colorize(lore).split(separator)));
         } catch (PatternSyntaxException ex) {
-            Bukkit.getConsoleSender().sendMessage(colorize("&4[ERROR] &cChar &e" + separator + " &cused as separator for lore!"));
+            Bukkit.getConsoleSender()
+                    .sendMessage(colorize("&4[ERROR] &cChar &e" + separator + " &cused as separator for lore!"));
         }
         return this;
     }
@@ -438,7 +439,8 @@ public class ItemBuilder implements ItemStackBuilder {
             throw new NullPointerException("ItemMeta doesn't have any lore!");
         }
         if (line > this.meta.getLore().size()) {
-            throw new IndexOutOfBoundsException("ItemMeta has only " + this.meta.getLore().size() + " lines! Given " + line);
+            throw new IndexOutOfBoundsException(
+                    "ItemMeta has only " + this.meta.getLore().size() + " lines! Given " + line);
         }
         List<String> old = this.meta.getLore();
         old.remove(line);
@@ -549,7 +551,10 @@ public class ItemBuilder implements ItemStackBuilder {
 
     @Override
     public ItemBuilder addAttribute(Attribute attribute, double amount, AttributeModifier.Operation operation, EquipmentSlot slot) {
-        this.meta.addAttributeModifier(attribute, new AttributeModifier(UUID.randomUUID(), attribute.toString(), amount, operation, slot));
+        this.meta.addAttributeModifier(
+                attribute,
+                new AttributeModifier(UUID.randomUUID(), attribute.toString(), amount, operation, slot)
+        );
         return this;
     }
 
@@ -821,7 +826,12 @@ public class ItemBuilder implements ItemStackBuilder {
 
     @Override
     public ItemBuilder setPureDamage(double damage) {
-        this.addAttribute(Attribute.GENERIC_ATTACK_DAMAGE, damage, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
+        this.addAttribute(
+                Attribute.GENERIC_ATTACK_DAMAGE,
+                damage,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlot.HAND
+        );
         return this;
     }
 
@@ -1084,7 +1094,8 @@ public class ItemBuilder implements ItemStackBuilder {
 
         for (int i = 0; i < chars.length; i++) {
             final char c = chars[i];
-            final boolean isManualSplit = (isManualSplitChar(c) && (i + 1 < chars.length && isManualSplitChar(chars[i + 1])));
+            final boolean isManualSplit = (isManualSplitChar(c) &&
+                    (i + 1 < chars.length && isManualSplitChar(chars[i + 1])));
 
             // If out of limit and hit whitespace then add line.
             final boolean lastChar = i == chars.length - 1;
@@ -1122,11 +1133,52 @@ public class ItemBuilder implements ItemStackBuilder {
     }
 
     public static List<String> splitString(String text, int max) {
-        return splitString("&7", text, max);
+        return splitString(null, text, max);
     }
 
     public static List<String> splitString(String text) {
         return splitString(text, 35);
+    }
+
+    @Nonnull
+    public static List<String> getLastColors(String text, String def) {
+        final char[] chars = (text + " ").toCharArray();
+        final List<String> colors = new ArrayList<>();
+
+        StringBuilder currentColor = new StringBuilder();
+        boolean isColor = false;
+
+        for (final char c : chars) {
+            if (isColor && isColorChar(c)) {
+                currentColor.append(c);
+                isColor = false;
+                continue;
+            }
+
+            // mark as color
+            if (c == '&') {
+                currentColor.append(c);
+                isColor = true;
+                continue;
+            }
+
+            if (!currentColor.isEmpty()) {
+                colors.add(currentColor.toString());
+                currentColor = new StringBuilder();
+            }
+        }
+
+        return colors;
+    }
+
+    public static String getLastColor(String text, String def) {
+        final List<String> lastColors = getLastColors(text, def);
+
+        return lastColors.isEmpty() ? def : lastColors.get(lastColors.size() - 1);
+    }
+
+    private static boolean isColorChar(char c) {
+        return "0123456789abcdefklmnor".indexOf(c) != -1;
     }
 
     // Item Value Setters

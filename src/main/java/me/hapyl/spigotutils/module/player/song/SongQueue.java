@@ -1,24 +1,65 @@
 package me.hapyl.spigotutils.module.player.song;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Queue;
 
+/**
+ * Represents a SongQueue for SongPlayer.
+ */
 public interface SongQueue {
 
-	Song current();
+    /**
+     * Returns the current song.
+     *
+     * @return current song
+     */
+    @Nullable
+    Song current();
 
-	Song getNext();
+    /**
+     * Returns next song to play or null if none.
+     *
+     * @return next song to play or null if none.
+     */
+    @Nullable
+    Song getNext();
 
-	boolean hasNext();
+    /**
+     * Returns true if there is next song to play; false otherwise.
+     *
+     * @return true if there is next song to play; false otherwise.
+     */
+    boolean hasNext();
 
-	void playNext();
+    /**
+     * Plays the next song if there is one.
+     */
+    void playNext();
 
-	void skip();
+    /**
+     * Skips the currently playing song.
+     */
+    void skip();
 
-	void addSong(Song song);
+    /**
+     * Adds a song to a queue.
+     *
+     * @param song - Song to add.
+     */
+    void addSong(Song song);
 
-	void removeSong();
+    /**
+     * Removes the last song from queue.
+     */
+    void removeSong();
 
-	Queue<Song> getQueue();
-
+    /**
+     * Gets the queue of songs.
+     *
+     * @return queue of songs.
+     */
+    @Nonnull
+    Queue<Song> getQueue();
 
 }
