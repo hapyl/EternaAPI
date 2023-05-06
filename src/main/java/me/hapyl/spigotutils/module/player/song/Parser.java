@@ -27,8 +27,8 @@ public class Parser {
             this.data = new DataInputStream(new FileInputStream(file));
             this.song = null;
         } catch (Exception e) {
-            Bukkit.getLogger().warning("Invalid '.nbs' file! " + file.getName());
-            throw new NullPointerException();
+            Bukkit.getLogger().severe("Invalid '.nbs' file! " + file.getName());
+            throw new RuntimeException(e);
         }
     }
 
@@ -143,7 +143,6 @@ public class Parser {
             Chat.broadcastOp("&b&lNBS> &cCould not parse '%s', see console for details!", file.getName());
             e.printStackTrace();
         }
-
     }
 
     private String fileName() {

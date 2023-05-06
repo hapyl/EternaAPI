@@ -66,8 +66,8 @@ public final class EternaAPI {
     }
 
     /**
-     * Returns library for this API.
-     * Library stores important data such as registries etc.
+     * Returns a library for this API.
+     * Library stores important data such as registries, etc.
      *
      * @return library for this API.
      */
@@ -76,9 +76,9 @@ public final class EternaAPI {
     }
 
     /**
-     * Returns true if plugin depend on EternaAPI; If false, exception will be thrown.
+     * Returns true if plugin depends on EternaAPI. If false, exception will be thrown.
      *
-     * @return true if plugin depend on EternaAPI; If false, exception will be thrown.
+     * @return true if plugin depends on EternaAPI. If false, exception will be thrown.
      */
     public boolean isDepends() {
         final PluginDescriptionFile description = plugin.getDescription();
@@ -108,8 +108,9 @@ public final class EternaAPI {
 
     /**
      * Loads all APIs and their respected registries.
+     * This is not yet implemented and only displays the modules.
      */
-    public static void loadAll() {
+    static void loadAll() {
         if (byName.isEmpty()) {
             return;
         }
@@ -130,6 +131,11 @@ public final class EternaAPI {
         }, 20L);
     }
 
+    /**
+     * Return a new list of EternaAPI modules.
+     *
+     * @return a new list of EternaAPI modules.
+     */
     public static List<EternaAPI> listModules() {
         return Lists.newArrayList(byName.values());
     }

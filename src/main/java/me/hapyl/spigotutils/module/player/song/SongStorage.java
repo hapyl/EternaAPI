@@ -8,12 +8,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents, well, a storage for songs.
+ * @deprecated {@link SongRegistry}
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 public class SongStorage {
 
-    // FIXME (hapyl): 026, Apr 26, 2023: Why is this static
     protected static final Map<String, Song> byName = new HashMap<>();
 
     @Nullable

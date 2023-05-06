@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.player.song;
 
+import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.util.NonnullConsumer;
 import me.hapyl.spigotutils.registry.Registry;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,6 +14,7 @@ import java.util.List;
 
 public class SongRegistry extends Registry<String, Song> {
 
+    private final int ITEMS_PER_PAGE = 30;
     private boolean lock;
 
     public SongRegistry(JavaPlugin plugin) {
@@ -21,10 +23,23 @@ public class SongRegistry extends Registry<String, Song> {
         reload(NonnullConsumer.empty());
     }
 
+    /**
+     * Returns true if registry is locked; false otherwise.
+     * If the registry is locked, songs cannot be retrieved or added
+     * outside the registry.
+     *
+     * @return true if the registry is locked; false otherwise.
+     */
     public boolean isLock() {
         return lock;
     }
 
+    /**
+     * Clears all the cached songs and reloads them from the disk.
+     * This is done asynchronously.
+     *
+     * @param andThen - Consumer of how many songs was loaded to execute <b>after</b> the load.
+     */
     public void reload(@Nonnull NonnullConsumer<Integer> andThen) {
         lock = true;
         registry.clear();
@@ -71,8 +86,15 @@ public class SongRegistry extends Registry<String, Song> {
         }.runTaskAsynchronously(getPlugin());
     }
 
+    /**
+     * Returns a song by its name.
+     * This checks both for exact match and for containing name.
+     *
+     * @param name - Song to get.
+     * @return a song by its name or null if none found.
+     */
     @Nullable
-    public Song byName(String name) {
+    public Song byName(@Nonnull String name) {
         name = name.trim();
         Song song = byKey(name);
 
@@ -97,12 +119,44 @@ public class SongRegistry extends Registry<String, Song> {
         return new ArrayList<>(registry.keySet());
     }
 
-    // TODO (hapyl): 004, May 4, 2023: Add pages for songs, it's impossible to get through if there is a lot of them
-    public List<String> listName(int start, int end) {
-        return listNames().subList(start, end);
+    /**
+     * Returns a sublist of song names from start to end
+     *
+     * @param start - Start. Cannot be negative.
+     * @param end   - End. Cannot be > names.size().
+     * @return a sublist from start to end of song names.
+     */
+    public List<String> listNames(int start, int end) {
+        final List<String> names = listNames();
+        return names.subList(Math.max(0, start), Math.min(names.size(), end));
     }
 
+    /**
+     * Returns a sublist of song names based on a page.
+     *
+     * @param page - Page. Starts at 1.
+     * @return a sublist of song names based on a page.
+     */
+    public List<String> listNames(int page) {
+        page = Numbers.clamp(page, 0, maxPage());
+        return listNames(page * ITEMS_PER_PAGE - ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+    }
+
+    /**
+     * Returns true if there are any songs; false otherwise.
+     *
+     * @return true if there are any songs; false otherwise.
+     */
     public boolean anySongs() {
-        return !lock && !registry.isEmpty();
+        return !registry.isEmpty();
+    }
+
+    /**
+     * Returns max page.
+     *
+     * @return max page.
+     */
+    public int maxPage() {
+        return registry.size() / ITEMS_PER_PAGE + 1;
     }
 }

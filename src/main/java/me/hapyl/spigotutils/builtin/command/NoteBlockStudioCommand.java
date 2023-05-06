@@ -10,13 +10,13 @@ import me.hapyl.spigotutils.module.player.song.Song;
 import me.hapyl.spigotutils.module.player.song.SongPlayer;
 import me.hapyl.spigotutils.module.player.song.SongQueue;
 import me.hapyl.spigotutils.module.player.song.SongRegistry;
+import me.hapyl.spigotutils.module.util.Validate;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
@@ -32,11 +32,14 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
     public NoteBlockStudioCommand(String str) {
         super(str);
         radio = EternaPlugin.getPlugin().getSongPlayer();
+        radio.everyoneIsListener();
+
         setAliases("radio");
         setDescription(
-                "Allows admins to play \".nbs\" format song! Only one instance of radio may exists per server. Once song played once it will be cached into memory."
+                "Allows admins to play \".nbs\" format song! Only one instance of radio may exists per server using this command."
         );
-        setUsage("nbs play/stop/pause/list/info/add/skip [SongPath/CachedSongName]");
+
+        addCompleterValues(1, "play", "stop", "list", "pause", "info", "repeat", "queue", "add", "skip", "reload");
     }
 
     @Override
@@ -84,13 +87,20 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
                     radio.pausePlaying();
                 }
+
                 case "list" -> {
-                    this.displayListOfCachedSongs(player);
+                    this.displayListOfCachedSongs(player, args.length == 1 ? 1 : Validate.getInt(args[1]));
+                }
+
+                case "repeat" -> {
+                    radio.setOnRepeat(!radio.isOnRepeat());
+
+                    radio.sendMessage("The player %s on repeat.", radio.isOnRepeat() ? "now" : "no longer");
                 }
 
                 case "reload" -> {
                     radio.stopPlaying();
-                    radio.sendMessage(player, "Reloading...");
+                    radio.sendMessage(player, "Reloading, might take a while...");
 
                     registry.reload(i -> {
                         radio.sendMessage(player, "Successfully loaded %s songs!", i);
@@ -104,38 +114,38 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
                     if (list.isEmpty()) {
                         radio.sendMessage(player, "No songs in the queue.");
                     } else {
-                        final StringBuilder builder = new StringBuilder();
-                        int i = 0;
-                        for (final Song song : list) {
-                            builder.append("%s".formatted(song.getName()));
-                            ++i;
-                            if (i < list.size()) {
-                                builder.append(", ");
+                        radio.sendMessage(player, "&aCurrent Queue:");
+
+                        int index = 0;
+                        for (Song song : list) {
+                            radio.sendMessage(player, " #%s: %s - %s", index + 1, song.getOriginalAuthor(), song.getName());
+
+                            if (++index >= 10) {
+                                radio.sendMessage(player, "And %s more!", list.size() - index);
+                                break;
                             }
                         }
-                        radio.sendMessage(player, "&aCurrent Queue:");
-                        radio.sendMessage(player, builder.toString());
                     }
                 }
 
                 case "add" -> {
                     // radio add (...)
-                    final StringBuilder builder = new StringBuilder();
-
-                    for (int i = 1; i < args.length; i++) {
-                        builder.append(args[i]).append(" ");
-                    }
-
-                    final String name = builder.toString().trim();
-                    final Song song = registry.byName(name);
+                    final String query = buildSongName(args);
+                    final Song song = registry.byName(query);
 
                     if (song == null) {
-                        radio.sendMessage(player, "&cCouldn't find song named \"%s\"!", name);
+                        radio.sendMessage(player, "&cCouldn't find song named \"%s\"!", query);
                         return;
                     }
 
                     radio.getQueue().addSong(song);
                     radio.sendMessage(player, "&aAdded \"%s\" to the queue!", song.getName());
+
+                    // Start playing if nothing is already playing
+                    if (!radio.isPlaying()) {
+                        radio.everyoneIsListener();
+                        radio.getQueue().playNext();
+                    }
                 }
 
                 case "skip" -> {
@@ -149,20 +159,15 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
             if (args.length >= 2) {
                 if (argument0.equalsIgnoreCase("play")) {
-                    final StringBuilder builder = new StringBuilder();
+                    final String query = buildSongName(args);
+                    final Song song = registry.byName(query);
 
-                    for (int i = 1; i < args.length; i++) {
-                        builder.append(args[i]).append(" ");
-                    }
-
-                    final Song song = registry.byName(builder.toString());
                     if (song == null) {
-                        radio.sendMessage(player, "&cCouldn't find a nbs file named \"%s\"!", builder.toString());
+                        radio.sendMessage(player, "&cCould not find song named \"%s\"!", query);
                         return;
                     }
 
                     this.startPlayingSong(song);
-
                 }
             }
             return;
@@ -171,7 +176,17 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
         this.sendInvalidUsageMessage(player);
     }
 
-    private void displayListOfCachedSongs(Player player) {
+    private String buildSongName(String[] args) {
+        final StringBuilder builder = new StringBuilder();
+
+        for (int i = 1; i < args.length; i++) {
+            builder.append(args[i]).append(" ");
+        }
+
+        return builder.toString();
+    }
+
+    private void displayListOfCachedSongs(Player player, int page) {
         final SongRegistry registry = getRegistry();
 
         if (!registry.anySongs()) {
@@ -182,11 +197,11 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
             return;
         }
 
-        radio.sendMessage(player, "&aThese songs are currently stored! &e(Clickable!)");
+        radio.sendMessage(player, "&aListing songs: (Page %s/%s) &e&l&nClickable!", page, registry.maxPage());
 
+        final List<String> names = registry.listNames(page);
         final ComponentBuilder builder = new ComponentBuilder();
         int index = 0;
-        final List<String> names = registry.listNames();
 
         for (final String name : names) {
             if (index++ != 0) {
@@ -223,10 +238,11 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            return completerSort(Arrays.asList("play", "stop", "list", "pause", "info", "queue", "add", "skip", "reload"), args);
-        } else if (args.length >= 2 && args[0].equalsIgnoreCase("play")) {
-            return completerSort(getRegistry().listNames(), args);
+        if (args.length >= 2) {
+            final String arg0 = args[0];
+            if (arg0.equals("play") || arg0.equals("add")) {
+                return completerSort(getRegistry().listNames(), args);
+            }
         }
 
         return null;

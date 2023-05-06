@@ -27,6 +27,7 @@ public class SongPlayer extends Holder<JavaPlugin> {
     protected Song currentSong;
     private boolean playing;
     private boolean pause;
+    private boolean repeat;
     private long tick = 0L;
     private BukkitTask task;
     private Set<Player> listeners;
@@ -89,6 +90,24 @@ public class SongPlayer extends Holder<JavaPlugin> {
     }
 
     /**
+     * Returns true if song player is on repeat; false otherwise.
+     *
+     * @return true if song player is on repeat; false otherwise.
+     */
+    public boolean isOnRepeat() {
+        return repeat;
+    }
+
+    /**
+     * Sets if song player should repeat song.
+     *
+     * @param flag - Repeat.
+     */
+    public void setOnRepeat(boolean flag) {
+        repeat = flag;
+    }
+
+    /**
      * Returns true if player is listener for this player.
      *
      * @param player - Player to check.
@@ -128,9 +147,9 @@ public class SongPlayer extends Holder<JavaPlugin> {
     }
 
     /**
-     * Returns true if player is playing a song.
+     * Returns true if song player is playing a song.
      *
-     * @return true if player is playing a song.
+     * @return true if song player is playing a song.
      */
     public boolean isPlaying() {
         return playing;
@@ -188,8 +207,12 @@ public class SongPlayer extends Holder<JavaPlugin> {
                 }
 
                 if (tick++ >= currentSong.getLength()) {
-                    stopPlaying();
-                    queue.playNext();
+                    if (repeat) {
+                        tick = -20; // give it a second of windup
+                    } else {
+                        stopPlaying();
+                        queue.playNext();
+                    }
                     return;
                 }
 
