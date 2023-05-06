@@ -10,12 +10,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public abstract class Registry<K, V> {
 
-    private final JavaPlugin owningPlugin;
-
+    protected final Logger logger;
     protected final Map<K, V> registry = Maps.newLinkedHashMap();
+
+    private final JavaPlugin owningPlugin;
 
     /**
      * Creates instance of registry.
@@ -24,6 +26,7 @@ public abstract class Registry<K, V> {
      */
     public Registry(JavaPlugin plugin) {
         this.owningPlugin = plugin;
+        this.logger = plugin.getLogger();
     }
 
     /**
@@ -206,4 +209,7 @@ public abstract class Registry<K, V> {
         return byValue(v, null);
     }
 
+    public int size() {
+        return registry.size();
+    }
 }

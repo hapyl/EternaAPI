@@ -5,7 +5,6 @@ import me.hapyl.spigotutils.Rule;
 import me.hapyl.spigotutils.builtin.gui.QuestJournal;
 import me.hapyl.spigotutils.builtin.updater.UpdateResult;
 import me.hapyl.spigotutils.builtin.updater.Updater;
-import me.hapyl.spigotutils.module.addons.AddonRegistry;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
 import me.hapyl.spigotutils.registry.EternaRegistry;
@@ -19,7 +18,7 @@ public final class EternaCommand extends SimpleAdminCommand {
 
         setDescription("Eterna management command.");
         addCompleterValues(1, "update", "version", "quest", "reload");
-        addCompleterValues(2, "config", "addons");
+        addCompleterValues(2, "config");
     }
 
     @Override
@@ -40,8 +39,7 @@ public final class EternaCommand extends SimpleAdminCommand {
 
                 if (result == UpdateResult.OUTDATED) {
                     updater.broadcastLink();
-                }
-                else {
+                } else {
                     Chat.sendMessage(sender, result.getMessage());
                 }
             }
@@ -54,8 +52,7 @@ public final class EternaCommand extends SimpleAdminCommand {
                 if (updater.getLastResult() == UpdateResult.OUTDATED) {
                     Chat.sendMessage(sender, "&aLatest version: " + updater.getLatestVersion());
                     Chat.sendMessage(sender, "&aDownload here: &e" + updater.getDownloadUrl());
-                }
-                else if (updater.getLastResult() == UpdateResult.UP_TO_DATE) {
+                } else if (updater.getLastResult() == UpdateResult.UP_TO_DATE) {
                     Chat.sendMessage(sender, "&aYou're up to date!");
                 }
             }
@@ -68,8 +65,7 @@ public final class EternaCommand extends SimpleAdminCommand {
                     }
 
                     new QuestJournal(player);
-                }
-                else {
+                } else {
                     Chat.sendMessage(sender, "&cThis command can only be executed by players.");
                 }
             }
@@ -92,14 +88,6 @@ public final class EternaCommand extends SimpleAdminCommand {
 
                         EternaRegistry.getConfigManager().getConfig(target).forceLoad(true);
                         Chat.sendMessage(sender, "&aReloaded %s player config!", target.getName());
-                    }
-
-                    case "addons" -> {
-                        final AddonRegistry registry = EternaPlugin.getPlugin().getRegistry().addonRegistry;
-                        registry.unloadAll();
-                        registry.loadAll();
-
-                        Chat.sendMessage(sender, "&aReloaded addons!");
                     }
                 }
             }

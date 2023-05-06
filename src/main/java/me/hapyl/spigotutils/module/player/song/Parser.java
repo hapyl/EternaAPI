@@ -1,9 +1,6 @@
-package me.hapyl.spigotutils.module.nbs;
+package me.hapyl.spigotutils.module.player.song;
 
 import me.hapyl.spigotutils.module.chat.Chat;
-import me.hapyl.spigotutils.module.player.song.Song;
-import me.hapyl.spigotutils.module.player.song.SongHelper;
-import me.hapyl.spigotutils.module.player.song.SongNote;
 import org.bukkit.Bukkit;
 
 import javax.annotation.Nullable;
@@ -17,18 +14,44 @@ import java.io.IOException;
  */
 public class Parser {
 
+    private final File file;
     private final DataInputStream data;
 
     // If null means not parsed yet or error
     private Song song;
 
     public Parser(File file) {
+        this.file = file;
+
         try {
             this.data = new DataInputStream(new FileInputStream(file));
             this.song = null;
         } catch (Exception e) {
-            Bukkit.getLogger().warning("Invalid .nbs file! " + file.getName());
-            throw new NullPointerException();
+            Bukkit.getLogger().severe("Invalid '.nbs' file! " + file.getName());
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Tries so parse a file into {@link Song}.
+     *
+     * @param file - File to parse.
+     * @return Parsed song or null if error in parsing.
+     */
+    @Nullable
+    public static Song parse(File file) {
+        if (file == null) {
+            throw new IllegalArgumentException("file cannot be null");
+        }
+
+        try {
+            final Parser parser = new Parser(file);
+            parser.parse();
+
+            return parser.song;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -69,7 +92,8 @@ public class Parser {
             }
 
             this.song = new Song(
-                    checkEmpty(songName, "Unnamed Song"),
+                    fileName(),
+                    checkEmpty(songName, fileName()),
                     checkEmpty(songAuthor, "Unknown Author"),
                     checkEmpty(songOrigin, "Unknown Original Author"),
                     length,
@@ -116,19 +140,22 @@ public class Parser {
             }
 
         } catch (Exception e) {
-            Chat.broadcastOp("&b&lNBS> &cAn error occurred whist trying to parse a song, check the console for details!");
+            Chat.broadcastOp("&b&lNBS> &cCould not parse '%s', see console for details!", file.getName());
             e.printStackTrace();
         }
-
     }
 
-    private String checkEmpty(String toCheck, String ifEmpty) {
-        return toCheck.isEmpty() ? ifEmpty : toCheck;
+    private String fileName() {
+        return file.getName().replace(".nbs", "");
     }
 
     @Nullable
     public Song getSong() {
         return song;
+    }
+
+    private String checkEmpty(String toCheck, String ifEmpty) {
+        return toCheck.isEmpty() ? ifEmpty : toCheck;
     }
 
     private byte readByte() throws IOException {

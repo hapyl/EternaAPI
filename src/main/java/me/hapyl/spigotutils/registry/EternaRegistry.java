@@ -2,12 +2,12 @@ package me.hapyl.spigotutils.registry;
 
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.config.PlayerConfigManager;
-import me.hapyl.spigotutils.module.addons.AddonRegistry;
 import me.hapyl.spigotutils.module.entity.RopeRegistry;
 import me.hapyl.spigotutils.module.hologram.HologramRegistry;
 import me.hapyl.spigotutils.module.inventory.item.CustomItemRegistry;
 import me.hapyl.spigotutils.module.parkour.ParkourManager;
 import me.hapyl.spigotutils.module.player.song.SongPlayer;
+import me.hapyl.spigotutils.module.player.song.SongRegistry;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRegistry;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPCRegistry;
 import org.bukkit.Bukkit;
@@ -31,7 +31,7 @@ public final class EternaRegistry {
     public final HumanNPCRegistry npcRegistry;
     public final HologramRegistry hologramRegistry;
     public final RopeRegistry ropeRegistry;
-    public final AddonRegistry addonRegistry;
+    public final SongRegistry songRegistry;
 
     public EternaRegistry(EternaPlugin plugin) {
         if (init) {
@@ -49,7 +49,7 @@ public final class EternaRegistry {
         npcRegistry = new HumanNPCRegistry(plugin);
         hologramRegistry = new HologramRegistry(plugin);
         ropeRegistry = new RopeRegistry(plugin);
-        addonRegistry = new AddonRegistry(plugin);
+        songRegistry = new SongRegistry(plugin);
 
         init = true;
     }

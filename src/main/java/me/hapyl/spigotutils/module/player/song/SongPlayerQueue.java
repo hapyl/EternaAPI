@@ -2,10 +2,14 @@ package me.hapyl.spigotutils.module.player.song;
 
 import me.hapyl.spigotutils.EternaPlugin;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * Represents
+ */
 public class SongPlayerQueue implements SongQueue {
 
     private final Queue<Song> queue;
@@ -27,6 +31,7 @@ public class SongPlayerQueue implements SongQueue {
     }
 
     @Override
+    @Nullable
     public Song getNext() {
         return this.queue.peek();
     }
@@ -53,9 +58,10 @@ public class SongPlayerQueue implements SongQueue {
 
     @Override
     public void removeSong() {
-        this.queue.remove();
+        this.queue.poll();
     }
 
+    @Nonnull
     public Queue<Song> getQueue() {
         return queue;
     }

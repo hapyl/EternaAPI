@@ -5,6 +5,7 @@ import me.hapyl.spigotutils.module.util.Holder;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -16,16 +17,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Represents a player that can play {@see Song} to players.
+ */
 public class SongPlayer extends Holder<JavaPlugin> {
 
+    private final SongQueue queue;
+    private final String prefix = "&b&lNBS> &7";
     protected Song currentSong;
     private boolean playing;
     private boolean pause;
+    private boolean repeat;
     private long tick = 0L;
     private BukkitTask task;
     private Set<Player> listeners;
-
-    private final SongQueue queue;
 
     public SongPlayer(JavaPlugin plugin) {
         super(plugin);
@@ -33,39 +38,103 @@ public class SongPlayer extends Holder<JavaPlugin> {
         this.queue = new SongPlayerQueue();
     }
 
+    /**
+     * Returns the plugin who owns this player.
+     *
+     * @return the plugin who owns this player.
+     */
     public JavaPlugin getOwningPlugin() {
         return get();
     }
 
+    /**
+     * Returns current song queue.
+     *
+     * @return current song queue.
+     */
     public SongQueue getQueue() {
         return queue;
     }
 
+    /**
+     * Adds a listener to this player.
+     *
+     * @param player - Listener.
+     */
     public void addListener(Player player) {
+        if (this.listeners == null) {
+            return; // global
+        }
         this.listeners.add(player);
     }
 
+    /**
+     * Removes a listener from this player.
+     *
+     * @param player - Listener.
+     */
     public void removeListener(Player player) {
+        if (this.listeners == null) {
+            return; // global
+        }
         this.listeners.remove(player);
     }
 
+    /**
+     * Returns true if the player is paused.
+     *
+     * @return true if the player is paused.
+     */
     public boolean isPaused() {
         return pause;
     }
 
+    /**
+     * Returns true if song player is on repeat; false otherwise.
+     *
+     * @return true if song player is on repeat; false otherwise.
+     */
+    public boolean isOnRepeat() {
+        return repeat;
+    }
+
+    /**
+     * Sets if song player should repeat song.
+     *
+     * @param flag - Repeat.
+     */
+    public void setOnRepeat(boolean flag) {
+        repeat = flag;
+    }
+
+    /**
+     * Returns true if player is listener for this player.
+     *
+     * @param player - Player to check.
+     * @return true if player is listener for this player.
+     */
     public boolean isListener(Player player) {
         return this.listeners == null || this.listeners.contains(player);
     }
 
+    /**
+     * Returns true if this player is global.
+     */
     public void everyoneIsListener() {
         this.listeners = null;
     }
 
+    /**
+     * Pauses or unpauses the player.
+     */
     public void pausePlaying() {
         this.pause = !this.pause;
         sendMessage("%s Playing &l" + this.currentSong.getName(), this.pause ? "&ePaused" : "&aUnpause");
     }
 
+    /**
+     * Stops the player.
+     */
     public void stopPlaying() {
         if (currentSong != null) {
             sendMessage("&aFinished Playing &l" + this.currentSong.getName());
@@ -77,24 +146,47 @@ public class SongPlayer extends Holder<JavaPlugin> {
         this.playing = false;
     }
 
-    public void setCurrentSong(Song song) {
-        this.stopPlaying();
-        this.currentSong = song;
-    }
-
+    /**
+     * Returns true if song player is playing a song.
+     *
+     * @return true if song player is playing a song.
+     */
     public boolean isPlaying() {
         return playing;
     }
 
+    /**
+     * Returns the currently playing song, or null if none is playing.
+     *
+     * @return the currently playing song, or null if none is playing.
+     */
     @Nullable
     public Song getCurrentSong() {
         return currentSong;
     }
 
+    /**
+     * Stops the current song and sets the current song to the given song.
+     *
+     * @param song - Song to set.
+     */
+    public void setCurrentSong(Song song) {
+        this.stopPlaying();
+        this.currentSong = song;
+    }
+
+    /**
+     * Returns true if the player has a song.
+     *
+     * @return true if the player has a song.
+     */
     public boolean hasSong() {
         return currentSong != null;
     }
 
+    /**
+     * Stars the playing of a song.
+     */
     public void startPlaying() {
         if (playing) {
             stopPlaying();
@@ -115,8 +207,12 @@ public class SongPlayer extends Holder<JavaPlugin> {
                 }
 
                 if (tick++ >= currentSong.getLength()) {
-                    stopPlaying();
-                    queue.playNext();
+                    if (repeat) {
+                        tick = -20; // give it a second of windup
+                    } else {
+                        stopPlaying();
+                        queue.playNext();
+                    }
                     return;
                 }
 
@@ -132,25 +228,39 @@ public class SongPlayer extends Holder<JavaPlugin> {
         }.runTaskTimer(getOwningPlugin(), 0, this.currentSong.getTempo());
     }
 
+    /**
+     * Returns current frame (tick) of a song.
+     *
+     * @return current frame (tick) of a song.
+     */
     public long getCurrentFrame() {
         return tick;
     }
 
+    /**
+     * Returns max frames (length) of a song.
+     *
+     * @return max frames (length) of a song.
+     */
     public long getMaxFrame() {
         return this.currentSong == null ? 1 : this.currentSong.getLength();
     }
 
+    /**
+     * Returns listeners for this song. Or all online players is global.
+     *
+     * @return listeners for this song. Or all online players is global.
+     */
     private Collection<? extends Player> getListeners() {
         return this.listeners == null ? Bukkit.getOnlinePlayers() : this.listeners;
     }
 
-    private final String prefix = "&b&lNBS> &7";
-
-    public void sendMessage(Player player, String msg, Object... dot) {
+    // shortcuts
+    public void sendMessage(CommandSender player, String msg, Object... dot) {
         Chat.sendMessage(player, prefix + msg, dot);
     }
 
-    public void sendMessage(Player player, BaseComponent[] components) {
+    public void sendMessage(CommandSender player, BaseComponent[] components) {
         player.spigot().sendMessage(new ComponentBuilder(Chat.format(prefix)).append(components).create());
     }
 

@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents a GUI that may have multiple pages.
@@ -79,6 +80,10 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         this.contents = contents;
     }
 
+    public void setContents(@Nonnull List<T> contents) {
+        setContents(Lists.newLinkedList(contents));
+    }
+
     /**
      * Sets the contents of the GUI as copy of another list.
      *
@@ -86,6 +91,10 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
      */
     public void setContentsAsCopyOf(@Nonnull LinkedList<T> contents) {
         setContents(Lists.newLinkedList(contents));
+    }
+
+    public void setContentsAsCopyOf(@Nonnull List<T> contents) {
+        setContentsAsCopyOf(Lists.newLinkedList(contents));
     }
 
     /**

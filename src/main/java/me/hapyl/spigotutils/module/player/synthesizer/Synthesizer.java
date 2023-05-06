@@ -14,8 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Represents a synthesizer, or a note block builder that allows
+ * to create songs using a string.
+ */
 public class Synthesizer {
 
+    /**
+     * Represents a character that is an empty note that will be skipped.
+     */
     public static final Character EMPTY_NOTE = '-';
 
     private final List<Track> tracks;
