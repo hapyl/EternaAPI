@@ -134,10 +134,7 @@ public class GUI {
         lastPlayerInventory.put(player.getUniqueId(), playerGUI);
     }
 
-    /**
-     * Clears all players GUIs.
-     */
-    public static void clearAll() {
+    private static void clearAll() {
         for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             onlinePlayer.closeInventory();
             removePlayerGUI(onlinePlayer);
@@ -303,8 +300,6 @@ public class GUI {
         return inventory.getItem(slot);
     }
 
-    // Private Set Item (super)
-
     @Nullable
     public final GUIClick getClick(int slot) {
         return bySlot.get(slot);
@@ -439,7 +434,7 @@ public class GUI {
     }
 
     /**
-     * Sets a separate click for left and right clik.
+     * Sets a separate click for a left and right click.
      *
      * @param slot       - Slot to put click at.
      * @param leftClick  - Left click action.
