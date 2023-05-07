@@ -2,14 +2,12 @@ package me.hapyl.spigotutils.module.inventory.gui;
 
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 /**
  * This GUI provides a nicer way to update the inventory, clearing all click events and items before settings everything up.
- *
- * @param <E> - Optional parameter for update method.
  */
-public abstract class PlayerDynamicGUI<E> extends PlayerGUI {
+public abstract class PlayerDynamicGUI extends PlayerGUI {
 
     public PlayerDynamicGUI(Player player, String name, int rows) {
         super(player, name, rows);
@@ -23,14 +21,23 @@ public abstract class PlayerDynamicGUI<E> extends PlayerGUI {
         super(player, rows, menuName);
     }
 
-    public abstract void setupInventory(@Nullable E optional);
+    public abstract void setupInventory(@Nonnull Arguments arguments);
 
-    public void update(@Nullable E optional) {
+    @Override
+    public final void openInventory() {
+        update(Arguments.EMPTY);
+    }
+
+    public final void update() {
+        update(Arguments.EMPTY);
+    }
+
+    public final void update(@Nonnull Arguments arguments) {
         clearClickEvents();
         clearItems();
 
-        setupInventory(optional);
-        openInventory();
+        setupInventory(arguments);
+        super.openInventory();
     }
 
 }
