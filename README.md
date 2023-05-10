@@ -30,7 +30,7 @@ _Some classes are not mine and authors were credited._
 <dependency>
     <groupId>com.github.hapyl</groupId>
     <artifactId>EternaAPI</artifactId>
-    <version>2.10.0-SNAPSHOT</version>
+    <version>Tag</version>
 </dependency>
 ```
 
