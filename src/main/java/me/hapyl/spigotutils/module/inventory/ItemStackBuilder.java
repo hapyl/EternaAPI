@@ -32,7 +32,7 @@ public interface ItemStackBuilder {
     /**
      * Returns current EventHandler for this builder, cannot be null.
      *
-     * @return current EventHandler for this builder, cannot be null.
+     * @return the current EventHandler for this builder.
      */
     @Nonnull
     ItemEventHandler getEventHandler();
@@ -45,7 +45,7 @@ public interface ItemStackBuilder {
     ItemStackBuilder setEventHandler(@Nonnull ItemEventHandler handler);
 
     /**
-     * Returns item's NBT in string format, same as you would use it in give command.
+     * Gets item's NBT in string format, same as you would use it in give command.
      *
      * @return item's NBT or empty string if none.
      */
@@ -259,7 +259,7 @@ public interface ItemStackBuilder {
      *
      * @param lore       - Lore to set.
      * @param prefix     - Prefix to set.
-     * @param splitAfter - Split after this amount of chars.
+     * @param splitAfter - Split after this number of chars.
      */
     ItemStackBuilder setSmartLore(String lore, String prefix, int splitAfter);
 
@@ -268,7 +268,7 @@ public interface ItemStackBuilder {
      *
      * @param lore       - Lore to add.
      * @param prefix     - Prefix to set.
-     * @param splitAfter - Split after this amount of chars.
+     * @param splitAfter - Split after this number of chars.
      */
     ItemStackBuilder addSmartLore(String lore, String prefix, int splitAfter);
 
@@ -335,6 +335,47 @@ public interface ItemStackBuilder {
     ItemStackBuilder setLore(String lore, String separator);
 
     /**
+     * Adds text block as smart lore to an item.
+     * Each line will be treated as a paragraph.
+     * <p>
+     * '__' Can be used as a custom separator.
+     * <p>
+     * Prefix can be added by using ';;' before the actual string, ex:
+     * <pre>
+     *     &c;;Hello World__Goodbye World
+     * </pre>
+     * will be formatted as:
+     * <pre>
+     *     &cHello World
+     *     &cGoodbye World
+     * </pre>
+     *
+     * @param textBlock - Text block.
+     */
+    ItemStackBuilder addTextBlockLore(String textBlock, Object... format);
+
+    /**
+     * Adds text block as smart lore to an item.
+     * Each line will be treated as a paragraph.
+     * <p>
+     * '__' Can be used as a custom separator.
+     * <p>
+     * Prefix can be added by using ';;' before the actual string, ex:
+     * <pre>
+     *     &c;;Hello World__Goodbye World
+     * </pre>
+     * will be formatted as:
+     * <pre>
+     *     &cHello World
+     *     &cGoodbye World
+     * </pre>
+     *
+     * @param textBlock - Text block.
+     * @param charLimit - Char split limit.
+     */
+    ItemStackBuilder addTextBlockLore(String textBlock, int charLimit, Object... format);
+
+    /**
      * Removes all the lore from the item.
      */
     ItemStackBuilder removeLore();
@@ -349,7 +390,7 @@ public interface ItemStackBuilder {
 
     /**
      * Applies default setting to the item, such as:
-     *
+     * <p>
      * - Makes item unbreakable.
      * - Hides enchantments.
      */
@@ -863,6 +904,15 @@ public interface ItemStackBuilder {
     }
 
     /**
+     * Creates builder of provided ItemStack.
+     *
+     * @param itemStack - ItemStack.
+     */
+    static ItemStackBuilder of(ItemStack itemStack) {
+        return new ItemBuilder(itemStack);
+    }
+
+    /**
      * Creates builder of provided material with provided name and lore.
      *
      * @param material - Material to use.
@@ -885,4 +935,9 @@ public interface ItemStackBuilder {
     static ItemStackBuilder air() {
         return of(Material.AIR);
     }
+
+    static Object[] ambiguous(Object... obj) {
+        return new Object[] { obj };
+    }
+
 }
