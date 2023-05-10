@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
  */
 public class PlayerGUI extends GUI {
 
-    private final Player player;
+    protected final Player player;
 
     public PlayerGUI(Player player, String name, int rows) {
         super(name, rows);

@@ -318,19 +318,25 @@ public class ItemBuilder implements ItemStackBuilder {
 
     @Override
     public ItemBuilder setSmartLore(String lore) {
-        this.meta.setLore(splitString(lore, 30));
+        setSmartLore(lore, 30);
         return this;
     }
 
     @Override
     public ItemBuilder setSmartLore(String lore, final int limit) {
-        this.meta.setLore(splitString(lore, limit));
+        setSmartLore(lore, "&7", limit);
+        return this;
+    }
+
+    @Override
+    public ItemBuilder setSmartLore(String lore, String prefix) {
+        this.setSmartLore(lore, prefix, 30);
         return this;
     }
 
     @Override
     public ItemBuilder addSmartLore(String lore, final int limit) {
-        this.addSmartLore(lore, "&7", limit);
+        addSmartLore(lore, "&7", limit);
         return this;
     }
 
@@ -343,12 +349,6 @@ public class ItemBuilder implements ItemStackBuilder {
     @Override
     public ItemBuilder addSmartLore(String lore) {
         addSmartLore(lore, 30);
-        return this;
-    }
-
-    @Override
-    public ItemBuilder setSmartLore(String lore, String prefix) {
-        this.setSmartLore(lore, prefix, 30);
         return this;
     }
 
@@ -1177,10 +1177,6 @@ public class ItemBuilder implements ItemStackBuilder {
         return lastColors.isEmpty() ? def : lastColors.get(lastColors.size() - 1);
     }
 
-    private static boolean isColorChar(char c) {
-        return "0123456789abcdefklmnor".indexOf(c) != -1;
-    }
-
     // Item Value Setters
     public static void setName(ItemStack item, String name) {
         final ItemMeta meta = item.getItemMeta();
@@ -1192,6 +1188,10 @@ public class ItemBuilder implements ItemStackBuilder {
         final ItemMeta meta = item.getItemMeta();
         Nulls.runIfNotNull(meta, m -> m.setLore(Collections.singletonList(lore)));
         item.setItemMeta(meta);
+    }
+
+    private static boolean isColorChar(char c) {
+        return "0123456789abcdefklmnor".indexOf(c) != -1;
     }
 
     private static boolean isIdRegistered(String id) {

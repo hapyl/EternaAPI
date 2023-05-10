@@ -2,6 +2,8 @@ package me.hapyl.spigotutils.module.util;
 
 import me.hapyl.spigotutils.module.math.Numbers;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -40,6 +42,19 @@ public class CollectionUtils {
     }
 
     /**
+     * Gets the element from a set, or null if the index is out of bounds.
+     *
+     * @param hashSet - set to get from.
+     * @param index   - index of the element to get.
+     * @param <E>     - type of the set.
+     * @return the element at the index, or null if the index is out of bounds.
+     */
+    @Nullable
+    public static <E> E get(Set<E> hashSet, int index) {
+        return getOrDefault(hashSet, index, null);
+    }
+
+    /**
      * Gets the element from array index, or def if the index is out of bounds.
      *
      * @param array - array to get from.
@@ -48,8 +63,23 @@ public class CollectionUtils {
      * @param <E>   - type of the array.
      * @return the element at the index, or def if the index is out of bounds.
      */
+    @CheckForNull
     public static <E> E getOrDefault(E[] array, int index, E def) {
         return index >= array.length ? def : array[index];
+    }
+
+    /**
+     * Gets the element from collection by index, or def if the index is out of bounds.
+     *
+     * @param collection - Collection.
+     * @param index      - Index.
+     * @param def        - Default value.
+     * @param <E>        - type of the collection.
+     * @return the element at index or def if the index is out of bounds.
+     */
+    @CheckForNull(/*if def is null*/)
+    public static <E> E getOrDefault(Collection<E> collection, int index, E def) {
+        return index >= collection.size() ? def : (E) collection.toArray()[index];
     }
 
     /**
@@ -63,19 +93,6 @@ public class CollectionUtils {
      */
     public static <E> E getOrDefault(List<E> arrayList, int index, E def) {
         return index >= arrayList.size() ? def : arrayList.get(index);
-    }
-
-    /**
-     * Gets the element from a set, or null if the index is out of bounds.
-     *
-     * @param hashSet - set to get from.
-     * @param index   - index of the element to get.
-     * @param <E>     - type of the set.
-     * @return the element at the index, or null if the index is out of bounds.
-     */
-    @Nullable
-    public static <E> E get(Set<E> hashSet, int index) {
-        return getOrDefault(hashSet, index, null);
     }
 
     /**
@@ -105,7 +122,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Wraps array to string according to wrap.
+     * Wraps an array to string, according to wrapper.
      *
      * @param array - array to wrap.
      * @param wrap  - wrap to use.
@@ -113,8 +130,8 @@ public class CollectionUtils {
      * @return the wrapped string.
      */
     public static <E> String wrapToString(E[] array, Wrap wrap) {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(wrap.start());
+        final StringBuilder builder = new StringBuilder(wrap.start());
+
         for (int i = 0; i < array.length; i++) {
             final E e = array[i];
             builder.append(e.toString());
@@ -126,7 +143,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Wraps collection to string according to wrap.
+     * Wraps a collection to string according to wrap.
      *
      * @param collection - collection to wrap.
      * @param wrap       - wrap to use.
@@ -148,7 +165,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Wraps collection to a string according to default wrap.
+     * Wraps a collection to a string according to default wrap.
      *
      * @param collection - collection to wrap.
      * @return the wrapped string.
@@ -157,7 +174,16 @@ public class CollectionUtils {
         return wrapToString(collection, Wrap.DEFAULT);
     }
 
-    public static <K, V> String wrapToString(Map<K, V> map, Wrap.MapWrap<K, V> wrap) {
+    /**
+     * Wraps a map to a string according to a wrapper.
+     *
+     * @param map  - Map to wrap.
+     * @param wrap - Wrapper.
+     * @param <K>  - Key type.
+     * @param <V>  - Value type.
+     * @return the wrapped string.
+     */
+    public static <K, V> String wrapToString(Map<K, V> map, MapWrap<K, V> wrap) {
         final StringBuilder builder = new StringBuilder(wrap.start());
 
         int i = 0;
@@ -174,10 +200,6 @@ public class CollectionUtils {
         return builder.toString();
     }
 
-    static {
-
-    }
-
     /**
      * Wraps array to string using default wrap
      *
@@ -190,11 +212,11 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns true if array is null or empty.
+     * Returns true if an array is null or empty.
      *
      * @param array - array to check.
      * @param <E>   - type of the array.
-     * @return true if array is null or empty.
+     * @return true if an array is null or empty.
      */
     public static <E> boolean nullOrEmpty(E[] array) {
         return array == null || array.length == 0;
@@ -213,7 +235,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Migrates all the lists into one, clears them and returns new list.
+     * Migrates all the lists into one, clears them and returns a new list.
      *
      * @param lists - List to migrate.
      * @param <E>   - type of the lists.
@@ -225,7 +247,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Migrates one list to another according to migrator.
+     * Migrates one list to another, according to migrator.
      *
      * @param from     - list to migrate from.
      * @param to       - list to migrate to.
@@ -308,7 +330,7 @@ public class CollectionUtils {
         }
         short count = 0;
         for (final List<E> list : lists) {
-            if (count >= Short.MAX_VALUE) {
+            if (count == Short.MAX_VALUE) {
                 return newList;
             }
             newList.addAll(list);
@@ -337,7 +359,7 @@ public class CollectionUtils {
      * @param hashMap - map to add to.
      * @param value   - value to add.
      * @param toAdd   - value to add.
-     * @param <K>     - type of the key of the map.
+     * @param <K>     - Key type.
      */
     public static <K> void addMapValue(Map<K, Integer> hashMap, K value, int toAdd) {
         hashMap.put(value, hashMap.getOrDefault(value, 0) + toAdd);
@@ -350,7 +372,7 @@ public class CollectionUtils {
      * @param value   - value to clamp.
      * @param min     - min value.
      * @param max     - max value.
-     * @param <K>     - type of the key of the map.
+     * @param <K>     - Key type.
      */
     public static <K> void clampMapValue(Map<K, Integer> hashMap, K value, int min, int max) {
         final int integer = hashMap.getOrDefault(value, 0);
@@ -358,7 +380,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Adds object to a set and returns it.
+     * Adds an object to a set and returns it.
      *
      * @param set   - set to add to.
      * @param toAdd - object to add.
@@ -371,7 +393,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Creates new map and inserts the key and value.
+     * Creates a new map and inserts the key and value.
      *
      * @param key   - key to insert.
      * @param value - value to insert.
@@ -445,7 +467,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns a random element from the set or first if set is empty.
+     * Returns a random element from the set or first if a set is empty.
      *
      * @param hashSet - set to get from.
      * @return a random element.
@@ -456,7 +478,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns a random element from the set or def if set is empty.
+     * Returns a random element from the set or def if a set is empty.
      *
      * @param hashSet - set to get from.
      * @param def     - default value.
@@ -469,6 +491,22 @@ public class CollectionUtils {
         }
 
         return getOrDefault(hashSet, ThreadLocalRandom.current().nextInt(hashSet.size()), def);
+    }
+
+    /**
+     * Gets a random element from a collection, or default if a collection is empty.
+     *
+     * @param collection - Collection.
+     * @param def        - Default value.
+     * @param <E>        - Type.
+     * @return a random element or def.
+     */
+    public static <E> E randomElement(Collection<E> collection, E def) {
+        if (collection.isEmpty()) {
+            return def;
+        }
+
+        return getOrDefault(collection, ThreadLocalRandom.current().nextInt(collection.size()), def);
     }
 
     /**
@@ -641,7 +679,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Converts array to set.
+     * Converts an array to set.
      *
      * @param array - array to convert.
      * @param <E>   - type of the array.
@@ -652,7 +690,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Converts int array to list of integers.
+     * Converts an int array to list of integers.
      *
      * @param array - array to convert.
      * @return the list.
@@ -665,8 +703,17 @@ public class CollectionUtils {
         return list;
     }
 
-    @Deprecated
-    public static <K, V> Gap<K, V> newGap() {
-        return new Gap<>();
+    /**
+     * Appends a value to a collection.
+     *
+     * @param collection - Collection.
+     * @param element    - Element.
+     * @param <T>        - Element type.
+     * @param <C>        - Collection.
+     * @return collection.
+     */
+    public static <T, C extends Collection<T>> Collection<T> append(@Nonnull C collection, T element) {
+        collection.add(element);
+        return collection;
     }
 }

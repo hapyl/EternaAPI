@@ -36,8 +36,7 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
         setAliases("radio");
         setDescription(
-                "Allows admins to play \".nbs\" format song! Only one instance of radio may exists per server using this command."
-        );
+                "Allows admins to play \".nbs\" format song! Only one instance of radio may exists per server using this command.");
 
         addCompleterValues(1, "play", "stop", "list", "pause", "info", "repeat", "queue", "add", "skip", "reload");
     }
@@ -113,12 +112,19 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
                     final Queue<Song> list = queue.getQueue();
                     if (list.isEmpty()) {
                         radio.sendMessage(player, "No songs in the queue.");
-                    } else {
+                    }
+                    else {
                         radio.sendMessage(player, "&aCurrent Queue:");
 
                         int index = 0;
                         for (Song song : list) {
-                            radio.sendMessage(player, " #%s: %s - %s", index + 1, song.getOriginalAuthor(), song.getName());
+                            radio.sendMessage(
+                                    player,
+                                    " #%s: %s - %s",
+                                    index + 1,
+                                    song.getOriginalAuthor(),
+                                    song.getName()
+                            );
 
                             if (++index >= 10) {
                                 radio.sendMessage(player, "And %s more!", list.size() - index);
@@ -180,7 +186,10 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
         final StringBuilder builder = new StringBuilder();
 
         for (int i = 1; i < args.length; i++) {
-            builder.append(args[i]).append(" ");
+            if (i != 1) {
+                builder.append(" ");
+            }
+            builder.append(args[i]);
         }
 
         return builder.toString();
@@ -192,7 +201,8 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
         if (!registry.anySongs()) {
             radio.sendMessage(
                     player,
-                    "&cThere are no songs loaded, add them into 'plugins/%s/songs' folder and run 'nbs reload'!".formatted(EternaPlugin.getPlugin().getName())
+                    "&cThere are no songs loaded, add them into 'plugins/%s/songs' folder and run 'nbs reload'!".formatted(
+                            EternaPlugin.getPlugin().getName())
             );
             return;
         }
@@ -216,10 +226,10 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
     private BaseComponent[] createClickable(String name) {
         final String coolName = Chat.capitalize(name);
-        return new ComponentBuilder(ChatColor.GOLD + coolName).event(LazyHoverEvent.SHOW_TEXT.of("&eClick to play \"" + name + "\"!"))
+        return new ComponentBuilder(ChatColor.GOLD + coolName).event(LazyHoverEvent.SHOW_TEXT.of(
+                        "&eClick to play \"" + name + "\"!"))
                 // for what reason it's called run_command, but it does not call command but instead sends a chat message
-                .event(LazyClickEvent.RUN_COMMAND.of("/nbs play " + name))
-                .create();
+                .event(LazyClickEvent.RUN_COMMAND.of("/nbs play " + name)).create();
     }
 
     private boolean validateHasSong(Player player) {
