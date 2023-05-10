@@ -45,6 +45,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public class ItemBuilder implements ItemStackBuilder {
 
+    public static final int DEFAULT_SMART_SPLIT_CHAR_LIMIT = 35;
     private static final String PLUGIN_PATH = "ItemBuilderId";
     private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
     private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
@@ -318,7 +319,7 @@ public class ItemBuilder implements ItemStackBuilder {
 
     @Override
     public ItemBuilder setSmartLore(String lore) {
-        setSmartLore(lore, 30);
+        setSmartLore(lore, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
         return this;
     }
 
@@ -330,7 +331,7 @@ public class ItemBuilder implements ItemStackBuilder {
 
     @Override
     public ItemBuilder setSmartLore(String lore, String prefix) {
-        this.setSmartLore(lore, prefix, 30);
+        this.setSmartLore(lore, prefix, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
         return this;
     }
 
@@ -342,13 +343,13 @@ public class ItemBuilder implements ItemStackBuilder {
 
     @Override
     public ItemBuilder addSmartLore(String lore, String prefixText) {
-        this.addSmartLore(lore, prefixText, 30);
+        this.addSmartLore(lore, prefixText, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
         return this;
     }
 
     @Override
     public ItemBuilder addSmartLore(String lore) {
-        addSmartLore(lore, 30);
+        addSmartLore(lore, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
         return this;
     }
 
@@ -422,6 +423,36 @@ public class ItemBuilder implements ItemStackBuilder {
             Bukkit.getConsoleSender()
                     .sendMessage(colorize("&4[ERROR] &cChar &e" + separator + " &cused as separator for lore!"));
         }
+        return this;
+    }
+
+    @Override
+    public ItemBuilder addTextBlockLore(String textBlock, Object... format) {
+        return addTextBlockLore(textBlock, DEFAULT_SMART_SPLIT_CHAR_LIMIT, format);
+    }
+
+    @Override
+    public ItemBuilder addTextBlockLore(String textBlock, int charLimit, Object... format) {
+        final String[] strings = textBlock.formatted(format).split("\n");
+        final List<String> lore = meta.getLore() == null ? Lists.newArrayList() : meta.getLore();
+
+        for (String string : strings) {
+            if (string.equalsIgnoreCase("")) { // paragraph
+                lore.add("");
+            }
+
+            final int prefixIndex = string.lastIndexOf(";;");
+            String prefix = "&7";
+
+            if (prefixIndex > 0) {
+                prefix = string.substring(0, prefixIndex);
+                string = string.substring(prefixIndex + 2);
+            }
+
+            lore.addAll(splitString(prefix, string, charLimit));
+        }
+
+        this.meta.setLore(lore);
         return this;
     }
 
