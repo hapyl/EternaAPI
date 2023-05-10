@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.player.song;
 
 import me.hapyl.spigotutils.module.math.Numbers;
+import me.hapyl.spigotutils.module.util.CollectionUtils;
 import me.hapyl.spigotutils.module.util.NonnullConsumer;
 import me.hapyl.spigotutils.registry.Registry;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -89,12 +90,17 @@ public class SongRegistry extends Registry<String, Song> {
     /**
      * Returns a song by its name.
      * This checks both for exact match and for containing name.
+     * Use '?' as input to get a random song.
      *
      * @param name - Song to get.
      * @return a song by its name or null if none found.
      */
     @Nullable
     public Song byName(@Nonnull String name) {
+        if (name.equalsIgnoreCase("?")) {
+            return randomSong();
+        }
+
         name = name.trim();
         Song song = byKey(name);
 
@@ -117,6 +123,15 @@ public class SongRegistry extends Registry<String, Song> {
      */
     public List<String> listNames() {
         return new ArrayList<>(registry.keySet());
+    }
+
+    @Nullable
+    public Song randomSong() {
+        if (registry.isEmpty()) {
+            return null;
+        }
+
+        return CollectionUtils.randomElement(registry.values(), null);
     }
 
     /**
