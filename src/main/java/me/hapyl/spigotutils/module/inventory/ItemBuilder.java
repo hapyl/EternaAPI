@@ -1246,12 +1246,12 @@ public class ItemBuilder implements ItemStackBuilder {
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             final boolean checkLast = c == text.charAt(text.length() - 1);
-            line = line.concat(c + "");
+            line = line.concat(String.valueOf(c));
             counter++;
 
             if (c == '_' && text.charAt(i + 1) == '_') {
                 // this fixes an extra space before manual split.
-                // it's not a bug and it works as indented, but it's
+                // it's not a bug, and it works as indented, but it's
                 // getting quite annoying at times to fix.
                 if (list.size() > 1) {
                     final String lastValue = list.get(list.size() - 1).trim().replace("§", "&");
@@ -1280,7 +1280,15 @@ public class ItemBuilder implements ItemStackBuilder {
     }
 
     private static String colorize(String s) {
-        return ChatColor.translateAlternateColorCodes('&', s);
+        return format(s);
+    }
+
+    public static String format(@Nonnull String string, @Nullable Object... format) {
+        if (format == null || format.length == 0) {
+            return ChatColor.translateAlternateColorCodes('&', string);
+        }
+
+        return Chat.format(string, format);
     }
 
     protected static class ItemBuilderException extends RuntimeException {

@@ -46,7 +46,8 @@ public class Chat {
      * @return Safely returns ItemStack name if present, prettified material name otherwise.
      */
     public static String getItemName(@Nonnull ItemStack stack) {
-        return (stack.getItemMeta() == null) ? Chat.stringifyItemName(stack.getType()) : (stack.getItemMeta().getDisplayName());
+        return (stack.getItemMeta() == null) ? Chat.stringifyItemName(stack.getType()) : (stack.getItemMeta()
+                .getDisplayName());
     }
 
     /**
@@ -105,10 +106,10 @@ public class Chat {
     public static String format(String input, Object... replacements) {
         try {
             return ChatColor.translateAlternateColorCodes('&', String.format(input, replacements));
-        } catch (MissingFormatArgumentException ex) {
+        } catch (Exception ex) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Could not parse string in Chat module!");
             ex.printStackTrace();
-            return ChatColor.RED + "MissingFormatArgumentException occurred, check the console!";
+            return ChatColor.DARK_RED + "MissingFormatArgumentException occurred, check the console!";
         }
     }
 
@@ -379,7 +380,8 @@ public class Chat {
      * @param format  - Replacements.
      */
     public static void sendClickableMessage(CommandSender sender, ClickEvent event, Object message, Object... format) {
-        sender.spigot().sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
+        sender.spigot()
+                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
     }
 
     /**
@@ -391,7 +393,8 @@ public class Chat {
      * @param format  - Replacements.
      */
     public static void sendHoverableMessage(CommandSender sender, HoverEvent event, Object message, Object... format) {
-        sender.spigot().sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
+        sender.spigot()
+                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
     }
 
     /**
@@ -406,7 +409,9 @@ public class Chat {
     public static void sendClickableHoverableMessage(CommandSender sender, ClickEvent clickEvent, HoverEvent hoverEvent, Object message, Object... format) {
         sender
                 .spigot()
-                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(clickEvent).event(hoverEvent).create());
+                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(clickEvent)
+                        .event(hoverEvent)
+                        .create());
     }
 
     /**
@@ -474,7 +479,10 @@ public class Chat {
      * @param replacement - Replacements.
      */
     public static void broadcastOp(String string, Object... replacement) {
-        Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(player -> Chat.sendMessage_(player, string, replacement));
+        Bukkit.getOnlinePlayers()
+                .stream()
+                .filter(Player::isOp)
+                .forEach(player -> Chat.sendMessage_(player, string, replacement));
     }
 
     public String getColor() {

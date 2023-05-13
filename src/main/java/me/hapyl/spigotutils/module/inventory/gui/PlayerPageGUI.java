@@ -27,17 +27,45 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     private int nextPageSlot;
     @Nullable
     private ItemStack emptyContentsItem;
+    private int emptyContentsSlot;
 
     public PlayerPageGUI(Player player, String name, int rows) {
         super(player, name, rows);
+
+        final int size = rows * 9;
 
         this.contents = Lists.newLinkedList();
         this.fit = Fit.SLIM;
         this.startRow = 1;
         this.endRow = rows - 1;
-        this.previousPageSlot = (rows * 9) - 7;
-        this.nextPageSlot = (rows * 9) - 3;
+        this.previousPageSlot = size - 7;
+        this.nextPageSlot = size - 3;
         this.emptyContentsItem = ItemBuilder.of(Material.MINECART, "Empty").asIcon();
+
+        this.emptyContentsSlot = switch (rows) {
+            case 6, 5, 4 -> 22;
+            case 3, 2 -> 13;
+            default -> 4;
+        };
+    }
+
+    /**
+     * Returns current slot for empty contents item.
+     *
+     * @return current slot for empty contents item.
+     */
+    public int getEmptyContentsSlot() {
+        return emptyContentsSlot;
+    }
+
+    /**
+     * Sets current slot for empty contents item.
+     * Will be clamped between 0 and getSize()
+     *
+     * @param emptyContentsSlot - New slot.
+     */
+    public void setEmptyContentsSlot(int emptyContentsSlot) {
+        this.emptyContentsSlot = Numbers.clamp(emptyContentsSlot, 0, getSize());
     }
 
     /**
@@ -98,9 +126,9 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     }
 
     /**
-     * Returns the maximum amount of items that can fit in a page.
+     * Returns the maximum number of items that can fit in a page.
      *
-     * @return The maximum amount of items that can fit in a page.
+     * @return The maximum number of items that can fit in a page.
      */
     public int maxItemsPerPage() {
         return (endRow - startRow) * fit.canFit;
@@ -109,7 +137,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     /**
      * Returns how ItemStack should be made.
      *
-     * @param player  - Player who is viewing the GUI.
+     * @param player  - Player, who is viewing the GUI.
      * @param content - The content.
      * @param index   - Index of the content between 0 and {@link #maxItemsPerPage()}.
      * @param page    - Page of the content between 1 and {@link #getMaxPage()}.
@@ -121,7 +149,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     /**
      * Executed when a player clicks on an item.
      *
-     * @param player  - Player who clicked the item.
+     * @param player  - Player, who clicked the item.
      * @param content - The content.
      * @param index   - Index of the content between 0 and {@link #maxItemsPerPage()}.
      * @param page    - Page of the content between 1 and {@link #getMaxPage()}.
@@ -131,7 +159,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     /**
      * Executed whenever player changes page.
      *
-     * @param player       - Player who changed the page.
+     * @param player       - Player, who changed the page.
      * @param previousPage - Previous page.
      * @param newPage      - New page.
      */
@@ -141,7 +169,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     /**
      * Opens the inventory to the player.
      *
-     * @param page - Page to open at. First page is 1.
+     * @param page - Page to open at. The first page is 1.
      */
     public final void openInventory(int page) {
         final int toPage = Numbers.clamp(page, 1, getMaxPage());
@@ -149,7 +177,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
 
         if (contents.isEmpty()) {
             if (emptyContentsItem != null) {
-                setItem(getSize() / 2, emptyContentsItem);
+                setItem(emptyContentsSlot, emptyContentsItem);
             }
             super.openInventory();
             return;
@@ -189,7 +217,18 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         }
 
         component.apply(this, fit.pattern, startRow);
+        postProcessInventory(player, page);
+
         super.openInventory();
+    }
+
+    /**
+     * Called after applying the component, but before opening the inventory.
+     *
+     * @param player - Player.
+     * @param page   - Current page.
+     */
+    public void postProcessInventory(Player player, int page) {
     }
 
     /**
