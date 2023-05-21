@@ -219,6 +219,7 @@ public class BoundingBox {
         if (!isDefined()) {
             return 0;
         }
+
         return (int) (Math.max(start.getX(), end.getX()) - Math.min(start.getX(), end.getX())) + 1;
     }
 
@@ -231,6 +232,7 @@ public class BoundingBox {
         if (!isDefined()) {
             return 0;
         }
+
         return (int) (Math.max(start.getY(), end.getY()) - Math.min(start.getY(), end.getY())) + 1;
     }
 
@@ -243,6 +245,7 @@ public class BoundingBox {
         if (!isDefined()) {
             return 0;
         }
+
         return (int) (Math.max(start.getZ(), end.getZ()) - Math.min(start.getZ(), end.getZ())) + 1;
     }
 
