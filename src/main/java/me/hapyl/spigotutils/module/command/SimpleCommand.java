@@ -8,6 +8,7 @@ import me.hapyl.spigotutils.module.command.completer.Checker2;
 import me.hapyl.spigotutils.module.command.completer.CompleterHandler;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
+import me.hapyl.spigotutils.module.util.TypeConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -26,27 +27,22 @@ import java.util.function.Function;
  */
 public abstract class SimpleCommand {
 
-    private SimpleCommand() {
-        throw new NullPointerException();
-    }
-
     private final String name;
     private final Map<Integer, List<String>> completerValues;
     private final Map<Integer, CompleterHandler> completerHandlers;
-
     private String permission;
     private String description;
     private String usage;
-
     private String[] aliases;
-
     private boolean allowOnlyOp;
     private boolean allowOnlyPlayer;
-
     private int cooldownTick;
-
     private CommandCooldown cooldown;
     @Nullable private ArgumentProcessor argumentProcessor;
+
+    private SimpleCommand() {
+        throw new NullPointerException();
+    }
 
     /**
      * Creates a new simple command
@@ -205,76 +201,12 @@ public abstract class SimpleCommand {
     }
 
     /**
-     * Returns mapped index-value completer values.
-     *
-     * @return mapped index-value completer values.
-     */
-    protected Map<Integer, List<String>> getCompleterValues() {
-        return completerValues;
-    }
-
-    /**
-     * Executes the command
-     *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
-     */
-    protected abstract void execute(CommandSender sender, String[] args);
-
-    /**
-     * Tab-Completes the command
-     *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
-     * @return Sorted list with valid arguments
-     */
-    @Nullable
-    protected List<String> tabComplete(CommandSender sender, String[] args) {
-        return Lists.newArrayList();
-    }
-
-    /**
-     * Pre tab complete, called before {@link SimpleCommand#tabComplete(CommandSender, String[])}.
-     *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
-     * @return New list of completes.
-     */
-    @Nonnull
-    protected List<String> preTabComplete(CommandSender sender, String[] args) {
-        return Lists.newArrayList();
-    }
-
-    /**
-     * Post tab complete, called after {@link SimpleCommand#tabComplete(CommandSender, String[])}.
-     *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
-     * @return New list of completes.
-     */
-    @Nonnull
-    protected List<String> postTabComplete(CommandSender sender, String[] args) {
-        return Lists.newArrayList();
-    }
-
-
-    /**
      * Sets if command can only be executed by a player.
      *
      * @param flag - boolean flag
      */
     public void setAllowOnlyPlayer(boolean flag) {
         this.allowOnlyPlayer = flag;
-    }
-
-    /**
-     * Sets cooldown of command in ticks.
-     *
-     * @param cooldownTick - cooldown.
-     */
-    public void setCooldownTick(int cooldownTick) {
-        this.cooldownTick = cooldownTick;
-        this.cooldown = new CommandCooldown(this);
     }
 
     /**
@@ -300,15 +232,13 @@ public abstract class SimpleCommand {
     }
 
     /**
-     * Sets command usage.
+     * Sets cooldown of command in ticks.
      *
-     * @param usage - New usage, slash will be removed.
+     * @param cooldownTick - cooldown.
      */
-    public void setUsage(String usage) {
-        if (usage.startsWith("/")) {
-            usage = usage.replace("/", "");
-        }
-        this.usage = "/" + usage;
+    public void setCooldownTick(int cooldownTick) {
+        this.cooldownTick = cooldownTick;
+        this.cooldown = new CommandCooldown(this);
     }
 
     /**
@@ -317,6 +247,7 @@ public abstract class SimpleCommand {
      * @return argument processor for this command if any present.
      */
     @Nullable
+    @Deprecated
     public ArgumentProcessor getArgumentProcessor() {
         return argumentProcessor;
     }
@@ -326,144 +257,6 @@ public abstract class SimpleCommand {
             argumentProcessor.checkArgumentAndExecute(sender, args);
         }
     }
-
-    protected void tryArgumentProcessor() {
-        if (this.argumentProcessor == null && ArgumentProcessor.countMethods(this) > 0) {
-            this.argumentProcessor = new ArgumentProcessor(this);
-        }
-    }
-
-    /**
-     * Sets if this command is only allowed to be run by sever operators.
-     *
-     * @param bool - New value.
-     */
-    public void setAllowOnlyOp(boolean bool) {
-        this.allowOnlyOp = bool;
-    }
-
-    /**
-     * Sets a description of the command.
-     *
-     * @param info - new description
-     */
-    public void setDescription(String info) {
-        this.description = info;
-    }
-
-    /**
-     * Sets a command aliases.
-     *
-     * @param aliases - new aliases
-     */
-    public void setAliases(String... aliases) {
-        this.aliases = new String[aliases.length];
-
-        for (int i = 0; i < aliases.length; i++) {
-            this.aliases[i] = aliases[i].toLowerCase();
-        }
-    }
-
-    /**
-     * Sets a command permission
-     *
-     * @param permission - new permission
-     */
-    public void setPermission(String permission) {
-        this.permission = permission;
-    }
-
-    // Some useful utilities for ya.
-
-    /**
-     * Sorts input list so there are only strings that can finish the string you are typing.
-     *
-     * @param list           - List to sort
-     * @param args           - Command args
-     * @param forceLowerCase - Forces input and args to be in lower case
-     */
-    protected List<String> completerSort(List<String> list, String[] args, boolean forceLowerCase) {
-        return Chat.tabCompleterSort(list, args, forceLowerCase);
-    }
-
-    // see above
-    protected List<String> completerSort(List<String> list, String[] args) {
-        return completerSort(list, args, true);
-    }
-
-    // see above
-    protected <E> List<String> completerSort(E[] array, String[] args) {
-        return completerSort(arrayToList(array), args);
-    }
-
-    // see above
-    protected <E> List<String> completerSort(Collection<E> list, String[] args) {
-        return Chat.tabCompleterSort(eToString(list), args);
-    }
-
-    protected List<String> completerSort2(List<String> list, String[] args, boolean forceLowerCase) {
-        return Chat.tabCompleterSort0(list, args, forceLowerCase, false);
-    }
-
-    protected List<String> completerSort2(List<String> list, String[] args) {
-        return completerSort2(list, args, true);
-    }
-
-    protected <E> List<String> completerSort2(E[] array, String[] args) {
-        return completerSort2(arrayToList(array), args);
-    }
-
-    /**
-     * Returns true if argument of provided index is present and is equals to string.
-     *
-     * @param args   - Array of strings to check.
-     * @param index  - Index of argument to match.
-     * @param string - String to match.
-     * @return true if argument of provided index is present and is equals to string.
-     */
-    protected boolean matchArgs(String[] args, int index, String string) {
-        return index < args.length && args[index].equalsIgnoreCase(string);
-    }
-
-    /**
-     * Converts set of strings to list of strings.
-     *
-     * @param set - Set to convert.
-     * @return List of strings with set values.
-     */
-    protected List<String> setToList(Set<String> set) {
-        return new ArrayList<>(set);
-    }
-
-    /**
-     * Converts array to list of strings.
-     *
-     * @param array - Array to convert.
-     * @return List of strings with array values.
-     */
-    protected <T> List<String> arrayToList(T[] array) {
-        return Chat.arrayToList(array);
-    }
-
-    /**
-     * Sends 'Invalid Usage!' message with correct usage of this command
-     * to the sender.
-     *
-     * @param sender - Receiver actually.
-     */
-    protected void sendInvalidUsageMessage(CommandSender sender) {
-        Chat.sendMessage(sender, "&cInvalid Usage! &e%s.", this.usage);
-    }
-
-    private <E> List<String> eToString(Collection<E> list) {
-        List<String> str = new ArrayList<>();
-        for (final E e : list) {
-            str.add(e.toString());
-        }
-        return str;
-    }
-
-    // end of utils
 
     /**
      * Returns true if this command can only be called by players, false otherwise.
@@ -482,6 +275,15 @@ public abstract class SimpleCommand {
     @Nonnull
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * Sets a description of the command.
+     *
+     * @param info - new description
+     */
+    public void setDescription(String info) {
+        this.description = info;
     }
 
     /**
@@ -505,6 +307,15 @@ public abstract class SimpleCommand {
     }
 
     /**
+     * Sets a command permission
+     *
+     * @param permission - new permission
+     */
+    public void setPermission(String permission) {
+        this.permission = permission;
+    }
+
+    /**
      * Returns aliases of this command.
      *
      * @return aliases of this command.
@@ -512,6 +323,19 @@ public abstract class SimpleCommand {
     @Nonnull
     public String[] getAliases() {
         return aliases;
+    }
+
+    /**
+     * Sets a command aliases.
+     *
+     * @param aliases - new aliases
+     */
+    public void setAliases(String... aliases) {
+        this.aliases = new String[aliases.length];
+
+        for (int i = 0; i < aliases.length; i++) {
+            this.aliases[i] = aliases[i].toLowerCase();
+        }
     }
 
     /**
@@ -524,12 +348,35 @@ public abstract class SimpleCommand {
     }
 
     /**
+     * Sets if this command is only allowed to be run by sever operators.
+     *
+     * @param bool - New value.
+     */
+    public void setAllowOnlyOp(boolean bool) {
+        this.allowOnlyOp = bool;
+    }
+
+    /**
      * Returns usage of this command, which is '/(CommandName)' by default.
      *
      * @return usage of this command, which is '/(CommandName)' by default.
      */
     public String getUsage() {
         return usage;
+    }
+
+    // Some useful utilities for ya.
+
+    /**
+     * Sets command usage.
+     *
+     * @param usage - New usage, slash will be removed.
+     */
+    public void setUsage(String usage) {
+        if (usage.startsWith("/")) {
+            usage = usage.replace("/", "");
+        }
+        this.usage = "/" + usage;
     }
 
     public final Command createCommand() {
@@ -609,6 +456,162 @@ public abstract class SimpleCommand {
         };
     }
 
+    /**
+     * Returns mapped index-value completer values.
+     *
+     * @return mapped index-value completer values.
+     */
+    protected Map<Integer, List<String>> getCompleterValues() {
+        return completerValues;
+    }
+
+    /**
+     * Executes the command
+     *
+     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
+     * @param args   - Arguments of the command
+     */
+    protected abstract void execute(CommandSender sender, String[] args);
+
+    /**
+     * Tab-Completes the command
+     *
+     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
+     * @param args   - Arguments of the command
+     * @return Sorted list with valid arguments
+     */
+    @Nullable
+    protected List<String> tabComplete(CommandSender sender, String[] args) {
+        return Lists.newArrayList();
+    }
+
+    /**
+     * Pre-tab complete, called before {@link SimpleCommand#tabComplete(CommandSender, String[])}.
+     *
+     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
+     * @param args   - Arguments of the command
+     * @return New list of completes.
+     */
+    @Nonnull
+    protected List<String> preTabComplete(CommandSender sender, String[] args) {
+        return Lists.newArrayList();
+    }
+
+    /**
+     * Post-tab complete, called after {@link SimpleCommand#tabComplete(CommandSender, String[])}.
+     *
+     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
+     * @param args   - Arguments of the command
+     * @return New list of completes.
+     */
+    @Nonnull
+    protected List<String> postTabComplete(CommandSender sender, String[] args) {
+        return Lists.newArrayList();
+    }
+
+    protected void tryArgumentProcessor() {
+        if (this.argumentProcessor == null && ArgumentProcessor.countMethods(this) > 0) {
+            this.argumentProcessor = new ArgumentProcessor(this);
+        }
+    }
+
+    /**
+     * Sort input lists so there are only strings that can finish the string you are typing.
+     *
+     * @param list           - List to sort
+     * @param args           - Command args
+     * @param forceLowerCase - Forces input and args to be in lower case
+     */
+    protected List<String> completerSort(List<String> list, String[] args, boolean forceLowerCase) {
+        return Chat.tabCompleterSort(list, args, forceLowerCase);
+    }
+
+    // see above
+    protected List<String> completerSort(List<String> list, String[] args) {
+        return completerSort(list, args, true);
+    }
+
+    // see above
+    protected <E> List<String> completerSort(E[] array, String[] args) {
+        return completerSort(arrayToList(array), args);
+    }
+
+    // see above
+    protected <E> List<String> completerSort(Collection<E> list, String[] args) {
+        return Chat.tabCompleterSort(eToString(list), args);
+    }
+
+    // end of utils
+
+    protected List<String> completerSort2(List<String> list, String[] args, boolean forceLowerCase) {
+        return Chat.tabCompleterSort0(list, args, forceLowerCase, false);
+    }
+
+    protected List<String> completerSort2(List<String> list, String[] args) {
+        return completerSort2(list, args, true);
+    }
+
+    protected <E> List<String> completerSort2(E[] array, String[] args) {
+        return completerSort2(arrayToList(array), args);
+    }
+
+    /**
+     * Returns true if argument of provided index is present and is equals to string.
+     *
+     * @param args   - Array of strings to check.
+     * @param index  - Index of argument to match.
+     * @param string - String to match.
+     * @return true if the argument of provided index is present and is equals to string.
+     */
+    protected boolean matchArgs(String[] args, int index, String string) {
+        return index < args.length && args[index].equalsIgnoreCase(string);
+    }
+
+    @Nonnull
+    protected TypeConverter getArgument(String[] args, int index) {
+        return TypeConverter.from(index >= args.length ? "" : args[index]);
+    }
+
+    /**
+     * Converts a set of strings to list of strings.
+     *
+     * @param set - Set to convert.
+     * @return List of strings with set values.
+     */
+    protected List<String> setToList(Set<String> set) {
+        return new ArrayList<>(set);
+    }
+
+    /**
+     * Converts an array to a list of strings.
+     *
+     * @param array - Array to convert.
+     * @return List of strings with array values.
+     */
+    protected <T> List<String> arrayToList(T[] array) {
+        return Chat.arrayToList(array);
+    }
+
+    /**
+     * Sends <code>Invalid Usage!</code> message with the correct usage of this command
+     * to the sender.
+     *
+     * @param sender - Receiver actually.
+     */
+    protected void sendInvalidUsageMessage(CommandSender sender) {
+        Chat.sendMessage(sender, "&cInvalid Usage! &e%s.", this.usage);
+    }
+
+    // end of utilities
+
+    private <E> List<String> eToString(Collection<E> list) {
+        List<String> str = new ArrayList<>();
+        for (final E e : list) {
+            str.add(e.toString());
+        }
+        return str;
+    }
+
     private void completerHandler(Player player, int index, String[] array, List<String> list) {
         final CompleterHandler handler = completerHandlers.get(index);
         if (handler == null) {
@@ -616,6 +619,10 @@ public abstract class SimpleCommand {
         }
 
         handler.handle(player, array, list);
+    }
+
+    private boolean hasPermission() {
+        return permission != null && !permission.isEmpty();
     }
 
     private static List<String> colorizeList(List<String> list) {
@@ -626,10 +633,6 @@ public abstract class SimpleCommand {
         }
 
         return newList;
-    }
-
-    private boolean hasPermission() {
-        return permission != null && !permission.isEmpty();
     }
 
     private static List<String> defaultCompleter() {

@@ -76,7 +76,7 @@ public class BoundingBox {
     }
 
     /**
-     * Sets the start location from player's target block.
+     * Sets the start location from the player's target block.
      *
      * @param player - Player.
      * @return true if location has been set, false otherwise.
@@ -111,7 +111,7 @@ public class BoundingBox {
     }
 
     /**
-     * Sets the end location from player's target block.
+     * Sets the end location from the player's target block.
      *
      * @param player - Player.
      * @return true if location has been set, false otherwise.
@@ -148,6 +148,19 @@ public class BoundingBox {
     }
 
     /**
+     * Returns the maximum X of the bounding box; or 0 if not {@link #isDefined()}
+     *
+     * @return the maximum X of the bounding box; or 0 if not {@link #isDefined()}
+     */
+    public int getMaxX() {
+        if (!isDefined()) {
+            return 0;
+        }
+
+        return (int) Math.round(Math.max(start.getX(), end.getX())) + 1;
+    }
+
+    /**
      * Returns the minimum Y of the bounding box, or 0 if not {@link BoundingBox#isDefined()}
      *
      * @return the minimum Y of the bounding box, or 0 if not {@link BoundingBox#isDefined()}
@@ -172,6 +185,32 @@ public class BoundingBox {
     }
 
     /**
+     * Returns the maximum Y of the bounding box; or 0 if not {@link #isDefined()}
+     *
+     * @return the maximum Y of the bounding box; or 0 if not {@link #isDefined()}
+     */
+    public int getMaxY() {
+        if (!isDefined()) {
+            return 0;
+        }
+
+        return (int) Math.round(Math.max(start.getY(), end.getY())) + 1;
+    }
+
+    /**
+     * Returns the maximum Z of the bounding box; or 0 if not {@link #isDefined()}
+     *
+     * @return the maximum Z of the bounding box; or 0 if not {@link #isDefined()}
+     */
+    public int getMaxZ() {
+        if (!isDefined()) {
+            return 0;
+        }
+
+        return (int) Math.round(Math.max(start.getZ(), end.getZ())) + 1;
+    }
+
+    /**
      * Returns the size of the X axi, or 0 if not {@link BoundingBox#isDefined()}
      *
      * @return the size of the X axi, or 0 if not {@link BoundingBox#isDefined()}
@@ -184,9 +223,9 @@ public class BoundingBox {
     }
 
     /**
-     * Returns the size of the Y axi, or 0 if not {@link BoundingBox#isDefined()}
+     * Returns the size of the Y axis, or 0 if not {@link BoundingBox#isDefined()}
      *
-     * @return the size of the Y axi, or 0 if not {@link BoundingBox#isDefined()}
+     * @return the size of the Y axis, or 0 if not {@link BoundingBox#isDefined()}
      */
     public int getSizeY() {
         if (!isDefined()) {
@@ -212,7 +251,7 @@ public class BoundingBox {
      * Draws a bounding box outline between two locations, if {@link BoundingBox#isDefined()}, does nothing otherwise.
      * <b>Note that this is limited to 48 blocks for each side due to structure block limitation. (duh)</b>
      *
-     * @return true if attempt of drawing was made, or false if size is greater than {@link BoundingBox#MAX_DIST} or {@link BoundingBox#isDefined()} is false.
+     * @return true if an attempt of drawing was made, or false if size is greater than {@link BoundingBox#MAX_DIST} or {@link BoundingBox#isDefined()} is false.
      */
     public boolean show() {
         if (!isDefined()) {
