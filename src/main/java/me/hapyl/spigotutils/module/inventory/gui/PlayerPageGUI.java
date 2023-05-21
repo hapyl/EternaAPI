@@ -179,6 +179,8 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
             if (emptyContentsItem != null) {
                 setItem(emptyContentsSlot, emptyContentsItem);
             }
+
+            postProcessInventory(player, page);
             super.openInventory();
             return;
         }
