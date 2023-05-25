@@ -5,6 +5,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -28,6 +29,12 @@ public class Cuboid {
     private final double zMaxCentered;
     private final World world;
 
+    /**
+     * Creates a cuboid between two points.
+     *
+     * @param point1 - Point 1.
+     * @param point2 - Point 2.
+     */
     public Cuboid(final Location point1, final Location point2) {
         this.xMin = Math.min(point1.getBlockX(), point2.getBlockX());
         this.xMax = Math.max(point1.getBlockX(), point2.getBlockX());
@@ -44,15 +51,31 @@ public class Cuboid {
         this.zMaxCentered = this.zMax + 0.5;
     }
 
+    /**
+     * Gets the blocks inside the area as iterator.
+     *
+     * @return Block iterator.
+     */
     public Iterator<Block> blockList() {
         return getBlocks().iterator();
     }
 
+    /**
+     * Gets the blocks inside the area.
+     *
+     * @return list of blocks inside the area.
+     */
     public List<Block> getBlocks() {
         return getBlocks(block -> true);
     }
 
-    public List<Block> getBlocks(Predicate<Block> predicate) {
+    /**
+     * Gets the blocks inside the area that matches the predicate.
+     *
+     * @param predicate - Predicate.
+     * @return list of blocks inside the area that matches the predicate.
+     */
+    public List<Block> getBlocks(@Nonnull Predicate<Block> predicate) {
         final List<Block> bL = new ArrayList<>(this.getTotalBlockSize());
         for (int x = this.xMin; x <= this.xMax; ++x) {
             for (int y = this.yMin; y <= this.yMax; ++y) {
@@ -67,36 +90,76 @@ public class Cuboid {
         return bL;
     }
 
+    /**
+     * Gets the blocks inside the area as a hash set.
+     *
+     * @return set of blocks inside the area.
+     */
     public Set<Block> getBlockSet() {
         return new HashSet<>(this.getBlocks());
     }
 
+    /**
+     * Gets the center location of this cuboid.
+     *
+     * @return center location of this cuboid.
+     */
     public Location getCenter() {
         return new Location(this.world, (this.xMax - this.xMin) / 2d + this.xMin, (this.yMax - this.yMin) / 2d + this.yMin,
                 (this.zMax - this.zMin) / 2d + this.zMin
         );
     }
 
+    /**
+     * Gets the distance between point 1 and point 2.
+     *
+     * @return the distance between points.
+     */
     public double getDistance() {
         return this.getPoint1().distance(this.getPoint2());
     }
 
+    /**
+     * Gets the squared distance between point 1 and point 2.
+     *
+     * @return the squared distance between points.
+     */
     public double getDistanceSquared() {
         return this.getPoint1().distanceSquared(this.getPoint2());
     }
 
+    /**
+     * Gets the height of this cuboid.
+     *
+     * @return the height of this cuboid.
+     */
     public int getHeight() {
         return this.yMax - this.yMin + 1;
     }
 
+    /**
+     * Gets the copy location of the first point.
+     *
+     * @return the copy location of the first point.
+     */
     public Location getPoint1() {
         return new Location(this.world, this.xMin, this.yMin, this.zMin);
     }
 
+    /**
+     * Gets the copy location of the second point.
+     *
+     * @return the copy location of the second point.
+     */
     public Location getPoint2() {
         return new Location(this.world, this.xMax, this.yMax, this.zMax);
     }
 
+    /**
+     * Gets a random location between two points.
+     *
+     * @return a random location between two points.
+     */
     public Location getRandomLocation() {
         final Random rand = new Random();
         final int x = rand.nextInt(Math.abs(this.xMax - this.xMin) + 1) + this.xMin;
@@ -105,56 +168,162 @@ public class Cuboid {
         return new Location(this.world, x, y, z);
     }
 
+    /**
+     * Gets the total block size.
+     *
+     * @return total block size.
+     */
     public int getTotalBlockSize() {
         return this.getHeight() * this.getXWidth() * this.getZWidth();
     }
 
+    /**
+     * Gets the width in X axis.
+     *
+     * @return the width in X axis.
+     */
     public int getXWidth() {
         return this.xMax - this.xMin + 1;
     }
 
+    /**
+     * Gets the width in Z axis.
+     *
+     * @return the width in Z axis.
+     */
     public int getZWidth() {
         return this.zMax - this.zMin + 1;
     }
 
+    /**
+     * Gets the min X.
+     *
+     * @return min X.
+     */
     public int getMinX() {
         return xMin;
     }
 
+    /**
+     * Gets the max X.
+     *
+     * @return max X.
+     */
     public int getMaxX() {
         return xMax;
     }
 
+    /**
+     * Gets the min Y.
+     *
+     * @return min Y.
+     */
     public int getMinY() {
         return yMin;
     }
 
+    /**
+     * Gets the max Y.
+     *
+     * @return max Y.
+     */
     public int getMaxY() {
         return yMax;
     }
 
+    /**
+     * Gets the min Z.
+     *
+     * @return min Z.
+     */
     public int getMinZ() {
         return zMin;
     }
 
+    /**
+     * Gets the max Z.
+     *
+     * @return max Z.
+     */
     public int getMaxZ() {
         return zMax;
     }
 
-    public boolean isIn(final Location loc) {
-        return loc.getWorld() == this.world && loc.getBlockX() >= this.xMin && loc.getBlockX() <= this.xMax &&
-                loc.getBlockY() >= this.yMin && loc.getBlockY() <= this.yMax && loc
-                .getBlockZ() >= this.zMin && loc.getBlockZ() <= this.zMax;
+    /**
+     * Returns true if the location is within this cuboid.
+     *
+     * @param location - Location to check.
+     * @return true if the location is within this cuboid; false otherwise.
+     */
+    public boolean isIn(final Location location) {
+        return location.getWorld() == this.world && location.getBlockX() >= this.xMin && location.getBlockX() <= this.xMax &&
+                location.getBlockY() >= this.yMin && location.getBlockY() <= this.yMax && location
+                .getBlockZ() >= this.zMin && location.getBlockZ() <= this.zMax;
     }
 
+    /**
+     * Returns true if player is within this cuboid.
+     *
+     * @param player - Player to check.
+     * @return true if a player is within this cuboid; false otherwise.
+     */
     public boolean isIn(final Player player) {
         return this.isIn(player.getLocation());
     }
 
-    public boolean isInWithMarge(final Location loc, final double marge) {
-        return loc.getWorld() == this.world && loc.getX() >= this.xMinCentered - marge && loc.getX() <= this.xMaxCentered + marge &&
-                loc.getY() >= this.yMinCentered - marge && loc
-                .getY() <= this.yMaxCentered + marge && loc.getZ() >= this.zMinCentered - marge && loc.getZ() <= this.zMaxCentered + marge;
+    /**
+     * Returns true if the location is within this cuboid with a marge.
+     *
+     * @param location - Location to check.
+     * @param marge    - Marge.
+     * @return true if the location is within this cuboid; false otherwise.
+     */
+    public boolean isInWithMarge(final Location location, final double marge) {
+        return location.getWorld() == this.world && location.getX() >= this.xMinCentered - marge &&
+                location.getX() <= this.xMaxCentered + marge &&
+                location.getY() >= this.yMinCentered - marge && location
+                .getY() <= this.yMaxCentered + marge && location.getZ() >= this.zMinCentered - marge &&
+                location.getZ() <= this.zMaxCentered + marge;
+    }
+
+    /**
+     * Performs a block cloning from this cuboid to the destination.
+     * <p>
+     * <b>
+     * Keep in mind that this method works the same as vanilla one.
+     * Meaning cloning starts at min X, Y and Z and pastes relatively to their increment.
+     * </b>
+     *
+     * @param location - Destination.
+     * @param skipAir  - Should skip air blocks?
+     */
+    public void cloneBlocksTo(@Nonnull Location location, boolean skipAir) {
+        final World world = location.getWorld();
+
+        if (world == null) {
+            throw new IllegalArgumentException("the world must be loaded");
+        }
+
+        final int destX = location.getBlockX();
+        final int destY = location.getBlockY();
+        final int destZ = location.getBlockZ();
+
+        for (int x = this.xMin; x <= this.xMax; ++x) {
+            for (int y = this.yMin; y <= this.yMax; ++y) {
+                for (int z = this.zMin; z <= this.zMax; ++z) {
+                    final Block block = this.world.getBlockAt(x, y, z);
+
+                    if (block.getType().isAir() && skipAir) {
+                        continue;
+                    }
+
+                    final Block targetBlock = world.getBlockAt(destX + (x - xMin), destY + (y - yMin), destZ + (z - zMin));
+
+                    targetBlock.setType(block.getType(), false);
+                    targetBlock.setBlockData(block.getBlockData(), false);
+                }
+            }
+        }
     }
 }
 
