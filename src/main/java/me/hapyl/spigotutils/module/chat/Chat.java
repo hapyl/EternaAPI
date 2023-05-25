@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.chat;
 
+import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.util.Placeholder;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -19,16 +20,41 @@ import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.MissingFormatArgumentException;
 
 /**
- * Allows to manipulate with string easily such as formatting,
+ * Allows manipulating with string easily such as formatting,
  * sending chat, actionbar and title messages.
  *
  * @author hapyl
  */
 public class Chat {
 
+    /**
+     * Build In Colors (Initial idea was adding a custom colors)
+     */
+    public static final String BLACK = new Chat(ChatColor.RED).getColor();
+    public static final String DARK_BLUE = new Chat(ChatColor.DARK_BLUE).getColor();
+    public static final String DARK_GREEN = new Chat(ChatColor.DARK_GREEN).getColor();
+    public static final String DARK_AQUA = new Chat(ChatColor.DARK_AQUA).getColor();
+    public static final String DARK_RED = new Chat(ChatColor.DARK_RED).getColor();
+    public static final String DARK_PURPLE = new Chat(ChatColor.DARK_PURPLE).getColor();
+    public static final String GOLD = new Chat(ChatColor.GOLD).getColor();
+    public static final String GRAY = new Chat(ChatColor.GRAY).getColor();
+    public static final String DARK_GRAY = new Chat(ChatColor.DARK_GRAY).getColor();
+    public static final String BLUE = new Chat(ChatColor.BLUE).getColor();
+    public static final String GREEN = new Chat(ChatColor.GREEN).getColor();
+    public static final String AQUA = new Chat(ChatColor.AQUA).getColor();
+    public static final String RED = new Chat(ChatColor.RED).getColor();
+    public static final String LIGHT_PURPLE = new Chat(ChatColor.LIGHT_PURPLE).getColor();
+    public static final String YELLOW = new Chat(ChatColor.YELLOW).getColor();
+    public static final String WHITE = new Chat(ChatColor.WHITE).getColor();
+    public static final String MAGIC = new Chat(ChatColor.MAGIC).getColor();
+    public static final String BOLD = new Chat(ChatColor.BOLD).getColor();
+    public static final String STRIKETHROUGH = new Chat(ChatColor.STRIKETHROUGH).getColor();
+    public static final String UNDERLINE = new Chat(ChatColor.UNDERLINE).getColor();
+    public static final String ITALIC = new Chat(ChatColor.ITALIC).getColor();
+    // Custom Colors
+    public static final String GREEN_BOLD = new Chat(ChatColor.GREEN, ChatColor.BOLD).getColor();
     private final String color;
 
     private Chat(ChatColor... colors) {
@@ -37,6 +63,10 @@ public class Chat {
             abc.append(chatColor.toString());
         }
         this.color = abc.toString();
+    }
+
+    public String getColor() {
+        return this.color;
     }
 
     /**
@@ -61,15 +91,41 @@ public class Chat {
     }
 
     /**
-     * Formats provided object with replacements using {{@link String#format(String, Object...)}}
+     * Formats provided an object with replacements using {{@link String#format(String, Object...)}}
      *
      * @param input        - Object to format, will be called {{@link Object#toString()}}
      * @param replacements - Replacements.
-     * @return A formatted string or Error if invalid size of replacements.
+     * @return A formatted string or error, if invalid size of replacements.
      */
     @Nonnull
     public static String format(Object input, Object... replacements) {
         return format(input.toString(), replacements);
+    }
+
+    /**
+     * Formats a string with a given replacements.
+     *
+     * @param input        - String to format.
+     * @param replacements - Replacements.
+     * @return a formatted string with a given replacements.
+     */
+    @Nonnull
+    public static String format(String input, Object... replacements) {
+        try {
+            String string = ChatColor.translateAlternateColorCodes('&', String.format(input, replacements));
+
+            // Parse color text if possible
+            if (ColorBlockParser.canParse(string)) {
+                string = ColorBlockParser.parse(string);
+            }
+
+            return string;
+        } catch (Exception ex) {
+            EternaPlugin.getPlugin().getLogger().severe("Could not parse string in Chat module!");
+            ex.printStackTrace();
+
+            return ChatColor.DARK_RED + "Error parsing string! Check the console for details.";
+        }
     }
 
     /**
@@ -92,25 +148,6 @@ public class Chat {
      */
     public static void sendFormat(Player player, String string, Object... objects) {
         player.sendMessage(bformat(string, objects));
-    }
-
-    /**
-     * Formats a string with a given replacements.
-     *
-     * @param input        - String to format.
-     * @param replacements - Replacements.
-     * @return a formatted string with a given replacements.
-     * @throws MissingFormatArgumentException is invalid replacements size.
-     */
-    @Nonnull
-    public static String format(String input, Object... replacements) {
-        try {
-            return ChatColor.translateAlternateColorCodes('&', String.format(input, replacements));
-        } catch (Exception ex) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Could not parse string in Chat module!");
-            ex.printStackTrace();
-            return ChatColor.DARK_RED + "MissingFormatArgumentException occurred, check the console!";
-        }
     }
 
     /**
@@ -484,37 +521,5 @@ public class Chat {
                 .filter(Player::isOp)
                 .forEach(player -> Chat.sendMessage_(player, string, replacement));
     }
-
-    public String getColor() {
-        return this.color;
-    }
-
-    /**
-     * Build In Colors (Initial idea was adding a custom colors)
-     */
-    public static final String BLACK = new Chat(ChatColor.RED).getColor();
-    public static final String DARK_BLUE = new Chat(ChatColor.DARK_BLUE).getColor();
-    public static final String DARK_GREEN = new Chat(ChatColor.DARK_GREEN).getColor();
-    public static final String DARK_AQUA = new Chat(ChatColor.DARK_AQUA).getColor();
-    public static final String DARK_RED = new Chat(ChatColor.DARK_RED).getColor();
-    public static final String DARK_PURPLE = new Chat(ChatColor.DARK_PURPLE).getColor();
-    public static final String GOLD = new Chat(ChatColor.GOLD).getColor();
-    public static final String GRAY = new Chat(ChatColor.GRAY).getColor();
-    public static final String DARK_GRAY = new Chat(ChatColor.DARK_GRAY).getColor();
-    public static final String BLUE = new Chat(ChatColor.BLUE).getColor();
-    public static final String GREEN = new Chat(ChatColor.GREEN).getColor();
-    public static final String AQUA = new Chat(ChatColor.AQUA).getColor();
-    public static final String RED = new Chat(ChatColor.RED).getColor();
-    public static final String LIGHT_PURPLE = new Chat(ChatColor.LIGHT_PURPLE).getColor();
-    public static final String YELLOW = new Chat(ChatColor.YELLOW).getColor();
-    public static final String WHITE = new Chat(ChatColor.WHITE).getColor();
-    public static final String MAGIC = new Chat(ChatColor.MAGIC).getColor();
-    public static final String BOLD = new Chat(ChatColor.BOLD).getColor();
-    public static final String STRIKETHROUGH = new Chat(ChatColor.STRIKETHROUGH).getColor();
-    public static final String UNDERLINE = new Chat(ChatColor.UNDERLINE).getColor();
-    public static final String ITALIC = new Chat(ChatColor.ITALIC).getColor();
-
-    // Custom Colors
-    public static final String GREEN_BOLD = new Chat(ChatColor.GREEN, ChatColor.BOLD).getColor();
 
 }
