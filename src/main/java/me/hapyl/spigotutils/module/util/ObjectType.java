@@ -3,7 +3,7 @@ package me.hapyl.spigotutils.module.util;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Used to check object type in {@link Validate#getType(Object)}
+ * Used to check an object type in {@link Validate#getType(Object)}
  */
 public enum ObjectType {
 

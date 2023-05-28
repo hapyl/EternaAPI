@@ -337,10 +337,10 @@ public class Validate {
     }
 
     /**
-     * Returns true if object is null, false otherwise.
+     * Returns true if an object is null, false otherwise.
      *
      * @param obj - Object to check.
-     * @return true if object is null, false otherwise.
+     * @return true if an object is null, false otherwise.
      */
     public static boolean isNull(@Nullable Object obj) {
         return obj == null;
@@ -394,11 +394,11 @@ public class Validate {
     }
 
     /**
-     * Throws IllegalArgumentException if value is null, returns value otherwise.
+     * Throws IllegalArgumentException if value is null, return value otherwise.
      *
      * @param value - Value.
      * @return value is it is not null.
-     * @throws IllegalArgumentException if value is null, returns value otherwise.
+     * @throws IllegalArgumentException if the value is null, returns value otherwise.
      */
     public static <T> T requireNotNull(T value) {
         if (value == null) {
@@ -579,8 +579,8 @@ public class Validate {
      * @return enum if exists, def otherwise.
      */
     public static <T extends Enum<T>> T getEnumValue(Class<T> enumClass, Object name, @Nullable T def) {
-        Validate.notNull(enumClass);
-        Validate.notNull(name);
+        notNull(enumClass);
+        notNull(name);
         try {
             return Enum.valueOf(enumClass, String.valueOf(name).toUpperCase());
         } catch (IllegalArgumentException ignored0) {
