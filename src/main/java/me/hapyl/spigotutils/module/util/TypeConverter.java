@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.meta.When;
 import java.util.List;
 
 public final class TypeConverter {
@@ -107,6 +108,20 @@ public final class TypeConverter {
 
     public float toFloat(float def) {
         return Numbers.getFloat(obj, def);
+    }
+
+    public boolean toBoolean() {
+        return Boolean.getBoolean(String.valueOf(obj));
+    }
+
+    @Nullable
+    public <T extends Enum<T>> T toEnum(@Nonnull Class<T> clazz) {
+        return toEnum(clazz, null);
+    }
+
+    @Nonnull(when = When.MAYBE)
+    public <T extends Enum<T>> T toEnum(@Nonnull Class<T> clazz, T def) {
+        return Validate.getEnumValue(clazz, obj, def);
     }
 
     @Nonnull
