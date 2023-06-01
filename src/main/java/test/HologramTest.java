@@ -13,8 +13,21 @@ public final class HologramTest {
     static Hologram hologram;
 
     static void test(Player player, String... string) {
+        if (string[0].equalsIgnoreCase("move") && hologram != null) {
+            hologram.move(player.getLocation(), player);
+            Chat.sendMessage(player, "&aMoved.");
+            return;
+        }
+
+        if (string[0].equalsIgnoreCase("addlines") && hologram != null) {
+            hologram.setLines("1", "2", "3", "deez", "nuts", "are", "very", "good");
+            hologram.showAll();
+            Chat.sendMessage(player, "&aAdded lines.");
+            return;
+        }
+
         if (hologram != null) {
-            Chat.broadcast("&aRemoved hologram.");
+            Chat.sendMessage(player, "&aRemoved hologram.");
             hologram.destroy();
             hologram = null;
             return;
@@ -27,7 +40,7 @@ public final class HologramTest {
 
         hologram.create(player.getLocation());
         hologram.show(player);
-        Chat.broadcast("&aCreated Hologram.");
+        Chat.sendMessage(player, "&aCreated Hologram.");
     }
 
 }

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class allows to create packet-holograms
+ * This class allows creating packet-holograms
  */
 public class Hologram implements Holo {
 
@@ -248,14 +248,9 @@ public class Hologram implements Holo {
         return this;
     }
 
-    public double getHologramHeight() {
-        return HOLOGRAM_HEIGHT;
-    }
-
     @Override
     public Hologram updateLines(boolean keepListSorted) {
-        Location location = this.location.clone();
-        location.add(0.0d, getHologramHeight(), 0.0d); // fix marker
+        final Location location = getLocation();
         removeStands();
 
         if (keepListSorted) {
@@ -265,7 +260,6 @@ public class Hologram implements Holo {
             }
         }
         else {
-            location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
             for (final String line : lines) {
                 createStand(location, ChatColor.translateAlternateColorCodes('&', line));
                 location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
@@ -287,9 +281,9 @@ public class Hologram implements Holo {
         }
 
         this.location = location.clone();
-        this.location.add(0.0d, getHologramHeight(), 0.0); // Fix marker location
+        this.location.add(0.0d, HOLOGRAM_HEIGHT, 0.0); // Fix marker location
 
-        // Move current location up so holograms stop at the start position
+        // Move the current location up so holograms stop at the start position
         this.location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
 
         for (String string : lines) {
