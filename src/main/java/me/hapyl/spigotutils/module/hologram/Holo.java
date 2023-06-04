@@ -14,21 +14,21 @@ public interface Holo {
      *
      * @param line - String.
      */
-    Hologram addLine(String line);
+    Holo addLine(String line);
 
     /**
      * Adds all lines to hologram.
      *
      * @param lines - String[]
      */
-    Hologram addLines(String... lines);
+    Holo addLines(String... lines);
 
     /**
      * Clears the hologram lines, adds new ones and updates them.
      *
      * @param lines - Lines to set.
      */
-    Hologram setLines(String... lines);
+    Holo setLines(String... lines);
 
     /**
      * Removes line at the given index.
@@ -36,7 +36,7 @@ public interface Holo {
      * @param index - Index.
      * @throws IndexOutOfBoundsException if there is on such line.
      */
-    Hologram removeLine(int index) throws IndexOutOfBoundsException;
+    Holo removeLine(int index) throws IndexOutOfBoundsException;
 
     /**
      * Sets string at provided index.
@@ -44,19 +44,19 @@ public interface Holo {
      * @param index - Index.
      * @param line  - String.
      */
-    Hologram setLine(int index, String line);
+    Holo setLine(int index, String line);
 
     /**
      * Clears the hologram lines, does not update them.
      */
-    Hologram clear();
+    Holo clear();
 
     /**
      * If hologram is persistent it will not be removed when far away.
      *
      * @param persistent - flag.
      */
-    Hologram setPersistent(boolean persistent);
+    Holo setPersistent(boolean persistent);
 
     /**
      * Returns true if hologram is persistent.
@@ -73,7 +73,7 @@ public interface Holo {
      *
      * @param hideWhenFurtherThan - Range.
      */
-    Hologram setRemoveWhenFarAway(int hideWhenFurtherThan);
+    Holo setRemoveWhenFarAway(int hideWhenFurtherThan);
 
     /**
      * Returns the range from which the hologram will be removed.
@@ -105,45 +105,45 @@ public interface Holo {
     /**
      * Shows the hologram to all players.
      */
-    Hologram showAll();
+    Holo showAll();
 
     /**
      * Shows the hologram to the provided players.
      *
      * @param players - Players.
      */
-    Hologram show(Player... players);
+    Holo show(Player... players);
 
     /**
      * @param flag true -> hide, false -> destroy
      */
-    Hologram hide(boolean flag, Player... players);
+    Holo hide(boolean flag, Player... players);
 
     /**
      * Hides the hologram from the provided players.
      *
      * @param players - Players.
      */
-    Hologram hide(Player... players);
+    Holo hide(Player... players);
 
     /**
      * Teleports the hologram to the provided location.
      *
      * @param location - Location.
      */
-    Hologram teleport(Location location);
+    Holo teleport(Location location);
 
     /**
      * Updates the hologram lines.
      *
      * @param keepListSorted - If true, the list will be sorted bottom top to top.
      */
-    Hologram updateLines(boolean keepListSorted);
+    Holo updateLines(boolean keepListSorted);
 
     /**
      * Updates the hologram lines. The list will be sorted from top to bottom. (Default)
      */
-    Hologram updateLines();
+    Holo updateLines();
 
     /**
      * Creates a new hologram at the provided location.
@@ -151,7 +151,7 @@ public interface Holo {
      * @param location - Location.
      * @throws IllegalStateException if hologram already exists.
      */
-    Hologram create(Location location);
+    Holo create(Location location);
 
     /**
      * Moves the hologram to the provided location for the provided players.
@@ -159,5 +159,5 @@ public interface Holo {
      * @param location - Location.
      * @param players  - Players.
      */
-    Hologram move(Location location, Player... players);
+    Holo move(Location location, Player... players);
 }

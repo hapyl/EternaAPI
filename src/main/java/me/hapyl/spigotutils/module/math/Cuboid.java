@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.math;
 
+import me.hapyl.spigotutils.module.util.BukkitUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -10,8 +11,10 @@ import java.util.*;
 import java.util.function.Predicate;
 
 /**
- * Original Class by:
- * <a href="https://www.spigotmc.org/threads/region-cuboid.329859/">Tristiisch74</a>
+ * A class that allows to create and manipulate a cuboid region.
+ *
+ * @author <a href="https://www.spigotmc.org/threads/region-cuboid.329859/">Tristiisch74</a>
+ * @author hapyl
  */
 public class Cuboid {
 
@@ -28,6 +31,36 @@ public class Cuboid {
     private final double zMinCentered;
     private final double zMaxCentered;
     private final World world;
+
+    /**
+     * Creates a cuboid between two points.
+     * This will use the first world (usually 'world') as the location world.
+     *
+     * @param x  - Start x.
+     * @param y  - Start y.
+     * @param z  - Start z.
+     * @param x2 - End x.
+     * @param y2 - End y.
+     * @param z2 - End z.
+     */
+    public Cuboid(double x, double y, double z, double x2, double y2, double z2) {
+        this(BukkitUtils.defWorld(), x, y, z, x2, y2, z2);
+    }
+
+    /**
+     * Creates a cuboid between two points.
+     *
+     * @param world - World.
+     * @param x     - Start x.
+     * @param y     - Start y.
+     * @param z     - Start z.
+     * @param x2    - End x.
+     * @param y2    - End y.
+     * @param z2    - End z.
+     */
+    public Cuboid(@Nonnull World world, double x, double y, double z, double x2, double y2, double z2) {
+        this(new Location(world, x, y, z), new Location(world, x2, y2, z2));
+    }
 
     /**
      * Creates a cuboid between two points.
