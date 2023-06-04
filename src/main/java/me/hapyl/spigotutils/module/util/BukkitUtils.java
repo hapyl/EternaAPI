@@ -448,4 +448,14 @@ public class BukkitUtils {
 
         return teams;
     }
+
+    /**
+     * Gets the first (default) world of this server, usually 'world'.
+     *
+     * @return the first world of this server.
+     */
+    @Nonnull
+    public static World defWorld() {
+        return Bukkit.getWorlds().get(0);
+    }
 }
