@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.hologram;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -16,15 +17,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Nonnull;
+import java.util.*;
 
 /**
  * This class allows creating packet-holograms
  */
-public class Hologram implements Holo {
+public class Hologram {
 
     /**
      * Vertical offset of the holograms.
@@ -34,10 +33,7 @@ public class Hologram implements Holo {
 
     private final List<String> lines;
     private final List<HologramArmorStand> packets;
-    private final Map<Player, Boolean> showingTo;
-
-    private int removeWhenFarAway = 25;
-    private boolean persistent;
+    private final Set<Player> showingTo;
 
     private BukkitTask task;
     private Location location;
@@ -50,111 +46,140 @@ public class Hologram implements Holo {
     public Hologram(int size) {
         this.lines = new ArrayList<>(size);
         this.packets = Lists.newArrayList();
-        this.showingTo = Maps.newConcurrentMap();
+        this.showingTo = Sets.newHashSet();
         EternaRegistry.getHologramRegistry().register(this);
     }
 
+    /**
+     * Creates hologram with size 1.
+     */
     public Hologram() {
         this(1);
     }
 
-    @Override
-    public Hologram addLine(String line) {
+    /**
+     * Adds a line to the hologram.
+     *
+     * @param line - Line to add.
+     */
+    public Hologram addLine(@Nonnull String line) {
         this.lines.add(line);
         return this;
     }
 
-    @Override
-    public Hologram addLines(String... lines) {
+    /**
+     * Adds all lines to the hologram.
+     *
+     * @param lines - Line to add.
+     */
+    public Hologram addLines(@Nonnull String... lines) {
         this.lines.addAll(Arrays.asList(lines));
         return this;
     }
 
-    @Override
-    public Hologram setLines(String... lines) {
-        this.lines.clear();
-        this.lines.addAll(Arrays.asList(lines));
-        this.updateLines(false);
-        return this;
-    }
-
-    @Override
-    public Hologram removeLine(int index) throws IndexOutOfBoundsException {
+    /**
+     * Removes the line at the given index, does nothing if index >= size().
+     *
+     * @param index - Index to remove at.
+     */
+    public Hologram removeLine(int index) {
         if (this.lines.size() - 1 < index) {
-            throw new IndexOutOfBoundsException(String.format("There is only %s lines, not %s.", this.lines.size(), index));
-        }
-        else {
+            return this;
+        } else {
             this.lines.remove(index);
         }
         return this;
     }
 
+    /**
+     * Gets all lines of this hologram.
+     *
+     * @return string list for this hologram.
+     */
+    @Nonnull
     public List<String> getLines() {
         return lines;
     }
 
-    @Override
-    public Hologram setLine(int index, String line) {
+    /**
+     * Sets the lines of this hologram. This will remove existing lines.
+     *
+     * @param lines - Lines to add.
+     */
+    public Hologram setLines(@Nonnull String... lines) {
+        this.lines.clear();
+        this.lines.addAll(Arrays.asList(lines));
+        return this;
+    }
+
+    /**
+     * Sets the lines and updates the stands.
+     *
+     * @param lines - Lines to add.
+     */
+    public Hologram setLinesAndUpdate(@Nonnull String... lines) {
+        setLines(lines);
+        updateLines(false);
+        return this;
+    }
+
+    /**
+     * Sets the line at the given index. This will add needed lines if index >= size()
+     *
+     * @param index - Index.
+     * @param line  - Line to add.
+     */
+    public Hologram setLine(int index, @Nonnull String line) {
         if (this.lines.size() - 1 < index) {
             for (int i = 0; i < index; i++) {
                 addLine("");
             }
-        }
-        else {
+        } else {
             this.lines.set(index, line);
         }
         return this;
     }
 
-    @Override
+    /**
+     * Clears the lines.
+     */
     public Hologram clear() {
         this.lines.clear();
         return this;
     }
 
-    @Override
-    public Hologram setPersistent(boolean persistent) {
-        this.persistent = persistent;
-        return this;
-    }
-
-    @Override
-    public boolean isPersistent() {
-        return persistent;
-    }
-
-    @Override
-    public Hologram setRemoveWhenFarAway(int hideWhenFurtherThan) {
-        this.removeWhenFarAway = hideWhenFurtherThan;
-        return this;
-    }
-
-    @Override
-    public int getRemoveWhenFarAway() {
-        return removeWhenFarAway;
-    }
-
     /**
-     * Returns the map of players and their status.
+     * Returns the set of players and their status.
      *
-     * @return the map of players and their status.
+     * @return the set of players and their status.
      */
-    public Map<Player, Boolean> getShowingTo() {
+    public Set<Player> getShowingTo() {
         return showingTo;
     }
 
-    @Override
+    /**
+     * Returns true if this hologram is showing to the given player.
+     *
+     * @param player - Player.
+     * @return true if this hologram is showing to the given player.
+     */
     public boolean isShowingTo(Player player) {
-        return this.showingTo.containsKey(player) && this.showingTo.get(player);
+        return this.showingTo.contains(player);
     }
 
-    @Override
+    /**
+     * Gets the copy of this hologram origin location.
+     *
+     * @return the copy of this hologram origin location.
+     */
     public Location getLocation() {
         return BukkitUtils.newLocation(location);
     }
 
-    @Override
-    public boolean destroy() {
+    /**
+     * Completely destroys this hologram.
+     */
+    public void destroy() {
         this.removeStands();
 
         if (this.task != null) {
@@ -162,27 +187,27 @@ public class Hologram implements Holo {
         }
 
         EternaRegistry.getHologramRegistry().unregister(this);
-        return true;
     }
 
-    protected void removeStands() {
-        this.showingTo.forEach((player, status) -> hide(player));
-        this.packets.clear();
-    }
-
-    @Override
+    /**
+     * Shows this hologram to all online players.
+     */
     public Hologram showAll() {
-        return this.show(Bukkit.getOnlinePlayers().toArray(new Player[] {}));
+        return this.show(BukkitUtils.onlinePlayersAsArray());
     }
 
+    /**
+     * Shows this hologram to the given player.
+     *
+     * @param players - Player to show to.
+     */
     @Super
-    @Override
     public Hologram show(Player... players) {
         if (this.location == null) {
             for (final Player player : players) {
                 Chat.sendMessage(player, "&4Could not spawn a hologram for you since is wasn't created yet!");
             }
-            return null;
+            return this;
         }
 
         for (Player player : players) {
@@ -190,7 +215,7 @@ public class Hologram implements Holo {
                 continue;
             }
 
-            showingTo.put(player, true);
+            showingTo.add(player);
             packets.forEach(hologram -> {
                 hologram.show(player);
                 hologram.updateLocation(player);
@@ -200,30 +225,39 @@ public class Hologram implements Holo {
         return this;
     }
 
+    /**
+     * Hides the hologram from the given players.
+     *
+     * @param flag    - True to keep the player; false to remove from the map.
+     * @param players - Players.
+     */
     @Super
-    @Override
     public Hologram hide(boolean flag, Player... players) {
         for (Player player : players) {
-            if (flag) {
-                showingTo.put(player, false);
-            }
-            else {
-                showingTo.remove(player);
-            }
-
+            showingTo.remove(player);
             packets.forEach(hologram -> hologram.hide(player));
         }
 
         return this;
     }
 
-    @Override
+    /**
+     * Hides the hologram from the given players.
+     *
+     * @param players - Players.
+     */
     public Hologram hide(Player... players) {
         return hide(false, players);
     }
 
+    /**
+     * Executed every tick this hologram exists.
+     *
+     * @param action - Action to perform.
+     * @param tick   - Tick.
+     */
     public Hologram onTick(HologramAction<?> action, int tick) {
-        return onTick(action, tick, Bukkit.getOnlinePlayers().toArray(new Player[] {}));
+        return onTick(action, tick, Bukkit.getOnlinePlayers().toArray(new Player[]{}));
     }
 
     public Hologram onTick(HologramAction<?> action, int tick, Player... receivers) {
@@ -240,17 +274,27 @@ public class Hologram implements Holo {
         return this;
     }
 
-    @Override
-    public Hologram teleport(Location location) {
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            move(location, onlinePlayer);
-        }
-        return this;
+    /**
+     * Moves this hologram to the provided location.
+     * This will only move the hologram for players who this hologram is showing to.
+     *
+     * @param location - Location to move to.
+     */
+    public Hologram teleport(@Nonnull Location location) {
+        return move(location);
     }
 
-    @Override
+    /**
+     * Removes the holograms and creates them again with updated values.
+     * This will only affect players who this hologram is showing to.
+     *
+     * @param keepListSorted - To whenever to keep the lines sorted (Reverse add order).
+     *                       Default to false for TOP to BOTTOM order.
+     */
     public Hologram updateLines(boolean keepListSorted) {
         final Location location = getLocation();
+        final HashSet<Player> players = Sets.newHashSet(showingTo);
+
         removeStands();
 
         if (keepListSorted) {
@@ -258,26 +302,36 @@ public class Hologram implements Holo {
                 location.add(0.0d, HOLOGRAM_OFFSET, 0.0d);
                 createStand(location, ChatColor.translateAlternateColorCodes('&', line));
             }
-        }
-        else {
+        } else {
             for (final String line : lines) {
                 createStand(location, ChatColor.translateAlternateColorCodes('&', line));
                 location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
             }
         }
 
+        players.forEach(this::show);
+        players.clear();
+
         return this;
     }
 
-    @Override
+    /**
+     * Updates lines with unsorted (TOP to BOTTOM) order.
+     */
     public Hologram updateLines() {
         return this.updateLines(false);
     }
 
-    @Override
-    public Hologram create(Location location) {
+    /**
+     * Creates the hologram at the given location.
+     * The hologram must be created before showing it to the players.
+     *
+     * @param location - Location.
+     * @throws IllegalStateException if the hologram is already created.
+     */
+    public Hologram create(@Nonnull Location location) {
         if (this.location != null) {
-            throw new IllegalArgumentException("This hologram was already created!");
+            throw new IllegalStateException("This hologram was already created!");
         }
 
         this.location = location.clone();
@@ -293,15 +347,51 @@ public class Hologram implements Holo {
         return this;
     }
 
-    @Override
-    public Hologram move(Location location, Player... players) {
+    /**
+     * Moves this hologram to the given location.
+     *
+     * @param location - Location.
+     */
+    public Hologram move(Location location) {
         location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
         packets.forEach(hologram -> {
             hologram.setLocation(location);
-            hologram.updateLocation(players);
+            hologram.updateLocation(showingTo);
             location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
         });
         return this;
+    }
+
+    /**
+     * Returns the string representation of this hologram lines.
+     */
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder("[");
+
+        for (int i = 0; i < lines.size(); i++) {
+            if (i != 0) {
+                builder.append(", ");
+            }
+
+            builder.append(lines.get(i));
+        }
+
+        return builder.append("]").toString();
+    }
+
+    /**
+     * Returns true if this hologram was created; false otherwise.
+     *
+     * @return true if this hologram was created; false otherwise.
+     */
+    public boolean isCreated() {
+        return this.location != null;
+    }
+
+    protected void removeStands() {
+        this.showingTo.forEach(this::hide);
+        this.packets.clear();
     }
 
     private void createStand(Location location, String name) {
@@ -311,18 +401,5 @@ public class Hologram implements Holo {
         }
 
         packets.add(new HologramArmorStand(location, name));
-    }
-
-    public void updateMetadata(EntityArmorStand stand, Player player) {
-        Reflect.updateMetadata(stand, player);
-    }
-
-    @Override
-    public String toString() {
-        return this.lines.toString();
-    }
-
-    public boolean isCreated() {
-        return this.location != null;
     }
 }

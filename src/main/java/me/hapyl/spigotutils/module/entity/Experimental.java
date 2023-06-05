@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
  * Represents an experimental SPIGOT feature that may be removed in the future.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ ElementType.TYPE, ElementType.FIELD })
 public @interface Experimental {
 }

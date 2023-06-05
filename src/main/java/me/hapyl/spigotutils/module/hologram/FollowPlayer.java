@@ -22,6 +22,6 @@ public class FollowPlayer extends HologramAction<Player> {
 
 	@Override
 	public void consume(Player... receivers) {
-		this.getHologram().move(this.getObject().getLocation().add(0, 1, 0), receivers);
+		this.getHologram().move(this.getObject().getLocation().add(0, 1, 0));
 	}
 }

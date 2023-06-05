@@ -6,10 +6,7 @@ import me.hapyl.spigotutils.module.annotate.ArraySize;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
@@ -24,6 +21,7 @@ import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Some utils for things that are done regularly by me.
@@ -37,29 +35,12 @@ public class BukkitUtils {
     private static final JavaPlugin PLUGIN = EternaPlugin.getPlugin();
 
     /**
-     * Returns array item on provided index if exists, def otherwise.
+     * Gets the online players as an array.
      *
-     * @param array - Array.
-     * @param index - Index of item.
-     * @param def   - Default item to return, if index >= array.length.
-     * @return Returns array item on provided index if exists, def otherwise.
+     * @return the online players as an array
      */
-    public <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
-        if (index >= array.length) {
-            return def;
-        }
-        return array[index];
-    }
-
-    /**
-     * Returns array item on provided index if exists, null otherwise.
-     *
-     * @param array - Array.
-     * @param index - Index.
-     * @return Returns array item on provided index if exists, null otherwise.
-     */
-    public <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
-        return arrayItemOr(array, index, null);
+    public static Player[] onlinePlayersAsArray() {
+        return Bukkit.getOnlinePlayers().toArray(new Player[]{});
     }
 
     /**
@@ -105,8 +86,7 @@ public class BukkitUtils {
     public static String locationToString(@Nonnull Location location, @Nonnull String format, boolean includeRotation) {
         if (includeRotation) {
             return String.format(format, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-        }
-        else {
+        } else {
             return String.format(format, location.getX(), location.getY(), location.getZ());
         }
     }
@@ -261,7 +241,7 @@ public class BukkitUtils {
      */
     @CheckForNull
     public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location) {
-        return getClosestEntityTo(collection, location, new EntityType[] {});
+        return getClosestEntityTo(collection, location, new EntityType[]{});
     }
 
     /**
@@ -457,5 +437,67 @@ public class BukkitUtils {
     @Nonnull
     public static World defWorld() {
         return Bukkit.getWorlds().get(0);
+    }
+
+    @Nullable
+    public static <T extends LivingEntity> T getNearestEntity(@Nonnull Location location, double x, double y, double z, @Nonnull Class<T> clazz) {
+        final World world = location.getWorld();
+
+        if (world == null) {
+            return null;
+        }
+
+        final Collection<Entity> entities = world.getNearbyEntities(location, x, y, z);
+
+        if (entities.isEmpty()) {
+            return null;
+        }
+
+        T closest = null;
+        double closestDist = Double.MAX_VALUE;
+
+        for (final Entity entity : entities) {
+            if (!(entity instanceof LivingEntity living) || !clazz.isInstance(living)) {
+                continue;
+            }
+
+            if (closest == null) {
+                closest = clazz.cast(living);
+            } else {
+                final double currentDist = living.getLocation().distance(location);
+                if (currentDist < closestDist) {
+                    closestDist = currentDist;
+                    closest = clazz.cast(living);
+                }
+            }
+        }
+
+        return closest;
+    }
+
+    /**
+     * Returns array item on provided index if exists, def otherwise.
+     *
+     * @param array - Array.
+     * @param index - Index of item.
+     * @param def   - Default item to return, if index >= array.length.
+     * @return Returns array item on provided index if exists, def otherwise.
+     */
+    public <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
+        if (index >= array.length) {
+            return def;
+        }
+        return array[index];
+    }
+
+    /**
+     * Returns array item on provided index if exists, null otherwise.
+     *
+     * @param array - Array.
+     * @param index - Index.
+     * @return Returns array item on provided index if exists, null otherwise.
+     */
+    public <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
+        return arrayItemOr(array, index, null);
     }
 }
