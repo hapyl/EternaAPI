@@ -46,7 +46,7 @@ public class Hologram {
     public Hologram(int size) {
         this.lines = new ArrayList<>(size);
         this.packets = Lists.newArrayList();
-        this.showingTo = Sets.newHashSet();
+        this.showingTo = Sets.newConcurrentHashSet();
         EternaRegistry.getHologramRegistry().register(this);
     }
 
