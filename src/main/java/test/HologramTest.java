@@ -14,7 +14,7 @@ public final class HologramTest {
 
     static void test(Player player, String... string) {
         if (string[0].equalsIgnoreCase("move") && hologram != null) {
-            hologram.move(player.getLocation(), player);
+            hologram.move(player.getLocation());
             Chat.sendMessage(player, "&aMoved.");
             return;
         }

@@ -89,17 +89,14 @@ public final class RuntimeCommandsTest {
                 if (string.equalsIgnoreCase("red")) {
                     border.update(PlayerBorder.Operation.BORDER_RED, size);
                     Chat.sendMessage(player, "&aShowing red outline.");
-                }
-                else if (string.equalsIgnoreCase("green")) {
+                } else if (string.equalsIgnoreCase("green")) {
                     border.update(PlayerBorder.Operation.BORDER_GREEN, size);
                     Chat.sendMessage(player, "&aShowing green outline.");
-                }
-                else {
+                } else {
                     PlayerBorder.reset(player);
                     Chat.sendMessage(player, "&aReset border.");
                 }
-            }
-            else {
+            } else {
                 Chat.sendMessage(player, "/{} (operation) (size)");
             }
         }));
@@ -207,6 +204,7 @@ public final class RuntimeCommandsTest {
             new PlayerPageGUITest(player);
         });
 
+        registerTestCommand("displayHologram", DisplayHologramTest::test);
     }
 
     private static final CommandProcessor processor = new CommandProcessor();
