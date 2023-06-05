@@ -8,6 +8,7 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
@@ -69,7 +70,8 @@ public class HumanNPC implements Intractable, Human {
 
     public static final String CLICK_NAME = "&e&lCLICK";
     public static final String CHAT_FORMAT = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
-    protected final HashMap<Player, Boolean> showingTo = new HashMap<>();
+
+    protected final Set<Player> showingTo = Sets.newHashSet();
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
     private final ReflectPacket packetAddPlayer;
     private final ReflectPacket packetRemovePlayer;
@@ -94,8 +96,6 @@ public class HumanNPC implements Intractable, Human {
     private boolean stopTalking = false;
     private long interactionDelay = 0L;
     private String cannotInteractMessage = "Not now.";
-    private boolean persistent;
-    private int farAwayDist = 40;
     private int lookAtCloseDist;
     private BukkitTask moveTask;
 
@@ -216,7 +216,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public Set<Player> getViewers() {
-        return showingTo.keySet();
+        return showingTo;
     }
 
     @Override
@@ -235,7 +235,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public boolean isShowingTo(Player player) {
-        return this.showingTo.containsKey(player) && this.showingTo.get(player);
+        return this.showingTo.contains(player);
     }
 
     private String getPrefix() {
@@ -274,27 +274,6 @@ public class HumanNPC implements Intractable, Human {
 
     public void setChatPrefix(String chatPrefix) {
         this.chatPrefix = chatPrefix;
-    }
-
-    @Override
-    public boolean isPersistent() {
-        return persistent;
-    }
-
-    @Override
-    public void setPersistent(boolean persistent) {
-        this.persistent = persistent;
-    }
-
-    @Override
-    public int getFarAwayDist() {
-        return farAwayDist;
-    }
-
-    @Override
-    public HumanNPC setFarAwayDist(int farAwayDist) {
-        this.farAwayDist = farAwayDist;
-        return this;
     }
 
     public void sendNpcMessage(Player player, String msg) {
@@ -892,21 +871,12 @@ public class HumanNPC implements Intractable, Human {
         }
     }
 
-    // super show
     @Override
     public void show(@Nonnull Player... players) {
-        show(true, players);
-    }
+        showingTo.addAll(Arrays.asList(players));
+        aboveHead.show(players);
 
-    private void show(boolean init, Player... players) {
-        if (init) {
-            for (final Player player : players) {
-                this.showingTo.put(player, true);
-            }
-
-            aboveHead.show(players);
-            hideDisplayName();
-        }
+        hideDisplayName();
 
         packetAddPlayer.sendPackets(players);
         packetSpawn.sendPackets(players);
@@ -923,13 +893,8 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public void reloadNpcData() {
-        hide(false);
-        show(false);
-    }
-
-    @Override
-    public void hide() {
-        hide(true);
+        hide();
+        show();
     }
 
     @Override
@@ -993,16 +958,15 @@ public class HumanNPC implements Intractable, Human {
     }
 
     @Override
-    public void hide(boolean mappings, Player... players) {
-        if (players == null || players.length == 0) {
-            players = getPlayers();
-        }
+    public void hide() {
+        hide(showingTo.toArray(new Player[]{}));
+    }
 
-        if (mappings) {
-            for (Player player : players) {
-                this.showingTo.put(player, false);
-                this.aboveHead.hide(player);
-            }
+    @Override
+    public void hide(@Nonnull Player... players) {
+        for (Player player : players) {
+            this.showingTo.remove(player);
+            this.aboveHead.hide(player);
         }
 
         this.packetRemovePlayer.sendPackets(players);
@@ -1085,7 +1049,7 @@ public class HumanNPC implements Intractable, Human {
 
     @Override
     public Player[] getPlayers() {
-        return showingTo.keySet().toArray(new Player[0]);
+        return showingTo.toArray(new Player[0]);
     }
 
 }

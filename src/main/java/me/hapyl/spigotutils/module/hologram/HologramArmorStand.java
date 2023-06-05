@@ -11,6 +11,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 
+import java.util.Set;
+
 public class HologramArmorStand {
 
     private final EntityArmorStand armorStand;
@@ -41,7 +43,10 @@ public class HologramArmorStand {
     public void show(Player player) {
         ReflectPacket.send(new PacketPlayOutSpawnEntity(armorStand), player);
         ReflectPacket.send(
-                new PacketPlayOutEntityMetadata(bukkit.getEntityId(), Reflect.getDataWatcherNonDefaultValues(armorStand)),
+                new PacketPlayOutEntityMetadata(
+                        bukkit.getEntityId(),
+                        Reflect.getDataWatcherNonDefaultValues(armorStand)
+                ),
                 player
         );
     }
@@ -57,6 +62,12 @@ public class HologramArmorStand {
 
     public void updateLocation(Player... players) {
         ReflectPacket.send(new PacketPlayOutEntityTeleport(armorStand), players);
+    }
+
+    public void updateLocation(Set<Player> players) {
+        for (Player player : players) {
+            updateLocation(player);
+        }
     }
 
     public Location getLocation() {
