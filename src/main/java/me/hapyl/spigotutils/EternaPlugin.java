@@ -6,6 +6,7 @@ import me.hapyl.spigotutils.builtin.event.PlayerConfigEvent;
 import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.hologram.HologramListener;
+import me.hapyl.spigotutils.module.hologram.HologramRunnable;
 import me.hapyl.spigotutils.module.inventory.ItemBuilderListener;
 import me.hapyl.spigotutils.module.inventory.gui.GUIListener;
 import me.hapyl.spigotutils.module.inventory.item.CustomItemListener;
@@ -69,6 +70,7 @@ public class EternaPlugin extends JavaPlugin {
 
         // Schedule tasks
         scheduler.runTaskTimer(this, new NPCRunnable(), 0, 2);
+        scheduler.runTaskTimer(this, new HologramRunnable(), 0, 2);
         scheduler.runTaskTimer(this, new ParkourRunnable(), 0, 2);
         scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
 

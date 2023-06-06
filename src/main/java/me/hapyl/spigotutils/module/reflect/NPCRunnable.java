@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.reflect;
 
+import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Location;
@@ -10,6 +11,12 @@ public class NPCRunnable implements Runnable {
     @Override
     public void run() {
         EternaRegistry.getNpcRegistry().getRegistered().forEach((id, npc) -> {
+            // Visibility
+            for (Player player : npc.getViewers()) {
+                LimitedVisibility.check(player, npc);
+            }
+
+            // Look at the closest player
             if (npc.getLookAtCloseDist() > 0) {
                 final int dist = npc.getLookAtCloseDist();
                 final Location location = npc.getLocation();

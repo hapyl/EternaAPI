@@ -1,15 +1,13 @@
 package me.hapyl.spigotutils.module.hologram;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
-import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
+import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.registry.EternaRegistry;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,7 +21,7 @@ import java.util.*;
 /**
  * This class allows creating packet-holograms
  */
-public class Hologram {
+public class Hologram extends LimitedVisibility {
 
     /**
      * Vertical offset of the holograms.
@@ -47,6 +45,8 @@ public class Hologram {
         this.lines = new ArrayList<>(size);
         this.packets = Lists.newArrayList();
         this.showingTo = Sets.newConcurrentHashSet();
+
+        setVisibility(25);
         EternaRegistry.getHologramRegistry().register(this);
     }
 
@@ -85,7 +85,8 @@ public class Hologram {
     public Hologram removeLine(int index) {
         if (this.lines.size() - 1 < index) {
             return this;
-        } else {
+        }
+        else {
             this.lines.remove(index);
         }
         return this;
@@ -134,7 +135,8 @@ public class Hologram {
             for (int i = 0; i < index; i++) {
                 addLine("");
             }
-        } else {
+        }
+        else {
             this.lines.set(index, line);
         }
         return this;
@@ -172,6 +174,8 @@ public class Hologram {
      *
      * @return the copy of this hologram origin location.
      */
+    @Nonnull
+    @Override
     public Location getLocation() {
         return BukkitUtils.newLocation(location);
     }
@@ -257,7 +261,7 @@ public class Hologram {
      * @param tick   - Tick.
      */
     public Hologram onTick(HologramAction<?> action, int tick) {
-        return onTick(action, tick, Bukkit.getOnlinePlayers().toArray(new Player[]{}));
+        return onTick(action, tick, Bukkit.getOnlinePlayers().toArray(new Player[] {}));
     }
 
     public Hologram onTick(HologramAction<?> action, int tick, Player... receivers) {
@@ -302,7 +306,8 @@ public class Hologram {
                 location.add(0.0d, HOLOGRAM_OFFSET, 0.0d);
                 createStand(location, ChatColor.translateAlternateColorCodes('&', line));
             }
-        } else {
+        }
+        else {
             for (final String line : lines) {
                 createStand(location, ChatColor.translateAlternateColorCodes('&', line));
                 location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
@@ -402,4 +407,19 @@ public class Hologram {
 
         packets.add(new HologramArmorStand(location, name));
     }
+
+    @Override
+    public final void hideVisibility(@Nonnull Player player) {
+        for (HologramArmorStand packet : packets) {
+            packet.hide(player);
+        }
+    }
+
+    @Override
+    public final void showVisibility(@Nonnull Player player) {
+        for (HologramArmorStand packet : packets) {
+            packet.show(player);
+        }
+    }
+
 }

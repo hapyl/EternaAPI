@@ -46,10 +46,10 @@ public final class EternaAPI {
         this.plugin = plugin;
         this.silent = silent;
 
-        Validate.notNull(plugin, "Could not load %s because plugin is null!".formatted(getAPIName()));
+        Validate.notNull(plugin, "Could not load %s because the plugin is null!".formatted(getAPIName()));
         Validate.isTrue(
                 isDepends(),
-                "Could not load %s for %s since it doesn't depend nor soft-depend the API!".formatted(getAPIName(), plugin.getName())
+                "Could not load %s for %s since it doesn't depend on nor soft-depend the API!".formatted(getAPIName(), plugin.getName())
         );
 
         this.library = new PluginLibrary(plugin);
