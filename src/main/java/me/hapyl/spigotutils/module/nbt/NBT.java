@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 
 /**
- * This uses spigot getPersistentDataContainer, not NMS.
+ * This uses spigot getPersistentDataContainer, <b><i>not</i></b> NMS.
  */
 public class NBT {
 
@@ -28,16 +28,8 @@ public class NBT {
         return nullable == null ? def : nullable;
     }
 
-    public static void setInt(PersistentDataHolder holder, String path, int value) {
-        holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.INTEGER, value);
-    }
-
-    public static void setString(PersistentDataHolder holder, String path, String value) {
-        holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.STRING, value);
-    }
-
-    public static <T> void setValue(PersistentDataHolder holder, String path, LazyType<T> type, T value) {
-        holder.getPersistentDataContainer().set(createKey(path), type.getType(), value);
+    public static boolean getBool(PersistentDataHolder holder, String path) {
+        return Boolean.TRUE.equals(holder.getPersistentDataContainer().get(createKey(path), PersistentDataType.BOOLEAN));
     }
 
     @Nullable
@@ -57,15 +49,8 @@ public class NBT {
         return compound;
     }
 
-    public static <T> void setCompoundValue(PersistentDataHolder holder, String path, LazyType<T> type, T value) {
-        final String[] split = path.split("\\.");
-        if (split.length != 2) {
-            throw new IllegalArgumentException("Path must contain only one '.': %s".formatted(Arrays.toString(split)));
-        }
-
-        final PersistentDataContainer compound = getOrCreateCompound(holder, split[0]);
-        compound.set(createKey(split[1]), type.getType(), value);
-        holder.getPersistentDataContainer().set(createKey(split[0]), LazyType.CONTAINER.getType(), compound);
+    public static void setInt(PersistentDataHolder holder, String path, int value) {
+        holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.INTEGER, value);
     }
 
     @Nullable
@@ -88,10 +73,6 @@ public class NBT {
         return holder.getPersistentDataContainer().get(createKey(path), type.getType());
     }
 
-    public static boolean hasNbt(PersistentDataHolder holder, String path, PersistentDataType<?, ?> type) {
-        return holder.getPersistentDataContainer().has(createKey(path), type);
-    }
-
     public static String getString(PersistentDataHolder entity, String path) {
         return getString(entity, path, "null");
     }
@@ -100,6 +81,35 @@ public class NBT {
     public static String getString(PersistentDataHolder entity, String path, String def) {
         final String nullable = entity.getPersistentDataContainer().get(createKey(path), PersistentDataType.STRING);
         return nullable == null ? def : nullable;
+    }
+
+    // setters
+
+    public static void setString(PersistentDataHolder holder, String path, String value) {
+        holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.STRING, value);
+    }
+
+    public static <T> void setValue(PersistentDataHolder holder, String path, LazyType<T> type, T value) {
+        holder.getPersistentDataContainer().set(createKey(path), type.getType(), value);
+    }
+
+    public static <T> void setCompoundValue(PersistentDataHolder holder, String path, LazyType<T> type, T value) {
+        final String[] split = path.split("\\.");
+        if (split.length != 2) {
+            throw new IllegalArgumentException("Path must contain only one '.': %s".formatted(Arrays.toString(split)));
+        }
+
+        final PersistentDataContainer compound = getOrCreateCompound(holder, split[0]);
+        compound.set(createKey(split[1]), type.getType(), value);
+        holder.getPersistentDataContainer().set(createKey(split[0]), LazyType.CONTAINER.getType(), compound);
+    }
+
+    public static void setBool(PersistentDataHolder holder, String path, boolean value) {
+        holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.BOOLEAN, value);
+    }
+
+    public static boolean hasNbt(PersistentDataHolder holder, String path, PersistentDataType<?, ?> type) {
+        return holder.getPersistentDataContainer().has(createKey(path), type);
     }
 
     private static NamespacedKey createKey(String path) {
