@@ -16,7 +16,7 @@ import java.util.Arrays;
 public class NBT {
 
     private NBT() {
-        // don't allow to create instances
+        // don't allow creating instances
     }
 
     public static int getInt(PersistentDataHolder holder, String path) {

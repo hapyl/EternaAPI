@@ -40,7 +40,7 @@ public class BukkitUtils {
      * @return the online players as an array
      */
     public static Player[] onlinePlayersAsArray() {
-        return Bukkit.getOnlinePlayers().toArray(new Player[]{});
+        return Bukkit.getOnlinePlayers().toArray(new Player[] {});
     }
 
     /**
@@ -86,7 +86,8 @@ public class BukkitUtils {
     public static String locationToString(@Nonnull Location location, @Nonnull String format, boolean includeRotation) {
         if (includeRotation) {
             return String.format(format, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-        } else {
+        }
+        else {
             return String.format(format, location.getX(), location.getY(), location.getZ());
         }
     }
@@ -156,7 +157,7 @@ public class BukkitUtils {
     }
 
     /**
-     * Returne new location.
+     * Returns new location.
      *
      * @param location - Location to copy from.
      * @return new location.
@@ -241,7 +242,7 @@ public class BukkitUtils {
      */
     @CheckForNull
     public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location) {
-        return getClosestEntityTo(collection, location, new EntityType[]{});
+        return getClosestEntityTo(collection, location, new EntityType[] {});
     }
 
     /**
@@ -463,7 +464,8 @@ public class BukkitUtils {
 
             if (closest == null) {
                 closest = clazz.cast(living);
-            } else {
+            }
+            else {
                 final double currentDist = living.getLocation().distance(location);
                 if (currentDist < closestDist) {
                     closestDist = currentDist;
