@@ -7,13 +7,13 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public final class PlayerAutoGUITest {
+final class PlayerAutoGUITest {
 
     private PlayerAutoGUITest() {
     }
 
     static void test(Player player) {
-        final PlayerAutoGUI gui = new PlayerAutoGUI(player, "My Menu", 1);
+        final PlayerAutoGUI gui = new PlayerAutoGUI(player, "My Menu", 5);
 
         for (int i = 0; i < 16; i++) {
             int finalI = i;

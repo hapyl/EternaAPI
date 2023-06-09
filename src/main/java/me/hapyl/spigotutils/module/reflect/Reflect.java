@@ -24,6 +24,7 @@ import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.scores.ScoreboardTeam;
@@ -47,12 +48,12 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Useful utility class, which was indented to use reflection, hence the name Reflect.
- *
+ * Useful utility class, which was indented to use reflection, hence the name - Reflect.
+ * <p>
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedNMS(version = "1.19.4")
+@TestedNMS(version = "1.20")
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -130,7 +131,7 @@ public final class Reflect {
      * Changes DataWatcher value.
      * Please follow <a href="https://wiki.vg/Entity_metadata#Entity_Metadata_Format">https://wiki.vg/Entity_metadata#Entity_Metadata_Format</a>
      * format.
-     *
+     * <p>
      * This method also updates the entity's metadata!
      *
      * @param entity  - Entity.
@@ -152,7 +153,7 @@ public final class Reflect {
     }
 
     /**
-     * Gets the value from entities data watcher.
+     * Gets the value from entity data watcher.
      *
      * @param entity - Entity.
      * @param type   - Type.
@@ -162,7 +163,7 @@ public final class Reflect {
      */
     public static <T> T getDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key) {
         final DataWatcher dataWatcher = getDataWatcher(entity);
-        return dataWatcher.a(type.get().a(key));
+        return dataWatcher.b(type.get().a(key));
     }
 
     /**
@@ -283,7 +284,7 @@ public final class Reflect {
             }
             return clazz.getConstructor(params);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying to find NSM constructor.");
+            Chat.broadcast("&4An error occurred whilst trying to find NMS constructor.");
             e.printStackTrace();
             return null;
         }
@@ -338,7 +339,7 @@ public final class Reflect {
             }
             return clazz.getMethod(methodName, params);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying to find NSM method.");
+            Chat.broadcast("&4An error occurred whilst trying to find NMS method.");
             e.printStackTrace();
             return null;
         }
@@ -390,7 +391,7 @@ public final class Reflect {
             }
             return clazz.getField(fieldName);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying find NSM field.");
+            Chat.broadcast("&4An error occurred whilst trying find NMS field.");
             e.printStackTrace();
             return null;
         }
@@ -571,7 +572,7 @@ public final class Reflect {
         }
 
         final EntityPlayer mc = getMinecraftPlayer(player);
-        mc.b.a(packet);
+        mc.c.a(packet);
     }
 
     /**
@@ -611,7 +612,7 @@ public final class Reflect {
     }
 
     public static GameProfile getGameProfile(EntityPlayer player) {
-        return player.fI();
+        return player.fM();
     }
 
     /**
@@ -854,4 +855,14 @@ public final class Reflect {
         netScoreboard.d(netTeam);
     }
 
+    /**
+     * Gets the bukkit world from a minecraft world.
+     *
+     * @param worldServer - Minecraft world.
+     * @return the bukkit world or null.
+     */
+    @Nullable
+    public static World getBukkitWorld(WorldServer worldServer) {
+        return Bukkit.getWorld(worldServer.uuid);
+    }
 }

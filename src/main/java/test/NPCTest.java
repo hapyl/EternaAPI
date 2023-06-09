@@ -7,12 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 @RuntimeStaticTest
-public final class NPCTest {
+final class NPCTest {
+
+    static HumanNPC npc;
 
     private NPCTest() {
     }
-
-    static HumanNPC npc;
 
     static void test(Player player, String name) {
         if (name.equalsIgnoreCase("push")) {
