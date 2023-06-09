@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
 import me.hapyl.spigotutils.module.ai.AI;
+import me.hapyl.spigotutils.module.reflect.Reflect;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EntityCreature;
@@ -34,7 +35,8 @@ public class MoveToGoal extends Goal {
             @Override
             protected boolean a(IWorldReader iWorldReader, BlockPosition blockPosition) {
                 if (iWorldReader instanceof WorldServer worldServer) {
-                    final World world = Bukkit.getWorld(worldServer.J.g());
+                    final World world = Reflect.getBukkitWorld(worldServer);
+
                     if (world == null) {
                         return false;
                     }

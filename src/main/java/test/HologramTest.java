@@ -5,15 +5,14 @@ import me.hapyl.spigotutils.module.hologram.Hologram;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public final class HologramTest {
+final class HologramTest {
+
+    static Hologram hologram;
 
     private HologramTest() {
     }
 
-    static Hologram hologram;
-
     static void test(Player player, String... string) {
-
         if ((hologram != null) && (string == null || string.length == 0)) {
             Chat.sendMessage(player, "&aRemoved hologram.");
             hologram.destroy();

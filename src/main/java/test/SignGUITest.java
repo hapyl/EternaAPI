@@ -5,7 +5,7 @@ import me.hapyl.spigotutils.module.inventory.SignGUI;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public final class SignGUITest {
+final class SignGUITest {
 
     private SignGUITest() {
     }

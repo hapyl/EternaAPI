@@ -26,7 +26,7 @@ public class NBTNative {
     }
 
     public static NBTTagCompound getCompoundOrCreate(net.minecraft.world.item.ItemStack nmsItem) {
-        return nmsItem.t() ? nmsItem.u() : new NBTTagCompound();
+        return nmsItem.t() ? nmsItem.v() : new NBTTagCompound();
     }
 
     public static net.minecraft.world.item.ItemStack asNMSCopy(ItemStack stack) {
