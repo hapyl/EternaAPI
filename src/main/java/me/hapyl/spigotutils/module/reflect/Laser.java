@@ -17,7 +17,8 @@ import javax.annotation.Nullable;
 /**
  * Creates a laser (Guardian beam) between start and end.
  */
-@TestedNMS(version = "1.19.4")
+// FIXME (hapyl): 009, Jun 9: There is API for beams now, maybe use that instead
+@TestedNMS(version = "1.20")
 public class Laser {
 
     private final Location start;
