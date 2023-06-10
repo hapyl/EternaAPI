@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.reflect;
 
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.util.Runnables;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.nbt.NBTTagCompound;
@@ -21,7 +22,7 @@ import java.lang.reflect.Constructor;
  * Create a visual bounding box between two points.
  * A bounding box size cannot exceed 48 blocks.
  */
-@TestedNMS(version = "1.19.4")
+@TestedNMS(version = Version.V1_20)
 public class BoundingBox {
 
     public static final int MAX_DIST = 48;

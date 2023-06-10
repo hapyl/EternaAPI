@@ -22,12 +22,6 @@ public class PlayerHologram extends Hologram {
         return this.show();
     }
 
-    private void addPlayerHologram() {
-        final List<PlayerHologram> list = getPlayerHolograms();
-        list.add(this);
-        perPlayerHolograms.put(this.player, list);
-    }
-
     public List<PlayerHologram> getPlayerHolograms() {
         return perPlayerHolograms.getOrDefault(this.player, new ArrayList<>());
     }
@@ -44,11 +38,6 @@ public class PlayerHologram extends Hologram {
         return this.hide();
     }
 
-    @Override
-    public final Hologram hide(boolean flag, Player... players) {
-        return this.hide();
-    }
-
     public PlayerHologram show() {
         super.show(this.player);
         return this;
@@ -57,6 +46,12 @@ public class PlayerHologram extends Hologram {
     public PlayerHologram hide() {
         super.hide(this.player);
         return this;
+    }
+
+    private void addPlayerHologram() {
+        final List<PlayerHologram> list = getPlayerHolograms();
+        list.add(this);
+        perPlayerHolograms.put(this.player, list);
     }
 
 }

@@ -11,5 +11,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE, ElementType.METHOD })
 public @interface TestedNMS {
-    String version();
+    /**
+     * Gets the tested version for this build.
+     */
+    Version version();
+
+
 }

@@ -17,6 +17,8 @@ import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * This class allows creating packet-holograms
@@ -104,6 +106,12 @@ public class Hologram extends LimitedVisibility {
 
     /**
      * Sets the lines of this hologram. This will remove existing lines.
+     * <h1>
+     * Setting lines does not update them.
+     * </h1>
+     * <p>
+     * Make sure to use {@link #updateLines()}.
+     * Alternatively, you can use {@link #setLinesAndUpdate(String...)} to change lines and update them.
      *
      * @param lines - Lines to add.
      */
@@ -232,26 +240,16 @@ public class Hologram extends LimitedVisibility {
     /**
      * Hides the hologram from the given players.
      *
-     * @param flag    - True to keep the player; false to remove from the map.
      * @param players - Players.
      */
     @Super
-    public Hologram hide(boolean flag, Player... players) {
+    public Hologram hide(Player... players) {
         for (Player player : players) {
             showingTo.remove(player);
             packets.forEach(hologram -> hologram.hide(player));
         }
 
         return this;
-    }
-
-    /**
-     * Hides the hologram from the given players.
-     *
-     * @param players - Players.
-     */
-    public Hologram hide(Player... players) {
-        return hide(false, players);
     }
 
     /**
@@ -297,25 +295,60 @@ public class Hologram extends LimitedVisibility {
      */
     public Hologram updateLines(boolean keepListSorted) {
         final Location location = getLocation();
-        final HashSet<Player> players = Sets.newHashSet(showingTo);
 
-        removeStands();
+        // If the size didn't change, just update the armor stand lines.
 
-        if (keepListSorted) {
-            for (final String line : lines) {
-                location.add(0.0d, HOLOGRAM_OFFSET, 0.0d);
-                createStand(location, ChatColor.translateAlternateColorCodes('&', line));
+        // FIXME (hapyl): 010, Jun 10: A little bit (VERY) ugly,
+        //  but the keepListSorted is very annoying, maybe split into different hologram class.
+        if (nonEmptyLinesSizes() == packets.size()) {
+            if (keepListSorted) {
+                int index = nonEmptyLinesSizes() - 1;
+                for (int i = lines.size() - 1; i >= 0; i--) {
+                    final String line = lines.get(i);
+                    if (line.isBlank() || line.isEmpty()) {
+                        continue;
+                    }
+
+                    packets.get(index--).setLine(line);
+                }
+            }
+            else {
+                int index = 0;
+                for (String line : lines) {
+                    if (line.isBlank() || line.isEmpty()) {
+                        continue;
+                    }
+
+                    packets.get(index++).setLine(Chat.format(line));
+                }
+            }
+
+            for (Player player : showingTo) {
+                packets.forEach(stand -> stand.update(player));
             }
         }
         else {
-            for (final String line : lines) {
-                createStand(location, ChatColor.translateAlternateColorCodes('&', line));
-                location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
-            }
-        }
+            // have to use a copy here, since removing stands clears the 'showingTo' set
+            final HashSet<Player> players = Sets.newHashSet(showingTo);
 
-        players.forEach(this::show);
-        players.clear();
+            removeStands();
+
+            if (keepListSorted) {
+                for (final String line : lines) {
+                    location.add(0.0d, HOLOGRAM_OFFSET, 0.0d);
+                    createStand(location, ChatColor.translateAlternateColorCodes('&', line));
+                }
+            }
+            else {
+                for (final String line : lines) {
+                    createStand(location, ChatColor.translateAlternateColorCodes('&', line));
+                    location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
+                }
+            }
+
+            players.forEach(this::show);
+            players.clear();
+        }
 
         return this;
     }
@@ -394,20 +427,6 @@ public class Hologram extends LimitedVisibility {
         return this.location != null;
     }
 
-    protected void removeStands() {
-        this.showingTo.forEach(this::hide);
-        this.packets.clear();
-    }
-
-    private void createStand(Location location, String name) {
-        // skip line if empty instead of | thing
-        if (name.isEmpty()) {
-            return;
-        }
-
-        packets.add(new HologramArmorStand(location, name));
-    }
-
     @Override
     public final void hideVisibility(@Nonnull Player player) {
         for (HologramArmorStand packet : packets) {
@@ -420,6 +439,32 @@ public class Hologram extends LimitedVisibility {
         for (HologramArmorStand packet : packets) {
             packet.show(player);
         }
+    }
+
+    protected void removeStands() {
+        showingTo.forEach(this::hide);
+        packets.clear();
+    }
+
+    private int nonEmptyLinesSizes() {
+        int size = 0;
+        for (String line : lines) {
+            if (line.isBlank() || line.isEmpty()) {
+                continue;
+            }
+
+            size++;
+        }
+        return size;
+    }
+
+    private void createStand(Location location, String name) {
+        // skip line if empty instead of | thing
+        if (name.isEmpty()) {
+            return;
+        }
+
+        packets.add(new HologramArmorStand(location, name));
     }
 
 }

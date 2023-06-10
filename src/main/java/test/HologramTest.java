@@ -30,8 +30,7 @@ final class HologramTest {
                 }
 
                 case "addlines" -> {
-                    hologram.setLines("1", "2", "3", "deez", "nuts", "are", "very", "good");
-                    hologram.showAll();
+                    hologram.setLinesAndUpdate("1", "2", "3", "deez", "nuts", "are", "very", "good");
                     Chat.sendMessage(player, "&aAdded lines.");
                 }
 

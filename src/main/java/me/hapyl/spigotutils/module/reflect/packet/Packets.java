@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.reflect.packet;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.npc.ItemSlot;
 import me.hapyl.spigotutils.module.reflect.npc.NPCAnimation;
@@ -21,7 +22,7 @@ import java.util.List;
 /**
  * This class is a shortcut to packet creating and sending.
  */
-@TestedNMS(version = "1.19.4")
+@TestedNMS(version = Version.V1_20)
 public final class Packets {
 
     private Packets() {

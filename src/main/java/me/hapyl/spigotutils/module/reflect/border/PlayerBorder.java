@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.reflect.border;
 
 import me.hapyl.spigotutils.module.EternaModule;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.util.Holder;
@@ -11,12 +12,12 @@ import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 
 /**
- * Allows to create per-player world border.
- * Note that this is client only change, and it will
+ * Allows creating a per-player world border.
+ * Note that this client is only change, and it will
  * be reset after player re-logins.
  */
 @EternaModule
-@TestedNMS(version = "1.19.4")
+@TestedNMS(version = Version.V1_20)
 public class PlayerBorder extends Holder<Player> {
 
     private final WorldBorder border;
