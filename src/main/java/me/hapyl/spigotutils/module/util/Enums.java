@@ -1,5 +1,7 @@
 package me.hapyl.spigotutils.module.util;
 
+import org.apache.http.annotation.Contract;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -97,8 +99,38 @@ public final class Enums {
      * @param enumClass - Enum class.
      * @return array of enum values. Same as Enum#values().
      */
+    @Nullable
     public static <T extends Enum<T>> T[] getValues(Class<T> enumClass) {
         return enumClass.getEnumConstants();
+    }
+
+    /**
+     * Gets a random enum value from an enum, or null if enum doesn't have any values.
+     *
+     * @param enumClass - Enum class.
+     * @return a random enum value; or null.
+     */
+    @Nullable
+    public static <T extends Enum<T>> T getRandomValue(Class<T> enumClass) {
+        return getRandomValue(enumClass, null);
+    }
+
+    /**
+     * Gets a random enum value from an enum, or default if enum doesn't have any values.
+     *
+     * @param enumClass - Enum class,
+     * @param def       - Default value.
+     * @return a random enum value from an enum, or default.
+     */
+    @CheckForNull
+    public static <T extends Enum<T>> T getRandomValue(Class<T> enumClass, T def) {
+        final T[] values = getValues(enumClass);
+
+        if (values == null) {
+            return def;
+        }
+
+        return values[ThreadRandom.nextInt(values.length)];
     }
 
 }
