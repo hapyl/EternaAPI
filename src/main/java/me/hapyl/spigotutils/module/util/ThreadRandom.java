@@ -1,7 +1,9 @@
 package me.hapyl.spigotutils.module.util;
 
+import me.hapyl.spigotutils.module.inventory.SignType;
 import me.hapyl.spigotutils.module.math.Numbers;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
