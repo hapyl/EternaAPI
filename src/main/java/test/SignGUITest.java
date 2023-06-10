@@ -2,6 +2,8 @@ package test;
 
 import me.hapyl.spigotutils.module.inventory.Response;
 import me.hapyl.spigotutils.module.inventory.SignGUI;
+import me.hapyl.spigotutils.module.inventory.SignType;
+import me.hapyl.spigotutils.module.math.Numbers;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
@@ -11,32 +13,28 @@ final class SignGUITest {
     }
 
     static void test(Player player, int i) {
+        i = Numbers.clamp(i, 1, 4);
+
         switch (i) {
-            default -> new SignGUI(player) {
+            case 1 -> new SignGUI(player, SignType.random(), "1") {
                 @Override
                 public void onResponse(Response response) {
                     response.getPlayer().sendMessage(response.getAsString());
                 }
             };
-            case 1 -> new SignGUI(player, "1") {
+            case 2 -> new SignGUI(player, SignType.random(), "1", "2") {
                 @Override
                 public void onResponse(Response response) {
                     response.getPlayer().sendMessage(response.getAsString());
                 }
             };
-            case 2 -> new SignGUI(player, "1", "2") {
+            case 3 -> new SignGUI(player, SignType.random(), "1", "2", "3") {
                 @Override
                 public void onResponse(Response response) {
                     response.getPlayer().sendMessage(response.getAsString());
                 }
             };
-            case 3 -> new SignGUI(player, "1", "2", "3") {
-                @Override
-                public void onResponse(Response response) {
-                    response.getPlayer().sendMessage(response.getAsString());
-                }
-            };
-            case 4 -> new SignGUI(player, "1", "2", "3", "4") {
+            case 4 -> new SignGUI(player, SignType.random(), "1", "2", "3", "4") {
                 @Override
                 public void onResponse(Response response) {
                     response.getPlayer().sendMessage(response.getAsString());
