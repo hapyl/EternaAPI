@@ -106,38 +106,6 @@ public interface Human {
     boolean isShowingTo(Player player);
 
     /**
-     * Returns true if NPC is persistent, false otherwise.
-     * Persistent NPC's will not be removed when far away.
-     *
-     * @return true if NPC is persistent, false otherwise.
-     */
-    boolean isPersistent();
-
-    /**
-     * Sets if NPC should be persistent.
-     * Persistent NPC's will not be removed when far away.
-     *
-     * @param persistent - Enable or disable persistence.
-     */
-    void setPersistent(boolean persistent);
-
-    /**
-     * Returns maximum distance from NPC's location where it's rendered.
-     * <i>Note that is {@link Human#isPersistent()} this will be ignored.</i>
-     *
-     * @return maximum distance from NPC's location where it's rendered.
-     */
-    int getFarAwayDist();
-
-    /**
-     * Changes maximum distance from NPC's location where it's rendered.
-     * <i>Note that is {@link Human#isPersistent()} this will be ignored.</i>
-     *
-     * @param farAwayDist - New distance.
-     */
-    HumanNPC setFarAwayDist(int farAwayDist);
-
-    /**
      * Adds entry to NPC's dialog.
      *
      * @param entry - Entry to add.
@@ -367,10 +335,6 @@ public interface Human {
      */
     void setEquipment(EntityEquipment equipment);
 
-    /**
-     * Hides NPC for players.
-     */
-    void hide();
 
     /**
      * Changes byte data watcher of this NPC.
@@ -430,12 +394,16 @@ public interface Human {
     void remove();
 
     /**
+     * Hides NPC for players.
+     */
+    void hide();
+
+    /**
      * Hides the NPC from the specified players.
      *
-     * @param mappings - Remap the NPC to the players.
-     * @param players  - The players to hide the NPC from.
+     * @param players - The players to hide the NPC from.
      */
-    void hide(boolean mappings, Player... players);
+    void hide(Player... players);
 
     /**
      * Sets the collision of the NPC.

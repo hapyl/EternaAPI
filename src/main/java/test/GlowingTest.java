@@ -11,7 +11,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 @RuntimeStaticTest
-public final class GlowingTest {
+final class GlowingTest {
 
     private GlowingTest() {
     }

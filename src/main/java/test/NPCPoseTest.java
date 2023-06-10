@@ -6,14 +6,14 @@ import me.hapyl.spigotutils.module.reflect.npc.NPCPose;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public final class NPCPoseTest {
+final class NPCPoseTest {
 
     private NPCPoseTest() {
     }
 
     static HumanNPC npc;
 
-    static void work(Player player, String[] args) {
+    static void test(Player player, String[] args) {
         if (args.length == 0) {
             if (npc == null) {
                 npc = new HumanNPC(player.getLocation(), "test.Test", player.getName());

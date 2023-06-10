@@ -14,6 +14,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -22,7 +23,7 @@ import java.util.*;
 
 /**
  * A powerful GUI creator class.
- * Allows to add items, click events, close and open events or even add your own listener.
+ * Allows adding items, click events, close and open events or even adding your own listener.
  * <p>
  * It is recommended to use {@link PlayerGUI} or it's subclasses instead of this class.
  */
@@ -54,6 +55,22 @@ public class GUI {
         this.ignoredClicks = new HashSet<>();
         this.properties = new Properties();
         this.inventory = Bukkit.createInventory(null, this.size, name);
+    }
+
+    /**
+     * Renames the player inventory if it is opened to a player, does nothing otherwise.
+     *
+     * @param player  - Player.
+     * @param newName - New name.
+     */
+    public void rename(@Nonnull Player player, @Nonnull String newName) {
+        final InventoryView view = player.getOpenInventory();
+
+        if (!view.getTopInventory().equals(inventory)) {
+            return;
+        }
+
+        view.setTitle(Chat.format(newName));
     }
 
     /**
@@ -99,10 +116,10 @@ public class GUI {
     }
 
     /**
-     * Returns players current GUI that is opened, or null if no GUI.
+     * Get player's current GUI that is opened, or null if no GUI.
      *
      * @param player - Player.
-     * @return players current GUI that is opened, or null if no GUI.
+     * @return player current GUI that is opened, or null if no GUI.
      */
     @Nullable
     public static GUI getPlayerGUI(Player player) {

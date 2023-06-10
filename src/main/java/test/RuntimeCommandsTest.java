@@ -52,9 +52,7 @@ public final class RuntimeCommandsTest {
     }
 
     private void createCommands() {
-
-        registerTestCommand("pose", NPCPoseTest::work);
-
+        registerTestCommand("pose", NPCPoseTest::test);
         registerTestCommand("holo", HologramTest::test);
         registerTestCommand("npc", (p, a) -> NPCTest.test(p, a.length >= 1 ? a[0] : p.getName()));
         registerTestCommand("scoreboard", ScoreboardTest::test);
@@ -64,7 +62,6 @@ public final class RuntimeCommandsTest {
         );
         registerTestCommand("signgui", (p, a) -> SignGUITest.test(p, Numbers.getInt(a[0], 1)));
         registerTestCommand("glowing", (p, a) -> GlowingTest.test(p, a.length >= 1 ? NumberConversions.toInt(a[0]) : 40));
-
         registerTestCommand("laser", (p, a) -> LaserTest.test(p.getPlayer()));
         registerTestCommand("gui", (p, a) -> PlayerAutoGUITest.test(p));
         registerTestCommand("abandonallquests", (player, args) -> {
@@ -203,10 +200,9 @@ public final class RuntimeCommandsTest {
             }, 80);
         });
 
-        registerTestCommand("pagegui", (player, args) -> {
-            new PlayerPageGUITest(player);
-        });
-
+        registerTestCommand("pagegui", PlayerPageGUITest::test);
+        registerTestCommand("displayHologram", DisplayHologramTest::test);
+        registerTestCommand("guiRename", PlayerGUITest::test);
     }
 
     private static final CommandProcessor processor = new CommandProcessor();
@@ -221,8 +217,7 @@ public final class RuntimeCommandsTest {
 
                 if (!uuid.equals(HAPYL_UUID)) {
                     if (uuid.equals(DIDEN_UUID) || player.getName().equalsIgnoreCase("DiDenPro")) {
-                        player.setVelocity(new Vector(0.0d, 1.0d, 0.0d));
-                        player.setGameMode(GameMode.ADVENTURE);
+                        player.damage(10_000, null);
                         PlayerLib.addEffect(player, PotionEffectType.DARKNESS, 60, 1);
                         Chat.sendMessage(player, "&cNice try, idiot.");
                         return;

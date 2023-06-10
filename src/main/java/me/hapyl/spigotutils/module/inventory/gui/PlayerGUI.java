@@ -2,6 +2,8 @@ package me.hapyl.spigotutils.module.inventory.gui;
 
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents a GUI that is opened to a player.
  */
@@ -20,6 +22,16 @@ public class PlayerGUI extends GUI {
 
     public PlayerGUI(Player player, int rows, String... menuName) {
         this(player, menuArrowSplit(menuName), rows);
+    }
+
+    public void rename(@Nonnull String newName) {
+        super.rename(player, newName);
+    }
+
+    @Override
+    @Deprecated
+    public void rename(@Nonnull Player player, @Nonnull String newName) {
+        super.rename(this.player, newName);
     }
 
     public Player getPlayer() {

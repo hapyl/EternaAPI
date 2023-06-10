@@ -30,6 +30,7 @@ import java.util.UUID;
  * - Taking damage.
  * - Swinging hands.
  */
+// FIXME (hapyl): 009, Jun 9: Crouching does not seem to work
 public class Record {
 
     // only one instance of replays allowed per player

@@ -44,9 +44,8 @@ public abstract class SignGUI {
      */
     public SignGUI(Player player, @Nullable String prompt) {
         this.player = player;
-        final Location clone = player.getLocation().clone();
-        clone.setY(-64);
-        this.location = clone;
+        this.location = player.getLocation();
+        this.location.setY(Math.max(-64, location.getY() - 5)); // the sign now closes when too far away, thanks mojang
         this.lines = new String[] { "", "", "", "" };
 
         if (prompt != null) {
@@ -145,6 +144,10 @@ public abstract class SignGUI {
         return builder.toString().trim();
     }
 
+    protected void runSync(Runnable runnable) {
+        Runnables.runSync(runnable);
+    }
+
     private boolean isLine(String str) {
         for (String line : lines) {
             if (!line.isBlank() && !line.isEmpty() && line.equals(str)) {
@@ -154,18 +157,16 @@ public abstract class SignGUI {
         return false;
     }
 
-    protected void runSync(Runnable runnable) {
-        Runnables.runSync(runnable);
-    }
-
     private void createPacketAndSend() {
         player.sendBlockChange(location, Material.OAK_SIGN.createBlockData());
         player.sendSignChange(location, this.lines);
+
         ReflectPacket.send(new PacketPlayOutOpenSignEditor(new BlockPosition(
                 location.getBlockX(),
                 location.getBlockY(),
                 location.getBlockZ()
-        )), player);
+        ), true), player);
+
         saved.put(player, this);
     }
 

@@ -4,7 +4,7 @@ import me.hapyl.spigotutils.module.reflect.Laser;
 import org.bukkit.entity.Player;
 
 @RuntimeStaticTest
-public final class LaserTest {
+final class LaserTest {
 
     private LaserTest() {
     }

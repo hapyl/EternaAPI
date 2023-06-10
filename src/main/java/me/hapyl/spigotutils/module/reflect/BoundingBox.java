@@ -148,19 +148,6 @@ public class BoundingBox {
     }
 
     /**
-     * Returns the maximum X of the bounding box; or 0 if not {@link #isDefined()}
-     *
-     * @return the maximum X of the bounding box; or 0 if not {@link #isDefined()}
-     */
-    public int getMaxX() {
-        if (!isDefined()) {
-            return 0;
-        }
-
-        return (int) Math.round(Math.max(start.getX(), end.getX())) + 1;
-    }
-
-    /**
      * Returns the minimum Y of the bounding box, or 0 if not {@link BoundingBox#isDefined()}
      *
      * @return the minimum Y of the bounding box, or 0 if not {@link BoundingBox#isDefined()}
@@ -185,6 +172,19 @@ public class BoundingBox {
     }
 
     /**
+     * Returns the maximum X of the bounding box; or 0 if not {@link #isDefined()}
+     *
+     * @return the maximum X of the bounding box; or 0 if not {@link #isDefined()}
+     */
+    public int getMaxX() {
+        if (!isDefined()) {
+            return 0;
+        }
+
+        return (int) Math.round(Math.max(start.getX(), end.getX()));
+    }
+
+    /**
      * Returns the maximum Y of the bounding box; or 0 if not {@link #isDefined()}
      *
      * @return the maximum Y of the bounding box; or 0 if not {@link #isDefined()}
@@ -194,7 +194,7 @@ public class BoundingBox {
             return 0;
         }
 
-        return (int) Math.round(Math.max(start.getY(), end.getY())) + 1;
+        return (int) Math.round(Math.max(start.getY(), end.getY()));
     }
 
     /**
@@ -207,7 +207,7 @@ public class BoundingBox {
             return 0;
         }
 
-        return (int) Math.round(Math.max(start.getZ(), end.getZ())) + 1;
+        return (int) Math.round(Math.max(start.getZ(), end.getZ()));
     }
 
     /**
@@ -268,7 +268,7 @@ public class BoundingBox {
         hide();
 
         Runnables.runLater(() -> {
-            final IBlockData blockData = Blocks.oW.o();
+            final IBlockData blockData = Blocks.oW.n();
 
             final int minX = getMinX();
             final int minY = getMinY() - 10; // -10 to offset structure block

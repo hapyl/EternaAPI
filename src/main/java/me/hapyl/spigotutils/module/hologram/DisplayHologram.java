@@ -1,116 +1,141 @@
 package me.hapyl.spigotutils.module.hologram;
 
+import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.entity.Entities;
+import me.hapyl.spigotutils.module.entity.Experimental;
+import me.hapyl.spigotutils.module.math.Numbers;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.util.Transformation;
 
-public class DisplayHologram implements Holo {
-    @Override
-    public Hologram addLine(String line) {
-        return null;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+/**
+ * A per-player hologram implementation using the new Text Display entity.
+ * This implementation does not use any <code>"fancy"</code> stuff like {@link Hologram}.
+ *
+ * @apiNote This impl using Spigot experimental features.
+ */
+@Experimental
+public class DisplayHologram {
+
+    private final TextDisplay display;
+
+    public DisplayHologram(@Nonnull Location location) {
+        display = Entities.TEXT_DISPLAY.spawn(location, self -> {
+            self.setVisibleByDefault(false);
+            self.setBillboard(Display.Billboard.CENTER);
+            self.setSeeThrough(true);
+        });
     }
 
-    @Override
-    public Hologram addLines(String... lines) {
-        return null;
+    public DisplayHologram show(@Nonnull Player player) {
+        player.showEntity(EternaPlugin.getPlugin(), display);
+        return this;
     }
 
-    @Override
-    public Hologram setLines(String... lines) {
-        return null;
+    public DisplayHologram showAll() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            show(player);
+        }
+
+        return this;
     }
 
-    @Override
-    public Hologram removeLine(int index) throws IndexOutOfBoundsException {
-        return null;
+    public DisplayHologram hide(@Nonnull Player player) {
+        player.hideEntity(EternaPlugin.getPlugin(), display);
+        return this;
     }
 
-    @Override
-    public Hologram setLine(int index, String line) {
-        return null;
+    public DisplayHologram hideAll() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            hide(player);
+        }
+
+        return this;
     }
 
-    @Override
-    public Hologram clear() {
-        return null;
-    }
-
-    @Override
-    public Hologram setPersistent(boolean persistent) {
-        return null;
-    }
-
-    @Override
-    public boolean isPersistent() {
-        return false;
-    }
-
-    @Override
-    public Hologram setRemoveWhenFarAway(int hideWhenFurtherThan) {
-        return null;
-    }
-
-    @Override
-    public int getRemoveWhenFarAway() {
-        return 0;
-    }
-
-    @Override
     public boolean isShowingTo(Player player) {
-        return false;
+        return player.canSee(display);
     }
 
-    @Override
-    public Location getLocation() {
-        return null;
+    public DisplayHologram setLines(@Nullable String... lines) {
+        if (lines == null) {
+            display.setText(null);
+            return this;
+        }
+
+        final StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < lines.length; i++) {
+            if (i != 0) {
+                builder.append("\n");
+            }
+
+            builder.append(lines[i]);
+        }
+
+        display.setText(Chat.format(builder.toString()));
+        return this;
     }
 
-    @Override
-    public boolean destroy() {
-        return false;
+    public DisplayHologram move(@Nonnull Location location) {
+        display.teleport(location);
+        return this;
     }
 
-    @Override
-    public Hologram showAll() {
-        return null;
+    public int getLineWidth() {
+        return display.getLineWidth();
     }
 
-    @Override
-    public Hologram show(Player... players) {
-        return null;
+    public DisplayHologram setBackground(boolean defaultBackground) {
+        display.setDefaultBackground(defaultBackground);
+        return this;
     }
 
-    @Override
-    public Hologram hide(boolean flag, Player... players) {
-        return null;
+    public DisplayHologram setBackground(@Nullable Color color) {
+        display.setBackgroundColor(color);
+        return this;
     }
 
-    @Override
-    public Hologram hide(Player... players) {
-        return null;
+    public DisplayHologram setColor(@Nonnull TextDisplay.TextAlignment alignment) {
+        display.setAlignment(alignment);
+        return this;
     }
 
-    @Override
-    public Hologram teleport(Location location) {
-        return null;
+    public DisplayHologram setLineWidth(int width) {
+        display.setLineWidth(width);
+        return this;
     }
 
-    @Override
-    public Hologram updateLines(boolean keepListSorted) {
-        return null;
+    public DisplayHologram setOpacity(short opacity) {
+        if (opacity > Byte.MAX_VALUE) {
+            opacity -= 256;
+        }
+
+        display.setTextOpacity(Numbers.clampByte((byte) (-1 - opacity)));
+        return this;
     }
 
-    @Override
-    public Hologram updateLines() {
-        return null;
+    public DisplayHologram transform(@Nonnull Transformation transformation, int delay, int duration) {
+        display.setInterpolationDelay(delay);
+        display.setInterpolationDuration(duration);
+        display.setTransformation(transformation);
+        return this;
     }
 
-    @Override
-    public Hologram create(Location location) {
-        return null;
+    public DisplayHologram transform(@Nonnull Transformation transformation, int duration) {
+        transform(transformation, 0, duration);
+        return this;
     }
 
-    @Override
-    public Hologram move(Location location, Player... players) {
-        return null;
+    public void remove() {
+        display.remove();
     }
 }
