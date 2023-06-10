@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.module.hologram.Hologram;
@@ -66,7 +67,7 @@ import java.util.function.Consumer;
  * For complex NPCs use CitizensAPI
  */
 @SuppressWarnings("unused")
-@TestedNMS(version = "1.19.4")
+@TestedNMS(version = Version.V1_20)
 public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     public static final String CLICK_NAME = "&e&lCLICK";
@@ -810,7 +811,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         }.runTaskAsynchronously(EternaPlugin.getPlugin());
     }
 
-    @TestedNMS(version = "1.19.4")
+    @Nonnull
     public String[] getSkin(String targetName) {
         // if player on the server just get their game profile
         if (Bukkit.getPlayer(targetName) != null) {

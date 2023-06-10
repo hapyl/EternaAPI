@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class HologramArmorStand {
@@ -42,6 +43,10 @@ public class HologramArmorStand {
 
     public void show(Player player) {
         ReflectPacket.send(new PacketPlayOutSpawnEntity(armorStand), player);
+        update(player);
+    }
+
+    public void update(Player player) {
         ReflectPacket.send(
                 new PacketPlayOutEntityMetadata(
                         bukkit.getEntityId(),
@@ -55,9 +60,8 @@ public class HologramArmorStand {
         ReflectPacket.send(new PacketPlayOutEntityDestroy(bukkit.getEntityId()), player);
     }
 
-    public void setLocation(Location location) {
-        this.location = location;
-        this.armorStand.a(location.getX(), location.getY(), location.getZ());
+    public void setLine(@Nullable String newText) {
+        bukkit.setCustomName(newText == null ? "" : newText);
     }
 
     public void updateLocation(Player... players) {
@@ -72,6 +76,11 @@ public class HologramArmorStand {
 
     public Location getLocation() {
         return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+        this.armorStand.a(location.getX(), location.getY(), location.getZ());
     }
 
     public ArmorStand bukkitEntity() {

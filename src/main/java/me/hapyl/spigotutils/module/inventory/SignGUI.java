@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.inventory;
 import me.hapyl.spigotutils.module.annotate.ArraySize;
 import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.util.Runnables;
 import net.minecraft.core.BlockPosition;
@@ -23,7 +24,7 @@ import java.util.logging.Logger;
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedNMS(version = "1.19.4")
+@TestedNMS(version = Version.V1_20)
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";

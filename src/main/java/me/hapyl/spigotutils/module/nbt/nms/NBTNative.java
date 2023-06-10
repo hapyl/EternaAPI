@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.nbt.nms;
 
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import net.minecraft.nbt.MojangsonParser;
 import net.minecraft.nbt.NBTTagCompound;
@@ -9,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
 
-@TestedNMS(version = "1.19.4")
+@TestedNMS(version = Version.V1_20)
 public class NBTNative {
 
     private static final Method CRAFT_AS_NMS_COPY_METHOD = Reflect.getCraftMethod("inventory.CraftItemStack", "asNMSCopy", ItemStack.class);
@@ -22,7 +23,7 @@ public class NBTNative {
     @Nonnull
     public static NBTTagCompound getCompound(ItemStack item) {
         final net.minecraft.world.item.ItemStack nms = asNMSCopy(item);
-        return nms.v();
+        return nms.w();
     }
 
     public static NBTTagCompound getCompoundOrCreate(net.minecraft.world.item.ItemStack nmsItem) {
