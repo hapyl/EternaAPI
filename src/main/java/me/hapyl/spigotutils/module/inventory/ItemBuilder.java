@@ -25,6 +25,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.map.MapView;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -924,6 +927,28 @@ public class ItemBuilder implements ItemStackBuilder {
     @Override
     public ItemBuilder setCancelClicks(boolean cancelClicks) {
         this.cancelClicks = cancelClicks;
+        return this;
+    }
+
+    @Nullable
+    @Override
+    public ArmorTrim getArmorTrim() {
+        if (!(meta instanceof ArmorMeta armorMeta)) {
+            return null;
+        }
+
+        return armorMeta.getTrim();
+    }
+
+    @Override
+    public ItemStackBuilder setArmorTrim(@Nonnull TrimPattern pattern, @Nonnull TrimMaterial material) {
+        if (!(meta instanceof ArmorMeta armorMeta)) {
+            return this;
+        }
+
+        armorMeta.setTrim(new ArmorTrim(material, pattern));
+        item.setItemMeta(armorMeta);
+
         return this;
     }
 
