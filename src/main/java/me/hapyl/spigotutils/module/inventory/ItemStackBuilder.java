@@ -14,6 +14,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.map.MapView;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
@@ -829,6 +832,22 @@ public interface ItemStackBuilder {
      * @param cancelClicks - New value.
      */
     ItemStackBuilder setCancelClicks(boolean cancelClicks);
+
+    /**
+     * Gets the current armor trim; or null if no trim or item is not armor.
+     *
+     * @return the current armor trim; or null if no trim or item is not armor.
+     */
+    @Nullable
+    ArmorTrim getArmorTrim();
+
+    /**
+     * Applies the armor trim to this armor, does nothing if item is not armor.
+     *
+     * @param pattern  - Trim pattern.
+     * @param material - Trim material.
+     */
+    ItemStackBuilder setArmorTrim(TrimPattern pattern, TrimMaterial material);
 
     /**
      * Creates player head from texture.
