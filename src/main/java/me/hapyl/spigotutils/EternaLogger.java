@@ -23,4 +23,15 @@ public class EternaLogger {
         Chat.sendMessage(player, PREFIX + message, format);
     }
 
+    public static void info(String message, Object... format) {
+        EternaPlugin.getPlugin().getLogger().info(message.formatted(format));
+    }
+
+    public static void warn(String message, Object... format) {
+        EternaPlugin.getPlugin().getLogger().warning(message.formatted(format));
+    }
+
+    public static void error(String message, Object... format) {
+        EternaPlugin.getPlugin().getLogger().severe(message.formatted(format));
+    }
 }
