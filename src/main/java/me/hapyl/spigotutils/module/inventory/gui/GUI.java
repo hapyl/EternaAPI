@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.inventory.gui;
 
 import com.google.common.collect.Maps;
-import me.hapyl.spigotutils.module.annotate.ArraySize;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
@@ -367,7 +367,7 @@ public class GUI {
      * @param types  - Click Types action is applied to.
      * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
      */
-    public final void setItem(int slot, @Nullable ItemStack item, @Nonnull Action action, @ArraySize(min = 1) ClickType... types) {
+    public final void setItem(int slot, @Nullable ItemStack item, @Nonnull Action action, @Range(min = 1) ClickType... types) {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
         final GUIClick guiClick = getOrNew(slot, action);
         for (final ClickType type : types) {

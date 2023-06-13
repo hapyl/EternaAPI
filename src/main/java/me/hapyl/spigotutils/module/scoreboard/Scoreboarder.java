@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.scoreboard;
 
 import me.hapyl.spigotutils.module.EternaModule;
-import me.hapyl.spigotutils.module.annotate.ArraySize;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.chat.Chat;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
@@ -74,7 +74,7 @@ public class Scoreboarder {
      *
      * @param lines - Array of new lines.
      */
-    public void setLines(@ArraySize(max = 17) String... lines) {
+    public void setLines(@Range(max = 17) String... lines) {
         this.lines.clear();
         this.lines.addAll(Arrays.asList(lines));
 
