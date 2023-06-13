@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that this method or constructor is super in hierarchy of overloads.
+ * Indicates that this string will be forced to lower case.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.CONSTRUCTOR })
-public @interface Super {
+@Target(ElementType.PARAMETER)
+public @interface ForceLowercase {
 }

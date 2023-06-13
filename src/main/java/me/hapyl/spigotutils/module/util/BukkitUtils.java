@@ -2,7 +2,7 @@ package me.hapyl.spigotutils.module.util;
 
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.annotate.ArraySize;
+import me.hapyl.spigotutils.module.annotate.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -21,7 +21,6 @@ import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * Some utils for things that are done regularly by me.
@@ -255,7 +254,7 @@ public class BukkitUtils {
      */
     @Nullable
     @CheckForNull
-    public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location, @ArraySize EntityType... allowedTypes) {
+    public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location, @Range EntityType... allowedTypes) {
         if (collection.isEmpty()) {
             return null;
         }

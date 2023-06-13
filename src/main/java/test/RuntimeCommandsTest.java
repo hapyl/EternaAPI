@@ -1,5 +1,6 @@
 package test;
 
+import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.ai.AI;
 import me.hapyl.spigotutils.module.ai.MobAI;
@@ -9,6 +10,7 @@ import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.entity.Rope;
+import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.quest.Quest;
@@ -26,12 +28,15 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -203,6 +208,11 @@ public final class RuntimeCommandsTest {
         registerTestCommand("pagegui", PlayerPageGUITest::test);
         registerTestCommand("displayHologram", DisplayHologramTest::test);
         registerTestCommand("guiRename", PlayerGUITest::test);
+
+        registerTestCommand("newItemBuilder", (player, args) -> {
+            player.getInventory().addItem(new ItemBuilder(Material.IRON_BOOTS)
+                    .setArmorTrim(TrimPattern.TIDE, TrimMaterial.DIAMOND).asIcon());
+        });
     }
 
     private static final CommandProcessor processor = new CommandProcessor();
