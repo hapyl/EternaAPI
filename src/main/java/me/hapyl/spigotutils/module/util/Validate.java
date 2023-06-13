@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
-import me.hapyl.spigotutils.module.annotate.ArraySize;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.chat.Chat;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -674,7 +674,7 @@ public class Validate {
      * @param index  - Index.
      * @param values - Strings to check.
      */
-    public static boolean checkArrayString(String[] array, int index, @ArraySize(min = 1) String... values) {
+    public static boolean checkArrayString(String[] array, int index, @Range(min = 1) String... values) {
         if (array.length == 0 || index < 0 || index >= array.length || array[index] == null || values.length == 0) {
             return false;
         }

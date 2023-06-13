@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.inventory;
 
-import me.hapyl.spigotutils.module.annotate.ArraySize;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.TestedNMS;
 import me.hapyl.spigotutils.module.annotate.Version;
@@ -99,7 +99,7 @@ public abstract class SignGUI {
      *               <b>This method will NOT include '^' character.</b>
      * @throws IllegalArgumentException if prompt lines are longer than 4 lines.
      */
-    public SignGUI(Player player, @Nonnull @ArraySize(max = 4) String... prompt) {
+    public SignGUI(Player player, @Nonnull @Range(max = 4) String... prompt) {
         this(player, SignType.OAK, prompt);
     }
 
@@ -112,7 +112,7 @@ public abstract class SignGUI {
      *               <b>This method will NOT include '^' character.</b>
      * @throws IllegalArgumentException if prompt lines are longer than 4 lines.
      */
-    public SignGUI(@Nonnull Player player, @Nonnull SignType type, @Nonnull @ArraySize(max = 4) String... prompt) {
+    public SignGUI(@Nonnull Player player, @Nonnull SignType type, @Nonnull @Range(max = 4) String... prompt) {
         this(player, type, (String) null);
         if (prompt.length > 4) {
             throw new IllegalArgumentException("Prompt cannot be longer than 4 lines!");
