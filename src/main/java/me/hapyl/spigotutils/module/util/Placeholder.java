@@ -2,13 +2,13 @@ package me.hapyl.spigotutils.module.util;
 
 /**
  * A placeholder formatter for strings.
- *
+ * <p>
  * Uses {} as the placeholder.
- * Placeholder can have body for better readability.
- *
+ * Placeholders may have a body for better readability.
+ * <p>
  * Examples:
  * <pre>
- *     Placeholder.format("My name is {name}!", "hapyl");
+ *     BFormat.format("My name is {name}!", "hapyl");
  *     // My name is hapyl!
  *
  *     Placeholder.format("I like {food} with {} on top!", "pizza", "pineapple");
@@ -16,7 +16,7 @@ package me.hapyl.spigotutils.module.util;
  *
  * </pre>
  */
-public class Placeholder {
+public class BFormat {
 
     public static final char OPEN_CHAR = '{';
     public static final char CLOSE_CHAR = '}';
@@ -27,9 +27,9 @@ public class Placeholder {
      * Creates a new placeholder with the given input string.
      *
      * @param string - the input string to be formatted.
-     * @see Placeholder#format(String, Object...)
+     * @see BFormat#format(String, Object...)
      */
-    public Placeholder(String string) {
+    public BFormat(String string) {
         this.string = string;
     }
 
@@ -41,7 +41,7 @@ public class Placeholder {
      * @return the formatted string.
      */
     public static String format(String input, Object... format) {
-        return new Placeholder(input).format(format);
+        return new BFormat(input).format(format);
     }
 
     /**
@@ -52,7 +52,7 @@ public class Placeholder {
      * @return the formatted string.
      */
     public static String formatColor(String input, Object... format) {
-        return new Placeholder(input).format(PlaceholderFormatter.COLOR, format);
+        return new BFormat(input).format(PlaceholderFormatter.COLOR, format);
     }
 
     /**
