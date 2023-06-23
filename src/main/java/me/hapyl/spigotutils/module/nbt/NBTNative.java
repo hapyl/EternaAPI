@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.nbt.nms;
 
-import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import net.minecraft.nbt.MojangsonParser;
@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
 
-@TestedNMS(version = Version.V1_20)
+@TestedOn(version = Version.V1_20)
 public class NBTNative {
 
     private static final Method CRAFT_AS_NMS_COPY_METHOD = Reflect.getCraftMethod("inventory.CraftItemStack", "asNMSCopy", ItemStack.class);
