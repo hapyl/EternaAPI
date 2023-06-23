@@ -5,6 +5,7 @@ import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.AsyncSafe;
 import me.hapyl.spigotutils.module.math.geometry.Draw;
 import me.hapyl.spigotutils.module.math.geometry.Quality;
+import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -22,11 +23,12 @@ import java.util.Objects;
  */
 public class Geometry {
 
-    public static final Location CENTER = new Location(Bukkit.getWorlds().get(0), 0, Bukkit.getWorlds().get(0).getHighestBlockYAt(0, 0), 0);
+    public static final World WORLD = BukkitUtils.defWorld();
+    public static final Location CENTER = BukkitUtils.defLocation(0, WORLD.getHighestBlockYAt(0, 0), 0);
     protected static final double TWO_PI = (Math.PI * 2);
 
     /**
-     * Draws a circle around center.
+     * Draws a circle around the center.
      *
      * @param center  - Center of the circle.
      * @param radius  - Radius of the circle.
@@ -50,14 +52,14 @@ public class Geometry {
     }
 
     /**
-     * Draws a circle around center.
+     * Draws a circle around the center.
      *
      * @param center   - Center.
      * @param radius   - Radius from the center.
      * @param material - Material to replace block with.
      * @return List of affected blocks.
      * @throws IllegalArgumentException if material is not a block.
-     * @throws NullPointerException     if world is unloaded.
+     * @throws NullPointerException     if the world is unloaded.
      */
     @AsyncNotSafe
     public static List<Block> drawCircleWithBlocks(@Nonnull Location center, int radius, Material material) {
@@ -92,7 +94,7 @@ public class Geometry {
     }
 
     /**
-     * Draws a circle around center anchored to a block, meaning that the circle will be drawn on the highest or lowest block.
+     * Draws a circle around the center anchored to a block, meaning that the circle will be drawn on the highest or lowest block.
      *
      * @param center  - center of the circle.
      * @param radius  - radius of the circle.
@@ -133,7 +135,7 @@ public class Geometry {
     }
 
     /**
-     * Draws a circle around center anchored to a block, meaning that the circle will be drawn on the highest or lowest block.
+     * Draws a circle around the center anchored to a block, meaning that the circle will be drawn on the highest or lowest block.
      *
      * @param center  - center of the circle.
      * @param radius  - radius of the circle.
@@ -173,13 +175,13 @@ public class Geometry {
     }
 
     /**
-     * Draws a sphere around center.
+     * Draws a sphere around a center.
      *
      * @param center      - Center of the sphere.
      * @param rings       - Amount of 'rings' sphere will have; higher value returns in higher quality. Usually (radius / 2) results in good quality.
      * @param radius      - Radius of the sphere.
      * @param draw        - Drawable.
-     * @param drawOnlyTop - If true, only top of the sphere will be drawn to save on resources.
+     * @param drawOnlyTop - If true, only the top of the sphere will be drawn to save on resources.
      * @throws NullPointerException if center or draw is null.
      */
     @AsyncSafe
@@ -204,7 +206,7 @@ public class Geometry {
     }
 
     /**
-     * Draws a sphere around center.
+     * Draws a sphere around the center.
      *
      * @param center - Center of the sphere.
      * @param rings  - Amount of 'rings' sphere will have; higher value returns in higher quality. Usually (radius / 2) results in good quality.
@@ -221,7 +223,7 @@ public class Geometry {
      * Draws a polygon around the center.
      *
      * @param center - Center of polygon.
-     * @param points - How many points' polygon will have.
+     * @param points - How many points polygon will have.
      * @param radius - Radius from the center to each point.
      * @param draw   - Drawable.
      * @throws NullPointerException     if center or draw is null.
@@ -261,10 +263,10 @@ public class Geometry {
     }
 
     /**
-     * Draws a donut around center.
+     * Draws a donut around a center.
      *
      * @param center - Center of the donut.
-     * @param layers - Amount of layers of the donut.
+     * @param layers - Number of layers of the donut.
      * @param radius - Radius from the center.
      * @param draw   - Drawable.
      * @throws NullPointerException if center or draw is null.

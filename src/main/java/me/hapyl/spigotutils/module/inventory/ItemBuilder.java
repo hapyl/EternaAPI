@@ -10,9 +10,9 @@ import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
-import me.hapyl.spigotutils.module.nbt.LazyType;
+import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.nbt.NBT;
-import me.hapyl.spigotutils.module.nbt.nms.NBTNative;
+import me.hapyl.spigotutils.module.nbt.NBTNative;
 import me.hapyl.spigotutils.module.util.Nulls;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
@@ -1014,7 +1014,7 @@ public class ItemBuilder {
                 return item;
             }
 
-            modifyMeta(meta -> NBT.setValue(meta, PLUGIN_PATH, LazyType.STR, id));
+            modifyMeta(meta -> NBT.setValue(meta, PLUGIN_PATH, NBTType.STR, id));
             itemsWithEvents.put(id, this);
         }
         else if (!functions.isEmpty()) {
@@ -1650,7 +1650,8 @@ public class ItemBuilder {
             return null;
         }
 
-        return NBT.getString(meta, PLUGIN_PATH, null);
+        final String id = NBT.getString(meta, PLUGIN_PATH, "");
+        return (id.isEmpty() || id.isBlank()) ? "" : id;
     }
 
     /**

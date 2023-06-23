@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.block;
 
+import me.hapyl.spigotutils.module.entity.Experimental;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Material;
 
@@ -8,6 +9,7 @@ import javax.annotation.Nonnull;
 /**
  * Contains tags of blocks with different types.
  */
+@Experimental
 public final class BlockTag {
 
     private BlockTag() {

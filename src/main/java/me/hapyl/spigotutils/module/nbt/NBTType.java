@@ -3,25 +3,60 @@ package me.hapyl.spigotutils.module.nbt;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-public class LazyType<T> {
+/**
+ * A type for NBT.
+ */
+public class NBTType<A, T> {
 
-    public static final LazyType<Integer> INT = new LazyType<>(PersistentDataType.INTEGER);
-    public static final LazyType<String> STR = new LazyType<>(PersistentDataType.STRING);
-    public static final LazyType<Short> SHORT = new LazyType<>(PersistentDataType.SHORT);
-    public static final LazyType<Byte> BYTE = new LazyType<>(PersistentDataType.BYTE);
-    public static final LazyType<Long> LONG = new LazyType<>(PersistentDataType.LONG);
-    public static final LazyType<Double> DOUBLE = new LazyType<>(PersistentDataType.DOUBLE);
-    public static final LazyType<Float> FLOAT = new LazyType<>(PersistentDataType.FLOAT);
-    public static final LazyType<PersistentDataContainer> CONTAINER = new LazyType<>(PersistentDataType.TAG_CONTAINER);
-    public static final LazyType<PersistentDataContainer[]> CONTAINER_ARRAY = new LazyType<>(PersistentDataType.TAG_CONTAINER_ARRAY);
+    /**
+     * Integer.
+     */
+    public static final NBTType<Integer, Integer> INT = new NBTType<>(PersistentDataType.INTEGER);
+    /**
+     * String.
+     */
+    public static final NBTType<String, String> STR = new NBTType<>(PersistentDataType.STRING);
+    /**
+     * Short.
+     */
+    public static final NBTType<Short, Short> SHORT = new NBTType<>(PersistentDataType.SHORT);
+    /**
+     * Byte.
+     */
+    public static final NBTType<Byte, Byte> BYTE = new NBTType<>(PersistentDataType.BYTE);
+    /**
+     * Long.
+     */
+    public static final NBTType<Long, Long> LONG = new NBTType<>(PersistentDataType.LONG);
+    /**
+     * Double.
+     */
+    public static final NBTType<Double, Double> DOUBLE = new NBTType<>(PersistentDataType.DOUBLE);
+    /**
+     * Float.
+     */
+    public static final NBTType<Float, Float> FLOAT = new NBTType<>(PersistentDataType.FLOAT);
+    /**
+     * Container.
+     */
+    public static final NBTType<PersistentDataContainer, PersistentDataContainer> CONTAINER = new NBTType<>(PersistentDataType.TAG_CONTAINER);
+    /**
+     * Array of containers.
+     */
+    public static final NBTType<PersistentDataContainer[], PersistentDataContainer[]> CONTAINER_ARRAY = new NBTType<>(PersistentDataType.TAG_CONTAINER_ARRAY);
 
-    private final PersistentDataType<T, T> type;
+    /**
+     * Boolean. He's special.
+     */
+    public static final NBTType<Byte, Boolean> BOOL = new NBTType<>(PersistentDataType.BOOLEAN);
 
-    private LazyType(PersistentDataType<T, T> type) {
+    private final PersistentDataType<A, T> type;
+
+    private NBTType(PersistentDataType<A, T> type) {
         this.type = type;
     }
 
-    public PersistentDataType<T, T> getType() {
+    public PersistentDataType<A, T> getType() {
         return this.type;
     }
 

@@ -10,11 +10,11 @@ import java.lang.annotation.Target;
  * be targeted by {@link me.hapyl.spigotutils.module.command.CommandProcessor}
  * to call it if {@link ArgumentSensitive#targetSize()} and {@link ArgumentSensitive#targetString()}
  * matches to execute it.
- *
+ * <p>
  * Notice that annotated method must be a member of {@link me.hapyl.spigotutils.module.command.SimpleCommand} class
  * and <b>must</b> have exactly two arguments where first is {@link org.bukkit.command.CommandSender}
  * and the second is {@link String[]}!
- *
+ * <p>
  * Example:
  * {@code
  *  @ArgumentSensitive(targetSize=0, targetString="hello")

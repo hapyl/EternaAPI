@@ -3,7 +3,7 @@ package me.hapyl.spigotutils.module.inventory.item;
 import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
-import me.hapyl.spigotutils.module.nbt.LazyType;
+import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -102,7 +102,7 @@ public abstract class CustomItem {
         // Apply Id
         NBT.setString(meta, "Id", this.id);
         NBT.setString(meta, "UniqueId", UUID.randomUUID().toString());
-        NBT.setValue(meta, "TimeStamp", LazyType.LONG, System.currentTimeMillis());
+        NBT.setValue(meta, "TimeStamp", NBTType.LONG, System.currentTimeMillis());
 
         // Apply Meta
         meta.setDisplayName(Chat.format(this.customName));

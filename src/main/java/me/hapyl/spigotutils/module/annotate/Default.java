@@ -1,7 +1,5 @@
 package me.hapyl.spigotutils.module.annotate;
 
-import net.bytebuddy.implementation.bind.annotation.RuntimeType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,6 +24,5 @@ public @interface Default {
     float floatValue() default 0.0f;
 
     boolean booleanValue() default false;
-
 
 }

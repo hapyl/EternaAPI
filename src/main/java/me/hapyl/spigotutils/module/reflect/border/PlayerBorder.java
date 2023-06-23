@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.reflect.border;
 
 import me.hapyl.spigotutils.module.EternaModule;
-import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.reflect.Reflect;
@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
  * be reset after player re-logins.
  */
 @EternaModule
-@TestedNMS(version = Version.V1_20)
+@TestedOn(version = Version.V1_20)
 public class PlayerBorder extends Holder<Player> {
 
     private final WorldBorder border;

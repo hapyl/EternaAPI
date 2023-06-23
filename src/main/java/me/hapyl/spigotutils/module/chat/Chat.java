@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.chat;
 
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.util.Placeholder;
+import me.hapyl.spigotutils.module.util.BFormat;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -185,7 +185,7 @@ public class Chat {
     }
 
     /**
-     * Performs a 'bformat' to a string. See: {@link Placeholder}
+     * Performs a 'bformat' to a string. See: {@link BFormat}
      *
      * @param input   - String to format.
      * @param objects - Replacements.
@@ -193,7 +193,7 @@ public class Chat {
      */
     @Nonnull
     public static String bformat(String input, Object... objects) {
-        return Chat.format(Placeholder.format(input, objects));
+        return Chat.format(BFormat.format(input, objects));
     }
 
     /**
@@ -242,7 +242,7 @@ public class Chat {
     }
 
     /**
-     * Converts array of T to a String separated by space.
+     * Converts an array of T to a String separated by space.
      *
      * @param array   - Array to convert.
      * @param startAt - Array start position.
@@ -258,7 +258,7 @@ public class Chat {
     }
 
     /**
-     * Converts array of T to List of String
+     * Converts an array of T to List of String
      *
      * @param array - Array to convert.
      * @param <T>   - Type of the array.
@@ -366,7 +366,7 @@ public class Chat {
     }
 
     /**
-     * Sends clickable message to a player.
+     * Sends a clickable message to a player.
      *
      * @param sender     - Receiver.
      * @param runCommand - Command to run which is really just a chat string, don't forget '/' to make this a command.
@@ -390,7 +390,7 @@ public class Chat {
     }
 
     /**
-     * Sends clickable and hoverable message to a player.
+     * Sends a clickable and hoverable message to a player.
      *
      * @param sender     - Receiver.
      * @param runCommand - Command to run; Don't forget '/'!
@@ -409,7 +409,7 @@ public class Chat {
     }
 
     /**
-     * Sends clickable message to a player.
+     * Sends a clickable message to a player.
      *
      * @param sender  - Receiver.
      * @param event   - ClickEvent. See {@link LazyClickEvent}
