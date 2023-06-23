@@ -1,7 +1,8 @@
 package me.hapyl.spigotutils.module.command;
 
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.annotate.TestedReflection;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
+import me.hapyl.spigotutils.module.annotate.Version;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -81,9 +82,9 @@ public class CommandProcessor {
      * Gets the command map for this server.
      *
      * @return command map for this server.
-     * @throws IllegalAccessException if failed to retrieve command map.
+     * @throws IllegalAccessException if failed to retrieve the command map.
      */
-    @TestedReflection(version = "1.19.4")
+    @TestedOn(version = Version.V1_20)
     public static SimpleCommandMap getCommandMap() throws IllegalAccessException {
         final PluginManager manager = Bukkit.getServer().getPluginManager();
         return (SimpleCommandMap) FieldUtils.getDeclaredField(manager.getClass(), "commandMap", true).get(manager);

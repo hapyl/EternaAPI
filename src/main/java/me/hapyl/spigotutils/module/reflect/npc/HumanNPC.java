@@ -17,7 +17,7 @@ import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
@@ -67,7 +67,7 @@ import java.util.function.Consumer;
  * For complex NPCs use CitizensAPI
  */
 @SuppressWarnings("unused")
-@TestedNMS(version = Version.V1_20)
+@TestedOn(version = Version.V1_20)
 public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     public static final String CLICK_NAME = "&e&lCLICK";

@@ -1,22 +1,25 @@
 package me.hapyl.spigotutils.module.util;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
- * A placeholder formatter for strings.
- *
+ * A formatter for strings, 'B' stands for 'bracket'.
+ * <p>
  * Uses {} as the placeholder.
- * Placeholder can have body for better readability.
- *
+ * Placeholders may have a body for better readability.
+ * <p>
  * Examples:
  * <pre>
- *     Placeholder.format("My name is {name}!", "hapyl");
+ *     BFormat.format("My name is {name}!", "hapyl");
  *     // My name is hapyl!
  *
- *     Placeholder.format("I like {food} with {} on top!", "pizza", "pineapple");
+ *     BFormat.format("I like {food} with {} on top!", "pizza", "pineapple");
  *     // I like pizza with pineapple on top!
  *
  * </pre>
  */
-public class Placeholder {
+public class BFormat {
 
     public static final char OPEN_CHAR = '{';
     public static final char CLOSE_CHAR = '}';
@@ -27,9 +30,9 @@ public class Placeholder {
      * Creates a new placeholder with the given input string.
      *
      * @param string - the input string to be formatted.
-     * @see Placeholder#format(String, Object...)
+     * @see BFormat#format(String, Object...)
      */
-    public Placeholder(String string) {
+    public BFormat(String string) {
         this.string = string;
     }
 
@@ -41,7 +44,7 @@ public class Placeholder {
      * @return the formatted string.
      */
     public static String format(String input, Object... format) {
-        return new Placeholder(input).format(format);
+        return new BFormat(input).format(format);
     }
 
     /**
@@ -51,8 +54,8 @@ public class Placeholder {
      * @param format - the format to be used.
      * @return the formatted string.
      */
-    public static String formatColor(String input, Object... format) {
-        return new Placeholder(input).format(PlaceholderFormatter.COLOR, format);
+    public static String formatColor(@Nonnull String input, @Nullable Object... format) {
+        return new BFormat(input).format(BFormatFormatter.COLOR, format);
     }
 
     /**
@@ -61,8 +64,8 @@ public class Placeholder {
      * @param format - the format to be used.
      * @return the formatted string.
      */
-    public final String format(Object... format) {
-        return format(PlaceholderFormatter.DEFAULT, format);
+    public final String format(@Nullable Object... format) {
+        return format(BFormatFormatter.DEFAULT, format);
     }
 
     /**
@@ -72,8 +75,9 @@ public class Placeholder {
      * @param format    - the format to be used.
      * @return the formatted string.
      */
-    public final String format(PlaceholderFormatter formatter, Object... format) {
-        if (format == null || format.length == 0) {
+    @Nonnull
+    public final String format(@Nonnull BFormatFormatter formatter, @Nullable Object... format) {
+        if (format == null) {
             return this.string;
         }
 
@@ -84,11 +88,23 @@ public class Placeholder {
         return this.string;
     }
 
+    /**
+     * Gets the current string of this formatter.
+     *
+     * @return the current string of this formatter.
+     */
+    @Nonnull
     public String getString() {
-        return string;
+        return this.string;
     }
 
+    /**
+     * Gets the current string of this formatter.
+     *
+     * @return the current string of this formatter.
+     */
     @Override
+    @Nonnull
     public String toString() {
         return this.string;
     }
