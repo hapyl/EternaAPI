@@ -12,6 +12,8 @@ import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.entity.Rope;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.math.Numbers;
+import me.hapyl.spigotutils.module.nbt.NBT;
+import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.quest.Quest;
 import me.hapyl.spigotutils.module.quest.QuestManager;
@@ -28,6 +30,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -160,6 +164,25 @@ public final class RuntimeCommandsTest {
                 }
             }
 
+        });
+
+        registerTestCommand("nbtType", (player, args) -> {
+            final ItemStack handItem = player.getInventory().getItemInMainHand();
+
+            if (handItem.getType().isAir()) {
+                Chat.sendMessage(player, "&cHold an item!");
+                return;
+            }
+
+            final ItemMeta meta = handItem.getItemMeta();
+            assert meta != null;
+
+            NBT.setValue(meta, "hello.world", NBTType.BOOL, false);
+            handItem.setItemMeta(meta);
+
+            final Boolean value = NBT.getValue(meta, "hello.world", NBTType.BOOL);
+
+            Chat.sendMessage(player, "value=" + value);
         });
 
         registerTestCommand("itembuilder", (player, args) -> {

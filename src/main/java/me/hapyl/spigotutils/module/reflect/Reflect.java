@@ -7,7 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.module.annotate.Super;
-import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
@@ -54,7 +54,7 @@ import java.util.List;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedNMS(version = Version.V1_20)
+@TestedOn(version = Version.V1_20)
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();

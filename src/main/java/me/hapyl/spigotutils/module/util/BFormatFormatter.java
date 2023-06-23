@@ -1,13 +1,14 @@
 package me.hapyl.spigotutils.module.util;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface PlaceholderFormatter {
+public interface BFormatFormatter {
 
     /**
-     * A placeholder formatter that colors numbers.
+     * A formatter that colors numbers.
      */
-    PlaceholderFormatter COLOR = new PlaceholderFormatter() {
+    BFormatFormatter COLOR = new BFormatFormatter() {
 
         @Nonnull
         @Override
@@ -22,7 +23,7 @@ public interface PlaceholderFormatter {
         }
 
         @Override
-        public String format(Object obj) {
+        public @Nonnull String format(@Nullable Object obj) {
             if (obj == null) {
                 return "null";
             }
@@ -46,9 +47,9 @@ public interface PlaceholderFormatter {
     };
 
     /**
-     * A placeholder formatter that does nothing.
+     * A formatter that does nothing.
      */
-    PlaceholderFormatter DEFAULT = new PlaceholderFormatter() {
+    BFormatFormatter DEFAULT = new BFormatFormatter() {
 
         @Nonnull
         @Override
@@ -63,13 +64,26 @@ public interface PlaceholderFormatter {
         }
     };
 
+    /**
+     * Append before the string.
+     */
     @Nonnull
     String before();
 
+    /**
+     * Append after the string.
+     */
     @Nonnull
     String after();
 
-    default String format(Object obj) {
+    /**
+     * Default format implementation.
+     *
+     * @param obj - Object to format.
+     * @return a formatted string.
+     */
+    @Nonnull
+    default String format(@Nullable Object obj) {
         if (obj == null) {
             return "null";
         }

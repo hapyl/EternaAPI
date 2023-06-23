@@ -6,15 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that this method or class has been tested using {@link TestedNMS#version()} minecraft version.
+ * Indicates that this method or class has been tested using {@link TestedOn#version()} minecraft and spigot version.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE, ElementType.METHOD })
-public @interface TestedNMS {
+public @interface TestedOn {
     /**
      * Gets the tested version for this build.
      */
     Version version();
-
 
 }

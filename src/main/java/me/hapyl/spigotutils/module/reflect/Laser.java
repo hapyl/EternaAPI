@@ -1,6 +1,6 @@
 package me.hapyl.spigotutils.module.reflect;
 
-import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.reflect.packet.Packets;
@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 /**
  * Creates a laser (Guardian beam) between start and end.
  */
-@TestedNMS(version = Version.V1_20)
+@TestedOn(version = Version.V1_20)
 public class Laser {
 
     private final Location start;

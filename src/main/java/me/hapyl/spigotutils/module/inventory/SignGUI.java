@@ -2,7 +2,7 @@ package me.hapyl.spigotutils.module.inventory;
 
 import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
-import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedNMS(version = Version.V1_20)
+@TestedOn(version = Version.V1_20)
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";

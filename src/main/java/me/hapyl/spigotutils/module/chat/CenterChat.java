@@ -8,9 +8,9 @@ import org.bukkit.entity.Player;
 
 /**
  * This util class is used to send perfectly centered messages in chat.
- *
+ * <p>
  * Original Post
- * <a href="https://spigotmc.org/threads/free-code-sending-perfectly-centered-chat-message.95872/">https://spigotmc.org/threads/free-code-sending-perfectly-centered-chat-message.95872/</a>
+ * <a href="https://spigotmc.org/threads/free-code-sending-perfectly-centered-chat-message.95872/">Original</a>
  *
  * @author SirSpoodles (Original Class)
  * @author hapyl (Added clickable impl)
@@ -20,7 +20,7 @@ public class CenterChat {
     private final static int CENTER_PX = 154;
 
     /**
-     * Send centered message to a player.
+     * Send a centered message to a player.
      *
      * @param player  - Player.
      * @param message - Message to center and send.
@@ -84,7 +84,6 @@ public class CenterChat {
     }
 
     private enum DefaultFontInfo {
-
         A('A', 5),
         a('a', 5),
         B('B', 5),

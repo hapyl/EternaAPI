@@ -2,7 +2,7 @@ package me.hapyl.spigotutils.module.ai;
 
 import me.hapyl.spigotutils.module.ai.goal.Goal;
 import me.hapyl.spigotutils.module.ai.goal.GoalType;
-import me.hapyl.spigotutils.module.annotate.TestedNMS;
+import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import net.minecraft.world.entity.EntityInsentient;
 import net.minecraft.world.entity.ai.goal.PathfinderGoal;
@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-@TestedNMS(version = Version.V1_20)
+@TestedOn(version = Version.V1_20)
 public class MobAI implements AI {
 
     private int lastPriority;
