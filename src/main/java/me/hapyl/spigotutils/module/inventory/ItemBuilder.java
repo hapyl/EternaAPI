@@ -140,7 +140,7 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets item's NBT.
+     * Set item's raw NBT.
      * This method uses native minecraft nbt stored in the '<i>tag:{<b>HERE</b>}</i>' compound.
      *
      * @param nbt - New NBT or null to remove.
@@ -148,6 +148,17 @@ public class ItemBuilder {
     public ItemBuilder setNbt(@Nullable String nbt) {
         this.nativeNbt = nbt == null ? "" : nbt;
         return this;
+    }
+
+    /**
+     * Sets item's NBT.
+     *
+     * @param path  - Path to set.
+     * @param type  - Type of nbt.
+     * @param value - Value to set.
+     */
+    public <A, T> ItemBuilder setNbt(@Nonnull String path, @Nonnull NBTType<A, T> type, @Nonnull T value) {
+        return modifyMeta(meta -> NBT.setValue(meta, path, type, value));
     }
 
     /**
