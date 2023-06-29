@@ -1,6 +1,7 @@
 package test;
 
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
+import me.hapyl.spigotutils.module.nbt.NBTType;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -12,6 +13,7 @@ final class ItemBuilderTest {
             .setName("&aTest Item")
             .addClickEvent(pl -> pl.sendMessage("YOU CLICKED!!!"))
             .setAllowInventoryClick(true)
+            .setNbt("hello.world", NBTType.SHORT, (short) 12345)
             .build();
 
     private ItemBuilderTest() {
