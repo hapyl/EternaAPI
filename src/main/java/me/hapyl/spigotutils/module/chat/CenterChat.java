@@ -83,7 +83,7 @@ public class CenterChat {
         return makeString(message, CENTER_PX);
     }
 
-    private enum DefaultFontInfo {
+    public enum DefaultFontInfo {
         A('A', 5),
         a('a', 5),
         B('B', 5),

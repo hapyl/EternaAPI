@@ -160,7 +160,7 @@ public class Scoreboarder {
     }
 
     /**
-     * Shows this scoreboard to provided player.
+     * Shows this scoreboard to a given player.
      *
      * @param player - Player to show scoreboard to.
      */
@@ -174,7 +174,7 @@ public class Scoreboarder {
     }
 
     /**
-     * Shows main scoreboard to the player, therefore
+     * Shows the main scoreboard to the player, therefore
      * hiding this scoreboard.
      *
      * @param player - PLayer to hide scoreboard from.

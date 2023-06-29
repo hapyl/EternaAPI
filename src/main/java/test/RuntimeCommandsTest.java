@@ -1,12 +1,16 @@
 package test;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.ai.AI;
 import me.hapyl.spigotutils.module.ai.MobAI;
 import me.hapyl.spigotutils.module.ai.goal.*;
+import me.hapyl.spigotutils.module.block.display.DisplayData;
+import me.hapyl.spigotutils.module.block.display.BlockStudioParser;
+import me.hapyl.spigotutils.module.block.display.DisplayEntity;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
+import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.entity.Rope;
@@ -22,10 +26,13 @@ import me.hapyl.spigotutils.module.record.Record;
 import me.hapyl.spigotutils.module.record.Replay;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import me.hapyl.spigotutils.module.reflect.npc.Human;
+import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
+import me.hapyl.spigotutils.module.util.Padding;
 import me.hapyl.spigotutils.module.util.Runnables;
-import org.bukkit.GameMode;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -37,10 +44,9 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
-import org.bukkit.util.Vector;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
 import java.util.UUID;
 
 /**
@@ -166,6 +172,39 @@ public final class RuntimeCommandsTest {
 
         });
 
+        registerTestCommand("padding", (player, args) -> {
+            final Padding padding = new Padding(20, 10, 5).setMargin(3).setFillCharacters('.');
+            final String format = padding.formatPrefix(
+                    " >",
+                    "Hello world", 1, player.getPing()
+            );
+
+            Chat.sendMessage(player, format);
+        });
+
+        registerTestCommand("paddingScoreboard", (player, args) -> {
+            final Scoreboarder scoreboard = new Scoreboarder("padding test");
+            final Padding padding = new Padding(25, 3).setMargin(3).setFillCharacters('.');
+            final HashSet<String> names = Sets.newHashSet();
+
+            names.add(player.getName());
+            names.add("Banana");
+            names.add("Apple");
+            names.add("Pineapple");
+            names.add("Dragon-fruit");
+            names.add("Kiwi");
+
+            int index = 0;
+            for (String name : names) {
+                final String format = padding.formatPrefixIf(name.equals(player.getName()), " >", "", name, index++);
+
+                scoreboard.addLine(format);
+                System.out.println(format);
+            }
+
+            scoreboard.addPlayer(player);
+        });
+
         registerTestCommand("nbtType", (player, args) -> {
             final ItemStack handItem = player.getInventory().getItemInMainHand();
 
@@ -235,6 +274,42 @@ public final class RuntimeCommandsTest {
         registerTestCommand("newItemBuilder", (player, args) -> {
             player.getInventory().addItem(new ItemBuilder(Material.IRON_BOOTS)
                     .setArmorTrim(TrimPattern.TIDE, TrimMaterial.DIAMOND).asIcon());
+        });
+
+        processor.registerCommand(new SimpleAdminCommand("testBSParser") {
+
+            private DisplayData data;
+            private DisplayEntity entity;
+
+            @Override
+            protected void execute(CommandSender sender, String[] args) {
+                final Player player = Bukkit.getPlayer(HAPYL_UUID);
+
+                if (player == null) {
+                    return;
+                }
+
+                if (data == null) {
+                    data = BlockStudioParser.parse(Chat.arrayToString(args, 0));
+                    entity = data.spawn(player.getLocation());
+                    Chat.sendMessage(player, "&aSpawned!");
+                    return;
+                }
+
+                switch (args[0].toLowerCase()) {
+                    case "tp" -> {
+                        entity.teleport(player.getLocation());
+                        Chat.sendMessage(player, "&aTeleported!");
+                    }
+                    case "remove" -> {
+                        entity.remove();
+                        entity = null;
+                        data = null;
+                        Chat.sendMessage(player, "&cRemoved!");
+                    }
+                    default -> Chat.sendMessage(player, "&eWhat?");
+                }
+            }
         });
     }
 
