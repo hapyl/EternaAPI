@@ -5,6 +5,7 @@ import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.math.Numbers;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -154,7 +155,21 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
      * @param index   - Index of the content between 0 and {@link #maxItemsPerPage()}.
      * @param page    - Page of the content between 1 and {@link #getMaxPage()}.
      */
-    public abstract void onClick(Player player, T content, int index, int page);
+    @Deprecated
+    public void onClick(@Nonnull Player player, @Nonnull T content, int index, int page) {
+    }
+
+    /**
+     * Executed when a player clicks on an item.
+     *
+     * @param player    - PLayer who clicked.
+     * @param content   - The content that was clicked on.
+     * @param index     - Index of the content between 0 and {@link #maxItemsPerPage()}.
+     * @param page      - Page of the content between 1 and {@link #getMaxPage()}.
+     * @param clickType - Click type.
+     */
+    public void onClick(@Nonnull Player player, @Nonnull T content, int index, int page, @Nonnull ClickType clickType) {
+    }
 
     /**
      * Executed whenever player changes page.
@@ -215,7 +230,10 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
 
             final T t = contents.get(index);
             final ItemStack item = asItem(getPlayer(), t, finalI, page);
-            component.add(item, clicked -> onClick(clicked, t, finalI, page));
+
+            for (ClickType type : GUI.getAllowedClickTypes()) {
+                component.add(item, clicked -> onClick0(clicked, t, finalI, page, type), type);
+            }
         }
 
         component.apply(this, fit.pattern, startRow);
@@ -300,9 +318,9 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     }
 
     /**
-     * Returns the slot where previous page button is located.
+     * Returns the slot where the previous page button is located.
      *
-     * @return The slot where previous page button is located.
+     * @return The slot where the previous page button is located.
      */
     public int getPreviousPageSlot() {
         return previousPageSlot;
@@ -311,16 +329,16 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     /**
      * Sets the slot where previous page button is located.
      *
-     * @param previousPageSlot - The slot where previous page button is located.
+     * @param previousPageSlot - The slot where the previous page button is located.
      */
     public void setPreviousPageSlot(int previousPageSlot) {
         this.previousPageSlot = Numbers.clamp(previousPageSlot, 0, getSize() - 1);
     }
 
     /**
-     * Returns the slot where next page button is located.
+     * Returns the slot where the next page button is located.
      *
-     * @return The slot where next page button is located.
+     * @return The slot where the next page button is located.
      */
     public int getNextPageSlot() {
         return nextPageSlot;
@@ -342,6 +360,11 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
      */
     public int getMaxPage() {
         return (int) Math.ceil((double) contents.size() / maxItemsPerPage());
+    }
+
+    private void onClick0(Player clicked, T t, int finalI, int page, ClickType type) {
+        onClick(clicked, t, finalI, page);
+        onClick(clicked, t, finalI, page, type);
     }
 
     /**

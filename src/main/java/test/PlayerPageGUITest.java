@@ -1,14 +1,14 @@
 package test;
 
-import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.inventory.gui.PlayerPageGUI;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.LinkedList;
+import java.util.List;
 
 @RuntimeStaticTest
 final class PlayerPageGUITest {
@@ -28,15 +28,19 @@ final class PlayerPageGUITest {
             }
 
             @Override
-            public void onClick(Player player, String content, int index, int page) {
-                player.sendMessage("You clicked " + content);
-                final String last = getContents().removeLast();
-
-                player.sendMessage("Removed " + last);
-                openInventory(page);
+            public void onClick(@Nonnull Player player, @Nonnull String content, int index, int page) {
+                player.sendMessage("Clicked deprecated");
             }
+
+            @Override
+            public void onClick(@Nonnull Player player, @Nonnull String content, int index, int page, @Nonnull ClickType clickType) {
+                player.sendMessage("You clicked " + content);
+                player.sendMessage("Using " + clickType);
+            }
+
         };
 
+        gui.setContents(List.of("a", "b", "c", "d", "e", "f", "g", "h"));
         gui.setFit(PlayerPageGUI.Fit.SLIM);
         gui.setEmptyContentsItem(null);
 
