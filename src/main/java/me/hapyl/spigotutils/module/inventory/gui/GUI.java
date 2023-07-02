@@ -30,13 +30,23 @@ import java.util.*;
 public class GUI {
 
     public static final char ARROW_FORWARD = '➜';
-
+    private static ClickType[] ALLOWED_CLICK_TYPES;
     private static final Map<UUID, GUI> lastPlayerInventory = Maps.newHashMap();
     private static final Map<UUID, GUI> playerInventory = Maps.newHashMap();
 
+    public static ClickType[] getAllowedClickTypes() {
+        if (ALLOWED_CLICK_TYPES == null) {
+            final ClickType[] values = ClickType.values();
+            ALLOWED_CLICK_TYPES = new ClickType[values.length - 1];
+
+            System.arraycopy(values, 0, ALLOWED_CLICK_TYPES, 0, values.length - 1);
+        }
+
+        return ALLOWED_CLICK_TYPES;
+    }
+
     private final String name;
     private final int size;
-
     private final Set<Integer> ignoredClicks;
     private final Properties properties;
     private final Map<Integer, GUIClick> bySlot;
@@ -71,92 +81,6 @@ public class GUI {
         }
 
         view.setTitle(Chat.format(newName));
-    }
-
-    /**
-     * Create a hierarchy of string separated by {@link GUI#ARROW_FORWARD}.
-     * Useful for sub menu creations.
-     *
-     * @param strings - Titles.
-     * @return strings separated by {@link GUI#ARROW_FORWARD}.
-     */
-    public static String menuArrowSplit(String... strings) {
-        if (strings.length == 0) {
-            return "Default Name";
-        }
-        if (strings.length == 1) {
-            return strings[0];
-        }
-        final StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < strings.length; i++) {
-            builder.append(strings[i].trim());
-            if (i != (strings.length - 1)) {
-                builder.append(" ").append(ARROW_FORWARD).append(" ");
-            }
-        }
-        return builder.toString();
-    }
-
-    /**
-     * Returns a minimum GUI size required to put items to.
-     *
-     * @param collection - Collection of items.
-     */
-    public static int getSmartMenuSize(Collection<?> collection) {
-        return (int) Math.ceil((float) collection.size() / 5);
-    }
-
-    /**
-     * Returns a minimum GUI size required to put items to.
-     *
-     * @param collection - Array of items.
-     */
-    public static <T> int getSmartMenuSize(T[] collection) {
-        return (int) Math.ceil((float) collection.length / 5);
-    }
-
-    /**
-     * Get player's current GUI that is opened, or null if no GUI.
-     *
-     * @param player - Player.
-     * @return player current GUI that is opened, or null if no GUI.
-     */
-    @Nullable
-    public static GUI getPlayerGUI(Player player) {
-        return playerInventory.getOrDefault(player.getUniqueId(), null);
-    }
-
-    /**
-     * Returns players previous GUI or null if never had previous GUI.
-     *
-     * @param player - Player.
-     * @return players previous GUI or null if never had previous GUI.
-     */
-    @Nullable
-    public static GUI getPlayerLastGUI(Player player) {
-        return lastPlayerInventory.get(player.getUniqueId());
-    }
-
-    protected static void setPlayerGUI(Player player, GUI gui) {
-        playerInventory.put(player.getUniqueId(), gui);
-    }
-
-    protected static void removePlayerGUI(Player player) {
-        final GUI playerGUI = getPlayerGUI(player);
-        if (playerGUI == null) {
-            return;
-        }
-
-        playerInventory.remove(player.getUniqueId());
-        lastPlayerInventory.put(player.getUniqueId(), playerGUI);
-    }
-
-    private static void clearAll() {
-        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.closeInventory();
-            removePlayerGUI(onlinePlayer);
-        }
-        playerInventory.clear();
     }
 
     /**
@@ -400,17 +324,6 @@ public class GUI {
         setItem(slot, item, (Action) null);
     }
 
-    protected void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
-        if (slot > this.size) {
-            throw new IndexOutOfBoundsException(String.format("There are only %s slots, given %s.", this.size, slot));
-        }
-        if (action != null) {
-            this.bySlot.put(slot, action);
-        }
-        item = notNull(item);
-        this.inventory.setItem(slot, item);
-    }
-
     /**
      * Sets an item to provided slot if condition is true.
      *
@@ -487,13 +400,6 @@ public class GUI {
             guiClick.addPerClick(type, action);
         }
         this.setClick(slot, guiClick);
-    }
-
-    // Private Set Click (super)
-    protected void setClick(int slot, GUIClick action) {
-        if (action != null) {
-            this.bySlot.put(slot, action);
-        }
     }
 
     /**
@@ -676,10 +582,6 @@ public class GUI {
         this.closeEvent = close;
     }
 
-    private GUIClick getOrNew(int slot, Action action) {
-        return this.bySlot.getOrDefault(slot, new GUIClick(action));
-    }
-
     /**
      * Fills smart component with provided pattern.
      * <b>Smart Component will automatically put item on slots based on pattern.</b>
@@ -747,14 +649,6 @@ public class GUI {
     }
 
     /**
-     * @deprecated {@link GUI#fillItems(Map, SlotPattern, int)}
-     */
-    @Deprecated
-    protected final void fillItems(LinkedHashMap<ItemStack, GUIClick> hashMap, int startLine) {
-        fillItems(hashMap, SlotPattern.DEFAULT, startLine);
-    }
-
-    /**
      * Returns BukkitInventory of this GUI.
      *
      * @return BukkitInventory of this GUI.
@@ -772,8 +666,6 @@ public class GUI {
         removePlayerGUI(player);
         player.closeInventory();
     }
-
-    // static members
 
     /**
      * Opens this GUI to player. This creates GUI instance.
@@ -825,10 +717,6 @@ public class GUI {
         return bySlot.get(slot) != null;
     }
 
-    private ItemStack notNull(ItemStack item) {
-        return (item == null) ? new ItemStack(Material.AIR) : item;
-    }
-
     public int getSize() {
         return this.getInventory().getSize();
     }
@@ -868,6 +756,8 @@ public class GUI {
     public final void setAllowDrag(boolean allowDrag) {
         properties.setAllowDrag(allowDrag);
     }
+
+    // static members
 
     @Deprecated
     /**
@@ -919,6 +809,126 @@ public class GUI {
         clearClickEvents();
         clearEvents();
         clearItems();
+    }
+
+    protected void setItem(int slot, @Nullable ItemStack item, @Nullable GUIClick action) {
+        if (slot > this.size) {
+            throw new IndexOutOfBoundsException(String.format("There are only %s slots, given %s.", this.size, slot));
+        }
+        if (action != null) {
+            this.bySlot.put(slot, action);
+        }
+        item = notNull(item);
+        this.inventory.setItem(slot, item);
+    }
+
+    // Private Set Click (super)
+    protected void setClick(int slot, GUIClick action) {
+        if (action != null) {
+            this.bySlot.put(slot, action);
+        }
+    }
+
+    /**
+     * @deprecated {@link GUI#fillItems(Map, SlotPattern, int)}
+     */
+    @Deprecated
+    protected final void fillItems(LinkedHashMap<ItemStack, GUIClick> hashMap, int startLine) {
+        fillItems(hashMap, SlotPattern.DEFAULT, startLine);
+    }
+
+    private GUIClick getOrNew(int slot, Action action) {
+        return this.bySlot.getOrDefault(slot, new GUIClick(action));
+    }
+
+    private ItemStack notNull(ItemStack item) {
+        return (item == null) ? new ItemStack(Material.AIR) : item;
+    }
+
+    /**
+     * Create a hierarchy of string separated by {@link GUI#ARROW_FORWARD}.
+     * Useful for sub menu creations.
+     *
+     * @param strings - Titles.
+     * @return strings separated by {@link GUI#ARROW_FORWARD}.
+     */
+    public static String menuArrowSplit(String... strings) {
+        if (strings.length == 0) {
+            return "Default Name";
+        }
+        if (strings.length == 1) {
+            return strings[0];
+        }
+        final StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < strings.length; i++) {
+            builder.append(strings[i].trim());
+            if (i != (strings.length - 1)) {
+                builder.append(" ").append(ARROW_FORWARD).append(" ");
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Returns a minimum GUI size required to put items to.
+     *
+     * @param collection - Collection of items.
+     */
+    public static int getSmartMenuSize(Collection<?> collection) {
+        return (int) Math.ceil((float) collection.size() / 5);
+    }
+
+    /**
+     * Returns a minimum GUI size required to put items to.
+     *
+     * @param collection - Array of items.
+     */
+    public static <T> int getSmartMenuSize(T[] collection) {
+        return (int) Math.ceil((float) collection.length / 5);
+    }
+
+    /**
+     * Get player's current GUI that is opened, or null if no GUI.
+     *
+     * @param player - Player.
+     * @return player current GUI that is opened, or null if no GUI.
+     */
+    @Nullable
+    public static GUI getPlayerGUI(Player player) {
+        return playerInventory.getOrDefault(player.getUniqueId(), null);
+    }
+
+    /**
+     * Returns players previous GUI or null if never had previous GUI.
+     *
+     * @param player - Player.
+     * @return players previous GUI or null if never had previous GUI.
+     */
+    @Nullable
+    public static GUI getPlayerLastGUI(Player player) {
+        return lastPlayerInventory.get(player.getUniqueId());
+    }
+
+    protected static void setPlayerGUI(Player player, GUI gui) {
+        playerInventory.put(player.getUniqueId(), gui);
+    }
+
+    protected static void removePlayerGUI(Player player) {
+        final GUI playerGUI = getPlayerGUI(player);
+        if (playerGUI == null) {
+            return;
+        }
+
+        playerInventory.remove(player.getUniqueId());
+        lastPlayerInventory.put(player.getUniqueId(), playerGUI);
+    }
+
+    private static void clearAll() {
+        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            onlinePlayer.closeInventory();
+            removePlayerGUI(onlinePlayer);
+        }
+        playerInventory.clear();
     }
 
 }
