@@ -22,6 +22,7 @@ import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.module.hologram.Hologram;
+import me.hapyl.spigotutils.module.hologram.LineFit;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.math.nn.IntInt;
 import me.hapyl.spigotutils.module.player.PlayerLib;
@@ -137,7 +138,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.skinOwner = skinOwner;
         this.npcName = npcName;
         this.hexName = ("§8[NPC] " + uuid.toString().replace("-", "")).substring(0, 16);
-        this.aboveHead = new Hologram().addLine(this.npcName).create(this.location.clone().subtract(0.0d, 0.51d, 0.0d));
+        this.aboveHead = new Hologram().addLine(this.npcName).create(getLocation().subtract(0.0d, 1.75d, 0.0d));
         this.profile = new GameProfile(this.uuid, this.hexName);
         this.equipment = new NPCEquipment();
         this.teamName = TeamHelper.PARENT + "npc." + uuid;
@@ -489,14 +490,14 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     @Override
     public HumanNPC addTextAboveHead(String text) {
         this.aboveHead.addLine(text);
-        this.aboveHead.updateLines(true);
+        this.aboveHead.updateLines(LineFit.BACKWARDS);
         return this;
     }
 
     @Override
     public HumanNPC removeTextAboveHead(int index) {
         this.aboveHead.removeLine(index);
-        this.aboveHead.updateLines(true);
+        this.aboveHead.updateLines(LineFit.BACKWARDS);
         return this;
     }
 
@@ -1054,7 +1055,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
      */
     public void syncText() {
         if (this.aboveHead != null) {
-            this.aboveHead.teleport(this.location.clone().add(0.0d, 1.50d, 0.0d));
+            this.aboveHead.teleport(this.location.clone().add(0.0d, 1.75d, 0.0d));
         }
     }
 
