@@ -1,57 +1,111 @@
 package me.hapyl.spigotutils.module.hologram;
 
+import com.google.common.collect.Maps;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
-public class PlayerHologram extends Hologram {
+/**
+ * A per-player hologram.
+ * Automatically manager creation, updating and removing of a hologram.
+ */
+public class PlayerHologram {
 
-    private static final Map<Player, List<PlayerHologram>> perPlayerHolograms = new HashMap<>();
-    private final Player player;
+    private final Map<Player, Hologram> playerHolograms;
+    private Location location;
+    private Function<Player, StringArray> function;
 
-    private PlayerHologram(Player player) {
-        this.player = player;
-        this.addPlayerHologram();
+    public PlayerHologram(@Nonnull Location location) {
+        this.location = location;
+        this.playerHolograms = Maps.newHashMap();
     }
 
-    @Override
-    public Hologram show(Player... players) {
-        return this.show();
+    /**
+     * Sets the lines of this hologram and updates for all players.
+     *
+     * @param function - Lines to set.
+     */
+    public void setLines(@Nonnull Function<Player, StringArray> function) {
+        this.function = function;
+        updateAll();
     }
 
-    public List<PlayerHologram> getPlayerHolograms() {
-        return perPlayerHolograms.getOrDefault(this.player, new ArrayList<>());
+    /**
+     * Creates hologram for the give player.
+     *
+     * @param player - Player.
+     */
+    public void create(@Nonnull Player player) {
+        destroy(player);
+
+        final Hologram hologram = new Hologram();
+        hologram.create(location).show(player);
+
+        if (function != null) {
+            hologram.setLinesAndUpdate(function.apply(player).toArray());
+        }
+
+        playerHolograms.put(player, hologram);
     }
 
-    public PlayerHologram remove() {
-        final List<PlayerHologram> list = getPlayerHolograms();
-        list.remove(this);
-        perPlayerHolograms.put(this.player, list);
-        return this;
+    /**
+     * Destroys the armor stand for the given player.
+     *
+     * @param player - Player.
+     */
+    public void destroy(@Nonnull Player player) {
+        final Hologram hologram = playerHolograms.remove(player);
+
+        if (hologram != null) {
+            hologram.destroy();
+        }
+
     }
 
-    @Override
-    public final Hologram hide(Player... players) {
-        return this.hide();
+    /**
+     * Moves holograms to the given location.
+     *
+     * @param location - Location to move to.
+     */
+    public void move(@Nonnull Location location) {
+        this.location = location;
+        forEach((player, hologram) -> hologram.teleport(location));
     }
 
-    public PlayerHologram show() {
-        super.show(this.player);
-        return this;
+    /**
+     * Performs a for each iteration.
+     *
+     * @param consumer - Player >< Hologram relationship.
+     */
+    public void forEach(@Nonnull BiConsumer<Player, Hologram> consumer) {
+        if (playerHolograms.isEmpty()) {
+            return;
+        }
+
+        playerHolograms.forEach(consumer);
     }
 
-    public PlayerHologram hide() {
-        super.hide(this.player);
-        return this;
+    /**
+     * Hides all holograms for their players.
+     */
+    public void hideAll() {
+        forEach((player, hologram) -> hologram.hide(player));
     }
 
-    private void addPlayerHologram() {
-        final List<PlayerHologram> list = getPlayerHolograms();
-        list.add(this);
-        perPlayerHolograms.put(this.player, list);
+    /**
+     * Shows all holograms for their players.
+     * Note that hologram must be created for a player before it can be shown.
+     */
+    public void showAll() {
+        forEach((player, hologram) -> hologram.show(player));
+    }
+
+    private void updateAll() {
+        forEach((player, hologram) -> hologram.setLinesAndUpdate(function.apply(player).toArray()));
     }
 
 }

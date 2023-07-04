@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.hologram;
 
+import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
@@ -35,7 +36,7 @@ public class HologramArmorStand {
         bukkit.setInvisible(true);
         bukkit.setSmall(true);
         bukkit.setMarker(true);
-        bukkit.setCustomName(name);
+        bukkit.setCustomName(Chat.translateColor(name));
         bukkit.setCustomNameVisible(true);
 
         // Create packets
@@ -61,7 +62,7 @@ public class HologramArmorStand {
     }
 
     public void setLine(@Nullable String newText) {
-        bukkit.setCustomName(newText == null ? "" : newText);
+        bukkit.setCustomName(newText == null ? "" : Chat.translateColor(newText));
     }
 
     public void updateLocation(Player... players) {

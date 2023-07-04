@@ -8,6 +8,7 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.registry.EternaRegistry;
+import org.apache.commons.io.filefilter.OrFileFilter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -17,8 +18,6 @@ import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * This class allows creating packet-holograms
@@ -28,8 +27,8 @@ public class Hologram extends LimitedVisibility {
     /**
      * Vertical offset of the holograms.
      */
-    public static final double HOLOGRAM_OFFSET = 0.3d;
-    public static final double HOLOGRAM_HEIGHT = 1.75d;
+    public static final double HOLOGRAM_OFFSET = 0.25d;
+    public static final double ABSOLUTE_CENTER_OFFSET = 0.2d;
 
     private final List<String> lines;
     private final List<HologramArmorStand> packets;
@@ -128,7 +127,7 @@ public class Hologram extends LimitedVisibility {
      */
     public Hologram setLinesAndUpdate(@Nonnull String... lines) {
         setLines(lines);
-        updateLines(false);
+        updateLines();
         return this;
     }
 
@@ -217,7 +216,7 @@ public class Hologram extends LimitedVisibility {
     public Hologram show(Player... players) {
         if (this.location == null) {
             for (final Player player : players) {
-                Chat.sendMessage(player, "&4Could not spawn a hologram for you since is wasn't created yet!");
+                Chat.sendMessage(player, "&4Could not spawn a hologram for you since it wasn't created yet!");
             }
             return this;
         }
@@ -286,64 +285,42 @@ public class Hologram extends LimitedVisibility {
         return move(location);
     }
 
-    /**
-     * Removes the holograms and creates them again with updated values.
-     * This will only affect players who this hologram is showing to.
-     *
-     * @param keepListSorted - To whenever to keep the lines sorted (Reverse add order).
-     *                       Default to false for TOP to BOTTOM order.
-     */
-    public Hologram updateLines(boolean keepListSorted) {
+    public Hologram updateLines() {
+        return updateLines(LineFit.DEFAULT);
+    }
+
+    public Hologram updateLines(@Nonnull LineFit lineFit) {
         final Location location = getLocation();
+        final List<String> fit = lineFit.fit(lines);
 
-        // If the size didn't change, just update the armor stand lines.
+        if (lines.size() != fit.size()) {
+            throw new IllegalArgumentException("Illegal fit, size must match! lines=%s, fit=%s".formatted(lines.size(), fit.size()));
+        }
 
-        // FIXME (hapyl): 010, Jun 10: A little bit (VERY) ugly,
-        //  but the keepListSorted is very annoying, maybe split into different hologram class.
+        // Update
         if (nonEmptyLinesSizes() == packets.size()) {
-            if (keepListSorted) {
-                int index = nonEmptyLinesSizes() - 1;
-                for (int i = lines.size() - 1; i >= 0; i--) {
-                    final String line = lines.get(i);
-                    if (line.isBlank() || line.isEmpty()) {
-                        continue;
-                    }
+            int index = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                final String line = fit.get(i);
 
-                    packets.get(index--).setLine(line);
+                if (line.isBlank() || line.isEmpty()) {
+                    continue;
                 }
-            }
-            else {
-                int index = 0;
-                for (String line : lines) {
-                    if (line.isBlank() || line.isEmpty()) {
-                        continue;
-                    }
 
-                    packets.get(index++).setLine(Chat.format(line));
-                }
+                packets.get(index++).setLine(line);
             }
 
             for (Player player : showingTo) {
                 packets.forEach(stand -> stand.update(player));
             }
         }
+        // Create
         else {
-            // have to use a copy here, since removing stands clears the 'showingTo' set
             final HashSet<Player> players = Sets.newHashSet(showingTo);
-
             removeStands();
 
-            if (keepListSorted) {
-                for (final String line : lines) {
-                    location.add(0.0d, HOLOGRAM_OFFSET, 0.0d);
-                    createStand(location, ChatColor.translateAlternateColorCodes('&', line));
-                }
-            }
-            else {
-                for (final String line : lines) {
-                    createStand(location, ChatColor.translateAlternateColorCodes('&', line));
-                    location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
-                }
+            for (int i = 0; i < lines.size(); i++) {
+                createStand(location.add(0, HOLOGRAM_OFFSET, 0), fit.get(i));
             }
 
             players.forEach(this::show);
@@ -351,13 +328,6 @@ public class Hologram extends LimitedVisibility {
         }
 
         return this;
-    }
-
-    /**
-     * Updates lines with unsorted (TOP to BOTTOM) order.
-     */
-    public Hologram updateLines() {
-        return this.updateLines(false);
     }
 
     /**
@@ -372,32 +342,48 @@ public class Hologram extends LimitedVisibility {
             throw new IllegalStateException("This hologram was already created!");
         }
 
-        this.location = location.clone();
-        this.location.add(0.0d, HOLOGRAM_HEIGHT, 0.0); // Fix marker location
+        this.location = location.clone().subtract(0.0d, ABSOLUTE_CENTER_OFFSET, 0.0);
 
-        // Move the current location up so holograms stop at the start position
-        this.location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
-
-        for (String string : lines) {
-            createStand(this.location, Chat.format(string));
-            this.location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
-        }
+        updateLines();
         return this;
     }
 
     /**
      * Moves this hologram to the given location.
      *
-     * @param location - Location.
+     * @param newLocation - Location.
      */
-    public Hologram move(Location location) {
-        location.add(0.0d, HOLOGRAM_OFFSET * (double) lines.size(), 0.0d);
-        packets.forEach(hologram -> {
-            hologram.setLocation(location);
-            hologram.updateLocation(showingTo);
-            location.subtract(0.0d, HOLOGRAM_OFFSET, 0.0d);
-        });
+    public Hologram move(@Nonnull Location newLocation, @Nonnull LineFit lineFit) {
+        final Location location = BukkitUtils.newLocation(newLocation);
+        final List<String> fit = lineFit.fit(lines);
+
+        if (lines.size() != fit.size()) {
+            throw new IllegalStateException("Lines and fit size must match!");
+        }
+
+        int index = 0;
+        for (int i = 0; i < lines.size(); i++) {
+            final String line = fit.get(i);
+
+            if (!line.isBlank() && !line.isEmpty()) {
+                final HologramArmorStand packet = packets.get(index++);
+                packet.setLocation(location);
+                packet.updateLocation(showingTo);
+            }
+
+            location.add(0, HOLOGRAM_OFFSET, 0);
+        }
+
         return this;
+    }
+
+    /**
+     * Moves this hologram to the given location.
+     *
+     * @param newLocation - Location.
+     */
+    public Hologram move(@Nonnull Location newLocation) {
+        return move(newLocation, LineFit.DEFAULT);
     }
 
     /**
