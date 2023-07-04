@@ -90,17 +90,17 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
      * Gets quit location of this parkour. Quit location is used to teleport
      * player upon finishing or quitting the parkour.
      *
-     * @return quit location of this parkour.
+     * @return quit the location of this parkour.
      */
     public Location getQuitLocation() {
         return quitLocation;
     }
 
     /**
-     * Returns true if specific fail is allows for this parkour.
+     * Returns true, if specific fail is allows for this parkour.
      *
      * @param type - Fail type.
-     * @return true if specific fail is allows for this parkour.
+     * @return true, if specific fail is allows for this parkour.
      */
     public boolean isFailAllowed(FailType type) {
         return allowedFails.contains(type);
@@ -134,8 +134,8 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
     }
 
     /**
-     * Adds fail type to be allowed for this parkour.
-     * Note that custom FailType's must be implemented by plugin.
+     * Adds a fail type to be allowed for this parkour.
+     * Note that plugin must implement custom FailType.
      *
      * @param type - fail type.
      */
@@ -144,7 +144,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
     }
 
     /**
-     * Removes fail type from allowed for this parkour.
+     * Removes a fail type from allowed for this parkour.
      *
      * @param type - fail type.
      */
@@ -153,7 +153,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
     }
 
     /**
-     * Sets new quit locaiton for this parkour. Quit location is used
+     * Sets new quit location for this parkour. Quit location is used
      * to teleport player upon quit or finish.
      *
      * @param quitLocation - New quit location.
@@ -172,15 +172,15 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
 
     /**
      * Creates holograms for this parkour. This is called
-     * automatically on load if {@link this#isSpawnHolograms()} is true.
+     * automatically on a load if {@link this#isSpawnHolograms()} is true.
      */
     public void createHolograms() {
-        createHologram("&6&l" + name, "&aStart").create(this.getStart().toLocation(0.5d, -2.0d, 0.5d));
-        createHologram("&6&l" + name, "&aFinish").create(this.getFinish().toLocation(0.5d, -2.0d, 0.5d));
+        createHologram("&6&l" + name, "&aStart").create(this.getStart().toLocation(0.5d, 0.0d, 0.5d));
+        createHologram("&6&l" + name, "&aFinish").create(this.getFinish().toLocation(0.5d, 0.0d, 0.5d));
 
         for (int i = 0; i < checkpoints.size(); i++) {
             final Position current = checkpoints.get(i);
-            createHologram("&aCheckpoint (%s/%s)".formatted(i + 1, checkpoints.size())).create(current.toLocation(0.5d, -2.0d, 0.5d));
+            createHologram("&aCheckpoint (%s/%s)".formatted(i + 1, checkpoints.size())).create(current.toLocation(0.5d, 0.0d, 0.5d));
         }
 
         showHolograms();
@@ -294,7 +294,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
      * Returns all checkpoint of parkour.
      * Might be empty.
      *
-     * @return all checkpoint of parkour.
+     * @return all checkpoints of parkour.
      */
     @Nonnull
     public List<Position> getCheckpoints() {
@@ -316,6 +316,9 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
         return false;
     }
 
+    /**
+     * Spawns all world entities, which includes pressure plates and holograms.
+     */
     public void spawnWorldEntities() {
         this.start.setBlock();
         this.finish.setBlock();
@@ -325,6 +328,9 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
         }
     }
 
+    /**
+     * Removes all world entities, which includes pressure plates and holograms.
+     */
     public void removeWorldEntities() {
         this.start.restoreBlock();
         this.finish.restoreBlock();

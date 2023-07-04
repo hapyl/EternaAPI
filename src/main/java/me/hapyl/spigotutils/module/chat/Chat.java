@@ -522,4 +522,13 @@ public class Chat {
                 .forEach(player -> Chat.sendMessage_(player, string, replacement));
     }
 
+    /**
+     * Translates the color using the '&' char.
+     *
+     * @param string - String to translate.
+     * @return colored string.
+     */
+    public static String translateColor(@Nonnull String string) {
+        return ChatColor.translateAlternateColorCodes('&', string);
+    }
 }
