@@ -190,6 +190,8 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         final int toPage = Numbers.clamp(page, 1, getMaxPage());
         clearEverything();
 
+        preProcessInventory(player, page);
+
         if (contents.isEmpty()) {
             if (emptyContentsItem != null) {
                 setItem(emptyContentsSlot, emptyContentsItem);
@@ -248,7 +250,16 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
      * @param player - Player.
      * @param page   - Current page.
      */
-    public void postProcessInventory(Player player, int page) {
+    public void postProcessInventory(@Nonnull Player player, int page) {
+    }
+
+    /**
+     * Called after clearing old contents but before making any other calculations.
+     *
+     * @param player - Player.
+     * @param page   - Current page.
+     */
+    public void preProcessInventory(@Nonnull Player player, int page) {
     }
 
     /**
