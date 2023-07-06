@@ -29,6 +29,7 @@ import me.hapyl.spigotutils.module.reflect.npc.Human;
 import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import me.hapyl.spigotutils.module.util.Padding;
 import me.hapyl.spigotutils.module.util.Runnables;
+import me.hapyl.spigotutils.module.util.WeightedCollection;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -45,9 +46,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * This is a mess class that is supposed to be a mess class.
@@ -274,6 +273,27 @@ public final class RuntimeCommandsTest {
         registerTestCommand("newItemBuilder", (player, args) -> {
             player.getInventory().addItem(new ItemBuilder(Material.IRON_BOOTS)
                     .setArmorTrim(TrimPattern.TIDE, TrimMaterial.DIAMOND).asIcon());
+        });
+
+        registerTestCommand("weightedCollection", (player, args) -> {
+            final WeightedCollection<String> cls = new WeightedCollection<>();
+
+            cls.add("hello", 10);
+            cls.add("world", 10);
+            cls.add("how", 10);
+            cls.add("are", 10);
+            cls.add("you", 10);
+            cls.add("MORE COMMON", 20);
+
+            Map<String, Integer> mapped = new HashMap<>();
+
+            for (int i = 0; i < 1000; i++) {
+                final String s = cls.get();
+
+                mapped.compute(s, (_s, _i) -> _i == null ? 1 : _i + 1);
+            }
+
+            player.sendMessage(mapped.toString());
         });
 
         processor.registerCommand(new SimpleAdminCommand("testBSParser") {

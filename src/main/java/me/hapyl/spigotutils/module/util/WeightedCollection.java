@@ -1,63 +1,167 @@
 package me.hapyl.spigotutils.module.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import me.hapyl.spigotutils.module.annotate.Range;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.*;
 
 /**
- * A weighted collection of items.
+ * A weighted collection.
  */
-public class WeightedCollection<E> {
+public class WeightedCollection<E> implements Iterable<E> {
 
-    private final List<Entry> entries = new ArrayList<>();
+    private final TreeMap<Integer, List<E>> elements;
     private final Random random;
-    private float weightTotal;
 
     public WeightedCollection() {
+        this.elements = new TreeMap<>();
         this.random = new Random();
-        this.weightTotal = 0.0f;
     }
 
     /**
-     * Pair item with weight.
+     * Add an element to the collection.
      *
-     * @param e      - Item.
-     * @param weight - Weight.
+     * @param e      - Element to add.
+     * @param weight - Weight of the element.
+     *               The probability of selecting an element is proportional to its weight.
+     * @throws IllegalArgumentException if weight is negative
      */
-    public void add(E e, float weight) {
+    public void add(@Nonnull E e, @Range int weight) {
         if (weight < 0) {
-            return;
+            throw new IllegalArgumentException("weight cannot be negative");
         }
 
-        weightTotal += weight;
-        entries.add(new Entry(e, weightTotal));
+        elements.computeIfAbsent(weight, fn -> Lists.newArrayList()).add(e);
     }
 
     /**
-     * Get a random weighted element.
+     * Adds all elements to the collection.
      *
-     * @return random weighted element.
-     * @throws NullPointerException if there is no entries.
+     * @param weight - Weight of the element.
+     *               The probability of selecting an element is proportional to its weight.
+     * @param first  - First element to add.
+     * @param rest   - Rest of the elements
      */
+    @SafeVarargs
+    public final void addAll(@Range int weight, @Nonnull E first, @Nonnull E... rest) {
+        add(first, weight);
+
+        for (E e : rest) {
+            add(e, weight);
+        }
+    }
+
+    /**
+     * Gets a random element from this collection based on the weight.
+     *
+     * @return a random element from this collection based on the weight.
+     * @throws NullPointerException if the collection is empty.
+     */
+    @CheckForNull
     public E get() {
-        float value = random.nextFloat() * weightTotal;
-        for (Entry entry : entries) {
-            if (entry.weight >= value) {
-                return entry.e;
+        final E e = getOrNull();
+
+        if (e != null) {
+            return e;
+        }
+
+        throw new NullPointerException("collection is empty");
+    }
+
+    /**
+     * Gets a random element from this collection based on the weight; or def if the collection is empty.
+     *
+     * @param def - Default element.
+     * @return a random element from this collection based on the weight; or def if the collection is empty.
+     */
+    @Nonnull
+    public E getOrDefault(@Nonnull E def) {
+        final E e = getOrNull();
+
+        return e != null ? e : def;
+    }
+
+    /**
+     * Gets a random element from this collection based on the weight; or null if the collection is empty.
+     *
+     * @return a random element from this collection based on the weight; or null if the collection is empty.
+     */
+    @Nullable
+    public E getOrNull() {
+        int totalWeight = elements.lastKey();
+        int randomWeight = random.nextInt(totalWeight) + 1;
+
+        for (Map.Entry<Integer, List<E>> entry : elements.entrySet()) {
+            int weight = entry.getKey();
+            if (randomWeight <= weight) {
+                List<E> elements = entry.getValue();
+                return elements.get(random.nextInt(elements.size()));
+            }
+            randomWeight -= weight;
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets a copy of all values associated with the given weight; or empty list if none.
+     *
+     * @param weight - Weight.
+     * @return a copy of all values associated with the given weight; or empty list if none.
+     */
+    @Nonnull
+    public List<E> getByWeight(@Range int weight) {
+        return Lists.newArrayList(elements.getOrDefault(weight, Lists.newArrayList()));
+    }
+
+    /**
+     * Returns true if this collection contains the given element; false otherwise.
+     *
+     * @param e - Element.
+     * @return true if this collection contains the given element; false otherwise.
+     */
+    public boolean contains(@Nonnull E e) {
+        for (E e1 : this) {
+            if (e1.equals(e)) {
+                return true;
             }
         }
 
-        throw new NullPointerException("no entries");
+        return false;
     }
 
-    private class Entry {
-        private final E e;
-        private final float weight;
+    /**
+     * Returns true if there is at least one element with the given weight; false otherwise.
+     *
+     * @param weight - Weight.
+     * @return true if there is at least one element with the given weight; false otherwise.
+     */
+    public boolean containsWeight(int weight) {
+        return elements.containsKey(weight);
+    }
 
-        public Entry(E e, float weight) {
-            this.e = e;
-            this.weight = weight;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterator<E> iterator() {
+        final Set<Map.Entry<Integer, List<E>>> entries = Sets.newHashSet(elements.entrySet());
+        final Set<E> iterator = new HashSet<>();
+
+        for (Map.Entry<Integer, List<E>> entry : entries) {
+            iterator.addAll(entry.getValue());
         }
+
+        entries.clear();
+        return iterator.iterator();
     }
 
+    @Override
+    public String toString() {
+        return elements.toString();
+    }
 }
