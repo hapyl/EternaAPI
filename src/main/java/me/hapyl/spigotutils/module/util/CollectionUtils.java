@@ -560,7 +560,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns a random element from the list or first element if list is empty.
+     * Returns a random element from the list or first element if the list is empty.
      *
      * @param list - list to get from.
      * @return a random element.
@@ -571,7 +571,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns a random element from the list or default value if list is empty.
+     * Returns a random element from the list or default value if the list is empty.
      *
      * @param list - list to get from.
      * @param def  - default value.
