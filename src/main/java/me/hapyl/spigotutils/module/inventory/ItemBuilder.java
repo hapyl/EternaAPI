@@ -40,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
@@ -49,6 +50,8 @@ public class ItemBuilder {
 
     public static final int DEFAULT_SMART_SPLIT_CHAR_LIMIT = 35;
     public static final String NEW_LINE_SEPARATOR = "__";
+    public static final char MANUAL_SPLIT_CHAR = '_';
+    public static final Pattern COLOR_CODES = Pattern.compile("[0-9a-fA-Fk-oK-OrxRX]");
     private static final String PLUGIN_PATH = "ItemBuilderId";
     private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
     private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
@@ -474,7 +477,7 @@ public class ItemBuilder {
      * @param prefix    - Prefix to set.
      * @param wrapAfter - Wrap after this number of chars.
      */
-    public ItemBuilder setSmartLore(@Nonnull String lore, @Nonnull String prefix, int wrapAfter) {
+    public ItemBuilder setSmartLore(@Nonnull String lore, @Nullable String prefix, int wrapAfter) {
         return modifyMeta(meta -> meta.setLore(splitString(prefix, lore, wrapAfter)));
     }
 
@@ -679,6 +682,10 @@ public class ItemBuilder {
      * @param charLimit - Char wrap limit.
      */
     public ItemBuilder addTextBlockLore(@Nonnull String textBlock, int charLimit, @Nullable Object... format) {
+        return addTextBlockLore(textBlock, "&7", charLimit, format);
+    }
+
+    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nonnull String linePrefix, int charLimit, @Nullable Object... format) {
         return modifyMeta(meta -> {
             final String[] strings = textBlock.formatted(format).split("\n");
             final List<String> lore = getLore();
@@ -689,7 +696,7 @@ public class ItemBuilder {
                 }
 
                 final int prefixIndex = string.lastIndexOf(";;");
-                String prefix = "&7";
+                String prefix = linePrefix;
 
                 if (prefixIndex > 0) {
                     prefix = string.substring(0, prefixIndex);
@@ -1494,6 +1501,8 @@ public class ItemBuilder {
         return modifyMeta(clazz, null, t);
     }
 
+    // static members
+
     private ItemBuilder modifyMeta(Consumer<ItemMeta> t) {
         final ItemMeta meta = item.getItemMeta();
         t.accept(meta);
@@ -1505,8 +1514,6 @@ public class ItemBuilder {
     public static Object[] ambiguous(Object... obj) {
         return new Object[] { obj };
     }
-
-    // static members
 
     /**
      * Creates builder of provided ItemStack.
@@ -1698,7 +1705,7 @@ public class ItemBuilder {
      * Returns true if the given item's ID contains a part of the given ID.
      *
      * @param item - Item to check.
-     * @param id   - Id to chec.
+     * @param id   - Id to check.
      * @return true if the given item's ID contains a part of the given ID; false otherwise.
      */
     public static boolean itemContainsId(@Nonnull ItemStack item, @Nonnull String id) {
@@ -1733,8 +1740,8 @@ public class ItemBuilder {
 
         for (int i = 0; i < chars.length; i++) {
             final char c = chars[i];
-            final boolean isManualSplit = (isManualSplitChar(c) &&
-                    (i + 1 < chars.length && isManualSplitChar(chars[i + 1])));
+            final boolean nextCharInRange = i + 1 < chars.length;
+            final boolean isManualSplit = isManualSplit(chars, i);
 
             // If out of limit and hit whitespace then add line.
             final boolean lastChar = i == chars.length - 1;
@@ -1755,10 +1762,21 @@ public class ItemBuilder {
             }
 
             builder.append(c);
+
+            // don't count colors
+            if (isColorCode(c) && nextCharInRange && isColorChar(chars[i + 1])) {
+                builder.append(chars[++i]);
+                continue;
+            }
+
             ++counter;
         }
 
         return list;
+    }
+
+    public static boolean isColorCode(char c) {
+        return c == ChatColor.COLOR_CHAR || c == '&';
     }
 
     @Deprecated
@@ -1882,6 +1900,11 @@ public class ItemBuilder {
         itemsWithEvents.clear();
     }
 
+    private static boolean isManualSplit(char[] chars, int index) {
+        return (index < chars.length && index + 1 < chars.length)
+                && (chars[index] == MANUAL_SPLIT_CHAR && chars[index + 1] == MANUAL_SPLIT_CHAR);
+    }
+
     private static String colorize(String s) {
         return format(s);
     }
@@ -1895,7 +1918,7 @@ public class ItemBuilder {
     }
 
     private static boolean isManualSplitChar(char c) {
-        return c == '_';
+        return c == MANUAL_SPLIT_CHAR;
     }
 
     /**

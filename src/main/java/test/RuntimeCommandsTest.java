@@ -30,6 +30,7 @@ import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import me.hapyl.spigotutils.module.util.Padding;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.WeightedCollection;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -273,6 +274,19 @@ public final class RuntimeCommandsTest {
         registerTestCommand("newItemBuilder", (player, args) -> {
             player.getInventory().addItem(new ItemBuilder(Material.IRON_BOOTS)
                     .setArmorTrim(TrimPattern.TIDE, TrimMaterial.DIAMOND).asIcon());
+        });
+
+        registerTestCommand("stringWrap", (player, args) -> {
+            final ItemBuilder builder = new ItemBuilder(Material.IRON_INGOT);
+
+            final ChatColor color = ChatColor.of("#abcdef");
+
+            builder.addSmartLore(
+                    "&cThis is a very long string that should be " + color +
+                            "wrapped after certain &rchar limit &c&land &f&l&n&oit is also colored, &rbut the colors should not count as char limit."
+            );
+
+            player.getInventory().addItem(builder.asIcon());
         });
 
         registerTestCommand("weightedCollection", (player, args) -> {
