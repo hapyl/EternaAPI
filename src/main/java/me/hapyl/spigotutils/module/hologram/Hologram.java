@@ -354,7 +354,9 @@ public class Hologram extends LimitedVisibility {
      * @param newLocation - Location.
      */
     public Hologram move(@Nonnull Location newLocation, @Nonnull LineFit lineFit) {
-        final Location location = BukkitUtils.newLocation(newLocation);
+        this.location = newLocation; // actually update location lol
+
+        final Location location = getLocation();
         final List<String> fit = lineFit.fit(lines);
 
         if (lines.size() != fit.size()) {
