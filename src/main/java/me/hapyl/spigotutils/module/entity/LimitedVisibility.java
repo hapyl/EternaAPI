@@ -91,7 +91,14 @@ public abstract class LimitedVisibility {
             return true;
         }
 
-        return player.getLocation().distance(getLocation()) <= distance;
+        final Location location = getLocation();
+        final Location playerLocation = player.getLocation();
+
+        if (location.getWorld() != playerLocation.getWorld()) {
+            return false;
+        }
+
+        return playerLocation.distance(location) <= distance;
     }
 
     /**
