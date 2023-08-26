@@ -1,6 +1,7 @@
 package test;
 
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.reflect.npc.FlippedHumanNPC;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -32,13 +33,11 @@ final class NPCTest {
 
         // empty
         if (npc != null) {
-            npc.jump(2);
-
             Chat.sendMessage(player, "jump");
             return;
         }
 
-        npc = HumanNPC.create(player.getLocation(), name, player.getName()).handle();
+        npc = new FlippedHumanNPC(player.getLocation(), player.getName(), player.getName());
         npc.show(player);
 
         player.sendMessage(ChatColor.GREEN + "Created npc.");
