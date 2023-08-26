@@ -17,6 +17,7 @@ import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -62,6 +63,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Allows to create <b>simple</b> player NPCs with support of clicks.
@@ -120,7 +122,11 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
      *                  Leave empty or null to apply skin later.
      *                  Only use online players names for this. See {@link HumanNPC#setSkinAsync(String)} disclaimer.
      */
-    public HumanNPC(@Nonnull Location location, @Nullable String npcName, @Nullable String skinOwner) {
+    public HumanNPC(@Nonnull Location location, @Range(max = 32, throwsError = true) @Nullable String npcName, @Nullable String skinOwner) {
+        this(location, npcName, skinOwner, uuid -> ("§8[NPC] " + uuid.toString().replace("-", "")).substring(0, 16));
+    }
+
+    protected HumanNPC(Location location, String npcName, String skinOwner, Function<UUID, String> hexNameFn) {
         if (npcName == null) {
             npcName = "";
         }
@@ -137,7 +143,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.location = location.clone();
         this.skinOwner = skinOwner;
         this.npcName = npcName;
-        this.hexName = ("§8[NPC] " + uuid.toString().replace("-", "")).substring(0, 16);
+        this.hexName = hexNameFn.apply(uuid);
         this.aboveHead = new Hologram().addLine(this.npcName).create(getLocation().subtract(0.0d, 1.75d, 0.0d));
         this.profile = new GameProfile(this.uuid, this.hexName);
         this.equipment = new NPCEquipment();
@@ -161,33 +167,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.alive = true;
     }
 
-    public static Human create(Location location) {
-        return create(location, "", "");
-    }
-
-    public static Human create(Location location, String name) {
-        return create(location, name, "");
-    }
-
-    public static Human create(Location location, String name, String skin) {
-        return new HumanNPC(location, name, skin);
-    }
-
-    public static boolean isNPC(int entityId) {
-        return EternaRegistry.getNpcRegistry().isRegistered(entityId);
-    }
-
-    @Nullable
-    public static HumanNPC getById(int id) {
-        return EternaRegistry.getNpcRegistry().getById(id);
-    }
-
-    public static void hideAllNames(Scoreboard score) {
-        for (final HumanNPC value : EternaRegistry.getNpcRegistry().getRegistered().values()) {
-            value.hideTabListName();
-        }
-    }
-
     @Override
     public boolean isShaking() {
         return Reflect.getDataWatcherValue(human, DataWatcherType.INT, 7) != 0;
@@ -200,7 +179,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     }
 
     @Override
-    public void setShoulderEntity(Shoulder shoulder, boolean status) {
+    public void setShoulderEntity(Shoulder shoulder, boolean status) throws NotImplementedException {
         throw new NotImplementedException("setShoulderEntity not yet implemented");
     }
 
@@ -230,6 +209,15 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     }
 
     @Override
+    public void setLocation(Location location) {
+        this.location = location;
+        this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        this.setHeadRotation(this.location.getYaw());
+        new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(getPlayers());
+        syncText();
+    }
+
+    @Override
     public void hideVisibility(@Nonnull Player player) {
         packetRemovePlayer.sendPackets(player);
         packetDestroy.sendPackets(player);
@@ -253,21 +241,8 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     }
 
     @Override
-    public void setLocation(Location location) {
-        this.location = location;
-        this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-        this.setHeadRotation(this.location.getYaw());
-        new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(getPlayers());
-        syncText();
-    }
-
-    @Override
     public boolean isShowingTo(Player player) {
         return this.showingTo.contains(player);
-    }
-
-    private String getPrefix() {
-        return this.npcName == null ? "&aNPC" : this.npcName;
     }
 
     public String getNpcName() {
@@ -448,12 +423,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return this;
     }
 
-    private boolean canInteract(Player player) {
-        final long talkedAt = this.interactedAt.getOrDefault(player.getUniqueId(), 0L);
-        final long ticksToMillis = this.interactionDelay * 50L;
-        return System.currentTimeMillis() >= (talkedAt + ticksToMillis);
-    }
-
     public long getInteractionDelay() {
         return interactionDelay;
     }
@@ -461,19 +430,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     public HumanNPC setInteractionDelay(long interactionDelay) {
         this.interactionDelay = interactionDelay;
         return this;
-    }
-
-    private String placeHold(String entry, Player player) {
-        final String[] splits = entry.split(" ");
-        final StringBuilder builder = new StringBuilder();
-        for (String split : splits) {
-            split = split.replace(Placeholders.PLAYER.get(), player.getName())
-                    .replace(Placeholders.NAME.get(), this.getName())
-                    .replace(Placeholders.LOCATION.get(), BukkitUtils.locationToString(this.getLocation()));
-            builder.append(split);
-            builder.append(" ");
-        }
-        return builder.toString().trim();
     }
 
     @Override
@@ -683,37 +639,9 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return true;
     }
 
-    private void move0(double x, double y, double z) {
-        final Location loc = getLocation();
-        final PacketContainer packet = new PacketContainer(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
-
-        packet.getIntegers().write(0, getId());
-
-        packet.getShorts().write(0, (short) ((x * 32 - loc.getX() * 32) * 128));
-        packet.getShorts().write(1, (short) ((y * 32 - loc.getY() * 32) * 128));
-        packet.getShorts().write(2, (short) ((z * 32 - loc.getZ() * 32) * 128));
-
-        packet.getBytes().write(0, (byte) (loc.getYaw() * 256 / 360));
-        packet.getBytes().write(1, (byte) (loc.getPitch() * 256 / 360));
-
-        packet.getBooleans().write(0, isOnGround());
-
-        for (Player player : getPlayers()) {
-            manager.sendServerPacket(player, packet);
-        }
-
-        syncText();
-    }
-
     @Override
     public void jump(double height) {
         throw new NotImplementedException();
-    }
-
-    private void teleportY(double y) {
-        final Location loc = getLocation();
-        loc.setY(y);
-        teleport(loc);
     }
 
     @Override
@@ -747,10 +675,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     public boolean hasSkin() {
         final Collection<Property> skin = getSkin();
         return skin != null && !skin.isEmpty();
-    }
-
-    private void swingArm(boolean b) {
-        new ReflectPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3)).sendPackets(getPlayers());
     }
 
     public Collection<Property> getSkin() {
@@ -803,15 +727,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         });
     }
 
-    private void runAsync(String str, Consumer<String[]> callback) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                callback.accept(getSkin(str));
-            }
-        }.runTaskAsynchronously(EternaPlugin.getPlugin());
-    }
-
     @Nonnull
     public String[] getSkin(String targetName) {
         // if player on the server just get their game profile
@@ -837,6 +752,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             return new String[] { "invalidValue", "invalidSignature" };
         }
         try {
+            // FIXME (hapyl): 026, Aug 26: Is this sync?
             final URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + targetName);
             final InputStreamReader reader = new InputStreamReader(url.openStream());
             final String uuid = new JsonParser().parse(reader).getAsJsonObject().get("id").getAsString();
@@ -876,12 +792,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             sendEquipmentChange(ItemSlot.MAINHAND, equipment.getHand(), players);
             sendEquipmentChange(ItemSlot.OFFHAND, equipment.getOffhand(), players);
         }
-    }
-
-    private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
-        final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
-        list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
-        ReflectPacket.send(new PacketPlayOutEntityEquipment(this.getId(), list), players);
     }
 
     public NPCEquipment getEquipment() {
@@ -930,17 +840,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     @Override
     public DataWatcher getDataWatcher() {
         return Reflect.getDataWatcher(human);
-    }
-
-    @SuppressWarnings("all")
-    @Nonnull
-    protected Int2ObjectMap<DataWatcher.Item<?>> getInt2ObjectMap() {
-        try {
-            return (Int2ObjectMap<DataWatcher.Item<?>>) FieldUtils.readField(getDataWatcher(), "e", true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Int2ObjectOpenHashMap();
-        }
     }
 
     @Override
@@ -1001,29 +900,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return this;
     }
 
-    private void updateCollision() {
-        for (Player player : getPlayers()) {
-            final Team team = getTeamOrCreate(player.getScoreboard());
-            team.setOption(Team.Option.COLLISION_RULE, collision ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
-            team.addEntry(this.hexName);
-        }
-    }
-
-    private void deleteTeam() {
-        for (Player viewer : getViewers()) {
-            deleteTeam(viewer.getScoreboard());
-        }
-    }
-
-    private void deleteTeam(Scoreboard scoreboard) {
-        final Team team = scoreboard.getTeam(teamName);
-        if (team == null) {
-            return;
-        }
-
-        team.unregister();
-    }
-
     public int getId() {
         return Reflect.getEntityId(human);
     }
@@ -1059,6 +935,115 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         }
     }
 
+    @Override
+    public Player[] getPlayers() {
+        return showingTo.toArray(new Player[0]);
+    }
+
+    @SuppressWarnings("all")
+    @Nonnull
+    protected Int2ObjectMap<DataWatcher.Item<?>> getInt2ObjectMap() {
+        try {
+            return (Int2ObjectMap<DataWatcher.Item<?>>) FieldUtils.readField(getDataWatcher(), "e", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Int2ObjectOpenHashMap();
+        }
+    }
+
+    private String getPrefix() {
+        return this.npcName == null ? "&aNPC" : this.npcName;
+    }
+
+    private boolean canInteract(Player player) {
+        final long talkedAt = this.interactedAt.getOrDefault(player.getUniqueId(), 0L);
+        final long ticksToMillis = this.interactionDelay * 50L;
+        return System.currentTimeMillis() >= (talkedAt + ticksToMillis);
+    }
+
+    private String placeHold(String entry, Player player) {
+        final String[] splits = entry.split(" ");
+        final StringBuilder builder = new StringBuilder();
+        for (String split : splits) {
+            split = split.replace(Placeholders.PLAYER.get(), player.getName())
+                    .replace(Placeholders.NAME.get(), this.getName())
+                    .replace(Placeholders.LOCATION.get(), BukkitUtils.locationToString(this.getLocation()));
+            builder.append(split);
+            builder.append(" ");
+        }
+        return builder.toString().trim();
+    }
+
+    private void move0(double x, double y, double z) {
+        final Location loc = getLocation();
+        final PacketContainer packet = new PacketContainer(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
+
+        packet.getIntegers().write(0, getId());
+
+        packet.getShorts().write(0, (short) ((x * 32 - loc.getX() * 32) * 128));
+        packet.getShorts().write(1, (short) ((y * 32 - loc.getY() * 32) * 128));
+        packet.getShorts().write(2, (short) ((z * 32 - loc.getZ() * 32) * 128));
+
+        packet.getBytes().write(0, (byte) (loc.getYaw() * 256 / 360));
+        packet.getBytes().write(1, (byte) (loc.getPitch() * 256 / 360));
+
+        packet.getBooleans().write(0, isOnGround());
+
+        for (Player player : getPlayers()) {
+            manager.sendServerPacket(player, packet);
+        }
+
+        syncText();
+    }
+
+    private void teleportY(double y) {
+        final Location loc = getLocation();
+        loc.setY(y);
+        teleport(loc);
+    }
+
+    private void swingArm(boolean b) {
+        new ReflectPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3)).sendPackets(getPlayers());
+    }
+
+    private void runAsync(String str, Consumer<String[]> callback) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                callback.accept(getSkin(str));
+            }
+        }.runTaskAsynchronously(EternaPlugin.getPlugin());
+    }
+
+    private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
+        final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
+        list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
+        ReflectPacket.send(new PacketPlayOutEntityEquipment(this.getId(), list), players);
+    }
+
+    private void updateCollision() {
+        for (Player player : getPlayers()) {
+            final Team team = getTeamOrCreate(player.getScoreboard());
+            team.setOption(Team.Option.COLLISION_RULE, collision ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
+            team.addEntry(this.hexName);
+        }
+    }
+
+    private void deleteTeam() {
+        for (Player viewer : getViewers()) {
+            deleteTeam(viewer.getScoreboard());
+        }
+    }
+
+    private void deleteTeam(Scoreboard scoreboard) {
+        final Team team = scoreboard.getTeam(teamName);
+        if (team == null) {
+            return;
+        }
+
+        team.unregister();
+    }
+
     private net.minecraft.world.item.ItemStack toNMSItemStack(ItemStack stack) {
         return (net.minecraft.world.item.ItemStack) Reflect.invokeMethod(Reflect.getCraftMethod(
                 "inventory.CraftItemStack",
@@ -1067,9 +1052,31 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         ), null, stack);
     }
 
-    @Override
-    public Player[] getPlayers() {
-        return showingTo.toArray(new Player[0]);
+    public static Human create(Location location) {
+        return create(location, "", "");
+    }
+
+    public static Human create(Location location, String name) {
+        return create(location, name, "");
+    }
+
+    public static Human create(Location location, String name, String skin) {
+        return new HumanNPC(location, name, skin);
+    }
+
+    public static boolean isNPC(int entityId) {
+        return EternaRegistry.getNpcRegistry().isRegistered(entityId);
+    }
+
+    @Nullable
+    public static HumanNPC getById(int id) {
+        return EternaRegistry.getNpcRegistry().getById(id);
+    }
+
+    public static void hideAllNames(Scoreboard score) {
+        for (final HumanNPC value : EternaRegistry.getNpcRegistry().getRegistered().values()) {
+            value.hideTabListName();
+        }
     }
 
 }
