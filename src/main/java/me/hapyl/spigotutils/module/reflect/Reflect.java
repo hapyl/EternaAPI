@@ -16,10 +16,7 @@ import me.hapyl.spigotutils.module.util.ThreadRandom;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
@@ -735,6 +732,15 @@ public final class Reflect {
     }
 
     /**
+     * Sends a packet to all online players.
+     *
+     * @param packet - Packet to send.
+     */
+    public static void sendPacketGlobal(@Nonnull Packet<?> packet) {
+        Bukkit.getOnlinePlayers().forEach(player -> sendPacket(player, packet));
+    }
+
+    /**
      * Returns the NMS itemstack from a bukkit itemstack.
      *
      * @param bukkitItem - Bukkit itemstack.
@@ -824,11 +830,10 @@ public final class Reflect {
     }
 
     /**
-     * Deletes a NMS scoreboard team.
+     * Deletes the NMS scoreboard team.
      *
      * @param scoreboard - Bukkit scoreboard.
      * @param teamName   - Name of the team.
-     * @return true if the team was deleted, false otherwise.
      */
     public static void deleteNetTeam(Scoreboard scoreboard, String teamName) {
         final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
