@@ -31,13 +31,23 @@ final class NPCTest {
             return;
         }
 
+        if (name.equalsIgnoreCase("sit")) {
+            if (npc.isSitting()) {
+                npc.setSitting(false);
+                Chat.sendMessage(player, "&cNot sitting.");
+            }
+            else {
+                npc.setSitting(true);
+                Chat.sendMessage(player, "&aSitting.");
+            }
+        }
+
         // empty
         if (npc != null) {
-            Chat.sendMessage(player, "jump");
             return;
         }
 
-        npc = new FlippedHumanNPC(player.getLocation(), player.getName(), player.getName());
+        npc = new HumanNPC(player.getLocation(), player.getName(), player.getName());
         npc.show(player);
 
         player.sendMessage(ChatColor.GREEN + "Created npc.");

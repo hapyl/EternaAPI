@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
@@ -42,6 +43,7 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.EntityAreaEffectCloud;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.reflect.FieldUtils;
@@ -103,6 +105,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     private String cannotInteractMessage = "Not now.";
     private int lookAtCloseDist;
     private BukkitTask moveTask;
+    private EntityAreaEffectCloud sitEntity;
 
     private HumanNPC() {
         this(BukkitUtils.getSpawnLocation(), "", "");
@@ -215,6 +218,35 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.setHeadRotation(this.location.getYaw());
         new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(getPlayers());
         syncText();
+    }
+
+    @Override
+    public boolean isSitting() {
+        return sitEntity != null;
+    }
+
+    @Override
+    public void setSitting(boolean sitting) {
+        if (sitEntity != null) {
+            Reflect.destroyEntity(sitEntity, getPlayers());
+            sitEntity = null;
+        }
+
+        if (sitting) {
+            final Location location = getLocation();
+            final World world = getWorld();
+
+            sitEntity = new EntityAreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
+            sitEntity.a(0.0f);            // setRadius(float arg0)
+            sitEntity.a(Integer.MAX_VALUE); // setDuration(int arg0)
+
+            ((net.minecraft.world.entity.Entity) sitEntity).r = ImmutableList.of(human);
+
+            Reflect.createEntity(sitEntity, getPlayers());
+            Reflect.updateMetadata(sitEntity, getPlayers());
+
+            Reflect.sendPacket(new PacketPlayOutMount(sitEntity), getPlayers());
+        }
     }
 
     @Override
@@ -870,6 +902,9 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     @Override
     public void remove() {
         this.alive = false;
+        if (this.sitEntity != null) {
+            Reflect.destroyEntity(this.sitEntity, getPlayers());
+        }
         this.hide();
         this.deleteTeam();
         this.showingTo.clear();
