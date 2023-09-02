@@ -98,6 +98,20 @@ public interface Human {
     void setLocation(Location location);
 
     /**
+     * Returns true if NPC is currently sitting.
+     *
+     * @return true if NPC is currently sitting, false otherwise.
+     */
+    boolean isSitting();
+
+    /**
+     * Sets if NPC is sitting.
+     *
+     * @param sitting - Is NPC sitting.
+     */
+    void setSitting(boolean sitting);
+
+    /**
      * Returns true if NPC can be seen by the player.
      *
      * @param player - The player.
