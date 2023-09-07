@@ -245,8 +245,16 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             Reflect.createEntity(sitEntity, getPlayers());
             Reflect.updateMetadata(sitEntity, getPlayers());
 
-            Reflect.sendPacket(new PacketPlayOutMount(sitEntity), getPlayers());
+            updateSitting();
         }
+    }
+
+    public void updateSitting() {
+        if (sitEntity == null) {
+            return;
+        }
+
+        Reflect.sendPacket(new PacketPlayOutMount(sitEntity), getPlayers());
     }
 
     @Override
@@ -270,6 +278,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
         updateDataWatcher();
         hideTabListName();
+        updateSitting();
     }
 
     @Override
