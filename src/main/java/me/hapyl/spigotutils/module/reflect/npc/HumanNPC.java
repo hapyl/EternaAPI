@@ -106,6 +106,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     private int lookAtCloseDist;
     private BukkitTask moveTask;
     private EntityAreaEffectCloud sitEntity;
+    private RestPosition restPosition;
 
     private HumanNPC() {
         this(BukkitUtils.getSpawnLocation(), "", "");
@@ -186,6 +187,11 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         throw new NotImplementedException("setShoulderEntity not yet implemented");
     }
 
+    @Nonnull
+    public Hologram getAboveHead() {
+        return aboveHead;
+    }
+
     @Override
     public Player bukkitEntity() {
         return this.human.getBukkitEntity();
@@ -249,12 +255,20 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         }
     }
 
-    public void updateSitting() {
-        if (sitEntity == null) {
-            return;
-        }
+    @Override
+    public void setRestPosition(float yaw, float pitch) {
+        restPosition = new RestPosition(yaw, pitch);
+    }
 
-        Reflect.sendPacket(new PacketPlayOutMount(sitEntity), getPlayers());
+    @Override
+    @Nullable
+    public RestPosition getRestPosition() {
+        return restPosition;
+    }
+
+    @Override
+    public void resetRestPotion() {
+        restPosition = null;
     }
 
     @Override
@@ -692,6 +706,16 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     }
 
     @Override
+    public void setHeadRotation(float yaw, float pitch) {
+        location.setYaw(yaw);
+        location.setPitch(pitch);
+        human.a(location.getX(), location.getY(), location.getZ(), yaw, pitch);
+        setHeadRotation(yaw);
+
+        new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(getPlayers());
+    }
+
+    @Override
     public void setHeadRotation(float yaw) {
         new ReflectPacket(new PacketPlayOutEntityHeadRotation(this.human, (byte) ((yaw * 256) / 360))).sendPackets(getPlayers());
     }
@@ -995,8 +1019,16 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         }
     }
 
+    private void updateSitting() {
+        if (sitEntity == null) {
+            return;
+        }
+
+        Reflect.sendPacket(new PacketPlayOutMount(sitEntity), getPlayers());
+    }
+
     private String getPrefix() {
-        return this.npcName == null ? "&aNPC" : this.npcName;
+        return this.chatPrefix;
     }
 
     private boolean canInteract(Player player) {

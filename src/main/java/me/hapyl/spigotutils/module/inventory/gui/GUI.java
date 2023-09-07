@@ -254,6 +254,14 @@ public class GUI {
     }
 
     /**
+     * Clears all items and clicks events.
+     */
+    public final void clearItemsAndClicks() {
+        clearItems();
+        clearClickEvents();
+    }
+
+    /**
      * Returns a copy of current by slot map.
      *
      * @return a copy of current by slot map.
@@ -265,6 +273,7 @@ public class GUI {
     /**
      * Clears close and open events.
      */
+    @Deprecated(forRemoval = true)
     public final void clearEvents() {
         closeEvent = null;
         openEvent = null;
@@ -805,6 +814,7 @@ public class GUI {
      * Clears everything this GUI has to offer, such as items, click, close and open events.
      * Recommended to use if updating menus to clear old items and clicks.
      */
+    @Deprecated
     public final void clearEverything() {
         clearClickEvents();
         clearEvents();

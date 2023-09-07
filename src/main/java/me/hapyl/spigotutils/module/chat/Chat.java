@@ -30,7 +30,7 @@ import java.util.List;
 public class Chat {
 
     /**
-     * Build In Colors (Initial idea was adding a custom colors)
+     * Build In Colors.
      */
     public static final String BLACK = new Chat(ChatColor.RED).getColor();
     public static final String DARK_BLUE = new Chat(ChatColor.DARK_BLUE).getColor();
@@ -402,7 +402,7 @@ public class Chat {
         sendClickableHoverableMessage(
                 sender,
                 LazyClickEvent.RUN_COMMAND.of(runCommand),
-                LazyHoverEvent.SHOW_TEXT.of(sender),
+                LazyHoverEvent.SHOW_TEXT.of(showText),
                 message,
                 format
         );

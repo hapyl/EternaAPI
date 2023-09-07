@@ -188,7 +188,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
      */
     public final void openInventory(int page) {
         final int toPage = Numbers.clamp(page, 1, getMaxPage());
-        clearEverything();
+        clearItemsAndClicks();
 
         preProcessInventory(player, page);
 
