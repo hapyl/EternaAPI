@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.reflect;
 
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
+import me.hapyl.spigotutils.module.reflect.npc.RestPosition;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Location;
@@ -29,6 +30,19 @@ public class NPCRunnable implements Runnable {
 
                 if (nearest != null && nearest.isOnline()) {
                     npc.lookAt(nearest);
+                }
+                else {
+                    final RestPosition restPosition = npc.getRestPosition();
+                    if (restPosition != null) {
+                        final float yaw = location.getYaw();
+                        final float pitch = location.getPitch();
+
+                        if (yaw == restPosition.yaw() && pitch == restPosition.pitch()) {
+                            return;
+                        }
+
+                        npc.setHeadRotation(restPosition.yaw(), restPosition.pitch());
+                    }
                 }
             }
         });

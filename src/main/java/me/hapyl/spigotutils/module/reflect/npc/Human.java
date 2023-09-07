@@ -112,6 +112,28 @@ public interface Human {
     void setSitting(boolean sitting);
 
     /**
+     * Sets the rest head position for this NPC.
+     * NPC will rotate its head whenever it's not looking at a player.
+     *
+     * @param yaw   - Yaw.
+     * @param pitch - Pitch.
+     */
+    void setRestPosition(float yaw, float pitch);
+
+    /**
+     * Gets the current rest head position if present; null otherwise.
+     *
+     * @return the current rest head position if present; null otherwise.
+     */
+    @Nullable
+    RestPosition getRestPosition();
+
+    /**
+     * Resets the rest head position for this NPC.
+     */
+    void resetRestPotion();
+
+    /**
      * Returns true if NPC can be seen by the player.
      *
      * @param player - The player.
@@ -275,6 +297,15 @@ public interface Human {
      * @param vector - Vector.
      */
     void push(Vector vector) throws NotImplementedException;
+
+    /**
+     * Changes NPC's head rotation.
+     * This method modifies NPCs actual location.
+     *
+     * @param yaw   - Yaw.
+     * @param pitch - Pitch.
+     */
+    void setHeadRotation(float yaw, float pitch);
 
     /**
      * Changes NPC's head rotation.
