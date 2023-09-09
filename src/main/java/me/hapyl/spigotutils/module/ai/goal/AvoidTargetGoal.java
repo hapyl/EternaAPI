@@ -27,12 +27,12 @@ import net.minecraft.world.entity.npc.EntityVillagerTrader;
 import org.bukkit.entity.EntityType;
 
 /**
- * Adds a goal to avoid entity type.
+ * Adds a goal to avoid an entity type.
  */
 public class AvoidTargetGoal extends Goal {
 
     /**
-     * Adds goal to avoid entity type.
+     * Adds goal to avoid an entity type.
      *
      * @param ai                  - AI reference.
      * @param avoid               - Entity type to avoid.
@@ -43,15 +43,14 @@ public class AvoidTargetGoal extends Goal {
     public AvoidTargetGoal(AI ai, EntityType avoid, float maxDistance, double walkSpeedModifier, double sprintSpeedModifier) {
         super(new PathfinderGoalAvoidTarget<>(
                 (EntityCreature) ai.getMob(),
-                entityLivingClasFromType(avoid),
+                entityLivingClassFromType(avoid),
                 maxDistance,
                 walkSpeedModifier,
                 sprintSpeedModifier
         ));
     }
 
-    // thank you copilot
-    public static Class<? extends EntityLiving> entityLivingClasFromType(EntityType type) {
+    public static Class<? extends EntityLiving> entityLivingClassFromType(EntityType type) {
         return switch (type) {
             case PLAYER -> EntityPlayer.class;
             case CREEPER -> EntityCreeper.class;

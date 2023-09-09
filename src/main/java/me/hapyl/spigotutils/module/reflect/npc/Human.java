@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
+import me.hapyl.spigotutils.module.reflect.npc.packet.NPCPacketHandler;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.server.level.EntityPlayer;
 import org.apache.commons.lang.NotImplementedException;
@@ -46,6 +47,15 @@ public interface Human {
     static Human create(Location location, String name, String skin) {
         return HumanNPC.create(location, name, skin);
     }
+
+    /**
+     * Gets the packet handler for this NPC.
+     * Packet handler is responsible for storing and sending packets related to the NPC.
+     *
+     * @return Packet handler for this NPC.
+     */
+    @Nonnull
+    NPCPacketHandler getPacketHandler();
 
     /**
      * Returns true if NPC is shaking of cold.
@@ -459,10 +469,18 @@ public interface Human {
     HumanNPC setCollision(boolean flag);
 
     /**
+     * Gets the NPC's minecraft ID.
+     *
+     * @return NPC's minecraft ID.
+     */
+    int getId();
+
+    /**
      * Returns the human entity.
      *
      * @return the human entity
      */
+    @Nonnull
     EntityPlayer getHuman();
 
     /**
