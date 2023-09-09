@@ -31,14 +31,15 @@ import me.hapyl.spigotutils.module.util.Padding;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.WeightedCollection;
 import net.md_5.bungee.api.ChatColor;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.entity.ai.goal.PathfinderGoalFloat;
+import net.minecraft.world.entity.ai.goal.target.PathfinderGoalNearestAttackableTarget;
+import net.minecraft.world.entity.npc.EntityVillager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Wolf;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
@@ -237,17 +238,12 @@ public final class RuntimeCommandsTest {
         });
 
         registerTestCommand("ai", (player, args) -> {
-            final Wolf entity = Entities.WOLF.spawn(player.getLocation());
-            final LivingEntity sheep = Entities.SHEEP.spawn(player.getLocation());
+            final LivingEntity entity = Entities.PILLAGER.spawn(player.getLocation(), self -> self.setSilent(true));
             final AI ai = MobAI.of(entity);
 
             ai.removeAllGoals();
-            ai.addGoal(new AvoidTargetGoal(ai, EntityType.PLAYER, 5, 1.0d, 2.0d));
-            ai.addGoal(new FollowEntityGoal(ai, sheep, 1.0d, 1.0f, 1.0f));
-            ai.addGoal(new LookAtPlayerGoal(ai, 8.0f));
-            ai.addGoal(new RandomlyLookAroundGoal(ai));
-            ai.addGoal(new RandomlyStrollGoal(ai, 1.0f));
-            ai.addGoal(new TemptGoal(ai, Material.WHEAT, 1.0f, false));
+            ai.addGoal(new FloatGoal(ai));
+            ai.addGoal(new MeleeAttackGoal(ai, 1.0d, true));
 
             ai.getGoals().forEach(goal -> {
                 System.out.println(goal.getClass().getSimpleName());
