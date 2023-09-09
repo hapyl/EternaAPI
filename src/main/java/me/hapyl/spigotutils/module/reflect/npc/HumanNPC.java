@@ -8,7 +8,6 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -36,6 +35,8 @@ import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
+import me.hapyl.spigotutils.module.reflect.npc.packet.NPCPacketHandler;
+import me.hapyl.spigotutils.module.reflect.npc.packet.NPCPacketType;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.registry.EternaRegistry;
@@ -81,10 +82,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     protected final Set<Player> showingTo = Sets.newHashSet();
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-    private final ReflectPacket packetAddPlayer;
-    private final ReflectPacket packetRemovePlayer;
-    private final ReflectPacket packetSpawn;
-    private final ReflectPacket packetDestroy;
     private final GameProfile profile;
     private final EntityPlayer human;
     private final Hologram aboveHead;
@@ -96,6 +93,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     private final Map<UUID, Long> interactedAt = new HashMap<>();
     private final List<NPCEntry> entries = new ArrayList<>();
     private final int id;
+    private final NPCPacketHandler packetHandler;
     private String npcName;
     private Location location;
     private String skinOwner;
@@ -164,14 +162,17 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.id = Reflect.getEntityId(human);
 
-        this.packetAddPlayer = new ReflectPacket(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.a, this.human));
-        this.packetRemovePlayer = new ReflectPacket(new ClientboundPlayerInfoRemovePacket(Lists.newArrayList(this.uuid)));
-        this.packetSpawn = new ReflectPacket(new PacketPlayOutNamedEntitySpawn(this.human));
-        this.packetDestroy = new ReflectPacket(new PacketPlayOutEntityDestroy(this.human.getBukkitEntity().getEntityId()));
+        this.packetHandler = new NPCPacketHandler(this);
 
         setVisibility(40);
         EternaRegistry.getNpcRegistry().register(this);
         this.alive = true;
+    }
+
+    @Override
+    @Nonnull
+    public NPCPacketHandler getPacketHandler() {
+        return packetHandler;
     }
 
     @Override
@@ -276,16 +277,14 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     @Override
     public void hideVisibility(@Nonnull Player player) {
-        packetRemovePlayer.sendPackets(player);
-        packetDestroy.sendPackets(player);
+        packetHandler.sendPackets(NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
     }
 
     @Override
     public void showVisibility(@Nonnull Player player) {
         hideDisplayName();
 
-        packetAddPlayer.sendPackets(player);
-        packetSpawn.sendPackets(player);
+        packetHandler.sendPackets(NPCPacketType.ADD_PLAYER, NPCPacketType.SPAWN);
 
         setLocation(location);
 
@@ -911,7 +910,9 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     @Override
     public void hideTabListName() {
-        Bukkit.getScheduler().runTaskLater(EternaPlugin.getPlugin(), () -> packetRemovePlayer.sendPackets(getPlayers()), 20L);
+        Bukkit.getScheduler().runTaskLater(EternaPlugin.getPlugin(), () -> {
+            packetHandler.sendPacket(NPCPacketType.REMOVE_PLAYER);
+        }, 20L);
     }
 
     @Override
@@ -963,8 +964,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             this.aboveHead.hide(player);
         }
 
-        this.packetRemovePlayer.sendPackets(players);
-        this.packetDestroy.sendPackets(players);
+        packetHandler.sendPackets(NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
     }
 
     @Override

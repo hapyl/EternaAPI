@@ -6,16 +6,13 @@ public class Goal {
 
     protected PathfinderGoal goal;
 
-    protected Goal() {
-    }
-
-    protected Goal(PathfinderGoal goal) {
+    public Goal(PathfinderGoal goal) {
         this.goal = goal;
     }
 
     public PathfinderGoal getGoal() {
         if (goal == null) {
-            throw new NullPointerException("if using empty constructor then set the goal you lummox");
+            throw new NullPointerException("if using empty constructor, then set the goal you lummox");
         }
         return goal;
     }
