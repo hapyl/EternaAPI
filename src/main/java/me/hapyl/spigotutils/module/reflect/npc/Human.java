@@ -459,10 +459,18 @@ public interface Human {
     HumanNPC setCollision(boolean flag);
 
     /**
+     * Gets the NPC's minecraft ID.
+     *
+     * @return NPC's minecraft ID.
+     */
+    int getId();
+
+    /**
      * Returns the human entity.
      *
      * @return the human entity
      */
+    @Nonnull
     EntityPlayer getHuman();
 
     /**

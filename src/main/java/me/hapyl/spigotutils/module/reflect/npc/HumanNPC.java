@@ -39,6 +39,7 @@ import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.registry.EternaRegistry;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.server.level.EntityPlayer;
@@ -94,6 +95,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     private final NPCEquipment equipment;
     private final Map<UUID, Long> interactedAt = new HashMap<>();
     private final List<NPCEntry> entries = new ArrayList<>();
+    private final int id;
     private String npcName;
     private Location location;
     private String skinOwner;
@@ -160,6 +162,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.human = new EntityPlayer(Reflect.getMinecraftServer(), (WorldServer) Reflect.getMinecraftWorld(location.getWorld()), profile);
 
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        this.id = Reflect.getEntityId(human);
 
         this.packetAddPlayer = new ReflectPacket(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.a, this.human));
         this.packetRemovePlayer = new ReflectPacket(new ClientboundPlayerInfoRemovePacket(Lists.newArrayList(this.uuid)));
@@ -363,7 +366,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     }
 
     public final boolean onClickAuto(Player player) {
-
         // Can interact?
         if (!this.canInteract(player)) {
             final String cannotInteract = this.getNPCResponses().getCannotInteract();
@@ -924,7 +926,12 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     @Override
     public void playAnimation(NPCAnimation animation) {
-        ReflectPacket.send(new PacketPlayOutAnimation(this.getHuman(), animation.getPos()), getPlayers());
+        if (animation == NPCAnimation.TAKE_DAMAGE) {
+            sendPacket(new ClientboundHurtAnimationPacket(human));
+            return;
+        }
+
+        sendPacket(new PacketPlayOutAnimation(this.getHuman(), animation.getPos()));
     }
 
     @Override
@@ -968,11 +975,13 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return this;
     }
 
+    @Override
     public int getId() {
-        return Reflect.getEntityId(human);
+        return id;
     }
 
     @Override
+    @Nonnull
     public EntityPlayer getHuman() {
         return human;
     }
@@ -1006,6 +1015,10 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     @Override
     public Player[] getPlayers() {
         return showingTo.toArray(new Player[0]);
+    }
+
+    protected void sendPacket(Packet<?> packet) {
+        Reflect.sendPacket(packet, getPlayers());
     }
 
     @SuppressWarnings("all")
