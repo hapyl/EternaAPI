@@ -6,5 +6,6 @@ public enum NPCPacketType {
     REMOVE_PLAYER,
     SPAWN,
     DESTROY,
+    TELEPORT
 
 }

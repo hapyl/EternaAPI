@@ -27,6 +27,7 @@ import me.hapyl.spigotutils.module.reflect.protocol.SignListener;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -68,11 +69,17 @@ public class EternaPlugin extends JavaPlugin {
 
         final BukkitScheduler scheduler = Bukkit.getScheduler();
 
+        // Load config
+        final FileConfiguration config = getConfig();
+
+        config.options().copyDefaults(true);
+        saveConfig();
+
         // Schedule tasks
-        scheduler.runTaskTimer(this, new NPCRunnable(), 0, 2);
-        scheduler.runTaskTimer(this, new HologramRunnable(), 0, 2);
-        scheduler.runTaskTimer(this, new ParkourRunnable(), 0, 2);
-        scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
+        scheduler.runTaskTimer(this, new NPCRunnable(), 0, config.getInt("tick-time.npc", 2));
+        scheduler.runTaskTimer(this, new HologramRunnable(), 0, config.getInt("tick-time.hologram", 2));
+        scheduler.runTaskTimer(this, new ParkourRunnable(), 0, config.getInt("tick-time.parkour", 2));
+        scheduler.runTaskTimer(this, new GlowingRunnable(), 0, config.getInt("tick-time.glowing", 1));
 
         // Load ProtocolLib listeners
         new SignListener();
@@ -83,10 +90,6 @@ public class EternaPlugin extends JavaPlugin {
         final CommandProcessor commandProcessor = new CommandProcessor(this);
         commandProcessor.registerCommand(new EternaCommand("eterna"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
-
-        // Load configuration file
-        this.getConfig().options().copyDefaults(true);
-        this.saveConfig();
 
         // Create songs folder
         try {
@@ -103,10 +106,13 @@ public class EternaPlugin extends JavaPlugin {
 
         // Check for updates
         this.updater = new Updater();
-        Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
+        if (config.getBoolean("check-for-updates", true)) {
+            Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
+        }
 
-        // Register me.hapyl.spigotutils.test commands. Ignore this, no one can use this besides my.
-        new RuntimeCommandsTest(this);
+        if (config.getBoolean("dev.keep-test-commands", true)) {
+            new RuntimeCommandsTest(this);
+        }
     }
 
     public EternaRegistry getRegistry() {
@@ -134,6 +140,14 @@ public class EternaPlugin extends JavaPlugin {
         return registry.glowingManager;
     }
 
+    public Updater getUpdater() {
+        return updater;
+    }
+
+    private int getConfigInt(String path, int def) {
+        return getConfig().getInt(path, def);
+    }
+
     public static void runTaskLater(Consumer<BukkitTask> runnable, long later) {
         Bukkit.getScheduler().runTaskLater(plugin, runnable, later);
     }
@@ -148,9 +162,5 @@ public class EternaPlugin extends JavaPlugin {
 
     public static Logger logger() {
         return getPlugin().getLogger();
-    }
-
-    public Updater getUpdater() {
-        return updater;
     }
 }

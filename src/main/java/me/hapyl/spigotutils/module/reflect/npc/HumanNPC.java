@@ -226,7 +226,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.location = location;
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.setHeadRotation(this.location.getYaw());
-        new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(getPlayers());
+        this.packetHandler.sendPackets(NPCPacketType.TELEPORT);
         syncText();
     }
 
@@ -277,14 +277,14 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     @Override
     public void hideVisibility(@Nonnull Player player) {
-        packetHandler.sendPackets(NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
+        packetHandler.sendPackets(player, NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
     }
 
     @Override
     public void showVisibility(@Nonnull Player player) {
         hideDisplayName();
 
-        packetHandler.sendPackets(NPCPacketType.ADD_PLAYER, NPCPacketType.SPAWN);
+        packetHandler.sendPackets(player, NPCPacketType.ADD_PLAYER, NPCPacketType.SPAWN);
 
         setLocation(location);
 
@@ -565,15 +565,13 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     public void lookAt(Location location) {
         this.location.setDirection(location.clone().subtract(this.location).toVector());
         this.setHeadRotation(this.location.getYaw());
-        ReflectPacket.send(
-                new PacketPlayOutEntity.PacketPlayOutEntityLook(
-                        this.getId(),
-                        (byte) (this.location.getYaw() * 256 / 360),
-                        (byte) (this.location.getPitch() * 256 / 360),
-                        true
-                ),
-                getPlayers()
-        );
+
+        sendPacket(new PacketPlayOutEntity.PacketPlayOutEntityLook(
+                this.getId(),
+                (byte) (this.location.getYaw() * 256 / 360),
+                (byte) (this.location.getPitch() * 256 / 360),
+                true
+        ));
     }
 
     @Override
@@ -713,12 +711,12 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         human.a(location.getX(), location.getY(), location.getZ(), yaw, pitch);
         setHeadRotation(yaw);
 
-        new ReflectPacket(new PacketPlayOutEntityTeleport(this.human)).sendPackets(getPlayers());
+        packetHandler.sendPackets(NPCPacketType.TELEPORT);
     }
 
     @Override
     public void setHeadRotation(float yaw) {
-        new ReflectPacket(new PacketPlayOutEntityHeadRotation(this.human, (byte) ((yaw * 256) / 360))).sendPackets(getPlayers());
+        sendPacket(new PacketPlayOutEntityHeadRotation(this.human, (byte) ((yaw * 256) / 360)));
     }
 
     @Override
@@ -911,7 +909,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     @Override
     public void hideTabListName() {
         Bukkit.getScheduler().runTaskLater(EternaPlugin.getPlugin(), () -> {
-            packetHandler.sendPacket(NPCPacketType.REMOVE_PLAYER);
+            packetHandler.sendPackets(NPCPacketType.REMOVE_PLAYER);
         }, 20L);
     }
 
@@ -960,11 +958,10 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     @Override
     public void hide(@Nonnull Player... players) {
         for (Player player : players) {
-            this.showingTo.remove(player);
-            this.aboveHead.hide(player);
+            showingTo.remove(player);
+            aboveHead.hide(player);
+            packetHandler.sendPackets(player, NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
         }
-
-        packetHandler.sendPackets(NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
     }
 
     @Override
@@ -1037,7 +1034,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             return;
         }
 
-        Reflect.sendPacket(new PacketPlayOutMount(sitEntity), getPlayers());
+        sendPacket(new PacketPlayOutMount(sitEntity));
     }
 
     private String getPrefix() {
@@ -1092,7 +1089,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     }
 
     private void swingArm(boolean b) {
-        new ReflectPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3)).sendPackets(getPlayers());
+        sendPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3));
     }
 
     private void runAsync(String str, Consumer<String[]> callback) {
@@ -1107,7 +1104,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
         final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
         list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
-        ReflectPacket.send(new PacketPlayOutEntityEquipment(this.getId(), list), players);
+        sendPacket(new PacketPlayOutEntityEquipment(this.getId(), list));
     }
 
     private void updateCollision() {
