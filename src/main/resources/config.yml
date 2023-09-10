@@ -1,0 +1,19 @@
+# Runnable tick times, the higher, the slower the runnable will work.
+# Requiters server restart.
+tick-time:
+  # How fast to update NPC visibility checks and head rotation.
+  npc: 2
+  # How fast to update hologram visibility.
+  hologram: 2
+  # How fast to update parkour UI.
+  parkour: 2
+  # How fast to update glowing.
+  glowing: 1
+
+# Whenever to check for updates upon the plugin load.
+check-for-updates: true
+
+# Developer settings.
+dev:
+  # Whenever to keep developer test commands.
+  keep-test-commands: true
