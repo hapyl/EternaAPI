@@ -8,7 +8,9 @@ import me.hapyl.spigotutils.module.command.completer.Checker2;
 import me.hapyl.spigotutils.module.command.completer.CompleterHandler;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
+import me.hapyl.spigotutils.module.util.Handle;
 import me.hapyl.spigotutils.module.util.TypeConverter;
+import net.minecraft.server.commands.CommandHelp;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -25,11 +27,12 @@ import java.util.function.Function;
  *
  * @author hapyl
  */
-public abstract class SimpleCommand {
+public abstract class SimpleCommand implements Handle<Command> {
 
     private final String name;
     private final Map<Integer, List<String>> completerValues;
     private final Map<Integer, CompleterHandler> completerHandlers;
+
     private String permission;
     private String description;
     private String usage;
@@ -38,7 +41,8 @@ public abstract class SimpleCommand {
     private boolean allowOnlyPlayer;
     private int cooldownTick;
     private CommandCooldown cooldown;
-    @Nullable private ArgumentProcessor argumentProcessor;
+    private CommandHandle handle;
+    private CommandFormatter formatter;
 
     private SimpleCommand() {
         throw new NullPointerException();
@@ -61,6 +65,17 @@ public abstract class SimpleCommand {
         this.cooldown = null;
         this.completerValues = Maps.newHashMap();
         this.completerHandlers = Maps.newHashMap();
+        this.formatter = CommandFormatter.DEFAULT;
+    }
+
+    @Nonnull
+    @Override
+    public Command getHandle() {
+        if (handle == null) {
+            throw new IllegalStateException("Command is not registered yet! (%s)".formatted(getName()));
+        }
+
+        return handle;
     }
 
     /**
@@ -242,23 +257,6 @@ public abstract class SimpleCommand {
     }
 
     /**
-     * Returns argument processor for this command if any present.
-     *
-     * @return argument processor for this command if any present.
-     */
-    @Nullable
-    @Deprecated
-    public ArgumentProcessor getArgumentProcessor() {
-        return argumentProcessor;
-    }
-
-    public void testArgumentProcessorIfExists(CommandSender sender, String[] args) {
-        if (argumentProcessor != null) {
-            argumentProcessor.checkArgumentAndExecute(sender, args);
-        }
-    }
-
-    /**
      * Returns true if this command can only be called by players, false otherwise.
      *
      * @return true if this command can only be called by players, false otherwise.
@@ -268,7 +266,7 @@ public abstract class SimpleCommand {
     }
 
     /**
-     * Returns description of this command if present, 'Made using SimpleCommand by EternaAPI.' otherwise.
+     * Returns description of this command if present, <code>Made using SimpleCommand by EternaAPI.</code> otherwise.
      *
      * @return Returns description of this command if present, 'Made using SimpleCommand by EternaAPI.' otherwise.
      */
@@ -379,81 +377,32 @@ public abstract class SimpleCommand {
         this.usage = "/" + usage;
     }
 
+    @Nonnull
     public final Command createCommand() {
-        final SimpleCommand cmd = this;
+        if (handle == null) {
+            handle = new CommandHandle(this);
+        }
 
-        return new Command(cmd.getName(), cmd.getDescription(), cmd.getUsage(), Arrays.asList(cmd.getAliases())) {
-            @Override
-            public boolean execute(@Nonnull CommandSender sender, @Nonnull String label, @Nonnull String[] args) {
-                if (cmd instanceof DisabledCommand) {
-                    Chat.sendMessage(sender, "&cThis command is currently disabled!");
-                    return true;
-                }
+        return handle;
+    }
 
-                if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
-                    Chat.sendMessage(sender, "&cYou must be a player to use perform this command!");
-                    return true;
-                }
+    /**
+     * Gets the formatter for this command.
+     *
+     * @return the formatter.
+     */
+    @Nonnull
+    public CommandFormatter getFormatter() {
+        return formatter;
+    }
 
-                // permission check
-                if ((cmd.isAllowOnlyOp() && !sender.isOp()) || (cmd.hasPermission() && !sender.hasPermission(cmd.getPermission()))) {
-                    Chat.sendMessage(sender, "&4No permissions.");
-                    return true;
-                }
-
-                // cooldown check
-                if (cmd.hasCooldown() && sender instanceof final Player playerSender) {
-                    final CommandCooldown cooldown = cmd.getCooldown();
-                    if (cooldown.hasCooldown(playerSender)) {
-                        Chat.sendMessage(
-                                playerSender,
-                                "&cThis command is on cooldown for %ss!",
-                                BukkitUtils.roundTick((int) (cooldown.getTimeLeft(playerSender) / 50L))
-                        );
-                        PlayerLib.playSound(playerSender, Sound.ENTITY_ENDERMAN_TELEPORT, 0.0f);
-                        return true;
-                    }
-                    if (!cooldown.canIgnoreCooldown(playerSender)) {
-                        cooldown.startCooldown(playerSender);
-                    }
-                }
-
-                cmd.execute(sender, args);
-
-                //  test argument processor
-                cmd.testArgumentProcessorIfExists(sender, args);
-
-                return true;
-            }
-
-            // Register Tab Completer
-            @Override
-            @Nonnull
-            public List<String> tabComplete(@Nonnull CommandSender sender, @Nonnull String alias, @Nonnull String[] args) throws IllegalArgumentException {
-                if (cmd.isOnlyForPlayers() && !(sender instanceof Player)) {
-                    return defaultCompleter();
-                }
-
-                final List<String> strings = colorizeList(preTabComplete(sender, args));
-                final List<String> tabComplete = cmd.tabComplete(sender, args);
-
-                if (tabComplete != null) {
-                    strings.addAll(tabComplete);
-                }
-
-                if (cmd.hasCompleterValues(args.length)) {
-                    strings.addAll(cmd.completerSort(cmd.getCompleterValues(args.length), args));
-                }
-
-                strings.addAll(colorizeList(postTabComplete(sender, args)));
-
-                if (sender instanceof Player player) {
-                    completerHandler(player, args.length, args, strings);
-                }
-
-                return strings.isEmpty() ? defaultCompleter() : strings;
-            }
-        };
+    /**
+     * Sets the formatter for this command.
+     *
+     * @param formatter - New formatter.
+     */
+    public void setFormatter(@Nonnull CommandFormatter formatter) {
+        this.formatter = formatter;
     }
 
     /**
@@ -509,12 +458,6 @@ public abstract class SimpleCommand {
         return Lists.newArrayList();
     }
 
-    protected void tryArgumentProcessor() {
-        if (this.argumentProcessor == null && ArgumentProcessor.countMethods(this) > 0) {
-            this.argumentProcessor = new ArgumentProcessor(this);
-        }
-    }
-
     /**
      * Sort input lists so there are only strings that can finish the string you are typing.
      *
@@ -526,22 +469,17 @@ public abstract class SimpleCommand {
         return Chat.tabCompleterSort(list, args, forceLowerCase);
     }
 
-    // see above
     protected List<String> completerSort(List<String> list, String[] args) {
         return completerSort(list, args, true);
     }
 
-    // see above
     protected <E> List<String> completerSort(E[] array, String[] args) {
         return completerSort(arrayToList(array), args);
     }
 
-    // see above
     protected <E> List<String> completerSort(Collection<E> list, String[] args) {
         return Chat.tabCompleterSort(eToString(list), args);
     }
-
-    // end of utils
 
     protected List<String> completerSort2(List<String> list, String[] args, boolean forceLowerCase) {
         return Chat.tabCompleterSort0(list, args, forceLowerCase, false);
@@ -602,8 +540,6 @@ public abstract class SimpleCommand {
         Chat.sendMessage(sender, "&cInvalid Usage! &e%s.", this.usage);
     }
 
-    // end of utilities
-
     private <E> List<String> eToString(Collection<E> list) {
         List<String> str = new ArrayList<>();
         for (final E e : list) {
@@ -612,7 +548,7 @@ public abstract class SimpleCommand {
         return str;
     }
 
-    private void completerHandler(Player player, int index, String[] array, List<String> list) {
+    protected void completerHandler(Player player, int index, String[] array, List<String> list) {
         final CompleterHandler handler = completerHandlers.get(index);
         if (handler == null) {
             return;
@@ -621,26 +557,13 @@ public abstract class SimpleCommand {
         handler.handle(player, array, list);
     }
 
-    private boolean hasPermission() {
+    /**
+     * Returns true if this command has permissions; false otherwise.
+     *
+     * @return true if this command has permissions; false otherwise.
+     */
+    public boolean hasPermission() {
         return permission != null && !permission.isEmpty();
-    }
-
-    private static List<String> colorizeList(List<String> list) {
-        final List<String> newList = new ArrayList<>();
-
-        for (final String s : list) {
-            newList.add(Chat.format(s));
-        }
-
-        return newList;
-    }
-
-    private static List<String> defaultCompleter() {
-        final List<String> list = new ArrayList<>();
-        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            list.add(onlinePlayer.getName());
-        }
-        return list;
     }
 
 }

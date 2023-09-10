@@ -44,7 +44,7 @@ public class Quest {
         this.objectives = new HashMap<>();
         this.autoClaim = autoClaim;
         this.timeLimit = 0;
-        this.formatter = QuestManager.formatter();
+        this.formatter = QuestFormatter.DEFAULT;
     }
 
     /**

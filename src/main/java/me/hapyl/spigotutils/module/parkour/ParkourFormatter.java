@@ -1,49 +1,54 @@
 package me.hapyl.spigotutils.module.parkour;
 
+import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.util.Formatter;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+
+import javax.annotation.Nonnull;
 
 public interface ParkourFormatter extends Formatter {
 
     ParkourFormatter EMPTY = new ParkourFormatter() {
         @Override
-        public void sendCheckpointPassed(Data data) {
+        public void sendCheckpointPassed(@Nonnull Data data) {
         }
 
         @Override
-        public void sendResetTime(Player player, Parkour parkour) {
+        public void sendResetTime(@Nonnull Player player, @Nonnull Parkour parkour) {
         }
 
         @Override
-        public void sendParkourStarted(Player player, Parkour parkour) {
+        public void sendParkourStarted(@Nonnull Player player, @Nonnull Parkour parkour) {
         }
 
         @Override
-        public void sendParkourFinished(Data data) {
+        public void sendParkourFinished(@Nonnull Data data) {
         }
 
         @Override
-        public void sendParkourFailed(Data data, FailType type) {
+        public void sendParkourFailed(@Nonnull Data data, @Nonnull FailType type) {
         }
 
         @Override
-        public void sendHaventPassedCheckpoint(Data data) {
+        public void sendHaventPassedCheckpoint(@Nonnull Data data) {
         }
 
         @Override
-        public void sendQuit(Data data) {
+        public void sendQuit(@Nonnull Data data) {
         }
 
         @Override
-        public void sendTickActionbar(Data data) {
+        public void sendTickActionbar(@Nonnull Data data) {
         }
 
         @Override
-        public void sendCheckpointTeleport(Data data) {
+        public void sendCheckpointTeleport(@Nonnull Data data) {
         }
 
         @Override
-        public void sendErrorParkourNotStarted(Player player, Parkour parkour) {
+        public void sendErrorParkourNotStarted(@Nonnull Player player, @Nonnull Parkour parkour) {
         }
 
         @Override
@@ -55,27 +60,170 @@ public interface ParkourFormatter extends Formatter {
         }
     };
 
-    void sendCheckpointPassed(Data data);
+    ParkourFormatter DEFAULT = new ParkourFormatter() {
 
-    void sendResetTime(Player player, Parkour parkour);
+        @Override
+        public void sendCheckpointPassed(@Nonnull Data data) {
+            Chat.sendMessage(
+                    data.get(),
+                    "&aCheckpoint! (%s/%s)",
+                    data.passedCheckpointsCount(),
+                    data.getParkour().getCheckpoints().size()
+            );
 
-    void sendParkourStarted(Player player, Parkour parkour);
+            PlayerLib.playSound(data.get(), Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f);
+        }
 
-    void sendParkourFinished(Data data);
+        @Override
+        public void sendResetTime(@Nonnull Player player, @Nonnull Parkour parkour) {
+            Chat.sendMessage(player, "&cReset time for %s!", parkour.getName());
+            PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
+        }
 
-    void sendParkourFailed(Data data, FailType type);
+        @Override
+        public void sendParkourStarted(@Nonnull Player player, @Nonnull Parkour parkour) {
+            Chat.sendMessage(player, "&aStarted %s!", parkour.getName());
+            PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
+        }
 
-    void sendHaventPassedCheckpoint(Data data);
+        @Override
+        public void sendParkourFinished(@Nonnull Data data) {
+            Chat.sendMessage(data.get(), "&aFinished &a%s&7 in &b%ss&7!", data.getParkour().getName(), data.getTimePassedFormatted());
+        }
 
-    void sendQuit(Data data);
+        @Override
+        public void sendParkourFailed(@Nonnull Data data, @Nonnull FailType type) {
+            final Player player = data.get();
+            Chat.sendMessage(player, "&cParkour failed, &4%s&c!", type.getReason());
+            PlayerLib.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0f);
+        }
 
-    void sendTickActionbar(Data data);
+        @Override
+        public void sendHaventPassedCheckpoint(@Nonnull Data data) {
+            final Player player = data.get();
+            Chat.sendMessage(player, "&cYou haven't passed any checkpoints yet!");
+            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+        }
 
-    void sendCheckpointTeleport(Data data);
+        @Override
+        public void sendQuit(@Nonnull Data data) {
+            Chat.sendMessage(data.get(), "&cQuit %s!", data.getParkour().getName());
+        }
 
-    void sendErrorParkourNotStarted(Player player, Parkour parkour);
+        @Override
+        public void sendTickActionbar(@Nonnull Data data) {
+            Chat.sendActionbar(data.get(), "&a&l%s: &b%ss", data.getParkour().getName(), data.getTimePassedFormatted());
+        }
 
+        @Override
+        public void sendCheckpointTeleport(@Nonnull Data data) {
+            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(data.get(), 1.25f);
+        }
+
+        @Override
+        public void sendErrorParkourNotStarted(@Nonnull Player player, @Nonnull Parkour parkour) {
+            Chat.sendMessage(player, "&cYou must first start this parkour!");
+            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+        }
+
+        @Override
+        public void sendErrorMissedCheckpointCannotFinish(Data data) {
+            Chat.sendMessage(data.get(), "&cYou missed &l%s&c checkpoints!", data.missedCheckpointsCount());
+        }
+
+        @Override
+        public void sendErrorMissedCheckpoint(Data data) {
+            final Player player = data.get();
+            Chat.sendMessage(player, "&cYou missed a checkpoint!");
+            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+        }
+    };
+
+    /**
+     * Sent upon player passing a checkpoint.
+     *
+     * @param data - Parkour data.
+     */
+    void sendCheckpointPassed(@Nonnull Data data);
+
+    /**
+     * Sent upon player resetting a parkour timer.
+     *
+     * @param player  - Player.
+     * @param parkour - Parkour.
+     */
+    void sendResetTime(@Nonnull Player player, @Nonnull Parkour parkour);
+
+    /**
+     * Sent upon player starting a parkour.
+     *
+     * @param player  - Player.
+     * @param parkour - Parkour.
+     */
+    void sendParkourStarted(@Nonnull Player player, @Nonnull Parkour parkour);
+
+    /**
+     * Sent upon player finishing a parkour.
+     *
+     * @param data - Parkour data.
+     */
+    void sendParkourFinished(@Nonnull Data data);
+
+    /**
+     * Sent upon player failing a parkour.
+     *
+     * @param data - Parkour data.
+     * @param type - Fail type.
+     */
+    void sendParkourFailed(@Nonnull Data data, @Nonnull FailType type);
+
+    /**
+     * Sent upon player trying to teleport the checkpoint before reaching any.
+     *
+     * @param data - Parkour data.
+     */
+    void sendHaventPassedCheckpoint(@Nonnull Data data);
+
+    /**
+     * Sent upon player quitting a parkour.
+     *
+     * @param data - Parkour data.
+     */
+    void sendQuit(@Nonnull Data data);
+
+    /**
+     * Sent every parkour tick.
+     *
+     * @param data - Parkour data.
+     */
+    void sendTickActionbar(@Nonnull Data data);
+
+    /**
+     * Sent upon player teleporting to a checkpoint.
+     *
+     * @param data - Parkour data.
+     */
+    void sendCheckpointTeleport(@Nonnull Data data);
+
+    /**
+     * Sent upon player stepping on the finish pressure plate before starting a parkour.
+     *
+     * @param player  - Player.
+     * @param parkour - Parkour data.
+     */
+    void sendErrorParkourNotStarted(@Nonnull Player player, @Nonnull Parkour parkour);
+
+    /**
+     * Sent upon player stepping on the finish pressure plate while not having all checkpoint passed.
+     *
+     * @param data - Parkour data.
+     */
     void sendErrorMissedCheckpointCannotFinish(Data data);
 
+    /**
+     * Sent upon player stepping on the checkpoint pressure plate while have missed a checkpoint.
+     *
+     * @param data - Parkour data.
+     */
     void sendErrorMissedCheckpoint(Data data);
 }
