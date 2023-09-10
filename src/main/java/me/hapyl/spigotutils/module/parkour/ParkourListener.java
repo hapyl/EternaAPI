@@ -133,7 +133,7 @@ public class ParkourListener implements Listener {
             if (nextCheckpoint != null && nextCheckpoint.compare(clickedBlockLocation)) {
                 data.nextCheckpoint(true);
             }
-            // If any other checkpoint besides that we're standing right now say that we missed a checkpoint.
+            // If any other checkpoint besides that, we're standing right now say that we missed a checkpoint.
             else if (data.isFutureCheckpoint(clickedBlockLocation)) {
                 data.getParkour().getFormatter().sendErrorMissedCheckpoint(data);
             }

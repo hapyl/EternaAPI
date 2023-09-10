@@ -11,6 +11,7 @@ import me.hapyl.spigotutils.module.block.display.DisplayEntity;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
+import me.hapyl.spigotutils.module.command.SimpleCommand;
 import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.entity.Rope;
@@ -44,6 +45,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
@@ -341,6 +343,37 @@ public final class RuntimeCommandsTest {
                 }
             }
         });
+
+        registerTestCommand("getPluginCommands", (player, args) -> {
+            for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+                final List<SimpleCommand> commands = CommandProcessor.getCommands(plugin);
+
+                Chat.sendMessage(player, "Plugin: " + plugin.getName());
+                Chat.sendMessage(player, "Commands: ");
+
+                final StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < commands.size(); i++) {
+                    if (i != 0) {
+                        builder.append(", ");
+                    }
+
+                    final SimpleCommand command = commands.get(i);
+                    builder.append(command.getName()).append(" + ").append(command.getHandle().getClass().getSimpleName());
+                }
+
+                Chat.sendMessage(player, builder.toString());
+            }
+        });
+
+        final SimplePlayerAdminCommand cdCommand = new SimplePlayerAdminCommand("testCooldownCommand") {
+            @Override
+            protected void execute(Player player, String[] args) {
+                Chat.sendMessage(player, "&aExecuted!");
+            }
+        };
+
+        cdCommand.setCooldownTick(60);
+        processor.registerCommand(cdCommand);
     }
 
     private static final CommandProcessor processor = new CommandProcessor();

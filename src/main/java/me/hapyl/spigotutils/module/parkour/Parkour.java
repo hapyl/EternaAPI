@@ -21,7 +21,6 @@ import java.util.Set;
 public class Parkour implements Startable<Player>, Finishable<Player> {
 
     private static final Location DEFAULT_QUIT_LOCATION;
-    private static final ParkourFormatter DEFAULT_FORMATTER;
 
     private final Set<Hologram> holograms;
     private final String name;
@@ -46,7 +45,7 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
         this.quitLocation = DEFAULT_QUIT_LOCATION;
         this.checkpoints = Lists.newArrayList();
         this.allowedFails = Sets.newHashSet();
-        this.formatter = DEFAULT_FORMATTER;
+        this.formatter = ParkourFormatter.DEFAULT;
         this.spawnHolograms = true;
     }
 
@@ -365,84 +364,6 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
     static {
         final World world = Bukkit.getWorlds().get(0);
         DEFAULT_QUIT_LOCATION = new Location(world, 0, world.getHighestBlockYAt(0, 0) + 1, 0);
-        DEFAULT_FORMATTER = new ParkourFormatter() {
-
-            @Override
-            public void sendCheckpointPassed(Data data) {
-                Chat.sendMessage(
-                        data.get(),
-                        "&aCheckpoint! (%s/%s)",
-                        data.passedCheckpointsCount(),
-                        data.getParkour().getCheckpoints().size()
-                );
-
-                PlayerLib.playSound(data.get(), Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f);
-            }
-
-            @Override
-            public void sendResetTime(Player player, Parkour parkour) {
-                Chat.sendMessage(player, "&cReset time for %s!", parkour.getName());
-                PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
-            }
-
-            @Override
-            public void sendParkourStarted(Player player, Parkour parkour) {
-                Chat.sendMessage(player, "&aStarted %s!", parkour.getName());
-                PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
-            }
-
-            @Override
-            public void sendParkourFinished(Data data) {
-                Chat.sendMessage(data.get(), "&aFinished &a%s&7 in &b%ss&7!", data.getParkour().getName(), data.getTimePassedFormatted());
-            }
-
-            @Override
-            public void sendParkourFailed(Data data, FailType type) {
-                final Player player = data.get();
-                Chat.sendMessage(player, "&cParkour failed, &4%s&c!", type.getReason());
-                PlayerLib.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0f);
-            }
-
-            @Override
-            public void sendHaventPassedCheckpoint(Data data) {
-                final Player player = data.get();
-                Chat.sendMessage(player, "&cYou haven't passed any checkpoints yet!");
-                PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
-            }
-
-            @Override
-            public void sendQuit(Data data) {
-                Chat.sendMessage(data.get(), "&cQuit %s!", data.getParkour().getName());
-            }
-
-            @Override
-            public void sendTickActionbar(Data data) {
-                Chat.sendActionbar(data.get(), "&a&l%s: &b%ss", data.getParkour().getName(), data.getTimePassedFormatted());
-            }
-
-            @Override
-            public void sendCheckpointTeleport(Data data) {
-                PlayerLib.Sounds.ENDERMAN_TELEPORT.play(data.get(), 1.25f);
-            }
-
-            @Override
-            public void sendErrorParkourNotStarted(Player player, Parkour parkour) {
-                Chat.sendMessage(player, "&cYou must first start this parkour!");
-                PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
-            }
-
-            @Override
-            public void sendErrorMissedCheckpointCannotFinish(Data data) {
-                Chat.sendMessage(data.get(), "&cYou missed &l%s&c checkpoints!", data.missedCheckpointsCount());
-            }
-
-            @Override
-            public void sendErrorMissedCheckpoint(Data data) {
-                final Player player = data.get();
-                Chat.sendMessage(player, "&cYou missed a checkpoint!");
-                PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
-            }
-        };
     }
 
     public Set<Hologram> getHolograms() {
