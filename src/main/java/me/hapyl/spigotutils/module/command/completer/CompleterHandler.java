@@ -9,7 +9,7 @@ import java.util.Locale;
 
 /**
  * Completer Handler for SimpleCommand.
- *
+ * <p>
  * It is used to provide visual feedback to the user when they are typing a command.
  * Look at wiki for more details.
  */

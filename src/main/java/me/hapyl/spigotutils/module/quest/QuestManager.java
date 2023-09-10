@@ -10,6 +10,7 @@ import java.util.*;
 // Quest manager.
 public class QuestManager {
 
+    private static final QuestManager classInstance = new QuestManager();
     private final Map<UUID, Set<QuestProgress>> playerQuests;
     private final Map<String, Quest> byIdQuests;
 
@@ -56,22 +57,6 @@ public class QuestManager {
         if (quest.isAutoClaimReward() || quest.isClaimedReward()) {
             removeQuest(quest);
         }
-    }
-
-    protected void addQuest(Player player, Quest quest) {
-        final Set<QuestProgress> hash = getProgress(player);
-        hash.add(new QuestProgress(player, quest));
-        this.playerQuests.put(player.getUniqueId(), hash);
-    }
-
-    protected void removeQuest(QuestProgress quest) {
-        final Player player = quest.getPlayer();
-        final Set<QuestProgress> hash = getProgress(player);
-        if (hash.isEmpty()) {
-            return;
-        }
-        hash.remove(quest);
-        this.playerQuests.put(player.getUniqueId(), hash);
     }
 
     /**
@@ -139,18 +124,6 @@ public class QuestManager {
         }
     }
 
-    private Set<QuestProgress> getProgress(Player player) {
-        return this.playerQuests.getOrDefault(player.getUniqueId(), Sets.newConcurrentHashSet());
-    }
-
-    public static QuestFormatter formatter() {
-        return FORMATTER;
-    }
-
-    public static QuestManager current() {
-        return classInstance;
-    }
-
     // Check for exact quest
     public boolean hasQuest(Player player, Quest quest) {
         final Set<QuestProgress> quests = getActiveQuests(player);
@@ -162,71 +135,28 @@ public class QuestManager {
         return false;
     }
 
-    private static final QuestManager classInstance = new QuestManager();
-    private static final QuestFormatter FORMATTER = new QuestFormatter() {
+    protected void addQuest(Player player, Quest quest) {
+        final Set<QuestProgress> hash = getProgress(player);
+        hash.add(new QuestProgress(player, quest));
+        this.playerQuests.put(player.getUniqueId(), hash);
+    }
 
-        @Override
-        public void sendObjectiveNew(Player player, QuestObjective objective) {
-            Chat.sendMessage(player, "");
-            Chat.sendCenterMessage(player, "&e&lNEW OBJECTIVE!");
-            Chat.sendCenterMessage(player, "&6" + objective.getObjectiveName());
-            Chat.sendCenterMessage(player, "&7" + objective.getObjectiveShortInfo());
-            Chat.sendMessage(player, "");
+    protected void removeQuest(QuestProgress quest) {
+        final Player player = quest.getPlayer();
+        final Set<QuestProgress> hash = getProgress(player);
+        if (hash.isEmpty()) {
+            return;
         }
+        hash.remove(quest);
+        this.playerQuests.put(player.getUniqueId(), hash);
+    }
 
-        @Override
-        public void sendObjectiveComplete(Player player, QuestObjective objective) {
-            Chat.sendMessage(player, "");
-            Chat.sendCenterMessage(player, "&2&lOBJECTIVE COMPLETE!");
-            Chat.sendCenterMessage(player, "&a✔ " + objective.getObjectiveName());
-            Chat.sendMessage(player, "");
-        }
+    private Set<QuestProgress> getProgress(Player player) {
+        return this.playerQuests.getOrDefault(player.getUniqueId(), Sets.newConcurrentHashSet());
+    }
 
-        @Override
-        public void sendObjectiveFailed(Player player, QuestObjective objective) {
-            Chat.sendMessage(player, "");
-            Chat.sendCenterMessage(player, "&c&lOBJECTIVE FAILED!");
-            Chat.sendCenterMessage(player, "&7It's ok! Try again.");
-            Chat.sendMessage(player, "");
-        }
-
-        @Override
-        public void sendQuestCompleteFormat(Player player, Quest quest) {
-            sendLine(player);
-            Chat.sendCenterMessage(player, "&6&lQUEST COMPLETE");
-            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
-
-            if (!quest.isAutoClaim()) {
-                Chat.sendMessage(player, "");
-                Chat.sendCenterMessage(player, "&7Navitage to Quest Journal to claim reward!");
-            }
-
-            sendLine(player);
-        }
-
-        @Override
-        public void sendQuestStartedFormat(Player player, Quest quest) {
-            sendLine(player);
-            Chat.sendCenterMessage(player, "&6&lQuest Started");
-            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
-            Chat.sendCenterMessage(player, "");
-            Chat.sendCenterMessage(player, "&aCurrent Objective:");
-            Chat.sendCenterMessage(player, "&7&o" + quest.getCurrentObjective().getObjectiveName());
-            Chat.sendCenterMessage(player, "&7&o" + quest.getCurrentObjective().getObjectiveShortInfo());
-            sendLine(player);
-        }
-
-        @Override
-        public void sendQuestFailedFormat(Player player, Quest quest) {
-            sendLine(player);
-            Chat.sendCenterMessage(player, "&c&lQUEST FAILED");
-            Chat.sendCenterMessage(player, "&f" + quest.getQuestName());
-            sendLine(player);
-        }
-
-        private void sendLine(Player player) {
-            Chat.sendCenterMessage(player, "&e&m]                                      [");
-        }
-    };
+    public static QuestManager current() {
+        return classInstance;
+    }
 
 }

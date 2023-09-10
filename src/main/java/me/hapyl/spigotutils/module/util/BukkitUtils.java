@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Some utils for things that are done regularly by me.
+ * Some utils for things that I do regularly.
  */
 public class BukkitUtils {
 
@@ -31,7 +31,36 @@ public class BukkitUtils {
      * Minecraft's gravity constant.
      */
     public static final double GRAVITY = 0.08d;
-    private static final JavaPlugin PLUGIN = EternaPlugin.getPlugin();
+    /**
+     * The default decimal format.
+     */
+    public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.0");
+
+    /**
+     * Returns array item on provided index if exists, def otherwise.
+     *
+     * @param array - Array.
+     * @param index - Index of item.
+     * @param def   - Default item to return, if index >= array.length.
+     * @return Returns array item on provided index if exists, def otherwise.
+     */
+    public <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
+        if (index >= array.length) {
+            return def;
+        }
+        return array[index];
+    }
+
+    /**
+     * Returns array item on provided index if exists, null otherwise.
+     *
+     * @param array - Array.
+     * @param index - Index.
+     * @return Returns array item on provided index if exists, null otherwise.
+     */
+    public <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
+        return arrayItemOr(array, index, null);
+    }
 
     /**
      * Gets the online players as an array.
@@ -142,7 +171,7 @@ public class BukkitUtils {
     }
 
     /**
-     * Calls a bukkit event and returns cancelled state.
+     * Calls a bukkit event and returns the canceled state.
      *
      * @param event - Event to call.
      * @return cancelled state.
@@ -167,7 +196,7 @@ public class BukkitUtils {
 
     /**
      * Returns new location with centered X, Y and Z.
-     * This does not modify original location.
+     * This does not modify the original location.
      *
      * @param location - Location to center.
      * @return new location with centered X, Y and Z.
@@ -213,9 +242,9 @@ public class BukkitUtils {
     }
 
     /**
-     * Returns spawn location of default world.
+     * Returns spawn location of a default world.
      *
-     * @return spawn location of default world.
+     * @return spawn location of a default world.
      */
     public static Location getSpawnLocation() {
         return getSpawnLocation(Bukkit.getWorlds().get(0));
@@ -320,13 +349,13 @@ public class BukkitUtils {
 
     /**
      * Performs DecimalFormat on a number.
-     * Default format is "#.##"
+     * The default format is "0.0"
      *
      * @param number - Number to format.
      * @return formatted number.
      */
     public static String decimalFormat(Number number) {
-        return decimalFormat(number, "#.##");
+        return DECIMAL_FORMAT.format(number);
     }
 
     /**
@@ -367,38 +396,38 @@ public class BukkitUtils {
     }
 
     /**
-     * Returns new centered location in default world.
+     * Returns new centered location in the default world.
      *
      * @param x - X.
      * @param y - Y.
      * @param z - Z.
-     * @return new centered location in default world.
+     * @return a new centered location in the default world.
      */
     public static Location defLocation(int x, int y, int z) {
         return defLocation(x + 0.5f, y + 0.5f, z + 0.5f);
     }
 
     /**
-     * Returns new centered location in default world.
+     * Returns new centered location in the default world.
      *
      * @param x - X.
      * @param y - Y.
      * @param z - Z.
-     * @return new location in default world.
+     * @return new location in the default world.
      */
     public static Location defLocation(double x, double y, double z) {
         return new Location(Bukkit.getWorlds().get(0), x, y, z);
     }
 
     /**
-     * Returns new centered location in default world.
+     * Returns new centered location in the default world.
      *
      * @param x     - X.
      * @param y     - Y.
      * @param z     - Z.
      * @param yaw   - Yaw.
      * @param pitch - Pitch.
-     * @return new location in default world.
+     * @return new location in the default world.
      */
     public static Location defLocation(double x, double y, double z, float yaw, float pitch) {
         final Location location = defLocation(x, y, z);
@@ -411,7 +440,7 @@ public class BukkitUtils {
     /**
      * Returns team with the same name from all players.
      * This is useful for per-player scoreboards, since teams are
-     * scoreboard based.
+     * scoreboard-based.
      *
      * @param name - Name of the team.
      * @return hashset with teams with the same name from all players.
@@ -430,7 +459,7 @@ public class BukkitUtils {
     }
 
     /**
-     * Gets the first (default) world of this server, usually 'world'.
+     * Gets the first (default) world of this server, usually <code>world<code/>.
      *
      * @return the first world of this server.
      */
@@ -439,6 +468,16 @@ public class BukkitUtils {
         return Bukkit.getWorlds().get(0);
     }
 
+    /**
+     * Get the nearest living entity to the given location.
+     *
+     * @param location - Location.
+     * @param x        - X bound.
+     * @param y        - Y bound.
+     * @param z        - Z bound.
+     * @param clazz    - Entity class.
+     * @return the nearest entity within the bounds, or null.
+     */
     @Nullable
     public static <T extends LivingEntity> T getNearestEntity(@Nonnull Location location, double x, double y, double z, @Nonnull Class<T> clazz) {
         final World world = location.getWorld();
@@ -474,31 +513,5 @@ public class BukkitUtils {
         }
 
         return closest;
-    }
-
-    /**
-     * Returns array item on provided index if exists, def otherwise.
-     *
-     * @param array - Array.
-     * @param index - Index of item.
-     * @param def   - Default item to return, if index >= array.length.
-     * @return Returns array item on provided index if exists, def otherwise.
-     */
-    public <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
-        if (index >= array.length) {
-            return def;
-        }
-        return array[index];
-    }
-
-    /**
-     * Returns array item on provided index if exists, null otherwise.
-     *
-     * @param array - Array.
-     * @param index - Index.
-     * @return Returns array item on provided index if exists, null otherwise.
-     */
-    public <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
-        return arrayItemOr(array, index, null);
     }
 }
