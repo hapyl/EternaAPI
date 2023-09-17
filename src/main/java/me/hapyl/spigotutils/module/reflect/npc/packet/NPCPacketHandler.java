@@ -74,7 +74,6 @@ public class NPCPacketHandler {
         packets.put(NPCPacketType.REMOVE_PLAYER, new ClientboundPlayerInfoRemovePacket(Lists.newArrayList(npc.getUuid())));
         packets.put(NPCPacketType.SPAWN, new PacketPlayOutNamedEntitySpawn(human));
         packets.put(NPCPacketType.DESTROY, new PacketPlayOutEntityDestroy(npc.getId()));
-        packets.put(NPCPacketType.TELEPORT, new PacketPlayOutEntityTeleport(human));
     }
 
     private void sendPacket(Packet<?> packet, Player player) {

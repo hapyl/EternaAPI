@@ -226,7 +226,8 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.location = location;
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.setHeadRotation(this.location.getYaw());
-        this.packetHandler.sendPackets(NPCPacketType.TELEPORT);
+
+        sendPacket(new PacketPlayOutEntityTeleport(human));
         syncText();
     }
 
@@ -709,9 +710,9 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         location.setYaw(yaw);
         location.setPitch(pitch);
         human.a(location.getX(), location.getY(), location.getZ(), yaw, pitch);
-        setHeadRotation(yaw);
 
-        packetHandler.sendPackets(NPCPacketType.TELEPORT);
+        setHeadRotation(yaw);
+        sendPacket(new PacketPlayOutEntityTeleport(human));
     }
 
     @Override
