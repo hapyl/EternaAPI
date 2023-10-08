@@ -58,6 +58,9 @@ import java.util.*;
  */
 public final class RuntimeCommandsTest {
 
+    private static final CommandProcessor processor = new CommandProcessor();
+    private static final UUID HAPYL_UUID = UUID.fromString("b58e578c-8e36-4789-af50-1ee7400307c0");
+    private static final UUID DIDEN_UUID = UUID.fromString("491c1d9a-357f-4a98-bd24-4ddbeb8555b0");
     private static JavaPlugin tester;
 
     public RuntimeCommandsTest(JavaPlugin tester) {
@@ -228,7 +231,7 @@ public final class RuntimeCommandsTest {
         });
 
         registerTestCommand("itembuilder", (player, args) -> {
-            player.getInventory().addItem(ItemBuilderTest.ITEM_TEST);
+            ItemBuilderTest.test(player);
         });
 
         registerTestCommand("synthesizer", (player, args) -> {
@@ -375,10 +378,6 @@ public final class RuntimeCommandsTest {
         cdCommand.setCooldownTick(60);
         processor.registerCommand(cdCommand);
     }
-
-    private static final CommandProcessor processor = new CommandProcessor();
-    private static final UUID HAPYL_UUID = UUID.fromString("b58e578c-8e36-4789-af50-1ee7400307c0");
-    private static final UUID DIDEN_UUID = UUID.fromString("491c1d9a-357f-4a98-bd24-4ddbeb8555b0");
 
     private static void registerTestCommand(String test, Action action) {
         processor.registerCommand(new SimplePlayerAdminCommand("test" + test) {
