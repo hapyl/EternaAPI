@@ -10,9 +10,9 @@ import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
-import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.module.nbt.NBTNative;
+import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.util.Nulls;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
@@ -40,7 +40,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
@@ -51,7 +50,7 @@ public class ItemBuilder {
     public static final int DEFAULT_SMART_SPLIT_CHAR_LIMIT = 35;
     public static final String NEW_LINE_SEPARATOR = "__";
     public static final char MANUAL_SPLIT_CHAR = '_';
-    public static final Pattern COLOR_CODES = Pattern.compile("[0-9a-fA-Fk-oK-OrxRX]");
+    public static final String DEFAULT_COLOR = "&7";
     private static final String PLUGIN_PATH = "ItemBuilderId";
     private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
     private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
@@ -448,7 +447,7 @@ public class ItemBuilder {
      * @param limit - Char limit.
      */
     public ItemBuilder addSmartLore(@Nonnull String lore, final int limit) {
-        return addSmartLore(lore, "&7", limit);
+        return addSmartLore(lore, null, limit);
     }
 
     /**
@@ -1497,11 +1496,11 @@ public class ItemBuilder {
         return this;
     }
 
+    // static members
+
     private <T extends ItemMeta> ItemBuilder modifyMeta(Class<T> clazz, Consumer<T> t) {
         return modifyMeta(clazz, null, t);
     }
-
-    // static members
 
     private ItemBuilder modifyMeta(Consumer<ItemMeta> t) {
         final ItemMeta meta = item.getItemMeta();
@@ -1735,7 +1734,8 @@ public class ItemBuilder {
         final List<String> list = new ArrayList<>();
         final char[] chars = string.toCharArray();
 
-        StringBuilder builder = new StringBuilder();
+        StringBuilder lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR : prefix);
+        StringBuilder builder = new StringBuilder(lastColor);
         int counter = 0;
 
         for (int i = 0; i < chars.length; i++) {
@@ -1755,9 +1755,11 @@ public class ItemBuilder {
                     builder.append(c);
                 }
 
-                list.add(colorize((prefix == null ? "" : prefix) + builder.toString().trim()));
+                list.add(colorize(builder.toString().trim()));
+
                 counter = 0;
-                builder = new StringBuilder();
+                builder = new StringBuilder(lastColor);
+                lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR : prefix);
                 continue;
             }
 
@@ -1765,7 +1767,10 @@ public class ItemBuilder {
 
             // don't count colors
             if (isColorCode(c) && nextCharInRange && isColorChar(chars[i + 1])) {
-                builder.append(chars[++i]);
+                final char nextChar = chars[++i];
+
+                builder.append(nextChar);
+                lastColor.append(c).append(nextChar);
                 continue;
             }
 
@@ -1777,6 +1782,10 @@ public class ItemBuilder {
 
     public static boolean isColorCode(char c) {
         return c == ChatColor.COLOR_CHAR || c == '&';
+    }
+
+    public static boolean isColorChar(char c) {
+        return net.md_5.bungee.api.ChatColor.ALL_CODES.indexOf(c) != -1;
     }
 
     @Deprecated
@@ -1907,10 +1916,6 @@ public class ItemBuilder {
 
     private static String colorize(String s) {
         return format(s);
-    }
-
-    private static boolean isColorChar(char c) {
-        return "0123456789abcdefklmnor".indexOf(c) != -1;
     }
 
     private static boolean isIdRegistered(String id) {
