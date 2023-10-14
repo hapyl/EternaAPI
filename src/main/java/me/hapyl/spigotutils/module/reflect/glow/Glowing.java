@@ -13,6 +13,7 @@ import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.Ticking;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
 import net.minecraft.world.scores.ScoreboardTeam;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -29,6 +30,7 @@ import java.util.UUID;
  */
 public class Glowing implements Ticking, GlowingListener {
 
+    private static final byte GLOWING_BIT_MASK = 0x40;
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
     private final Player player; // only one player per glowing is now allowed
     private final Entity entity;
@@ -206,7 +208,14 @@ public class Glowing implements Ticking, GlowingListener {
 
         final byte bitMask = dataWatcher.getByte(0);
 
-        modifier.write(0, List.of(new WrappedDataValue(0, serializer, !flag ? bitMask : (byte) (bitMask | 0x40))));
+        modifier.write(
+                0,
+                List.of(new WrappedDataValue(
+                        0,
+                        serializer,
+                        !flag ? (byte) (bitMask & ~GLOWING_BIT_MASK) : (byte) (bitMask | GLOWING_BIT_MASK)
+                ))
+        );
 
         try {
             manager.sendServerPacket(player, packet);
@@ -217,6 +226,11 @@ public class Glowing implements Ticking, GlowingListener {
     }
 
     protected void updateTeamColor() {
+        if (!player.isOnline()) {
+            forceStop();
+            return;
+        }
+
         team.setColor(color);
         Reflect.sendPacket(player, PacketPlayOutScoreboardTeam.a(getTeamAsNms(), false));
     }
@@ -259,7 +273,7 @@ public class Glowing implements Ticking, GlowingListener {
                 realTeam.addEntry(getEntityName());
             }
 
-            // First add to real team then unregister?
+            // First add to the real team then unregister?
             if (team != null && scoreboard.getTeam(team.getName()) != null) {
                 team.unregister();
             }
@@ -294,5 +308,11 @@ public class Glowing implements Ticking, GlowingListener {
 
     public static void stopGlowing(Entity entity) {
         EternaPlugin.getPlugin().getGlowingManager().stopGlowing(entity);
+    }
+
+    // This will stop existing glowing effect and then apply 1 tick of glowing to remove the packet glow.
+    public static void forceStopGlowing(Entity entity) {
+        stopGlowing(entity);
+        Bukkit.getOnlinePlayers().forEach(player -> new Glowing(player, entity, 1).start());
     }
 }

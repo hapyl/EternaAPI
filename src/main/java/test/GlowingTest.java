@@ -19,23 +19,7 @@ final class GlowingTest {
     static void test(Player player, final int i) {
         player.sendMessage("§aTesting glowing.");
 
-        final LivingEntity target = Entities.PIG.spawn(player.getLocation(), self -> {
-            self.setSilent(true);
-            self.setCustomNameVisible(true);
-        });
-
-        final Scoreboard scoreboard = player.getScoreboard();
-        Team team = scoreboard.getTeam("test");
-
-        if (team == null) {
-            team = scoreboard.registerNewTeam("test");
-            team.setPrefix("&CCCCCCCCCCCCCCCC | ");
-            team.setColor(ChatColor.RED);
-        }
-
-        team.addEntry(target.getUniqueId().toString());
-
-        new Glowing(player, target, ChatColor.YELLOW, i) {
+        new Glowing(player, player, ChatColor.YELLOW, i) {
             @Override
             public void onGlowingStart() {
                 Bukkit.broadcastMessage("start glowing for " + i);
