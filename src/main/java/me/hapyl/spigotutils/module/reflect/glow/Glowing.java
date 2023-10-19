@@ -157,14 +157,14 @@ public class Glowing implements Ticking, GlowingListener {
     }
 
     /**
-     * Stars the glowing.
+     * Starts the glowing.
      */
     public final void glow() {
         this.start();
     }
 
     /**
-     * Stars the glowing.
+     * Starts the glowing.
      */
     public final void start() {
         if (status) {
