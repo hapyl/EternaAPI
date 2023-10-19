@@ -57,7 +57,7 @@ public class ItemBuilder {
     protected static Map<String, ItemBuilder> itemsWithEvents = new HashMap<>();
     private final String id;
     private final Set<ItemAction> functions;
-    private ItemStack item;
+    protected ItemStack item;
     private int cd;
     private Predicate<Player> predicate;
     private String error;
@@ -1479,7 +1479,19 @@ public class ItemBuilder {
         return modifyMeta(ArmorMeta.class, meta -> meta.setTrim(new ArmorTrim(material, pattern)));
     }
 
-    private <T extends ItemMeta> ItemBuilder modifyMeta(Class<T> clazz, Material material, Consumer<T> t) {
+    protected <T extends ItemMeta> ItemBuilder modifyMeta(Class<T> clazz, Consumer<T> t) {
+        return modifyMeta(clazz, null, t);
+    }
+
+    protected ItemBuilder modifyMeta(Consumer<ItemMeta> t) {
+        final ItemMeta meta = item.getItemMeta();
+        t.accept(meta);
+
+        item.setItemMeta(meta);
+        return this;
+    }
+
+    protected <T extends ItemMeta> ItemBuilder modifyMeta(Class<T> clazz, Material material, Consumer<T> t) {
         if (material != null) {
             setType(material);
         }
@@ -1494,24 +1506,6 @@ public class ItemBuilder {
         }
 
         return this;
-    }
-
-    // static members
-
-    private <T extends ItemMeta> ItemBuilder modifyMeta(Class<T> clazz, Consumer<T> t) {
-        return modifyMeta(clazz, null, t);
-    }
-
-    private ItemBuilder modifyMeta(Consumer<ItemMeta> t) {
-        final ItemMeta meta = item.getItemMeta();
-        t.accept(meta);
-
-        item.setItemMeta(meta);
-        return this;
-    }
-
-    public static Object[] ambiguous(Object... obj) {
-        return new Object[] { obj };
     }
 
     /**
