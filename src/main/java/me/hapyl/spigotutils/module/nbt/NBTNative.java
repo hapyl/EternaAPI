@@ -14,7 +14,7 @@ import java.util.Objects;
 /**
  * A native nbt implementation.
  */
-@TestedOn(version = Version.V1_20)
+@TestedOn(version = Version.V1_20_2)
 public class NBTNative {
 
     private static final Method CRAFT_AS_NMS_COPY_METHOD = Reflect.getCraftMethod("inventory.CraftItemStack", "asNMSCopy", ItemStack.class);

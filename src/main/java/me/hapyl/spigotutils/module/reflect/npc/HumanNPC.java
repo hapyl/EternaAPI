@@ -9,13 +9,14 @@ import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
@@ -32,17 +33,15 @@ import me.hapyl.spigotutils.module.quest.QuestManager;
 import me.hapyl.spigotutils.module.quest.QuestObjectiveType;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
-import me.hapyl.spigotutils.module.reflect.npc.packet.NPCPacketHandler;
-import me.hapyl.spigotutils.module.reflect.npc.packet.NPCPacketType;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EntityAreaEffectCloud;
@@ -63,7 +62,7 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
@@ -74,7 +73,7 @@ import java.util.function.Function;
  * For complex NPCs use CitizensAPI
  */
 @SuppressWarnings("unused")
-@TestedOn(version = Version.V1_20)
+@TestedOn(version = Version.V1_20_2)
 public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     public static final String CLICK_NAME = "&e&lCLICK";
@@ -157,7 +156,14 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             setSkin(skinOwner);
         }
 
-        this.human = new EntityPlayer(Reflect.getMinecraftServer(), (WorldServer) Reflect.getMinecraftWorld(location.getWorld()), profile);
+        final ClientInformation clientInformation = ClientInformation.a();
+
+        this.human = new EntityPlayer(
+                Reflect.getMinecraftServer(),
+                (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
+                profile,
+                clientInformation
+        );
 
         this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.id = Reflect.getEntityId(human);
@@ -542,7 +548,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     @Override
     public NPCPose getPose() {
-        return NPCPose.fromNMS(human.al());
+        return NPCPose.fromNMS(human.an());
     }
 
     @Override
@@ -732,8 +738,8 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     @Override
     public HumanNPC setSkin(String texture, String signature) {
-        this.profile.getProperties().removeAll("textures");
-        this.profile.getProperties().put("textures", new Property("textures", texture, signature));
+        profile.getProperties().removeAll("textures");
+        profile.getProperties().put("textures", new Property("textures", texture, signature));
         return this;
     }
 
@@ -746,7 +752,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return this.profile.getProperties().get("textures");
     }
 
-    public HumanNPC setSkin(String skinOwner) {
+    private HumanNPC setSkin(String skinOwner) {
         final Player player = Bukkit.getPlayer(skinOwner);
         if (player == null) {
             setSkinAsync(skinOwner);
@@ -759,11 +765,15 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     public void setSkinSync(String skinOwner) {
         final Player owner = Bukkit.getPlayer(skinOwner);
+
         if (owner == null) {
             return;
         }
-        final String[] skin = this.getSkin(skinOwner);
-        this.setSkin(skin[0], skin[1]);
+
+        final String[] skin = getSkin(skinOwner);
+
+        System.out.println();
+        setSkin(skin[0], skin[1]);
     }
 
     /**
@@ -793,45 +803,47 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     }
 
     @Nonnull
-    public String[] getSkin(String targetName) {
-        // if player on the server just get their game profile
-        if (Bukkit.getPlayer(targetName) != null) {
+    public String[] getSkin(String name) {
+        final Player player = Bukkit.getPlayer(name);
+
+        // If a player is online, grab their textures.
+        if (player != null) {
             try {
-                final Player player = Bukkit.getPlayer(targetName);
-                final EntityPlayer nmsEntity = Reflect.getMinecraftPlayer(player);
-                final GameProfile profile = Reflect.getGameProfile(nmsEntity);
+                final GameProfile profile = Reflect.getGameProfile(player);
 
                 final Property textures = profile.getProperties()
                         .get("textures")
                         .stream()
                         .findFirst()
-                        .orElse(new Property(targetName, targetName));
-                return new String[] { textures.getValue(), textures.getSignature() };
+                        .orElse(new Property("null", "null"));
+
+                return new String[] { textures.value(), textures.signature() };
             } catch (Exception e) {
-                e.printStackTrace();
+                EternaLogger.exception(e);
             }
+
             return new String[] { "null", "null" };
         }
         // if name longer than max name than have to assume it's a texture
-        if (targetName.length() > 16) {
+        if (name.length() > 16) {
             return new String[] { "invalidValue", "invalidSignature" };
         }
         try {
-            // FIXME (hapyl): 026, Aug 26: Is this sync?
-            final URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + targetName);
-            final InputStreamReader reader = new InputStreamReader(url.openStream());
-            final String uuid = new JsonParser().parse(reader).getAsJsonObject().get("id").getAsString();
-            final URL sessionUrl = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
-            final InputStreamReader sessionReader = new InputStreamReader(sessionUrl.openStream());
-            final JsonObject property = new JsonParser().parse(sessionReader)
-                    .getAsJsonObject()
-                    .get("properties")
-                    .getAsJsonArray()
-                    .get(0)
-                    .getAsJsonObject();
-            return new String[] { property.get("value").getAsString(), property.get("signature").getAsString() };
+            final Gson gson = new Gson();
+            String json = urlStringToString("https://api.mojang.com/users/profiles/minecraft/" + name);
+
+            final String uuid = gson.fromJson(json, JsonObject.class).get("id").getAsString();
+            json = urlStringToString("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
+
+            final JsonObject mainObject = gson.fromJson(json, JsonObject.class);
+            final JsonObject jsonObject = mainObject.get("properties").getAsJsonArray().get(0).getAsJsonObject();
+
+            final String value = jsonObject.get("value").getAsString();
+            final String signature = jsonObject.get("signature").getAsString();
+
+            return new String[] { value, signature };
         } catch (Exception error) {
-            return new String[] { targetName, targetName };
+            return new String[] { name, name };
         }
     }
 
@@ -1015,6 +1027,22 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return showingTo.toArray(new Player[0]);
     }
 
+    // This is the stupidest thing mojang came up with
+    void setConnectionIfNotSet(Player player) {
+        if (human.c != null) {
+            return;
+        }
+
+        final EntityPlayer nmsPlayer = Reflect.getMinecraftPlayer(player);
+
+        if (nmsPlayer == null) {
+            EternaLogger.warn("Tried to set connection from offline player!");
+            return;
+        }
+
+        human.c = nmsPlayer.c;
+    }
+
     protected void sendPacket(Packet<?> packet) {
         Reflect.sendPacket(packet, getPlayers());
     }
@@ -1028,6 +1056,24 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             e.printStackTrace();
             return new Int2ObjectOpenHashMap();
         }
+    }
+
+    private String urlStringToString(String url) {
+        StringBuilder text = new StringBuilder();
+        try {
+            Scanner scanner = new Scanner(new URL(url).openStream());
+            while (scanner.hasNext()) {
+                String line = scanner.nextLine();
+                while (line.startsWith(" ")) {
+                    line = line.substring(1);
+                }
+                text.append(line);
+            }
+            scanner.close();
+        } catch (IOException exception) {
+            EternaLogger.exception(exception);
+        }
+        return text.toString();
     }
 
     private void updateSitting() {

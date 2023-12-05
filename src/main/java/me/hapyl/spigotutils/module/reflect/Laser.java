@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 /**
  * Creates a laser (Guardian beam) between start and end.
  */
-@TestedOn(version = Version.V1_20)
+@TestedOn(version = Version.V1_20_2)
 public class Laser {
 
     private final Location start;

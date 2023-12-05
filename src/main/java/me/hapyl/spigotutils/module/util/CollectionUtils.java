@@ -2,7 +2,6 @@ package me.hapyl.spigotutils.module.util;
 
 import me.hapyl.spigotutils.module.math.Numbers;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
@@ -63,8 +62,8 @@ public class CollectionUtils {
      * @param <E>   - type of the array.
      * @return the element at the index, or def if the index is out of bounds.
      */
-    @CheckForNull
-    public static <E> E getOrDefault(E[] array, int index, E def) {
+    @Nonnull
+    public static <E> E getOrDefault(E[] array, int index, @Nonnull E def) {
         return index >= array.length ? def : array[index];
     }
 
@@ -77,8 +76,9 @@ public class CollectionUtils {
      * @param <E>        - type of the collection.
      * @return the element at index or def if the index is out of bounds.
      */
-    @CheckForNull(/*if def is null*/)
-    public static <E> E getOrDefault(Collection<E> collection, int index, E def) {
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    public static <E> E getOrDefault(Collection<E> collection, int index, @Nonnull E def) {
         return index >= collection.size() ? def : (E) collection.toArray()[index];
     }
 
