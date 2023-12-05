@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedOn(version = Version.V1_20)
+@TestedOn(version = Version.V1_20_2)
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";

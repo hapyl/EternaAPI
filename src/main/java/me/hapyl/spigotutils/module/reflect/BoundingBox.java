@@ -22,7 +22,7 @@ import java.lang.reflect.Constructor;
  * Create a visual bounding box between two points.
  * A bounding box size cannot exceed 48 blocks.
  */
-@TestedOn(version = Version.V1_20)
+@TestedOn(version = Version.V1_20_2)
 public class BoundingBox {
 
     public static final int MAX_DIST = 48;

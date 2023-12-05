@@ -1,6 +1,5 @@
 package me.hapyl.spigotutils.module.util;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -13,18 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @param <V> - The value.
  */
 public class LinkedKeyValMap<K, V> extends ConcurrentHashMap<K, V> {
-
-    public static <K, V> LinkedKeyValMap<K, V> of(K k, V v) {
-        return new LinkedKeyValMap<K, V>().insert(k, v);
-    }
-
-    public static <K, V> LinkedKeyValMap<K, V> of() {
-        return new LinkedKeyValMap<>();
-    }
-
-    public static <K, V> LinkedKeyValMap<K, V> empty() {
-        return of();
-    }
 
     public LinkedKeyValMap<K, V> insert(K k, V v) {
         put(k, v);
@@ -54,8 +41,8 @@ public class LinkedKeyValMap<K, V> extends ConcurrentHashMap<K, V> {
      * @param def - The default value.
      * @return the key of the value, or the default value if not found.
      */
-    @CheckForNull
-    public K getKey(V v, K def) {
+    @Nonnull
+    public K getKey(V v, @Nonnull K def) {
         final K key = getKey(v);
         return key == null ? def : key;
     }
@@ -111,6 +98,18 @@ public class LinkedKeyValMap<K, V> extends ConcurrentHashMap<K, V> {
             action.use(k);
             remove(k);
         }
+    }
+
+    public static <K, V> LinkedKeyValMap<K, V> of(K k, V v) {
+        return new LinkedKeyValMap<K, V>().insert(k, v);
+    }
+
+    public static <K, V> LinkedKeyValMap<K, V> of() {
+        return new LinkedKeyValMap<>();
+    }
+
+    public static <K, V> LinkedKeyValMap<K, V> empty() {
+        return of();
     }
 
 }

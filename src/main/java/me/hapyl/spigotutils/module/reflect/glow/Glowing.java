@@ -11,6 +11,7 @@ import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.Ticking;
+import net.minecraft.EnumChatFormat;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
 import net.minecraft.world.scores.ScoreboardTeam;
 import org.bukkit.Bukkit;
@@ -31,6 +32,7 @@ import java.util.UUID;
 public class Glowing implements Ticking, GlowingListener {
 
     private static final byte GLOWING_BIT_MASK = 0x40;
+
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
     private final Player player; // only one player per glowing is now allowed
     private final Entity entity;
@@ -134,11 +136,17 @@ public class Glowing implements Ticking, GlowingListener {
             return;
         }
 
-        this.onGlowingTick();
+        // This will keep data from an actual player's team,
+        // so if anything charged in the real team, the changes
+        // are applied to the glowing team.
+        // In truth, this system is wack, but I'm going to blame it
+        // on having literal 0 official dev tools.
+        updateTeam();
+        onGlowingTick();
     }
 
     /**
-     * Returns true is player can see the glowing.
+     * Returns true if player can see the glowing.
      *
      * @param player - Player.
      * @return true is player can see the glowing.
@@ -173,10 +181,11 @@ public class Glowing implements Ticking, GlowingListener {
 
         status = true;
         realTeam = player.getScoreboard().getEntryTeam(getEntityName()); // save real team for later
+
         createPacket(true);
         createTeam(true);
 
-        this.onGlowingStart();
+        onGlowingStart();
     }
 
     public final boolean isGlowing() {
@@ -232,11 +241,23 @@ public class Glowing implements Ticking, GlowingListener {
         }
 
         team.setColor(color);
-        Reflect.sendPacket(player, PacketPlayOutScoreboardTeam.a(getTeamAsNms(), false));
+        Reflect.sendPacket(player, PacketPlayOutScoreboardTeam.a(Reflect.getNetTeam(team), false));
     }
 
-    private ScoreboardTeam getTeamAsNms() {
-        return Reflect.getNetTeam(player.getScoreboard(), team.getName());
+    private void updateTeam() {
+        if (realTeam == null) {
+            return;
+        }
+
+        for (Team.Option value : Team.Option.values()) {
+            team.setOption(value, realTeam.getOption(value));
+        }
+
+        team.setPrefix(realTeam.getPrefix());
+        team.setSuffix(realTeam.getSuffix());
+        team.setCanSeeFriendlyInvisibles(realTeam.canSeeFriendlyInvisibles());
+        team.setAllowFriendlyFire(realTeam.allowFriendlyFire());
+        team.setDisplayName(realTeam.getDisplayName());
     }
 
     private void createTeam(boolean flag) {
@@ -245,35 +266,21 @@ public class Glowing implements Ticking, GlowingListener {
         // Create team
         if (flag) {
             team = scoreboard.registerNewTeam("glowing_" + UUID.randomUUID());
+            updateTeam();
 
-            if (realTeam != null) {
-                for (Team.Option value : Team.Option.values()) {
-                    team.setOption(value, realTeam.getOption(value));
-                }
-
-                team.setPrefix(realTeam.getPrefix());
-                team.setSuffix(realTeam.getSuffix());
-                team.setCanSeeFriendlyInvisibles(realTeam.canSeeFriendlyInvisibles());
-            }
-
-            Reflect.sendPacket(PacketPlayOutScoreboardTeam.a(getTeamAsNms(), true)); // create team
-            Reflect.sendPacket(PacketPlayOutScoreboardTeam.a(getTeamAsNms())); // setup team
-            Reflect.sendPacket(
-                    player,
-                    PacketPlayOutScoreboardTeam.a(getTeamAsNms(), getEntityName(), PacketPlayOutScoreboardTeam.a.a)
-            ); // add to the team
-
+            addToTeam(team);
             updateTeamColor();
         }
+        // Delete team
         else {
             // Update entity's real team
-            final Team realTeam = scoreboard.getEntryTeam(getEntityName());
+            final Team currentTeam = scoreboard.getEntryTeam(getEntityName());
 
-            if (realTeam != null) {
-                realTeam.addEntry(getEntityName());
+            // Player has an ACTUAL team, add them to it
+            if (currentTeam != null) {
+                addToTeam(currentTeam);
             }
 
-            // First add to the real team then unregister?
             if (team != null && scoreboard.getTeam(team.getName()) != null) {
                 team.unregister();
             }
@@ -281,8 +288,49 @@ public class Glowing implements Ticking, GlowingListener {
 
     }
 
+    private void addToTeam(Team team) {
+        final ScoreboardTeam nmsTeam = Reflect.getNetTeam(team);
+
+        if (nmsTeam == null) {
+            return;
+        }
+
+        Reflect.sendPacket(
+                player,
+                PacketPlayOutScoreboardTeam.a(nmsTeam, getEntityName(), PacketPlayOutScoreboardTeam.a.a)
+        );
+    }
+
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
+    }
+
+    @Nonnull
+    public static EnumChatFormat chatColorToEnumChatFormat(@Nonnull ChatColor color) {
+        return switch (color) {
+            case BOLD -> EnumChatFormat.r;
+            case GREEN -> EnumChatFormat.k;
+            case WHITE -> EnumChatFormat.p;
+            case RED -> EnumChatFormat.m;
+            case GRAY -> EnumChatFormat.h;
+            case DARK_RED -> EnumChatFormat.e;
+            case GOLD -> EnumChatFormat.g;
+            case YELLOW -> EnumChatFormat.o;
+            case AQUA -> EnumChatFormat.l;
+            case BLUE -> EnumChatFormat.j;
+            case DARK_AQUA -> EnumChatFormat.d;
+            case MAGIC -> EnumChatFormat.q;
+            case ITALIC -> EnumChatFormat.u;
+            case DARK_BLUE -> EnumChatFormat.b;
+            case DARK_GRAY -> EnumChatFormat.i;
+            case UNDERLINE -> EnumChatFormat.t;
+            case DARK_GREEN -> EnumChatFormat.c;
+            case DARK_PURPLE -> EnumChatFormat.f;
+            case LIGHT_PURPLE -> EnumChatFormat.n;
+            case STRIKETHROUGH -> EnumChatFormat.s;
+            case RESET -> EnumChatFormat.v;
+            default -> EnumChatFormat.a;
+        };
     }
 
     // static members

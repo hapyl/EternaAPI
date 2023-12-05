@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
  * be reset after player re-logins.
  */
 @EternaModule
-@TestedOn(version = Version.V1_20)
+@TestedOn(version = Version.V1_20_2)
 public class PlayerBorder extends Holder<Player> {
 
     private final WorldBorder border;

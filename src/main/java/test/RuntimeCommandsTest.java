@@ -53,7 +53,7 @@ import org.bukkit.util.NumberConversions;
 import java.util.*;
 
 /**
- * This is a mess class that is supposed to be a mess class.
+ * This is a mess class supposed to be a mess class.
  * Ignore this, only me 😊 can use this.
  */
 public final class RuntimeCommandsTest {

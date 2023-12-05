@@ -1,8 +1,5 @@
 package me.hapyl.spigotutils.module.util;
 
-import org.apache.http.annotation.Contract;
-
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -76,8 +73,8 @@ public final class Enums {
      * @param def       - Default value.
      * @return an enum constant by name.
      */
-    @CheckForNull
-    public static <T extends Enum<T>> T byName(Class<T> enumClass, String name, T def) {
+    @Nonnull
+    public static <T extends Enum<T>> T byName(Class<T> enumClass, String name, @Nonnull T def) {
         return Validate.getEnumValue(enumClass, name, def);
     }
 
@@ -90,7 +87,7 @@ public final class Enums {
      */
     @Nullable
     public static <T extends Enum<T>> T byName(Class<T> enumClass, String name) {
-        return byName(enumClass, name, null);
+        return Validate.getEnumValue(enumClass, name, null);
     }
 
     /**
@@ -122,7 +119,6 @@ public final class Enums {
      * @param def       - Default value.
      * @return a random enum value from an enum, or default.
      */
-    @CheckForNull
     public static <T extends Enum<T>> T getRandomValue(Class<T> enumClass, T def) {
         final T[] values = getValues(enumClass);
 

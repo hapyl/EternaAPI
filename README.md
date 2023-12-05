@@ -1,6 +1,6 @@
 # EternaAPI >> An API for Spigot development.
 
-* Provides builders for ItemStacks, Scoreboards, Particles, Commands ect.
+* Provides builders for ItemStacks, Scoreboards, Particles, Commands etc.
 * Allows per-player Glowing, WorldBorder, ~~Entity Visibility~~ etc.
 * Customizable Parkour, Quests system.
 * A lot of utilities.
@@ -35,6 +35,6 @@ _Some classes are not mine and authors were credited._
 ```
 
 ## About
-[Wiki](https://github.com/hapyl/EternaAPI/wiki)
+[Wiki](https://hapyl.github.io/javadocs/eternaapi/)
 
 [JavaDocs](https://hapyl.github.io/javadocs/eterna/index.html)

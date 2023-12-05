@@ -1,7 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
 import com.google.common.collect.Sets;
-import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -11,11 +10,9 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.DecimalFormat;
@@ -268,7 +265,7 @@ public class BukkitUtils {
      * @param location   - Location.
      * @return closest entity to the location.
      */
-    @CheckForNull
+    @Nullable
     public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location) {
         return getClosestEntityTo(collection, location, new EntityType[] {});
     }
@@ -282,7 +279,6 @@ public class BukkitUtils {
      * @return the closest entity to the location.
      */
     @Nullable
-    @CheckForNull
     public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location, @Range EntityType... allowedTypes) {
         if (collection.isEmpty()) {
             return null;
@@ -293,7 +289,7 @@ public class BukkitUtils {
 
         search:
         for (final Entity entity : collection) {
-            if (allowedTypes.length > 0) {
+            if (allowedTypes != null) {
                 for (final EntityType allowedType : allowedTypes) {
                     if (entity.getType() != allowedType) {
                         continue search;

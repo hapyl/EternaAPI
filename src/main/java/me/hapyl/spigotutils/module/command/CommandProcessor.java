@@ -96,7 +96,7 @@ public class CommandProcessor {
      * @return command map for this server.
      * @throws IllegalAccessException if failed to retrieve the command map.
      */
-    @TestedOn(version = Version.V1_20)
+    @TestedOn(version = Version.V1_20_2)
     public static SimpleCommandMap getCommandMap() throws IllegalAccessException {
         final PluginManager manager = Bukkit.getServer().getPluginManager();
         return (SimpleCommandMap) FieldUtils.getDeclaredField(manager.getClass(), "commandMap", true).get(manager);

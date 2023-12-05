@@ -48,8 +48,6 @@ final class NPCTest {
         }
 
         npc = new HumanNPC(player.getLocation(), player.getName(), player.getName());
-        npc.setRestPosition(-180f, -90f);
-        npc.setLookAtCloseDist(10);
         npc.show(player);
 
         player.sendMessage(ChatColor.GREEN + "Created npc.");
