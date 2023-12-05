@@ -6,6 +6,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
@@ -16,7 +17,10 @@ import me.hapyl.spigotutils.module.util.ThreadRandom;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
+import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
@@ -26,6 +30,8 @@ import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.scores.ScoreboardTeam;
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -35,6 +41,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +58,7 @@ import java.util.List;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_20)
+@TestedOn(version = Version.V1_20_2)
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -215,7 +222,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(net.minecraft.world.entity.Entity entity) {
-        return entity.af();
+        return entity.ah();
     }
 
     @Nullable
@@ -469,7 +476,7 @@ public final class Reflect {
     }
 
     public static DataWatcher getDataWatcher(net.minecraft.world.entity.Entity entity) {
-        return entity.aj();
+        return entity.al();
     }
 
     @Nonnull
@@ -570,7 +577,7 @@ public final class Reflect {
         }
 
         final EntityPlayer mc = getMinecraftPlayer(player);
-        mc.c.a(packet);
+        mc.c.b(packet);
     }
 
     /**
@@ -596,7 +603,7 @@ public final class Reflect {
     }
 
     /**
-     * Gets a CraftEntity of a Entity.
+     * Gets a CraftEntity of an Entity.
      *
      * @param entity - Entity.
      * @return CraftEntity.
@@ -610,7 +617,7 @@ public final class Reflect {
     }
 
     public static GameProfile getGameProfile(EntityPlayer player) {
-        return player.fM();
+        return player.fQ();
     }
 
     /**
@@ -725,6 +732,7 @@ public final class Reflect {
      * @param packet    - Packet.
      * @param receivers - Players.
      */
+    // FIXME (hapyl): 005, Dec 5: varargs are confusing
     public static void sendPacket(Packet<?> packet, Player... receivers) {
         for (final Player receiver : receivers) {
             sendPacket(receiver, packet);
@@ -796,11 +804,29 @@ public final class Reflect {
     @Nullable
     public static ScoreboardTeam getNetTeam(Scoreboard scoreboard, String teamName) {
         final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
+
         if (netScoreboard == null) {
-            throw new IllegalArgumentException("cannot retrieve team from nul scoreboard!");
+            throw new IllegalArgumentException("cannot retrieve team from null scoreboard!");
         }
 
-        return netScoreboard.f(teamName);
+        return netScoreboard.d(teamName);
+    }
+
+    @Nonnull
+    public static ScoreboardTeam getNetTeam(@Nonnull Team team) throws IllegalArgumentException {
+        try {
+            final Object object = FieldUtils.readDeclaredField(team, "team", true);
+
+            if (!(object instanceof ScoreboardTeam nmsTeam)) {
+                throw new IllegalArgumentException("Team is not a team somehow??????????????");
+            }
+
+            return nmsTeam;
+        } catch (Exception e) {
+            EternaLogger.exception(e);
+        }
+
+        throw new IllegalArgumentException("Could not parse getNetTeam() for some reason!");
     }
 
     @Nullable

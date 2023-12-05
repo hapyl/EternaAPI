@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.module.annotate.Range;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
@@ -61,7 +60,7 @@ public class WeightedCollection<E> implements Iterable<E> {
      * @return a random element from this collection based on the weight.
      * @throws NullPointerException if the collection is empty.
      */
-    @CheckForNull
+    @Nonnull
     public E get() {
         final E e = getOrNull();
 
@@ -147,6 +146,7 @@ public class WeightedCollection<E> implements Iterable<E> {
     /**
      * {@inheritDoc}
      */
+    @Nonnull
     @Override
     public Iterator<E> iterator() {
         final Set<Map.Entry<Integer, List<E>>> entries = Sets.newHashSet(elements.entrySet());
@@ -158,6 +158,10 @@ public class WeightedCollection<E> implements Iterable<E> {
 
         entries.clear();
         return iterator.iterator();
+    }
+
+    public int size() {
+        return elements.size();
     }
 
     @Override

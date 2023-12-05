@@ -3,7 +3,7 @@ package me.hapyl.spigotutils.registry;
 import com.google.common.collect.Maps;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
@@ -36,15 +36,6 @@ public abstract class Registry<K, V> {
      */
     public final JavaPlugin getPlugin() {
         return owningPlugin;
-    }
-
-    /**
-     * Returns original hash map of this registry.
-     *
-     * @return original hash map of this registry.
-     */
-    protected final Map<K, V> getRegistry() {
-        return registry;
     }
 
     /**
@@ -174,8 +165,8 @@ public abstract class Registry<K, V> {
         return registry.values();
     }
 
-    @CheckForNull
-    public final V byKey(K k, V def) {
+    @Nonnull
+    public final V byKey(K k, @Nonnull V def) {
         if (k == null) {
             return def;
         }
@@ -185,10 +176,9 @@ public abstract class Registry<K, V> {
 
     @Nullable
     public final V byKey(K k) {
-        return byKey(k, null);
+        return k == null ? null : registry.get(k);
     }
 
-    @CheckForNull
     public final K byValue(V v, K def) {
         for (K k : registry.keySet()) {
             final V v1 = registry.get(k);
@@ -211,5 +201,14 @@ public abstract class Registry<K, V> {
 
     public int size() {
         return registry.size();
+    }
+
+    /**
+     * Returns an original hash map of this registry.
+     *
+     * @return original hash map of this registry.
+     */
+    protected final Map<K, V> getRegistry() {
+        return registry;
     }
 }

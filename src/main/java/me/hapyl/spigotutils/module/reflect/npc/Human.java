@@ -1,7 +1,6 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
-import me.hapyl.spigotutils.module.reflect.npc.packet.NPCPacketHandler;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.server.level.EntityPlayer;
 import org.apache.commons.lang.NotImplementedException;

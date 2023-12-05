@@ -34,4 +34,12 @@ public class EternaLogger {
     public static void error(String message, Object... format) {
         EternaPlugin.getPlugin().getLogger().severe(message.formatted(format));
     }
+
+    public static void exception(Exception e) {
+        error("An exception has occurred!");
+
+        for (StackTraceElement stack : e.getStackTrace()) {
+            error(stack.toString());
+        }
+    }
 }
