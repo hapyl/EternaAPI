@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.inventory;
 import com.google.common.collect.*;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import jline.internal.Urls;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.ForceLowercase;
@@ -32,10 +33,13 @@ import org.bukkit.map.MapView;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
@@ -877,9 +881,19 @@ public class ItemBuilder {
      * <code>87fbe93a9c518883186a2aefbd2b7df18ba05a8a7dd1a756ef6565d3e5807a0c</code>
      */
     public ItemBuilder setHeadTextureUrl(@Nonnull String url) {
-        url = URL_TEXTURE_FORMAT.formatted(url.contains(URL_TEXTURE_LINK) ? url : URL_TEXTURE_LINK + url);
+        final PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+        final PlayerTextures textures = profile.getTextures();
 
-        return setHeadTexture(new String(Base64.getEncoder().encode(url.getBytes(StandardCharsets.UTF_8))));
+        try {
+            textures.setSkin(new URL(URL_TEXTURE_LINK + url));
+            profile.setTextures(textures);
+
+            modifyMeta(SkullMeta.class, meta -> meta.setOwnerProfile(profile));
+        } catch (Exception e) {
+            EternaLogger.exception(e);
+        }
+
+        return this;
     }
 
     /**
@@ -1266,7 +1280,10 @@ public class ItemBuilder {
      * If copying from <a href="https://minecraft-heads.com/custom-heads">Minecraft-Heads</a>, use <code>Other -> Value</code> value,
      * which should look something like this:
      * <code>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODdmYmU5M2E5YzUxODg4MzE4NmEyYWVmYmQyYjdkZjE4YmEwNWE4YTdkZDFhNzU2ZWY2NTY1ZDNlNTgwN2EwYyJ9fX0=</code>
+     *
+     * @deprecated Dropping support for base64, also not fixing the console spam.
      */
+    @Deprecated
     public ItemBuilder setHeadTexture(@Nonnull String base64) {
         final GameProfile profile = new GameProfile(UUID.randomUUID(), "");
         profile.getProperties().put("textures", new Property("textures", base64));
