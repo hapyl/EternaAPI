@@ -377,6 +377,10 @@ public final class RuntimeCommandsTest {
 
         cdCommand.setCooldownTick(60);
         processor.registerCommand(cdCommand);
+
+        registerTestCommand("ComputeModule", (player, args) -> {
+            ComputeTest.test(player);
+        });
     }
 
     private static void registerTestCommand(String test, Action action) {

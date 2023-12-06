@@ -1538,7 +1538,9 @@ public class ItemBuilder {
      * Creates player head from texture.
      *
      * @param texture - Texture to use.
+     * @deprecated {@link ItemBuilder#playerHeadUrl(String)}
      */
+    @Deprecated
     public static ItemBuilder playerHead(@Nonnull String texture) {
         return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
     }

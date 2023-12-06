@@ -291,7 +291,9 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
     public void showVisibility(@Nonnull Player player) {
         hideDisplayName();
 
-        packetHandler.sendPackets(player, NPCPacketType.ADD_PLAYER, NPCPacketType.SPAWN);
+        setConnection(player, () -> {
+            packetHandler.sendPackets(player, NPCPacketType.ADD_PLAYER, NPCPacketType.SPAWN);
+        });
 
         setLocation(location);
 
@@ -1027,20 +1029,17 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return showingTo.toArray(new Player[0]);
     }
 
-    // This is the stupidest thing mojang came up with
-    void setConnectionIfNotSet(Player player) {
-        if (human.c != null) {
-            return;
-        }
-
+    void setConnection(Player player, Runnable andThen) {
         final EntityPlayer nmsPlayer = Reflect.getMinecraftPlayer(player);
 
-        if (nmsPlayer == null) {
-            EternaLogger.warn("Tried to set connection from offline player!");
-            return;
-        }
+        if (nmsPlayer != null) {
+            human.c = nmsPlayer.c;
+            andThen.run();
 
-        human.c = nmsPlayer.c;
+            // We need to reset NPCs connection since it
+            // causes weird bugs with broadcast.
+            human.c = null;
+        }
     }
 
     protected void sendPacket(Packet<?> packet) {

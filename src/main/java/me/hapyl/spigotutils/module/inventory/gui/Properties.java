@@ -96,7 +96,7 @@ public class Properties {
 
     /**
      * Returns true if this GUI respects item presence on a click.
-     * Meaning if there is event but no item present on a slot, it will NOT trigger.
+     * Meaning if there is an event but no item present on a slot, it will NOT trigger.
      *
      * @return true if this GUI respects item presence on a click.
      */

@@ -25,7 +25,7 @@ public class NPCPacketHandler {
      */
     public void sendPackets(@Nonnull Player player, @Nonnull NPCPacketType... types) {
         for (NPCPacketType type : types) {
-            sendPacket(type.createPacket(npc, player), player);
+            sendPacket(type.createPacket(npc), player);
         }
     }
 
