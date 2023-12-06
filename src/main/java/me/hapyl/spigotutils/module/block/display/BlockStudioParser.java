@@ -24,7 +24,7 @@ public final class BlockStudioParser {
      * but <b>must</b> contain <code>Passengers</code> nbt data!
      *
      * @param command - Command to parse.
-     * @throws IllegalArgumentException if nbt does not start and end with <code>{</code> and <code>}</code> respectfully.
+     * @throws IllegalArgumentException if nbt does not start and end with <code>{</code> and <code>}</code> respectively.
      * @throws IllegalArgumentException if command does not contain <code>Passengers</code> nbt tag.
      */
     public BlockStudioParser(String command) throws IllegalArgumentException {
@@ -46,7 +46,7 @@ public final class BlockStudioParser {
      * but <b>must</b> contain <code>Passengers</code> nbt data!
      *
      * @param string - Command to parse.
-     * @throws IllegalArgumentException if nbt does not start and end with <code>{</code> and <code>}</code> respectfully.
+     * @throws IllegalArgumentException if nbt does not start and end with <code>{</code> and <code>}</code> respective.
      * @throws IllegalArgumentException if command does not contain <code>Passengers</code> nbt tag.
      */
     @Nonnull

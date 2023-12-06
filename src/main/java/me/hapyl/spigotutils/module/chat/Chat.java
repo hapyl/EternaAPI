@@ -393,7 +393,7 @@ public class Chat {
      * Sends a clickable and hoverable message to a player.
      *
      * @param sender     - Receiver.
-     * @param runCommand - Command to run; Don't forget '/'!
+     * @param runCommand - Command to run; Remember '/'!
      * @param showText   - Text to show on hover.
      * @param message    - Message.
      * @param format     - Replacements.
@@ -491,10 +491,18 @@ public class Chat {
         });
     }
 
-    public static void clearTitle(Player player) {
+    /**
+     * Clears the title for the given player.
+     *
+     * @param player - Player to clear the title for.
+     */
+    public static void clearTitle(@Nonnull Player player) {
         player.resetTitle();
     }
 
+    /**
+     * Clears the title for each online player.
+     */
     public static void clearTitles() {
         Bukkit.getOnlinePlayers().forEach(Player::resetTitle);
     }

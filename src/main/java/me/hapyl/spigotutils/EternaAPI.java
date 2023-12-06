@@ -107,7 +107,7 @@ public final class EternaAPI {
     }
 
     /**
-     * Loads all APIs and their respected registries.
+     * Loads all APIs and their respective registries.
      * This is not yet implemented and only displays the modules.
      */
     static void loadAll() {
