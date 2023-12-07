@@ -1,10 +1,9 @@
 package me.hapyl.spigotutils.module.math.geometry;
 
-import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
-public abstract class Draw {
+public abstract class Draw implements Drawable {
 
     private final Particle particle;
 
@@ -23,8 +22,6 @@ public abstract class Draw {
     public Draw(Particle particle) {
         this.particle = particle;
     }
-
-    public abstract void draw(Location location);
 
     public Particle getParticle() {
         return particle;

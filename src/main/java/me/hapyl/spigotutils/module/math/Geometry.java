@@ -3,11 +3,10 @@ package me.hapyl.spigotutils.module.math;
 import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.AsyncSafe;
-import me.hapyl.spigotutils.module.math.geometry.Draw;
+import me.hapyl.spigotutils.module.math.geometry.Drawable;
 import me.hapyl.spigotutils.module.math.geometry.Quality;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -37,7 +36,7 @@ public class Geometry {
      * @throws NullPointerException if location, quality or drawable is null.
      */
     @AsyncSafe
-    public static void drawCircle(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Draw draw) {
+    public static void drawCircle(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Drawable draw) {
         Validate.notNull(center, "location cannot be null");
         Validate.notNull(draw, "draw particle cannot be null");
         Validate.notNull(quality, "quality cannot be null");
@@ -102,7 +101,7 @@ public class Geometry {
      * @param draw    - drawable.
      * @param yOffset - y offset of the circle. <b>Note that offset is added after adding +1</b>
      */
-    public static void drawCircleAnchored(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Draw draw, double yOffset) {
+    public static void drawCircleAnchored(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Drawable draw, double yOffset) {
         final World world = center.getWorld();
 
         if (world == null) {
@@ -142,7 +141,7 @@ public class Geometry {
      * @param quality - quality of the circle.
      * @param draw    - drawable.
      */
-    public static void drawCircleAnchored(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Draw draw) {
+    public static void drawCircleAnchored(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Drawable draw) {
         drawCircleAnchored(center, radius, quality, draw, 0.0d);
     }
 
@@ -154,10 +153,10 @@ public class Geometry {
      * @param step  - How much to move each move; smaller values results in higher quality.
      * @param draw  - Drawable.
      * @throws NullPointerException     if start, end or drawable is null.
-     * @throws IllegalArgumentException if start and end is not in the same world.
+     * @throws IllegalArgumentException if start and end are not in the same world.
      */
     @AsyncSafe
-    public static void drawLine(@Nonnull Location start, @Nonnull Location end, double step, @Nonnull Draw draw) {
+    public static void drawLine(@Nonnull Location start, @Nonnull Location end, double step, @Nonnull Drawable draw) {
         Validate.notNull(start);
         Validate.notNull(end);
         Validate.notNull(draw);
@@ -185,7 +184,7 @@ public class Geometry {
      * @throws NullPointerException if center or draw is null.
      */
     @AsyncSafe
-    public static void drawSphere(@Nonnull Location center, double rings, double radius, @Nonnull Draw draw, boolean drawOnlyTop) {
+    public static void drawSphere(@Nonnull Location center, double rings, double radius, @Nonnull Drawable draw, boolean drawOnlyTop) {
         Validate.notNull(center);
         Validate.notNull(draw);
 
@@ -215,7 +214,7 @@ public class Geometry {
      * @throws NullPointerException if center or draw is null.
      */
     @AsyncSafe
-    public static void drawSphere(Location center, double rings, double radius, Draw draw) {
+    public static void drawSphere(Location center, double rings, double radius, Drawable draw) {
         drawSphere(center, rings, radius, draw, false);
     }
 
@@ -229,7 +228,7 @@ public class Geometry {
      * @throws NullPointerException     if center or draw is null.
      * @throws IllegalArgumentException if radius is negative.
      */
-    public static void drawPolygon(@Nonnull Location center, int points, double radius, @Nonnull Draw draw) {
+    public static void drawPolygon(@Nonnull Location center, int points, double radius, @Nonnull Drawable draw) {
         Validate.notNull(center);
         Validate.notNull(draw);
         Validate.isTrue(radius > 0, "radius must be positive");
@@ -271,7 +270,7 @@ public class Geometry {
      * @param draw   - Drawable.
      * @throws NullPointerException if center or draw is null.
      */
-    public static void drawDonut(@Nonnull Location center, int layers, double radius, @Nonnull Draw draw) {
+    public static void drawDonut(@Nonnull Location center, int layers, double radius, @Nonnull Drawable draw) {
         Validate.notNull(center);
         Validate.notNull(draw);
 

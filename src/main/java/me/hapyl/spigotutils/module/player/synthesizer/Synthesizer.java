@@ -6,13 +6,12 @@ import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.inventory.item.Event;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.math.nn.IntInt;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nonnull;
+import java.util.*;
 
 /**
  * Represents a synthesizer, or a note block builder that allows
@@ -28,15 +27,21 @@ public class Synthesizer {
     private final List<Track> tracks;
     private long bpt;
 
+    /**
+     * Creates a new {@link Synthesizer}.
+     */
     public Synthesizer() {
         this.tracks = Lists.newArrayList();
         this.bpt = 1L;
     }
 
     /**
-     * Plays tracks to players.
+     * Plays this {@link Synthesizer} to the given players at the given location.
+     *
+     * @param players  - Listeners.
+     * @param location - Location.
      */
-    public void play(Player player, Player... other) {
+    public void play(@Nonnull Collection<Player> players, @Nonnull Location location) {
         tracks.forEach(Track::mapTrack);
 
         final IntInt maxFrame = new IntInt();
@@ -52,7 +57,6 @@ public class Synthesizer {
             }
         }
 
-        final Set<Player> players = combinePlayers(player, other);
         onStartPlaying(players);
 
         new BukkitRunnable() {
@@ -62,7 +66,7 @@ public class Synthesizer {
             public void run() {
                 if (currentFrame > maxFrame.get()) {
                     onStopPlaying(players);
-                    this.cancel();
+                    cancel();
                     return;
                 }
 
@@ -72,7 +76,9 @@ public class Synthesizer {
                         continue;
                     }
 
-                    tune.play(player, other);
+                    for (Player player : players) {
+                        tune.play(player, location);
+                    }
                 }
 
                 currentFrame += bpt;
@@ -80,38 +86,101 @@ public class Synthesizer {
         }.runTaskTimer(EternaPlugin.getPlugin(), 0L, bpt);
     }
 
-    @Event
-    public void onStartPlaying(Set<Player> players) {
+    /**
+     * Plays this {@link Synthesizer} to the given players at their current location.
+     *
+     * @param players - Listeners.
+     */
+    public void play(@Nonnull Collection<Player> players) {
+        players.forEach(this::play);
     }
 
-    @Event
-    public void onStopPlaying(Set<Player> players) {
+    /**
+     * Plays this {@link Synthesizer} to the given player at the given location.
+     *
+     * @param player   - Listener.
+     * @param location - Location.
+     */
+    public void play(@Nonnull Player player, @Nonnull Location location) {
+        play(Collections.singleton(player), location);
     }
 
+    /**
+     * Plays this {@link Synthesizer} to the given player at their locating.
+     *
+     * @param player - Listener.
+     */
+    public void play(@Nonnull Player player) {
+        play(player, player.getLocation());
+    }
+
+    /**
+     * Called once before the {@link Synthesizer} stars playing.
+     *
+     * @param players - Collection of listeners.
+     */
+    @Event
+    public void onStartPlaying(@Nonnull Collection<Player> players) {
+    }
+
+    /**
+     * Called once after the {@link Synthesizer} stopped playing.
+     *
+     * @param players - Collection of listeners.
+     */
+    @Event
+    public void onStopPlaying(@Nonnull Collection<Player> players) {
+    }
+
+    /**
+     * Gets this {@link Synthesizer}'s {@link Track} list.
+     *
+     * @return this synthesizer's track list.
+     */
+    @Nonnull
+    public List<Track> getTracks() {
+        return tracks;
+    }
+
+    /**
+     * Gets the BPT (beats per tick) for this {@link Synthesizer}.
+     *
+     * @return the BPT for this synthesizer.
+     */
     public long getBPT() {
         return bpt;
     }
 
+    /**
+     * Sets the BPT (beats per tick) for this {@link Synthesizer}.
+     *
+     * @param bpt - new bpt.
+     */
     public Synthesizer setBPT(long bpt) {
         this.bpt = Numbers.clamp(bpt, 0, 1000);
         return this;
     }
 
-    public Track addTrack(String str) {
+    /**
+     * Adds a track for {@link Synthesizer}.
+     *
+     * @param str - String.
+     * @return a newly added track.
+     */
+    public Track addTrack(@Nonnull String str) {
         final Track track = new Track(this, str);
         tracks.add(track);
         return track;
     }
 
-    private Set<Player> combinePlayers(Player player, Player... other) {
-        final Set<Player> set = Sets.newHashSet();
-        set.add(player);
-        set.addAll(Arrays.asList(other));
-        return set;
-    }
-
-    // static members
-    public static Track singleTrack(String track) {
+    /**
+     * Creates a new {@link Synthesizer} and adds a new {@link Track}.
+     *
+     * @param track - Track.
+     * @return a new {@link Track}.
+     */
+    @Nonnull
+    public static Track singleTrack(@Nonnull String track) {
         return new Synthesizer().addTrack(track);
     }
 }

@@ -1,41 +1,26 @@
 package me.hapyl.spigotutils.module.player.synthesizer;
 
 import me.hapyl.spigotutils.module.math.Numbers;
+import me.hapyl.spigotutils.module.player.PlayerLib;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-import java.util.Collection;
+import javax.annotation.Nonnull;
 
-public class Tune {
-
-    private final Sound sound;
-    private final float pitch;
+public record Tune(Sound sound, float pitch) {
 
     public Tune(Sound sound, float pitch) {
         this.sound = sound;
         this.pitch = Numbers.clamp(pitch, 0.0f, 2.0f);
     }
 
-    public void play(Player player, Player... other) {
-        play(player);
-        for (Player player1 : other) {
-            play(player1);
-        }
+    public void play(@Nonnull Player player) {
+        play(player, player.getLocation());
     }
 
-    public void play(Player player) {
-        player.playSound(player, sound, 2, pitch);
+    public void play(@Nonnull Player player, @Nonnull Location location) {
+        PlayerLib.playSound(player, location, sound, pitch);
     }
 
-    public void play(Collection<Player> players) {
-        players.forEach(this::play);
-    }
-
-    public Sound getSound() {
-        return sound;
-    }
-
-    public float getPitch() {
-        return pitch;
-    }
 }
