@@ -5,6 +5,8 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+
 /**
  * Displays one particle for player A and other for everyone else.
  */
@@ -18,7 +20,7 @@ public class MultiPlayerParticle extends PlayerParticle {
     }
 
     @Override
-    public void draw(Location location) {
+    public void draw(@Nonnull Location location) {
         for (final Player online : Bukkit.getOnlinePlayers()) {
             if (online == this.getPlayer()) {
                 online.spawnParticle(this.getParticle(), location, 1, 0, 0, 0, 0);
