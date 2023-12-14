@@ -63,7 +63,6 @@ public class PlayerHologram {
         if (hologram != null) {
             hologram.destroy();
         }
-
     }
 
     /**
@@ -78,6 +77,8 @@ public class PlayerHologram {
 
     /**
      * Performs a for each iteration.
+     * <p>
+     * This method will hide the holograms for player is they're not {@link Player#isOnline()}.
      *
      * @param consumer - Player >< Hologram relationship.
      */
@@ -86,7 +87,21 @@ public class PlayerHologram {
             return;
         }
 
+        // Actually remove the player
+        playerHolograms.keySet().removeIf(player -> !player.isOnline());
+
+        // Only then accept the consumer
         playerHolograms.forEach(consumer);
+    }
+
+    /**
+     * Gets the actual map of {@link Player} and their respective {@link Hologram}.
+     *
+     * @return the map.
+     */
+    @Nonnull
+    public Map<Player, Hologram> getPlayerHolograms() {
+        return playerHolograms;
     }
 
     /**

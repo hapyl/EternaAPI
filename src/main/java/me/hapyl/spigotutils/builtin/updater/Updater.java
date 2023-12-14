@@ -59,7 +59,7 @@ public final class Updater {
             return;
         }
 
-        Chat.sendMessage(player, updateMessage);
+        Chat.sendMessage(player, EternaLogger.PREFIX + updateMessage);
         Chat.sendClickableHoverableMessage(
                 player,
                 LazyEvent.openUrl(downloadUrl),

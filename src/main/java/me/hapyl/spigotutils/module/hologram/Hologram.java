@@ -29,18 +29,16 @@ public class Hologram extends LimitedVisibility {
      */
     public static final double HOLOGRAM_OFFSET = 0.25d;
     public static final double ABSOLUTE_CENTER_OFFSET = 0.2d;
-
+    protected final Set<Player> showingTo;
     private final List<String> lines;
     private final List<HologramArmorStand> packets;
-    private final Set<Player> showingTo;
-
     private BukkitTask task;
     private Location location;
 
     /**
      * Creates hologram with provided size.
      *
-     * @param size - Lines size.
+     * @param size - Size of this hologram.
      */
     public Hologram(int size) {
         this.lines = new ArrayList<>(size);
