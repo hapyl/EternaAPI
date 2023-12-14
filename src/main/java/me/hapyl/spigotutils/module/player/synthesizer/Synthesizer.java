@@ -1,7 +1,6 @@
 package me.hapyl.spigotutils.module.player.synthesizer;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.inventory.item.Event;
 import me.hapyl.spigotutils.module.math.Numbers;
@@ -11,7 +10,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a synthesizer, or a note block builder that allows
