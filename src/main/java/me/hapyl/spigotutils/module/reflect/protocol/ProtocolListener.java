@@ -7,10 +7,13 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import me.hapyl.spigotutils.EternaPlugin;
 
+import javax.annotation.Nonnull;
+
 public abstract class ProtocolListener {
 
-    public ProtocolListener(PacketType type) {
-        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+    public final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+
+    public ProtocolListener(@Nonnull PacketType type) {
         manager.addPacketListener(new PacketAdapter(EternaPlugin.getPlugin(), type) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
@@ -24,8 +27,8 @@ public abstract class ProtocolListener {
         });
     }
 
-    public abstract void onPacketReceiving(PacketEvent event);
+    public abstract void onPacketReceiving(@Nonnull PacketEvent event);
 
-    public abstract void onPacketSending(PacketEvent event);
+    public abstract void onPacketSending(@Nonnull PacketEvent event);
 
 }

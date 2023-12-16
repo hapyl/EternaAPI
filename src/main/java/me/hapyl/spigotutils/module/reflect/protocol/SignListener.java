@@ -7,6 +7,8 @@ import me.hapyl.spigotutils.module.inventory.Response;
 import me.hapyl.spigotutils.module.inventory.SignGUI;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+
 public class SignListener extends ProtocolListener {
 
     public SignListener() {
@@ -14,7 +16,7 @@ public class SignListener extends ProtocolListener {
     }
 
     @Override
-    public void onPacketReceiving(PacketEvent event) {
+    public void onPacketReceiving(@Nonnull PacketEvent event) {
         final PacketContainer packet = event.getPacket();
         final Player player = event.getPlayer();
         final SignGUI signGUI = SignGUI.getMap().get(player);
@@ -30,6 +32,6 @@ public class SignListener extends ProtocolListener {
     }
 
     @Override
-    public void onPacketSending(PacketEvent adapter) {
+    public void onPacketSending(@Nonnull PacketEvent adapter) {
     }
 }

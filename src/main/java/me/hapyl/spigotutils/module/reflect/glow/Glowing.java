@@ -7,14 +7,15 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.Ticking;
+import me.hapyl.spigotutils.module.util.Runnables;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.EnumChatFormat;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
 import net.minecraft.world.scores.ScoreboardTeam;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -23,6 +24,7 @@ import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,7 +33,7 @@ import java.util.UUID;
  */
 public class Glowing implements Ticking, GlowingListener {
 
-    private static final byte GLOWING_BIT_MASK = 0x40;
+    public static final byte GLOWING_BIT_MASK = 0x40;
 
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
     private final Player player; // only one player per glowing is now allowed
@@ -44,31 +46,34 @@ public class Glowing implements Ticking, GlowingListener {
     private Team realTeam;
 
     /**
-     * Creates a glowing object.
+     * Creates a new {@link Glowing} instance.
      *
-     * @param entity   - Entity to glow.
-     * @param duration - Glow duration.
+     * @param player   - Player, who will see the glowing.
+     * @param entity   - The glowing entity.
+     * @param duration - Glowing duration.
      */
-    public Glowing(Player player, Entity entity, int duration) {
+    public Glowing(@Nonnull Player player, @Nonnull Entity entity, int duration) {
         this(player, entity, ChatColor.WHITE, duration);
     }
 
     /**
-     * Creates a glowing object.
+     * Creates a new {@link Glowing} instance.
      *
-     * @param entity   - Entity to glow.
+     * @param player   - Player, who will see the glowing.
+     * @param entity   - The glowing entity.
      * @param color    - Glowing color.
-     * @param duration - Glow duration.
+     * @param duration - Glowing duration.
+     * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
      */
     @Super
-    public Glowing(Player player, Entity entity, ChatColor color, int duration) {
+    public Glowing(@Nonnull Player player, @Nonnull Entity entity, @Nonnull ChatColor color, int duration) {
         this.player = player;
         this.entity = entity;
         this.duration = duration;
         this.status = false;
         this.setColor(color);
 
-        EternaPlugin.getPlugin().getGlowingManager().addGlowing(this);
+        getManager().addGlowing(this);
     }
 
     @Override
@@ -88,6 +93,7 @@ public class Glowing implements Ticking, GlowingListener {
      *
      * @return entity that is glowing.
      */
+    @Nonnull
     public final Entity getEntity() {
         return entity;
     }
@@ -97,6 +103,7 @@ public class Glowing implements Ticking, GlowingListener {
      *
      * @return current color of glowing.
      */
+    @Nonnull
     public final ChatColor getColor() {
         return color;
     }
@@ -105,8 +112,13 @@ public class Glowing implements Ticking, GlowingListener {
      * Changes glowing color.
      *
      * @param color - New Color.
+     * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
      */
-    public final void setColor(ChatColor color) {
+    public final void setColor(@Nonnull ChatColor color) {
+        if (!color.isColor()) {
+            throw new IllegalArgumentException("Glowing color must be a color, not formatter!");
+        }
+
         this.color = color;
 
         if (isGlowing()) {
@@ -119,6 +131,7 @@ public class Glowing implements Ticking, GlowingListener {
      *
      * @return player who entity is glowing for.
      */
+    @Nonnull
     public final Player getPlayer() {
         return player;
     }
@@ -151,7 +164,7 @@ public class Glowing implements Ticking, GlowingListener {
      * @param player - Player.
      * @return true is player can see the glowing.
      */
-    public final boolean isPlayer(Player player) {
+    public final boolean isPlayer(@Nonnull Player player) {
         return this.player == player;
     }
 
@@ -182,16 +195,28 @@ public class Glowing implements Ticking, GlowingListener {
         status = true;
         realTeam = player.getScoreboard().getEntryTeam(getEntityName()); // save real team for later
 
-        createPacket(true);
+        sendPacket(true);
         createTeam(true);
 
         onGlowingStart();
     }
 
+    /**
+     * Returns true if the entity is glowing.
+     *
+     * @return true if the entity is glowing.
+     */
     public final boolean isGlowing() {
         return status && duration > 0;
     }
 
+    public final boolean shouldGlow() {
+        return !entity.isDead() && player.isOnline();
+    }
+
+    /**
+     * Stops the glowing.
+     */
     public final void stop() {
         this.duration = 0;
     }
@@ -202,12 +227,27 @@ public class Glowing implements Ticking, GlowingListener {
     public final void forceStop() {
         status = false; // no check for status because it's force
 
-        createPacket(false);
+        sendPacket(false);
         createTeam(false);
+
+        getManager().removeGlowing(this);
+
         this.onGlowingStop();
     }
 
-    protected void createPacket(boolean flag) {
+    /**
+     * Calls a force glowing packet update.
+     */
+    public final void forceUpdate() {
+        if (!isGlowing()) {
+            return;
+        }
+
+        Runnables.runLater(() -> sendPacket(true), 1);
+    }
+
+    @Nonnull
+    protected PacketContainer createPacket(boolean flag) {
         final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
         packet.getIntegers().write(0, entity.getEntityId());
 
@@ -226,11 +266,14 @@ public class Glowing implements Ticking, GlowingListener {
                 ))
         );
 
+        return packet;
+    }
+
+    protected void sendPacket(boolean flag) {
         try {
-            manager.sendServerPacket(player, packet);
+            manager.sendServerPacket(player, createPacket(flag));
         } catch (Exception e) {
-            EternaPlugin.getPlugin().getLogger().severe("Could not parse glowing!");
-            e.printStackTrace();
+            EternaLogger.exception(e);
         }
     }
 
@@ -276,7 +319,7 @@ public class Glowing implements Ticking, GlowingListener {
             // Update entity's real team
             final Team currentTeam = scoreboard.getEntryTeam(getEntityName());
 
-            // Player has an ACTUAL team, add them to it
+            // Entity has an ACTUAL team, add them to it
             if (currentTeam != null) {
                 addToTeam(currentTeam);
             }
@@ -303,6 +346,106 @@ public class Glowing implements Ticking, GlowingListener {
 
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
+    }
+
+    /**
+     * Starts the glowing for the entity.
+     *
+     * @param player   - Player, who will see the glowing.
+     * @param entity   - Entity, who will be glowing.
+     * @param color    - Glowing color.
+     * @param duration - Duration of the glowing.
+     * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
+     */
+    public static void glow(@Nonnull Player player, @Nonnull Entity entity, @Nonnull ChatColor color, int duration) {
+        new Glowing(player, entity, color, duration).glow();
+    }
+
+    /**
+     * Starts the glowing for the entity.
+     *
+     * @param entity   - Entity, who will be glowing.
+     * @param color    - Glowing color.
+     * @param duration - Duration of the glowing.
+     * @param viewers  - Players, who will see the glowing.
+     * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
+     */
+    public static void glow(@Nonnull Entity entity, @Nonnull ChatColor color, int duration, @Nonnull Player... viewers) {
+        for (Player viewer : viewers) {
+            glow(viewer, entity, color, duration);
+        }
+    }
+
+    /**
+     * Starts the glowing for the entity.
+     *
+     * @param entity   - Entity, who will be glowing.
+     * @param color    - Glowing color.
+     * @param duration - Duration of the glowing.
+     * @param viewers  - Players, who will see the glowing.
+     * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
+     */
+    public static void glow(@Nonnull Entity entity, @Nonnull ChatColor color, int duration, @Nonnull Collection<Player> viewers) {
+        for (Player viewer : viewers) {
+            glow(viewer, entity, color, duration);
+        }
+    }
+
+    /**
+     * Starts the glowing for the entity indefinitely.
+     *
+     * @param entity  - Entity, who will be glowing.
+     * @param color   - Glowing color.
+     * @param viewers - Players, who will see the glowing.
+     * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
+     */
+    public static void glowInfinitely(@Nonnull Entity entity, @Nonnull ChatColor color, @Nonnull Player... viewers) {
+        for (Player viewer : viewers) {
+            glow(viewer, entity, color, Integer.MAX_VALUE);
+        }
+    }
+
+    /**
+     * Starts the glowing for the entity indefinitely.
+     *
+     * @param entity  - Entity, who will be glowing.
+     * @param color   - Glowing color.
+     * @param viewers - Players, who will see the glowing.
+     * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
+     */
+    public static void glowInfinitely(@Nonnull Entity entity, @Nonnull ChatColor color, @Nonnull Collection<Player> viewers) {
+        for (Player viewer : viewers) {
+            glow(viewer, entity, color, Integer.MAX_VALUE);
+        }
+    }
+
+    /**
+     * Stops the glowing for the given player of the given entity.
+     *
+     * @param player - Player.
+     * @param entity - Entity.
+     */
+    public static void stopGlowing(@Nonnull Player player, @Nonnull Entity entity) {
+        getManager().stopGlowing(player, entity);
+    }
+
+    /**
+     * Stops all the glowing for the given entity.
+     *
+     * @param entity - Entity.
+     */
+    public static void stopGlowing(@Nonnull Entity entity) {
+        getManager().stopGlowing(entity);
+    }
+
+    /**
+     * Gets the {@link GlowingRegistry}.
+     *
+     * @return the glowing manager.
+     */
+    @Nonnull
+    public static GlowingRegistry getManager() {
+        return EternaRegistry.getGlowingManager();
     }
 
     @Nonnull
@@ -333,34 +476,4 @@ public class Glowing implements Ticking, GlowingListener {
         };
     }
 
-    // static members
-    public static void glow(Entity entity, ChatColor color, int duration, @Nonnull Player... viewers) {
-        for (Player viewer : viewers) {
-            glow(viewer, entity, color, duration);
-        }
-    }
-
-    public static void glow(Player player, Entity entity, ChatColor color, int duration) {
-        new Glowing(player, entity, color, duration).glow();
-    }
-
-    public static void glowInfinitly(Entity entity, ChatColor color, @Nonnull Player... viewers) {
-        for (Player viewer : viewers) {
-            new Glowing(viewer, entity, color, Integer.MAX_VALUE).glow();
-        }
-    }
-
-    public static void stopGlowing(Player player, Entity entity) {
-        EternaPlugin.getPlugin().getGlowingManager().stopGlowing(player, entity);
-    }
-
-    public static void stopGlowing(Entity entity) {
-        EternaPlugin.getPlugin().getGlowingManager().stopGlowing(entity);
-    }
-
-    // This will stop existing glowing effect and then apply 1 tick of glowing to remove the packet glow.
-    public static void forceStopGlowing(Entity entity) {
-        stopGlowing(entity);
-        Bukkit.getOnlinePlayers().forEach(player -> new Glowing(player, entity, 1).start());
-    }
 }

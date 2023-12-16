@@ -38,8 +38,6 @@ public class EternaLogger {
     public static void exception(Exception e) {
         error("An exception has occurred!");
 
-        for (StackTraceElement stack : e.getStackTrace()) {
-            error(stack.toString());
-        }
+        e.printStackTrace();
     }
 }

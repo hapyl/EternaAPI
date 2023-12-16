@@ -1,9 +1,11 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
 import com.google.common.collect.Maps;
+import net.minecraft.world.level.levelgen.structure.structures.IglooPieces;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 
@@ -15,24 +17,26 @@ public class GlowingData {
     private final Player player;
     private final Map<Entity, Glowing> data;
 
-    public GlowingData(Player player) {
+    public GlowingData(@Nonnull Player player) {
         this.player = player;
         this.data = Maps.newConcurrentMap();
     }
 
+    @Nonnull
     public Player getPlayer() {
         return player;
     }
 
     @Nullable
-    public Glowing getGlowing(Entity entity) {
+    public Glowing getGlowing(@Nonnull Entity entity) {
         return data.get(entity);
     }
 
     public void tickAll() {
         data.forEach((entity, glowing) -> {
-            if (!glowing.isGlowing()) { // actually remove if finished
+            if (!glowing.getPlayer().isOnline() || glowing.getEntity().isDead()) {
                 data.remove(entity);
+                glowing.stop();
             }
 
             glowing.tick();
@@ -52,7 +56,7 @@ public class GlowingData {
         return null;
     }
 
-    public void add(Entity entity, Glowing glowing) {
+    public void add(@Nonnull Entity entity, @Nonnull Glowing glowing) {
         final Glowing oldGlowing = getGlowing(entity);
 
         if (oldGlowing != null) {
@@ -62,11 +66,11 @@ public class GlowingData {
         data.put(entity, glowing);
     }
 
-    public void remove(Entity entity) {
+    public void remove(@Nonnull Entity entity) {
         data.remove(entity);
     }
 
-    public boolean isGlowing(Entity entity) {
+    public boolean isGlowing(@Nonnull Entity entity) {
         final Glowing glowing = data.get(entity);
 
         return glowing != null && glowing.isGlowing();
