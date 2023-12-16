@@ -225,6 +225,10 @@ public class Glowing implements Ticking, GlowingListener {
      * This calls all onStop methods instead of setting duration to 0.
      */
     public final void forceStop() {
+        forceStop(true);
+    }
+
+    private void forceStop(boolean callOnStop) {
         status = false; // no check for status because it's force
 
         sendPacket(false);
@@ -232,7 +236,9 @@ public class Glowing implements Ticking, GlowingListener {
 
         getManager().removeGlowing(this);
 
-        this.onGlowingStop();
+        if (callOnStop) {
+            this.onGlowingStop();
+        }
     }
 
     /**
@@ -244,6 +250,36 @@ public class Glowing implements Ticking, GlowingListener {
         }
 
         Runnables.runLater(() -> sendPacket(true), 1);
+    }
+
+    /**
+     * Stops the current glowing and creates a new instance with the remaining duration.
+     *
+     * @return New glowing instance.
+     */
+    @Nonnull
+    public final Glowing restart() {
+        final Player player = this.player;
+        final Entity entity = this.entity;
+        final ChatColor color = this.color;
+        final int duration = this.duration;
+
+        forceStop(false);
+
+        final Glowing glowing = new Glowing(player, entity, color, duration + 1) {
+            @Override
+            public void onGlowingTick() {
+                Glowing.this.onGlowingTick();
+            }
+
+            @Override
+            public void onGlowingStop() {
+                Glowing.this.onGlowingStop();
+            }
+        };
+
+        Runnables.runLater(glowing::glow, 1);
+        return glowing;
     }
 
     @Nonnull
