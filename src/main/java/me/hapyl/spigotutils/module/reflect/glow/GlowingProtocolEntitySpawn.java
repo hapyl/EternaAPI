@@ -3,9 +3,7 @@ package me.hapyl.spigotutils.module.reflect.glow;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.reflect.protocol.ProtocolListener;
-import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -41,6 +39,11 @@ public class GlowingProtocolEntitySpawn extends ProtocolListener {
             return;
         }
 
-        glowing.forceUpdate();
+        // Since I have no idea how to properly fix this, doing it by
+        // stopping the glowing and restart it with previous duration.
+
+        // This also calls the previous glowing tick and stop methods,
+        // which might not be the best thing, but whatever IT WORKS!
+        glowing.restart();
     }
 }
