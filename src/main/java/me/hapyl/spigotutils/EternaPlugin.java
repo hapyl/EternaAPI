@@ -19,9 +19,10 @@ import me.hapyl.spigotutils.module.player.song.SongPlayer;
 import me.hapyl.spigotutils.module.quest.QuestListener;
 import me.hapyl.spigotutils.module.record.ReplayListener;
 import me.hapyl.spigotutils.module.reflect.NPCRunnable;
+import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolEntitySpawn;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRegistry;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
-import me.hapyl.spigotutils.module.reflect.protocol.GlowingListener;
+import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolMetadata;
 import me.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
 import me.hapyl.spigotutils.module.reflect.protocol.SignListener;
 import me.hapyl.spigotutils.module.util.Runnables;
@@ -83,7 +84,8 @@ public class EternaPlugin extends JavaPlugin {
 
         // Load ProtocolLib listeners
         new SignListener();
-        new GlowingListener();
+        new GlowingProtocolMetadata();
+        new GlowingProtocolEntitySpawn();
         new HumanNPCListener();
 
         // Load built-in commands

@@ -6,6 +6,7 @@ import me.hapyl.spigotutils.module.util.DependencyInjector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
     private final Map<Player, GlowingData> playerGlowing;
 
     /**
-     * Single entity may have multiple glowing tasks
+     * A single entity may have multiple glowing tasks
      * for different players. This is why concurrent
      * set is used to store all possible glowing tasks.
      */
@@ -28,7 +29,7 @@ public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
      *
      * @param glowing - Glowing.
      */
-    public void addGlowing(Glowing glowing) {
+    public void addGlowing(@Nonnull Glowing glowing) {
         final Player player = glowing.getPlayer();
         final Entity entity = glowing.getEntity();
 
@@ -40,7 +41,7 @@ public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
      *
      * @param glowing - Glowing.
      */
-    protected void removeGlowing(Glowing glowing) {
+    protected void removeGlowing(@Nonnull Glowing glowing) {
         final Player player = glowing.getPlayer();
         final Entity entity = glowing.getEntity();
 
@@ -52,7 +53,7 @@ public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
      *
      * @param entity - Entity.
      */
-    protected void stopGlowing(Player player, Entity entity) {
+    protected void stopGlowing(@Nonnull Player player, @Nonnull Entity entity) {
         final GlowingData data = getGlowing(player);
         final Glowing glowing = data.getGlowing(entity);
 
@@ -63,7 +64,7 @@ public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
         data.remove(entity);
     }
 
-    protected void stopGlowing(Entity entity) {
+    protected void stopGlowing(@Nonnull Entity entity) {
         for (GlowingData data : playerGlowing.values()) {
             final Glowing glowing = data.getGlowing(entity);
 
@@ -75,12 +76,13 @@ public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
         }
     }
 
-    public GlowingData getGlowing(Player player) {
+    @Nonnull
+    public GlowingData getGlowing(@Nonnull Player player) {
         return playerGlowing.computeIfAbsent(player, GlowingData::new);
     }
 
     @Nullable
-    public Glowing getGlowing(Player player, Entity entity) {
+    public Glowing getGlowing(@Nonnull Player player, @Nonnull Entity entity) {
         return getGlowing(player).getGlowing(entity);
     }
 
@@ -91,8 +93,10 @@ public class GlowingRegistry extends DependencyInjector<EternaPlugin> {
     @Nullable
     public Entity getById(int entityId) {
         for (GlowingData value : playerGlowing.values()) {
-            if (value.byId(entityId) != null) {
-                return value.byId(entityId);
+            final Entity entity = value.byId(entityId);
+
+            if (entity != null) {
+                return entity;
             }
         }
 

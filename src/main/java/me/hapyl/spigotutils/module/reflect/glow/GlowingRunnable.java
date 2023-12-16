@@ -1,15 +1,16 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
 
-import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.EternaLogger;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 
 public class GlowingRunnable implements Runnable {
     @Override
     public void run() {
         try {
-            EternaPlugin.getPlugin().getGlowingManager().tickAll();
+            EternaRegistry.getGlowingManager().tickAll();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            EternaLogger.exception(ex);
         }
     }
 }

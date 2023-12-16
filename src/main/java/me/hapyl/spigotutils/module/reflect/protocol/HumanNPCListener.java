@@ -11,6 +11,8 @@ import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import me.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+
 public class HumanNPCListener extends ProtocolListener {
 
     public HumanNPCListener() {
@@ -18,7 +20,7 @@ public class HumanNPCListener extends ProtocolListener {
     }
 
     @Override
-    public void onPacketReceiving(PacketEvent event) {
+    public void onPacketReceiving(@Nonnull PacketEvent event) {
         final Player player = event.getPlayer();
         final PacketContainer packet = event.getPacket();
 
@@ -47,7 +49,7 @@ public class HumanNPCListener extends ProtocolListener {
     }
 
     @Override
-    public void onPacketSending(PacketEvent event) {
+    public void onPacketSending(@Nonnull PacketEvent event) {
     }
 
 }
