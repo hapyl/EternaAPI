@@ -35,6 +35,5 @@ _Some classes are not mine and authors were credited._
 ```
 
 ## About
-[Wiki](https://hapyl.github.io/javadocs/eternaapi/)
-
-[JavaDocs](https://hapyl.github.io/javadocs/eterna/index.html)
+[Wiki](https://github.com/hapyl/EternaAPI/wiki)
+[JavaDocs](https://hapyl.github.io/javadocs/eternaapi/)
