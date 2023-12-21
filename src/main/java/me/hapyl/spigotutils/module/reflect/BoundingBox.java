@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 @TestedOn(version = Version.V1_20_2)
 public class BoundingBox {
 
+    public static final net.minecraft.world.level.block.Block STRUCTURE_BLOCK = Blocks.pa;
     public static final int MAX_DIST = 48;
 
     private final Player player;
@@ -269,7 +270,7 @@ public class BoundingBox {
         hide();
 
         Runnables.runLater(() -> {
-            final IBlockData blockData = Blocks.oW.n();
+            final IBlockData blockData = STRUCTURE_BLOCK.n();
 
             final int minX = getMinX();
             final int minY = getMinY() - 10; // -10 to offset structure block
