@@ -36,4 +36,5 @@ _Some classes are not mine and authors were credited._
 
 ## About
 [Wiki](https://github.com/hapyl/EternaAPI/wiki)
+
 [JavaDocs](https://hapyl.github.io/javadocs/eternaapi/)
