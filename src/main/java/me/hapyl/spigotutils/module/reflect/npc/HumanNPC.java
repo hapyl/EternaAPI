@@ -774,7 +774,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
         final String[] skin = getSkin(skinOwner);
 
-        System.out.println();
         setSkin(skin[0], skin[1]);
     }
 
