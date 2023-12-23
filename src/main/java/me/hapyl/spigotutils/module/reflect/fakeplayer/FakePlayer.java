@@ -69,6 +69,12 @@ public class FakePlayer implements EternaEntity {
      */
     public void setName(@Nonnull @SupportsColorFormatting String newName) {
         this.name = newName;
+
+        // Update team
+        showingTo.forEach(player -> {
+            final Team team = workTeam(player, true); // should NEVER throw exception
+            team.setPrefix(newName);
+        });
     }
 
     /**
@@ -199,7 +205,7 @@ public class FakePlayer implements EternaEntity {
         return Sets.newHashSet(showingTo);
     }
 
-    private void workTeam(Player player, boolean create) {
+    private Team workTeam(Player player, boolean create) {
         final Scoreboard scoreboard = player.getScoreboard();
         Team team = scoreboard.getTeam("fp-" + uuid);
 
@@ -211,6 +217,8 @@ public class FakePlayer implements EternaEntity {
         else if (team != null && !create) {
             team.unregister();
         }
+
+        return team;
     }
 
     private void setConnection(Player player, Runnable runnable) {

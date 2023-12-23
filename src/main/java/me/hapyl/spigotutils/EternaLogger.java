@@ -42,6 +42,9 @@ public class EternaLogger {
     }
 
     public static void debug(Object message, Object... format) {
-        info("DEBUG> " + message.toString().formatted(format));
+        final String formatted = message.toString().formatted(format);
+
+        info("&8DEBUG> " + formatted);
+        Chat.broadcastOp(PREFIX + "&8DEBUG> " + formatted);
     }
 }
