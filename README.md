@@ -10,7 +10,8 @@
 _Some classes are not mine and authors were credited._
 
 ## Usage
-* Download latest .jar file and add it to your plugins folder.
+* Download the latest [ProtocolLib](https://github.com/dmulloy2/ProtocolLib) and put it in you plugins folder.
+* Download the latest [EternaAPI](https://github.com/hapyl/EternaAPI/releases) file put add it to your plugins folder.
 * Add _depend_ or _softdepend_ to your plugin.yml.
 
 ### Maven
