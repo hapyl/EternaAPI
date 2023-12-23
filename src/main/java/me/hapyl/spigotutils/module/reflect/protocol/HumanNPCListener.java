@@ -42,8 +42,7 @@ public class HumanNPCListener extends ProtocolListener {
                 return;
             }
 
-            npc.onClick(player, npc, ClickType.fromProtocol(clickAction));
-            npc.onClickAuto(player);
+            npc.onClickAuto(player, ClickType.fromProtocol(clickAction));
         });
 
     }

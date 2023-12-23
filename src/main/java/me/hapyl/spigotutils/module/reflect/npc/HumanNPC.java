@@ -74,7 +74,7 @@ import java.util.function.Function;
  */
 @SuppressWarnings("unused")
 @TestedOn(version = Version.V1_20_2)
-public class HumanNPC extends LimitedVisibility implements Intractable, Human {
+public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public static final String CLICK_NAME = "&e&lCLICK";
     public static final String CHAT_FORMAT = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
@@ -373,7 +373,11 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return this.addDialogLine(string, Numbers.clamp(string.length(), 20, 100));
     }
 
-    public final boolean onClickAuto(Player player) {
+    @Override
+    public void onClick(@Nonnull Player player, @Nonnull ClickType type) {
+    }
+
+    public final boolean onClickAuto(Player player, ClickType clickType) {
         // Can interact?
         if (!this.canInteract(player)) {
             final String cannotInteract = this.getNPCResponses().getCannotInteract();
@@ -383,6 +387,8 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
             sendNpcMessage(player, cannotInteract);
             return false;
         }
+
+        onClick(player, clickType);
 
         // Do the entry magic
         final QuestManager quest = QuestManager.current();
@@ -464,6 +470,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.interactedAt.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
+
     @Override
     public boolean exists() {
         return EternaRegistry.getNpcRegistry().isRegistered(getId());
@@ -492,8 +499,13 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return interactionDelay;
     }
 
-    public HumanNPC setInteractionDelay(long interactionDelay) {
-        this.interactionDelay = interactionDelay;
+    public HumanNPC setInteractionDelay(long interactionDelayMillis) {
+        this.interactionDelay = interactionDelayMillis;
+        return this;
+    }
+
+    public HumanNPC setInteractionDelayTick(int delayInTicks) {
+        this.interactionDelay = delayInTicks * 50L;
         return this;
     }
 
@@ -520,10 +532,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         this.aboveHead.removeLine(index);
         this.aboveHead.updateLines(LineFit.BACKWARDS);
         return this;
-    }
-
-    @Override
-    public void onClick(Player player, HumanNPC npc, ClickType clickType) {
     }
 
     // The old way does not actually work
@@ -756,6 +764,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
 
     private HumanNPC setSkin(String skinOwner) {
         final Player player = Bukkit.getPlayer(skinOwner);
+
         if (player == null) {
             setSkinAsync(skinOwner);
         }
@@ -765,6 +774,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         return this;
     }
 
+
     public void setSkinSync(String skinOwner) {
         final Player owner = Bukkit.getPlayer(skinOwner);
 
@@ -773,7 +783,6 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         }
 
         final String[] skin = getSkin(skinOwner);
-
         setSkin(skin[0], skin[1]);
     }
 
@@ -831,7 +840,7 @@ public class HumanNPC extends LimitedVisibility implements Intractable, Human {
         }
         try {
             final Gson gson = new Gson();
-            String json = urlStringToString("https://api.mojang.com/users/profiles/minecraft/" + name);
+            String json = urlStringToString("https://api.mojang.com/users/profiles/minecraft/" + name.replace(" ", ""));
 
             final String uuid = gson.fromJson(json, JsonObject.class).get("id").getAsString();
             json = urlStringToString("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");

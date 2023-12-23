@@ -40,4 +40,8 @@ public class EternaLogger {
 
         e.printStackTrace();
     }
+
+    public static void debug(Object message, Object... format) {
+        info("DEBUG> " + message.toString().formatted(format));
+    }
 }

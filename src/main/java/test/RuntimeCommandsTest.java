@@ -271,6 +271,7 @@ public final class RuntimeCommandsTest {
         registerTestCommand("pagegui", PlayerPageGUITest::test);
         registerTestCommand("displayHologram", DisplayHologramTest::test);
         registerTestCommand("guiRename", PlayerGUITest::test);
+        registerTestCommand("fakePlayer", FakePlayerTest::test);
 
         registerTestCommand("newItemBuilder", (player, args) -> {
             player.getInventory().addItem(new ItemBuilder(Material.IRON_BOOTS)
