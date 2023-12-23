@@ -20,10 +20,14 @@ final class FakePlayerTest {
         player.sendMessage("shown!");
 
         Runnables.runLater(() -> {
+            fake.setName("CHANGED NAME LOL!");
+        }, 40);
+
+        Runnables.runLater(() -> {
             fake.hide(player);
             fake2.hide(player);
             player.sendMessage("hid!");
-        }, 60);
+        }, 80);
     }
 
 }

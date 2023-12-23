@@ -192,6 +192,26 @@ public interface Human {
     void stopTalking();
 
     /**
+     * Sets the interaction delay in <b>millis</b>!
+     * <p>
+     * <b>Note</b> {@link NPCEntry} will override the interaction is applied.
+     *
+     * @param interactionDelayMillis - Interaction delay in millis.
+     */
+    HumanNPC setInteractionDelay(long interactionDelayMillis);
+
+    /**
+     * Sets the interaction delay in <b>ticks</b>!.
+     * <p>
+     * <b>Note</b> {@link NPCEntry} will override the interaction is applied.
+     *
+     * @param delayInTicks - Interaction delay in ticks.
+     */
+    default HumanNPC setInteractionDelayTick(int delayInTicks) {
+        return setInteractionDelay(delayInTicks * 50L);
+    }
+
+    /**
      * Returns maximum distance to the nearest player that NPC will look at.
      *
      * @return maximum distance to the nearest player that NPC will look at.

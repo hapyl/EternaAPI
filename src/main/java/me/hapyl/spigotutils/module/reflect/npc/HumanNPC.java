@@ -51,6 +51,7 @@ import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.NPC;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -70,7 +71,8 @@ import java.util.function.Function;
 
 /**
  * Allows to create <b>simple</b> player NPCs with support of clicks.
- * For complex NPCs use CitizensAPI
+ * <p>
+ * For complex NPCs use <a href="https://github.com/CitizensDev/CitizensAPI">CitizensAPI</a>!
  */
 @SuppressWarnings("unused")
 @TestedOn(version = Version.V1_20_2)
@@ -89,7 +91,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     private final UUID uuid;
     private final NPCResponse responses = new NPCResponse();
     private final NPCEquipment equipment;
-    private final Map<UUID, Long> interactedAt = new HashMap<>();
+    private final Map<Player, InteractionDelay> interactedAt = new HashMap<>();
     private final List<NPCEntry> entries = new ArrayList<>();
     private final int id;
     private final NPCPacketHandler packetHandler;
@@ -235,6 +237,9 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
         sendPacket(new PacketPlayOutEntityTeleport(human));
         syncText();
+
+        // Call "event"
+        showingTo.forEach(player -> onTeleport(player, location));
     }
 
     @Override
@@ -395,9 +400,9 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         if (!this.entries.isEmpty()) {
             final IntInt nextDelay = new IntInt();
             final IntInt i = new IntInt();
+
             for (final NPCEntry entry : this.entries) {
                 EternaPlugin.runTaskLater((task) -> {
-
                     if (!this.exists() || !player.isOnline() || stopTalking) {
                         stopTalking = false;
                         task.cancel();
@@ -415,8 +420,12 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
                 }, nextDelay.get());
                 nextDelay.addAndGet(entry.getDelay());
             }
-            this.interactionDelay = nextDelay.get() + 20L;
-            this.setInteractDelay(player);
+
+            setInteractDelay(player, nextDelay.get() + 20L);
+        }
+        // Only start interact delay if there are no entries, entries override the delay because yes
+        else {
+            setInteractDelay(player, interactionDelay);
         }
 
         // Progress TALK_TO_NPC
@@ -466,10 +475,9 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return responses;
     }
 
-    public void setInteractDelay(Player player) {
-        this.interactedAt.put(player.getUniqueId(), System.currentTimeMillis());
+    public void setInteractDelay(@Nonnull Player player, long delayMillis) {
+        this.interactedAt.put(player, new InteractionDelay(player, delayMillis));
     }
-
 
     @Override
     public boolean exists() {
@@ -499,13 +507,9 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return interactionDelay;
     }
 
+    @Override
     public HumanNPC setInteractionDelay(long interactionDelayMillis) {
         this.interactionDelay = interactionDelayMillis;
-        return this;
-    }
-
-    public HumanNPC setInteractionDelayTick(int delayInTicks) {
-        this.interactionDelay = delayInTicks * 50L;
         return this;
     }
 
@@ -904,6 +908,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         aboveHead.show(players);
 
         for (Player player : players) {
+            onSpawn(player);
             showVisibility(player);
         }
     }
@@ -984,6 +989,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             showingTo.remove(player);
             aboveHead.hide(player);
             packetHandler.sendPackets(player, NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
+            onDespawn(player);
         }
     }
 
@@ -1065,6 +1071,16 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
     }
 
+    protected boolean canInteract(@Nonnull Player player) {
+        final InteractionDelay delay = interactedAt.get(player);
+
+        if (delay == null) {
+            return true;
+        }
+
+        return delay.isOver();
+    }
+
     private String urlStringToString(String url) {
         StringBuilder text = new StringBuilder();
         try {
@@ -1093,12 +1109,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     private String getPrefix() {
         return this.chatPrefix;
-    }
-
-    private boolean canInteract(Player player) {
-        final long talkedAt = this.interactedAt.getOrDefault(player.getUniqueId(), 0L);
-        final long ticksToMillis = this.interactionDelay * 50L;
-        return System.currentTimeMillis() >= (talkedAt + ticksToMillis);
     }
 
     private String placeHold(String entry, Player player) {

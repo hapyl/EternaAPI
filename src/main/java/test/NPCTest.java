@@ -1,11 +1,16 @@
 package test;
 
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.reflect.npc.ClickType;
 import me.hapyl.spigotutils.module.reflect.npc.FlippedHumanNPC;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
+import javax.annotation.Nonnull;
 
 @RuntimeStaticTest
 final class NPCTest {
@@ -47,7 +52,27 @@ final class NPCTest {
             return;
         }
 
-        npc = new HumanNPC(player.getLocation(), player.getName(), player.getName());
+        npc = new HumanNPC(player.getLocation(), player.getName(), player.getName()) {
+            @Override
+            public void onClick(@Nonnull Player player, @Nonnull ClickType type) {
+                sendNpcMessage(player, "You clicked!");
+            }
+
+            @Override
+            public void onSpawn(@Nonnull Player player) {
+                EternaLogger.debug("spawned for " + player);
+            }
+
+            @Override
+            public void onDespawn(@Nonnull Player player) {
+                EternaLogger.debug("despawned for " + player);
+            }
+
+            @Override
+            public void onTeleport(@Nonnull Player player, @Nonnull Location location) {
+                EternaLogger.debug("teleported for " + player);
+            }
+        }.setInteractionDelayTick(20);
         npc.show(player);
 
         player.sendMessage(ChatColor.GREEN + "Created npc.");
