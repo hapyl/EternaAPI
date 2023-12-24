@@ -13,6 +13,15 @@ _Some classes are not mine and authors were credited._
 * Download the latest [ProtocolLib](https://github.com/dmulloy2/ProtocolLib) and put it in you plugins folder.
 * Download the latest [EternaAPI](https://github.com/hapyl/EternaAPI/releases) file put it to your plugins folder.
 * Add _depend_ or _softdepend_ to your plugin.yml.
+* Instantiate EternaAPI at onEnable():
+```java
+@Override
+public void onEnable() {
+    new EternaAPI(this);
+}
+```
+
+*As of now, it is <b>not neccessery</b> to instantiate the API at onEnable(), and all tasks and registries delegete to Eterna. But in the future, everything might migrate to per-plugin registries.*
 
 ### Maven
 
