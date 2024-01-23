@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +56,7 @@ public class Chat {
     public static final String ITALIC = new Chat(ChatColor.ITALIC).getColor();
     // Custom Colors
     public static final String GREEN_BOLD = new Chat(ChatColor.GREEN, ChatColor.BOLD).getColor();
+    public static final char ALTERNATE_COLOR_CHAR = '&';
     private final String color;
 
     private Chat(ChatColor... colors) {
@@ -110,9 +112,9 @@ public class Chat {
      * @return a formatted string with a given replacements.
      */
     @Nonnull
-    public static String format(String input, Object... replacements) {
+    public static String format(@Nonnull String input, @Nullable Object... replacements) {
         try {
-            String string = ChatColor.translateAlternateColorCodes('&', String.format(input, replacements));
+            String string = (replacements == null || replacements.length == 0) ? color(input) : color(input.formatted(replacements));
 
             // Parse color text if possible
             if (ColorBlockParser.canParse(string)) {
@@ -126,6 +128,16 @@ public class Chat {
 
             return ChatColor.DARK_RED + "Error parsing string! Check the console for details.";
         }
+    }
+
+    /**
+     * Colors the given string.
+     *
+     * @param string - String to color.
+     * @return the colored string.
+     */
+    public static String color(@Nonnull String string) {
+        return ChatColor.translateAlternateColorCodes(ALTERNATE_COLOR_CHAR, string);
     }
 
     /**
