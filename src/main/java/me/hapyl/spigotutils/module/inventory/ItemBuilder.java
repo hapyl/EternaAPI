@@ -201,7 +201,11 @@ public class ItemBuilder implements Cloneable {
     @Nonnull
     public ItemBuilder clone() {
         try {
-            return (ItemBuilder) super.clone();
+            final ItemBuilder cloned = (ItemBuilder) super.clone();
+
+            cloned.item.setItemMeta(item.getItemMeta());
+
+            return cloned;
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -1173,6 +1177,18 @@ public class ItemBuilder implements Cloneable {
     @Nullable
     public ItemMeta getMeta() {
         return item.getItemMeta();
+    }
+
+    @Nonnull
+    public ItemMeta getMetaOrThrow() {
+        // how in the world item meta can be null?
+        final ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) {
+            throw new NullPointerException("ItemMeta is null somehow!");
+        }
+
+        return meta;
     }
 
     /**
