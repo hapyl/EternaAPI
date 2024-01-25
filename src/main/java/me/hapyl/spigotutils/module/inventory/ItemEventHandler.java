@@ -7,63 +7,56 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import javax.annotation.Nonnull;
+
 public class ItemEventHandler {
 
-    public static final ItemEventHandler EMPTY = new ItemEventHandler();
-
     /**
-     * Create new instance of Event Handler.
-     * Keep in mind that item <b>MUST</b> have an ID for this to work.
+     * Called whenever a player clicked with this item.
      */
-    public ItemEventHandler() {
+    @Event
+    public void onClick(@Nonnull Player player, @Nonnull PlayerInteractEvent ev) {
     }
 
     /**
-     * Called whenever player clicked with this item.
+     * Called whenever a player right-clicked with this item.
      */
     @Event
-    public void onClick(Player player, PlayerInteractEvent ev) {
+    public void onRightClick(@Nonnull Player player, @Nonnull PlayerInteractEvent ev) {
     }
 
     /**
-     * Called whenever player right-clicked with this item.
+     * Called whenever a player left-clicked with this item.
      */
     @Event
-    public void onRightClick(Player player, PlayerInteractEvent ev) {
+    public void onLeftClick(@Nonnull Player player, @Nonnull PlayerInteractEvent ev) {
     }
 
     /**
-     * Called whenever player left-clicked with this item.
+     * Called whenever a player created a block while holding this item.
      */
     @Event
-    public void onLeftClick(Player player, PlayerInteractEvent ev) {
+    public void onBlockPlace(@Nonnull Player player, @Nonnull BlockPlaceEvent ev) {
     }
 
     /**
-     * Called whenever player created a block while holding this item.
+     * Called whenever a player breaks a block while holding this item.
      */
     @Event
-    public void onBlockPlace(Player player, BlockPlaceEvent ev) {
+    public void onBlockBreak(@Nonnull Player player, @Nonnull BlockBreakEvent ev) {
     }
 
     /**
-     * Called whenever player breaks a block while holding this item.
+     * Called whenever a player drops this item.
      */
     @Event
-    public void onBlockBreak(Player player, BlockBreakEvent ev) {
+    public void onItemDrop(@Nonnull Player player, @Nonnull PlayerDropItemEvent ev) {
     }
 
     /**
-     * Called whenever player drops this item.
+     * Called whenever a player steps on a pressure plate while holding this item.
      */
     @Event
-    public void onItemDrop(Player player, PlayerDropItemEvent ev) {
-    }
-
-    /**
-     * Called whenever player steps on a pressure plate while holding this item.
-     */
-    @Event
-    public void onPhysicalClick(Player player, PlayerInteractEvent ev) {
+    public void onPhysicalClick(@Nonnull Player player, @Nonnull PlayerInteractEvent ev) {
     }
 }

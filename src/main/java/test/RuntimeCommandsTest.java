@@ -390,15 +390,8 @@ public final class RuntimeCommandsTest {
             protected void execute(Player player, String[] args) {
                 final UUID uuid = player.getUniqueId();
 
-                if (!uuid.equals(HAPYL_UUID)) {
-                    if (uuid.equals(DIDEN_UUID) || player.getName().equalsIgnoreCase("DiDenPro")) {
-                        player.damage(10_000, null);
-                        PlayerLib.addEffect(player, PotionEffectType.DARKNESS, 60, 1);
-                        Chat.sendMessage(player, "&cNice try, idiot.");
-                        return;
-                    }
-
-                    Chat.sendMessage(player, "&cNice try.");
+                if (!uuid.equals(HAPYL_UUID) && !uuid.equals(DIDEN_UUID)) {
+                    Chat.sendMessage(player, "&4You're now allowed to use this.");
                     return;
                 }
 

@@ -3,7 +3,6 @@ package me.hapyl.spigotutils.module.inventory;
 import com.google.common.collect.*;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import jline.internal.Urls;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.ForceLowercase;
@@ -40,35 +39,32 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.PatternSyntaxException;
 
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
  */
-public class ItemBuilder {
+public class ItemBuilder implements Cloneable {
 
     public static final int DEFAULT_SMART_SPLIT_CHAR_LIMIT = 35;
     public static final String NEW_LINE_SEPARATOR = "__";
     public static final char MANUAL_SPLIT_CHAR = '_';
     public static final String DEFAULT_COLOR = "&7";
+
     private static final String PLUGIN_PATH = "ItemBuilderId";
-    private final static String URL_TEXTURE_FORMAT = "{textures: {SKIN: {url: \"%s\"}}}";
-    private final static String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
-    protected static Map<String, ItemBuilder> itemsWithEvents = new HashMap<>();
+    private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
+
+    protected static Map<String, ItemFunctionList> registeredFunctions = Maps.newHashMap();
+
     private final String id;
-    private final Set<ItemAction> functions;
+
     protected ItemStack item;
-    private int cd;
-    private Predicate<Player> predicate;
-    private String error;
-    private boolean allowInventoryClick;
-    private boolean cancelClicks;
     private String nativeNbt;
-    private ItemEventHandler handler;
+    private ItemFunctionList functions;
 
     /**
      * Creates a new ItemBuilder from material.
@@ -108,31 +104,37 @@ public class ItemBuilder {
     public ItemBuilder(@Nonnull ItemStack stack, @Nullable @ForceLowercase String id) {
         this.item = stack;
         this.id = id;
-        this.functions = new HashSet<>();
-        this.allowInventoryClick = false;
-        this.cancelClicks = true;
         this.nativeNbt = "";
-        this.handler = ItemEventHandler.EMPTY;
-    }
-
-    /**
-     * Gets the current EventHandler for this builder, cannot be null.
-     *
-     * @return the current EventHandler for this builder.
-     */
-    @Nonnull
-    public ItemEventHandler getEventHandler() {
-        return handler;
     }
 
     /**
      * Sets a new event handler.
      *
      * @param handler - New event handler.
+     * @throws IllegalStateException if item has no Id.
      */
     public final ItemBuilder setEventHandler(@Nonnull ItemEventHandler handler) {
-        this.handler = handler;
+        getFunctions().handler = handler;
         return this;
+    }
+
+    /**
+     * Gets the {@link ItemFunctionList} for this builder.
+     *
+     * @return the {@link ItemFunctionList} list.
+     * @throws IllegalArgumentException if this item has no Id.
+     */
+    @Nonnull
+    public ItemFunctionList getFunctions() {
+        if (functions == null) {
+            if (id == null) {
+                throw new IllegalStateException("Id is not set, cannot get the function list!");
+            }
+
+            functions = new ItemFunctionList(id);
+        }
+
+        return functions;
     }
 
     /**
@@ -192,41 +194,31 @@ public class ItemBuilder {
 
     /**
      * Creates a copy of this builder.
-     * Note that cloning builders with ID are not supported!
      *
      * @return a copy of this builder.
-     * @throws UnsupportedOperationException if builder has ID.
      */
     @Override
-    @Nullable
+    @Nonnull
     public ItemBuilder clone() {
         try {
-            final ItemBuilder clone = (ItemBuilder) super.clone();
-            if (!this.id.isEmpty()) {
-                throw new UnsupportedOperationException("Clone does not support ID's!");
-            }
-            return new ItemBuilder(this.item).setItemMeta(getMeta());
+            return (ItemBuilder) super.clone();
         } catch (Exception e) {
-            return null;
+            throw new Error(e);
         }
-    }
-
-    /**
-     * Returns true if click events from inventory are allowed, false otherwise.
-     *
-     * @return true if click events from inventory are allowed, false otherwise.
-     */
-    public boolean isAllowInventoryClick() {
-        return allowInventoryClick;
     }
 
     /**
      * Sets if click events from inventory are allowed.
      *
      * @param allowInventoryClick - New value.
+     * @see #addFunction(ItemFunction)
+     * @deprecated allow inventory clicks is not per-functions
      */
+    @Deprecated
     public ItemBuilder setAllowInventoryClick(boolean allowInventoryClick) {
-        this.allowInventoryClick = allowInventoryClick;
+        final ItemFunctionList functions = getFunctions();
+
+        functions.first().setAllowInventoryClick(allowInventoryClick);
         return this;
     }
 
@@ -305,7 +297,10 @@ public class ItemBuilder {
      * Sets the cooldown for click events.
      *
      * @param ticks - Cooldown in ticks.
+     * @see #addFunction(ItemFunction)
+     * @deprecated Cooldowns are now per-function.
      */
+    @Deprecated
     public ItemBuilder withCooldown(int ticks) {
         return withCooldown(ticks, null);
     }
@@ -315,22 +310,30 @@ public class ItemBuilder {
      *
      * @param ticks     - Cooldown in ticks.
      * @param predicate - Predicate of the cooldown.
+     * @see #addFunction(ItemFunction)
+     * @deprecated Cooldowns are now per-function.
      */
+    @Deprecated
     public ItemBuilder withCooldown(int ticks, @Nullable Predicate<Player> predicate) {
         return withCooldown(ticks, predicate, "&cCannot use that!");
     }
 
     /**
-     * Sets the cooldown for click events with a predicate and error message.
+     * Sets the cooldown for the <b>first</b> {@link ItemFunction}.
      *
      * @param ticks        - Cooldown in ticks.
      * @param predicate    - Predicate of the cooldown.
      * @param errorMessage - Error message if predicate fails.
+     * @see #addFunction(ItemFunction)
+     * @deprecated Cooldowns are now per-function.
      */
+    @Deprecated
     public ItemBuilder withCooldown(int ticks, @Nullable Predicate<Player> predicate, @Nonnull String errorMessage) {
-        this.predicate = predicate;
-        this.cd = ticks;
-        this.error = errorMessage;
+        final ItemFunction function = getFunctions().first();
+
+        function.setCd(ticks);
+        function.setPredicate(predicate);
+        function.setErrorMessage(errorMessage);
         return this;
     }
 
@@ -338,23 +341,35 @@ public class ItemBuilder {
      * Removes all click events.
      */
     public ItemBuilder removeClickEvent() {
-        functions.clear();
+        final ItemFunctionList functions = getFunctions();
+
+        functions.handler = null;
+        functions.clearFunctions();
+
         return this;
     }
 
     /**
      * Adds a click event.
      *
-     * @param consumer - Click action.
+     * @param runnable - Runnable.
      * @param actions  - Allowed click types.
      * @throws IndexOutOfBoundsException if there are no actions.
      */
-    public ItemBuilder addClickEvent(@Nonnull Consumer<Player> consumer, @Range(min = 1, throwsError = true) @Nonnull Action... actions) {
+    public ItemBuilder addClickEvent(@Nonnull Consumer<Player> runnable, @Range(min = 1, throwsError = true) @Nonnull Action... actions) {
         if (actions.length < 1) {
-            throw new IndexOutOfBoundsException("This requires at least 1 action.");
+            throw new IndexOutOfBoundsException("This requires at least one action.");
         }
 
-        functions.add(new ItemAction(consumer, actions));
+        final ItemFunctionList functions = getFunctions();
+        final ItemFunction function = new ItemFunction(id, runnable);
+
+        for (Action action : actions) {
+            function.accept(action);
+        }
+
+        functions.addFunction(function);
+
         return this;
     }
 
@@ -365,6 +380,43 @@ public class ItemBuilder {
      */
     public ItemBuilder addClickEvent(@Nonnull Consumer<Player> consumer) {
         return addClickEvent(consumer, Action.RIGHT_CLICK_BLOCK, Action.RIGHT_CLICK_AIR);
+    }
+
+    /**
+     * Adds an {@link ItemFunction}.
+     *
+     * @param function - function.
+     */
+    public ItemBuilder addFunction(@Nonnull ItemFunction function) {
+        getFunctions().addFunction(function);
+        return this;
+    }
+
+    /**
+     * Adds an {@link ItemFunction}.
+     *
+     * @param function - functions.
+     */
+    public ItemBuilder addFunction(@Nonnull Function<String, ItemFunction> function) {
+        final ItemFunctionList functions = getFunctions();
+        final ItemFunction fn = function.apply(id);
+
+        functions.addFunction(fn);
+        return this;
+    }
+
+    /**
+     * Adds and returns a new {@link ItemFunction}.
+     *
+     * @param consumer - Action.
+     */
+    @Nonnull
+    public ItemFunction addFunction(@Nonnull Consumer<Player> consumer) {
+        final ItemFunctionList functions = getFunctions();
+        final ItemFunction function = new ItemFunction(id, consumer);
+
+        functions.addFunction(function);
+        return function;
     }
 
     /**
@@ -897,13 +949,25 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets items skull owner from a minecraft username.
+     * Sets items skull owner from a Minecraft username.
      *
      * @param owner - Skull owner.
      */
-    @Deprecated
     public ItemBuilder setSkullOwner(@Nonnull String owner) {
-        return modifyMeta(SkullMeta.class, meta -> meta.setOwner(owner));
+        return setSkullOwner(owner, null);
+    }
+
+    /**
+     * Sets the item skull owner from a Minecraft username with a sound.
+     *
+     * @param owner - Owner.
+     * @param sound - Sound
+     */
+    public ItemBuilder setSkullOwner(@Nonnull String owner, @Nullable Sound sound) {
+        return modifyMeta(SkullMeta.class, meta -> {
+            meta.setOwner(owner);
+            meta.setNoteBlockSound(sound != null ? sound.getKey() : null);
+        });
     }
 
     /**
@@ -1030,30 +1094,18 @@ public class ItemBuilder {
     /**
      * Finalizes item meta and returns an ItemStack.
      *
-     * @param overrideIfExists - if true, item has ID and item with that ID is already
-     *                         registered it will override the stored item, else error
-     *                         will be throws if 2 conditions were met.
+     * @param overrideFunctions - if true and the {@link ItemFunctionList} is already registered with this {@link ItemBuilder} {@link #id}, it will override it.
      * @return finalized ItemStack.
      */
-    public ItemStack build(boolean overrideIfExists) {
+    @Nonnull
+    public ItemStack build(boolean overrideFunctions) {
         if (id != null) {
-            if (isIdRegistered(id) && !overrideIfExists) {
-                EternaLogger.error(
-                        "Could not build ItemBuilder! ID \"%s\" is already registered. Use \"toItemStack\" if you wish to clone it or \"build(true)\" to override existing item!",
-                        getType()
-                );
-                return item;
-            }
-
+            // Always store Id
             modifyMeta(meta -> NBT.setValue(meta, PLUGIN_PATH, NBTType.STR, id));
-            itemsWithEvents.put(id, this);
-        }
-        else if (!functions.isEmpty()) {
-            EternaLogger.error(
-                    "Could not build ItemBuilder! ID is required to add click events. \"new ItemBuilder(%s, ID)\"",
-                    getType()
-            );
-            return item;
+
+            if (functions != null && (!isIdRegistered(id) || overrideFunctions)) {
+                registeredFunctions.put(id, functions);
+            }
         }
 
         //this.item.setItemMeta(getMetaNonNull());
@@ -1196,22 +1248,22 @@ public class ItemBuilder {
      * @return predicate error.
      */
     public String getError() {
-        return error;
+        return getFunctions().first().getErrorMessage();
     }
 
     /**
-     * Returns original item without meta applied.
+     * Returns original item without the meta applied.
      *
-     * @return original item without meta applied.
+     * @return original item without the meta applied.
      */
     public ItemStack getItem() {
         return item;
     }
 
     /**
-     * Returns repair cost on anvil of this item; or 0 if not repairable.
+     * Returns repair cost on anvil of this item; or <code>0</code> if not repairable.
      *
-     * @return repair cost on anvil of this item; or 0 if not repairable.
+     * @return repair cost on anvil of this item; or <code>0</code> if not repairable.
      */
     public int getRepairCost() {
         final ItemMeta meta = getMeta();
@@ -1422,41 +1474,40 @@ public class ItemBuilder {
     }
 
     /**
-     * Returns item functions. (Click functions)
-     *
-     * @return item functions. (Click functions)
-     */
-    @Nonnull
-    public Set<ItemAction> getFunctions() {
-        return functions;
-    }
-
-    /**
      * Gets the cooldown of the item.
      *
      * @return the cooldown of the item.
+     * @see #addFunction(ItemFunction)
+     * @deprecated cooldowns are now per-functions
      */
+    @Deprecated
     public int getCd() {
-        return cd;
+        return getFunctions().first().getCd();
     }
 
     /**
      * Gets the item predicate for function.
      *
      * @return item predicate for function.
+     * @see #addFunction(ItemFunction)
+     * @deprecated predicates are now per-functions
      */
+    @Deprecated
     @Nullable
     public Predicate<Player> getPredicate() {
-        return predicate;
+        return getFunctions().first().getPredicate();
     }
 
     /**
      * Returns true if item is canceling clicks.
      *
      * @return true if item is canceling clicks.
+     * @see #addFunction(ItemFunction)
+     * @deprecated cancel clicks is now per-functions
      */
+    @Deprecated
     public boolean isCancelClicks() {
-        return cancelClicks;
+        return getFunctions().first().isCancelClicks;
     }
 
     /**
@@ -1464,9 +1515,12 @@ public class ItemBuilder {
      * Set to false if using custom checks for click.
      *
      * @param cancelClicks - New value.
+     * @see #addFunction(ItemFunction)
+     * @deprecated cancel clicks is now per-functions
      */
+    @Deprecated
     public ItemBuilder setCancelClicks(boolean cancelClicks) {
-        this.cancelClicks = cancelClicks;
+        getFunctions().first().isCancelClicks = cancelClicks;
         return this;
     }
 
@@ -1496,19 +1550,37 @@ public class ItemBuilder {
         return modifyMeta(ArmorMeta.class, meta -> meta.setTrim(new ArmorTrim(material, pattern)));
     }
 
-    protected <T extends ItemMeta> ItemBuilder modifyMeta(Class<T> clazz, Consumer<T> t) {
-        return modifyMeta(clazz, null, t);
-    }
-
-    protected ItemBuilder modifyMeta(Consumer<ItemMeta> t) {
+    /**
+     * Modifies the {@link ItemMeta} and applies it to the item.
+     *
+     * @param consumer - Consumer.
+     */
+    public ItemBuilder modifyMeta(@Nonnull Consumer<ItemMeta> consumer) {
         final ItemMeta meta = item.getItemMeta();
-        t.accept(meta);
+        consumer.accept(meta);
 
         item.setItemMeta(meta);
         return this;
     }
 
-    protected <T extends ItemMeta> ItemBuilder modifyMeta(Class<T> clazz, Material material, Consumer<T> t) {
+    /**
+     * Modifies the {@link ItemMeta} of the given class and applies it to the item.
+     *
+     * @param clazz    - Meta class.
+     * @param consumer - Consumer.
+     */
+    public <T extends ItemMeta> ItemBuilder modifyMeta(@Nonnull Class<T> clazz, @Nonnull Consumer<T> consumer) {
+        return modifyMeta(clazz, null, consumer);
+    }
+
+    /**
+     * Sets the item {@link Material}, modifies the {@link ItemMeta} of the given class and applies it to the item.
+     *
+     * @param clazz    - Meta class.
+     * @param material - Material.
+     * @param consumer - Consumer.
+     */
+    public <T extends ItemMeta> ItemBuilder modifyMeta(@Nonnull Class<T> clazz, @Nullable Material material, @Nonnull Consumer<T> consumer) {
         if (material != null) {
             setType(material);
         }
@@ -1518,7 +1590,7 @@ public class ItemBuilder {
         if (clazz.isInstance(meta)) {
             final T cast = clazz.cast(meta);
 
-            t.accept(cast);
+            consumer.accept(cast);
             item.setItemMeta(cast);
         }
 
@@ -1648,57 +1720,46 @@ public class ItemBuilder {
      * @param id - Id.
      * @return the item by its ID; or null if it doesn't exist.
      */
-    @Nullable
-    public static ItemStack getItemByID(@Nonnull @ForceLowercase String id) {
-        if (itemsWithEvents.containsKey(id)) {
-            return itemsWithEvents.get(id).item;
-        }
 
-        return null;
-    }
 
     /**
-     * Gets a copy of IDs that is registered in the builder.
+     * Gets the {@link ItemFunctionList} by the given Id; or null if none.
      *
-     * @return a copy of IDs that are registered in the builder.
+     * @param id - Id.
+     * @return the {@link ItemFunctionList} by the given Id; or null if none.
      */
-    public static Set<String> getRegisteredIDs() {
-        return Sets.newHashSet(itemsWithEvents.keySet());
+    @Nullable
+    public static ItemFunctionList getFunctionListById(@Nonnull @ForceLowercase String id) {
+        return registeredFunctions.get(id);
     }
 
     /**
-     * Gets item's ID if it is present; null otherwise.
+     * Gets a copy of registered {@link ItemFunctionList} Ids.
+     *
+     * @return a copy of registered {@link ItemFunctionList} Ids.
+     */
+    @Nonnull
+    public static Set<String> getRegisteredIDs() {
+        return Sets.newHashSet(registeredFunctions.keySet());
+    }
+
+    /**
+     * Gets the {@link ItemStack} id; or empty string.
+     * The id is stored in {@link #PLUGIN_PATH}.
      *
      * @param item - Item to get ID from.
-     * @return item's ID if it is present; null otherwise.
+     * @return the {@link ItemStack} id; or empty string.
      */
-    @Nullable
+    @Nonnull
     public static String getItemID(@Nonnull ItemStack item) {
         final ItemMeta meta = item.getItemMeta();
 
         if (meta == null) {
-            return null;
+            return "";
         }
 
         final String id = NBT.getString(meta, PLUGIN_PATH, "");
         return (id.isEmpty() || id.isBlank()) ? "" : id;
-    }
-
-    /**
-     * Gets the builder that this item ID is linked to; or null if there is no ID.
-     *
-     * @param item - Item Stack.
-     * @return the builder that this item ID is linked to; or null if there is no ID.
-     */
-    @Nullable
-    public static ItemBuilder getBuilderFromItem(@Nonnull ItemStack item) {
-        final String id = getItemID(item);
-
-        if (id == null) {
-            return null;
-        }
-
-        return itemsWithEvents.get(id);
     }
 
     /**
@@ -1918,10 +1979,6 @@ public class ItemBuilder {
         return Chat.format(string, format);
     }
 
-    protected static void clear() {
-        itemsWithEvents.clear();
-    }
-
     private static boolean isManualSplit(char[] chars, int index) {
         return (index < chars.length && index + 1 < chars.length)
                 && (chars[index] == MANUAL_SPLIT_CHAR && chars[index + 1] == MANUAL_SPLIT_CHAR);
@@ -1932,7 +1989,7 @@ public class ItemBuilder {
     }
 
     private static boolean isIdRegistered(String id) {
-        return id != null && itemsWithEvents.containsKey(id);
+        return id != null && registeredFunctions.containsKey(id);
     }
 
     private static boolean isManualSplitChar(char c) {
