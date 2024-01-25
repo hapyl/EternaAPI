@@ -81,6 +81,8 @@ final class ItemBuilderTest {
                         player.sendMessage("physical");
                     }
                 }).build());
+
+        inventory.addItem(ITEM_TEST.clone().removeLore().build());
     }
 
 }
