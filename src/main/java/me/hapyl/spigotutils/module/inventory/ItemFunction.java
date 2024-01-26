@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -124,6 +125,11 @@ public class ItemFunction {
 
     public ItemFunction accept(@Nonnull Action action) {
         actions.add(action);
+        return this;
+    }
+
+    public ItemFunction acceptAll(@Nonnull Action... actions) {
+        this.actions.addAll(Arrays.asList(actions));
         return this;
     }
 
