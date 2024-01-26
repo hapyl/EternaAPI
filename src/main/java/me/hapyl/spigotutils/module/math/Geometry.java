@@ -1,8 +1,10 @@
 package me.hapyl.spigotutils.module.math;
 
 import com.google.common.collect.Lists;
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.AsyncSafe;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.math.geometry.Drawable;
 import me.hapyl.spigotutils.module.math.geometry.Quality;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
@@ -19,6 +21,8 @@ import java.util.Objects;
 
 /**
  * A geometry class that allows to draw simple stuff.
+ * <p>
+ * Most of this stuff is from <a href="https://www.spigotmc.org/members/finnbon.37739/">finnbon</a>
  */
 public class Geometry {
 
@@ -220,6 +224,8 @@ public class Geometry {
 
     /**
      * Draws a polygon around the center.
+     * <br>
+     * <a href="https://www.spigotmc.org/threads/polygons.158678/">Learn why and how here.</a>
      *
      * @param center - Center of polygon.
      * @param points - How many points polygon will have.
@@ -227,11 +233,13 @@ public class Geometry {
      * @param draw   - Drawable.
      * @throws NullPointerException     if center or draw is null.
      * @throws IllegalArgumentException if radius is negative.
+     * @throws IllegalArgumentException if points are <= 3
      */
-    public static void drawPolygon(@Nonnull Location center, int points, double radius, @Nonnull Drawable draw) {
+    public static void drawPolygon(@Nonnull Location center, @Range(min = 3) int points, double radius, @Nonnull Drawable draw) {
         Validate.notNull(center);
         Validate.notNull(draw);
         Validate.isTrue(radius > 0, "radius must be positive");
+        Validate.isTrue(points > 3, "polygon requires at least four points");
 
         for (int i = 0; i < points; i++) {
             double angle = 360.0d / points * i;
@@ -240,25 +248,28 @@ public class Geometry {
             angle = Math.toRadians(angle);
             nextAngle = Math.toRadians(nextAngle);
 
-            double x = Math.cos(angle);
-            double z = Math.sin(angle);
-            double nextX = Math.cos(nextAngle);
-            double nextZ = Math.sin(nextAngle);
+            final double x = Math.cos(angle) * radius;
+            final double z = Math.sin(angle) * radius;
+            final double nextX = Math.cos(nextAngle) * radius;
+            final double nextZ = Math.sin(nextAngle) * radius;
 
-            x *= radius;
-            z *= radius;
-            nextX *= radius;
-            nextZ *= radius;
+            final double deltaX = nextX - x;
+            final double deltaZ = nextZ - z;
+            final double distance = Math.sqrt(square(deltaX - x) + square(deltaZ - z)) / radius;
 
-            double deltaX = nextX - x;
-            double deltaZ = nextZ - z;
-            double distance = Math.sqrt(((deltaX - x) * (deltaX - x)) + ((deltaZ - z) * (deltaZ - z)));
-            for (double d = 0.0d; d < distance - (distance + 1) * 0.1; d += 0.1d) {
-                center.add(x + deltaX * d, 0, z + deltaZ * d);
+            for (double d = 0.0d; d < (distance - (2.0d - (2.0d * ((double) points / 10.0d)))); d += 0.1d) {
+                final double finalX = x + deltaX * d;
+                final double finalZ = z + deltaZ * d;
+
+                center.add(finalX, 0, finalZ);
                 draw.draw(center);
-                center.subtract(x + deltaX * d, 0, z + deltaZ * d);
+                center.subtract(finalX, 0, finalZ);
             }
         }
+    }
+
+    public static double square(double d) {
+        return d * d;
     }
 
     /**
