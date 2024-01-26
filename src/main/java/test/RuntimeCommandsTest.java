@@ -16,7 +16,9 @@ import me.hapyl.spigotutils.module.command.SimplePlayerAdminCommand;
 import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.entity.Rope;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
+import me.hapyl.spigotutils.module.math.Geometry;
 import me.hapyl.spigotutils.module.math.Numbers;
+import me.hapyl.spigotutils.module.math.geometry.WorldParticle;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.player.PlayerLib;
@@ -30,6 +32,7 @@ import me.hapyl.spigotutils.module.reflect.npc.Human;
 import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import me.hapyl.spigotutils.module.util.Padding;
 import me.hapyl.spigotutils.module.util.Runnables;
+import me.hapyl.spigotutils.module.util.Validate;
 import me.hapyl.spigotutils.module.util.WeightedCollection;
 import net.md_5.bungee.api.ChatColor;
 import net.minecraft.server.level.EntityPlayer;
@@ -39,6 +42,7 @@ import net.minecraft.world.entity.npc.EntityVillager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
@@ -379,8 +383,15 @@ public final class RuntimeCommandsTest {
         cdCommand.setCooldownTick(60);
         processor.registerCommand(cdCommand);
 
-        registerTestCommand("ComputeModule", (player, args) -> {
+        registerTestCommand("computeModule", (player, args) -> {
             ComputeTest.test(player);
+        });
+
+        registerTestCommand("drawPolygon", (player, args) -> {
+            final int point = Validate.getInt(args[0]);
+            final double distance = Validate.getDouble(args[1]);
+
+            Geometry.drawPolygon(player.getLocation(), point, distance, new WorldParticle(Particle.FLAME));
         });
     }
 
