@@ -113,7 +113,7 @@ public class DisplayEntity implements Iterable<Display>, IDisplay {
 
     @Override
     public void setTeleportDuration(int duration) {
-        head.setTeleportDuration(duration);
+        forEach(display -> display.setTeleportDuration(duration));
     }
 
     @Override
