@@ -968,6 +968,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void remove() {
+        remove0();
+        EternaRegistry.getNpcRegistry().remove(getId());
+    }
+
+    public void remove0() {
         this.alive = false;
         if (this.sitEntity != null) {
             Reflect.destroyEntity(this.sitEntity, getPlayers());
@@ -975,7 +980,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         this.hide();
         this.deleteTeam();
         this.showingTo.clear();
-        EternaRegistry.getNpcRegistry().remove(getId());
     }
 
     @Override

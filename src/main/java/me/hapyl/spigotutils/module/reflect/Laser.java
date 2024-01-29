@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.reflect;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.entity.Entities;
+import me.hapyl.spigotutils.module.entity.packet.NMSEntityType;
 import me.hapyl.spigotutils.module.reflect.packet.Packets;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import net.minecraft.world.entity.EntityLiving;
@@ -94,10 +95,10 @@ public class Laser {
             return;
         }
 
-        guardian = new EntityGuardian(Entities.NMS.GUARDIAN, Reflect.getMinecraftWorld(this.start.getWorld()));
+        guardian = new EntityGuardian(NMSEntityType.GUARDIAN, Reflect.getMinecraftWorld(this.start.getWorld()));
         Reflect.setEntityLocation(guardian, start);
 
-        squid = new EntitySquid(Entities.NMS.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
+        squid = new EntitySquid(NMSEntityType.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
         Reflect.setEntityLocation(squid, end);
     }
 

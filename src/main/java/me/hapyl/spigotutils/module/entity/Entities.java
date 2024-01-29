@@ -5,24 +5,21 @@ import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Validate;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.animal.EntitySquid;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
-import net.minecraft.world.entity.monster.EntityGuardian;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.Consumer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
- * This class allows to summon entities easier
+ * This class allows summoning entities easier
  * and saves them into a hash set. Unless set not to.
  *
  * @param <T> - Type of the entity.
@@ -30,22 +27,6 @@ import java.util.Set;
  */
 @SuppressWarnings("unused" /*utility class*/)
 public final class Entities<T extends Entity> {
-
-    public static class NMS {
-
-        public static final EntityTypes<EntityGuardian> GUARDIAN = EntityTypes.V;
-        public static final EntityTypes<EntitySquid> SQUID = EntityTypes.aT;
-        public static final EntityTypes<EntityArmorStand> ARMOR_STAND = EntityTypes.d;
-
-    }
-
-    private static final EternaPlugin ETERNA_PLUGIN = EternaPlugin.getPlugin();
-
-    // Saved all spawned entities per plugin.
-    private static final Map<JavaPlugin, Set<Entity>> spawnedByPlugin = Maps.newConcurrentMap();
-
-    // All types by name.
-    private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
 
     public static final Entities<ExperienceOrb> EXPERIENCE_ORB = new Entities<>(ExperienceOrb.class);
     public static final Entities<AreaEffectCloud> AREA_EFFECT_CLOUD = new Entities<>(AreaEffectCloud.class);
@@ -158,11 +139,11 @@ public final class Entities<T extends Entity> {
     public static final Entities<Frog> FROG = new Entities<>(Frog.class);
     public static final Entities<Tadpole> TADPOLE = new Entities<>(Tadpole.class);
     public static final Entities<Warden> WARDEN = new Entities<>(Warden.class);
-    @Experimental public static final Entities<Camel> CAMEL = new Entities<>(Camel.class);
+    public static final Entities<Camel> CAMEL = new Entities<>(Camel.class);
     public static final Entities<BlockDisplay> BLOCK_DISPLAY = new Entities<>(BlockDisplay.class);
     public static final Entities<Interaction> INTERACTION = new Entities<>(Interaction.class);
     public static final Entities<ItemDisplay> ITEM_DISPLAY = new Entities<>(ItemDisplay.class);
-    @Experimental public static final Entities<Sniffer> SNIFFER = new Entities<>(Sniffer.class);
+    public static final Entities<Sniffer> SNIFFER = new Entities<>(Sniffer.class);
     public static final Entities<TextDisplay> TEXT_DISPLAY = new Entities<>(TextDisplay.class);
 
     // custom entities with root consumer
@@ -173,6 +154,14 @@ public final class Entities<T extends Entity> {
         self.setInvisible(true);
         self.setSmall(true);
     });
+
+    private static final EternaPlugin ETERNA_PLUGIN = EternaPlugin.getPlugin();
+
+    // Saved all spawned entities per plugin.
+    private static final Map<JavaPlugin, Set<Entity>> spawnedByPlugin = Maps.newConcurrentMap();
+
+    // All types by name.
+    private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
 
     private final Class<T> entityClass;
     private final Consumer<T> rootConsumer;
@@ -194,7 +183,8 @@ public final class Entities<T extends Entity> {
      * @return spawned entity.
      * @throws NullPointerException if location's world is null
      */
-    public T spawn(Location location) {
+    @Nonnull
+    public T spawn(@Nonnull Location location) {
         return this.spawn(location, null);
     }
 
@@ -206,7 +196,8 @@ public final class Entities<T extends Entity> {
      * @return spawned entity.
      * @throws NullPointerException if location's world is null.
      */
-    public T spawn(Location location, boolean cache) {
+    @Nonnull
+    public T spawn(@Nonnull Location location, boolean cache) {
         return spawn(location, null, cache);
     }
 
@@ -218,7 +209,8 @@ public final class Entities<T extends Entity> {
      * @return spawned entity.
      * @throws NullPointerException if location's world is null
      */
-    public T spawn(Location location, @Nullable Consumer<T> beforeSpawn) {
+    @Nonnull
+    public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn) {
         return spawn(location, beforeSpawn, true);
     }
 
@@ -231,7 +223,8 @@ public final class Entities<T extends Entity> {
      * @return spawned entity.
      * @throws NullPointerException if location's world is null
      */
-    public T spawn(Location location, @Nullable Consumer<T> beforeSpawn, boolean cache) {
+    @Nonnull
+    public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn, boolean cache) {
         return spawn(location, beforeSpawn, cache ? ETERNA_PLUGIN : null);
     }
 
@@ -244,8 +237,10 @@ public final class Entities<T extends Entity> {
      * @return spawned entity.
      * @throws NullPointerException if location's world is null
      */
-    public T spawn(Location location, @Nullable Consumer<T> beforeSpawn, @Nullable JavaPlugin plugin) {
+    @Nonnull
+    public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn, @Nullable JavaPlugin plugin) {
         Validate.notNull(location.getWorld(), "world cannot be null");
+
         final T entity = location.getWorld().spawn(location, this.entityClass, self -> {
             Nulls.runIfNotNull(rootConsumer, r -> r.accept(self));
             Nulls.runIfNotNull(beforeSpawn, r -> r.accept(self));
@@ -273,11 +268,10 @@ public final class Entities<T extends Entity> {
      *
      * @param plugin - plugin to kill spawned entities for.
      */
-    public static void killSpawned(JavaPlugin plugin) {
+    public static void killSpawned(@Nonnull JavaPlugin plugin) {
         final Set<Entity> set = getSpawned(plugin);
-        for (Entity entity : set) {
-            entity.remove();
-        }
+
+        set.forEach(Entity::remove);
         set.clear();
     }
 
@@ -302,12 +296,8 @@ public final class Entities<T extends Entity> {
      * @param plugin - plugin to get spawned entities for.
      * @return set of spawned entities.
      */
-    public static Set<Entity> getSpawned(JavaPlugin plugin) {
+    public static Set<Entity> getSpawned(@Nonnull JavaPlugin plugin) {
         return spawnedByPlugin.computeIfAbsent(plugin, s -> Sets.newHashSet());
-    }
-
-    private static void addSpawned(JavaPlugin plugin, Entity entity) {
-        getSpawned(plugin).add(entity);
     }
 
     /**
@@ -317,8 +307,12 @@ public final class Entities<T extends Entity> {
      * @return entity or null if not found.
      */
     @Nullable
-    public static Entities<? extends Entity> byName(String name) {
+    public static Entities<? extends Entity> byName(@Nonnull String name) {
         return byName.getOrDefault(name.toLowerCase(Locale.ROOT), null);
+    }
+
+    private static void addSpawned(JavaPlugin plugin, Entity entity) {
+        getSpawned(plugin).add(entity);
     }
 
 

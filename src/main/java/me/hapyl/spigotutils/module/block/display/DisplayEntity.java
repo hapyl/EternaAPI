@@ -1,9 +1,12 @@
 package me.hapyl.spigotutils.module.block.display;
 
 import com.google.common.collect.Lists;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
+import org.bukkit.util.Transformation;
+import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,7 +18,7 @@ import java.util.function.Consumer;
  * Represents a display entity.
  * An entity consists of a head (always present) and children.
  */
-public class DisplayEntity implements Iterable<Display> {
+public class DisplayEntity implements Iterable<Display>, IDisplay {
 
     private final BlockDisplay head;
     private final List<Display> children;
@@ -71,9 +74,139 @@ public class DisplayEntity implements Iterable<Display> {
      *
      * @return an iterator.
      */
+    @Nonnull
     @Override
     public Iterator<Display> iterator() {
         return children.iterator();
+    }
+
+    @Nonnull
+    @Override
+    public Transformation getTransformation() {
+        return head.getTransformation();
+    }
+
+    @Override
+    public void setTransformation(@Nonnull Transformation transformation) {
+        head.setTransformation(transformation);
+    }
+
+    @Override
+    public void setTransformationMatrix(@Nonnull Matrix4f transformationMatrix) {
+        head.setTransformationMatrix(transformationMatrix);
+    }
+
+    @Override
+    public int getInterpolationDuration() {
+        return head.getInterpolationDuration();
+    }
+
+    @Override
+    public void setInterpolationDuration(int duration) {
+        head.setInterpolationDuration(duration);
+    }
+
+    @Override
+    public int getTeleportDuration() {
+        return head.getTeleportDuration();
+    }
+
+    @Override
+    public void setTeleportDuration(int duration) {
+        head.setTeleportDuration(duration);
+    }
+
+    @Override
+    public float getViewRange() {
+        return head.getViewRange();
+    }
+
+    @Override
+    public void setViewRange(float range) {
+        forEach(display -> display.setViewRange(range));
+    }
+
+    @Override
+    public float getShadowRadius() {
+        return head.getShadowRadius();
+    }
+
+    @Override
+    public void setShadowRadius(float radius) {
+        forEach(display -> display.setShadowRadius(radius));
+    }
+
+    @Override
+    public float getShadowStrength() {
+        return head.getShadowStrength();
+    }
+
+    @Override
+    public void setShadowStrength(float strength) {
+        forEach(display -> display.setShadowStrength(strength));
+    }
+
+    @Override
+    public float getDisplayWidth() {
+        return head.getDisplayWidth();
+    }
+
+    @Override
+    public void setDisplayWidth(float width) {
+        forEach(display -> display.setDisplayWidth(width));
+    }
+
+    @Override
+    public float getDisplayHeight() {
+        return head.getDisplayHeight();
+    }
+
+    @Override
+    public void setDisplayHeight(float height) {
+        forEach(display -> display.setDisplayHeight(height));
+    }
+
+    @Override
+    public int getInterpolationDelay() {
+        return head.getInterpolationDelay();
+    }
+
+    @Override
+    public void setInterpolationDelay(int ticks) {
+        forEach(display -> display.setInterpolationDelay(ticks));
+    }
+
+    @Nonnull
+    @Override
+    public Display.Billboard getBillboard() {
+        return head.getBillboard();
+    }
+
+    @Override
+    public void setBillboard(@Nonnull Display.Billboard billboard) {
+        forEach(display -> display.setBillboard(billboard));
+    }
+
+    @Nullable
+    @Override
+    public Color getGlowColorOverride() {
+        return head.getGlowColorOverride();
+    }
+
+    @Override
+    public void setGlowColorOverride(@Nullable Color color) {
+        forEach(display -> display.setGlowColorOverride(color));
+    }
+
+    @Nullable
+    @Override
+    public Display.Brightness getBrightness() {
+        return head.getBrightness();
+    }
+
+    @Override
+    public void setBrightness(@Nullable Display.Brightness brightness) {
+        forEach(display -> display.setBrightness(brightness));
     }
 
     /**

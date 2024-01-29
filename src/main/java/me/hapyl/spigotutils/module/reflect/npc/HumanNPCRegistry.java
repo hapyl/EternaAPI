@@ -4,11 +4,14 @@ import com.google.common.collect.Maps;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.registry.Registry;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.Map;
 
+// FIXME (hapyl): 029, Jan 29: I'm so confused why this creates another map?
 public class HumanNPCRegistry extends Registry<Integer, HumanNPC> {
-    private final HashMap<Integer, HumanNPC> byId;
+    private final Map<Integer, HumanNPC> byId;
 
     public HumanNPCRegistry(EternaPlugin plugin) {
         super(plugin);
@@ -25,7 +28,8 @@ public class HumanNPCRegistry extends Registry<Integer, HumanNPC> {
         byId.remove(integer);
     }
 
-    public HashMap<Integer, HumanNPC> getRegistered() {
+    @Nonnull
+    public Map<Integer, HumanNPC> getRegistered() {
         return byId;
     }
 
@@ -47,8 +51,7 @@ public class HumanNPCRegistry extends Registry<Integer, HumanNPC> {
     }
 
     public void removeAll() {
-        for (HumanNPC value : byId.values()) {
-            value.remove();
-        }
+        byId.values().forEach(HumanNPC::remove0);
+        byId.clear();
     }
 }

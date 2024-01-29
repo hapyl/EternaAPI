@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.registry;
 
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.config.PlayerConfigManager;
 import me.hapyl.spigotutils.module.entity.RopeRegistry;
@@ -90,7 +91,6 @@ public final class EternaRegistry {
         return current().parkourManager;
     }
 
-    //
     public static EternaRegistry current() {
         return EternaPlugin.getPlugin().getRegistry();
     }
@@ -100,10 +100,10 @@ public final class EternaRegistry {
     }
 
     public void onDisable() {
-        runSafe(configManager::saveAllData, "Config Save (Some data did NOT save!)");
-        runSafe(parkourManager::restoreAllData, "Parkour Save (Some entities might be alive.)");
-        runSafe(npcRegistry::removeAll, "NPC Removal (Some NPC's might be alive.)");
-        runSafe(hologramRegistry::removeAll, "Hologram Removal (Some Armor Stands might be visible.)");
+        runSafe(configManager::saveAllData, "Save Config");
+        runSafe(parkourManager::restoreAllData, "Restore Parkour");
+        runSafe(npcRegistry::removeAll, "Remove NPCs");
+        runSafe(hologramRegistry::removeAll, "Remove Holograms");
         //runSafe(ropeRegistry::removeAll, "Rope Removal (Some bats might be alive.)");
 
         init = false;
@@ -112,8 +112,9 @@ public final class EternaRegistry {
     private void runSafe(Runnable runnable, String name) {
         try {
             runnable.run();
-        } catch (Throwable throwable) {
-            Bukkit.getLogger().severe("Unable to run '%s'! Did you /reload your server? {%s}".formatted(name, throwable.getMessage()));
+        } catch (Exception exception) {
+            EternaLogger.severe("Cannot %s! Did you /reload your server? (%s)".formatted(name, exception.getClass().getSimpleName()));
+            EternaLogger.exception(exception);
         }
     }
 }
