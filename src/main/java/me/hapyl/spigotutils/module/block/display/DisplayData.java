@@ -102,4 +102,20 @@ public class DisplayData {
         return spawn(location, null);
     }
 
+    /**
+     * Spawns the displays at the given location with teleport duration of 1.
+     * <p>
+     * Meaning the entities will interpolate on teleport.
+     *
+     * @param location - Location.
+     * @return a display entity.
+     */
+    @Nonnull
+    public DisplayEntity spawnInterpolated(@Nonnull Location location) {
+        final DisplayEntity entity = spawn(location);
+        entity.setTeleportDuration(1);
+
+        return entity;
+    }
+
 }

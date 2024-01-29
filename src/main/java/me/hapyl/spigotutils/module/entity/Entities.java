@@ -28,6 +28,9 @@ import java.util.function.Consumer;
 @SuppressWarnings("unused" /*utility class*/)
 public final class Entities<T extends Entity> {
 
+    // All types by name.
+    private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
+
     public static final Entities<ExperienceOrb> EXPERIENCE_ORB = new Entities<>(ExperienceOrb.class);
     public static final Entities<AreaEffectCloud> AREA_EFFECT_CLOUD = new Entities<>(AreaEffectCloud.class);
     public static final Entities<ElderGuardian> ELDER_GUARDIAN = new Entities<>(ElderGuardian.class);
@@ -160,15 +163,13 @@ public final class Entities<T extends Entity> {
     // Saved all spawned entities per plugin.
     private static final Map<JavaPlugin, Set<Entity>> spawnedByPlugin = Maps.newConcurrentMap();
 
-    // All types by name.
-    private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
-
     private final Class<T> entityClass;
     private final Consumer<T> rootConsumer;
 
     private Entities(Class<T> entityClass, Consumer<T> rootConsumer) {
         this.entityClass = entityClass;
         this.rootConsumer = rootConsumer;
+
         byName.put(this.entityClass.getSimpleName().toLowerCase(Locale.ROOT), this);
     }
 

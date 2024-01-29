@@ -393,6 +393,12 @@ public final class RuntimeCommandsTest {
 
             Geometry.drawPolygon(player.getLocation(), point, distance, new WorldParticle(Particle.FLAME));
         });
+
+        registerTestCommand("entitiesModule", (player, args) -> {
+            Entities.ARMOR_STAND_MARKER.spawn(player.getLocation());
+
+            Chat.sendMessage(player, "&aDone!");
+        });
     }
 
     private static void registerTestCommand(String test, Action action) {
