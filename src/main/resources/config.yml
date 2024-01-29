@@ -1,5 +1,5 @@
 # Runnable tick times, the higher, the slower the runnable will work.
-# Requiters server restart.
+# Requires server restart.
 tick-time:
   # How fast to update NPC visibility checks and head rotation.
   npc: 2
@@ -17,3 +17,5 @@ check-for-updates: true
 dev:
   # Whenever to keep developer test commands.
   keep-test-commands: true
+  # Print stack traces.
+  print-stack-traces: false

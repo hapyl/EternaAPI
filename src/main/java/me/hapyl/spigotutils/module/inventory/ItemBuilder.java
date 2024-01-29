@@ -1445,7 +1445,7 @@ public class ItemBuilder implements Cloneable {
         try {
             return modifyMeta(meta -> meta.getPersistentDataContainer().set(new NamespacedKey(EternaPlugin.getPlugin(), path), type, value));
         } catch (IllegalArgumentException e) {
-            EternaLogger.error("An error occurred in ItemBuilder, report this! " + e.getMessage());
+            EternaLogger.severe("An error occurred in ItemBuilder, report this! " + e.getMessage());
         }
 
         return this;

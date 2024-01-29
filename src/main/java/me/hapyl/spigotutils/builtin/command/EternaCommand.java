@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.builtin.command;
 
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.Rule;
 import me.hapyl.spigotutils.builtin.gui.QuestJournal;
@@ -39,7 +40,8 @@ public final class EternaCommand extends SimpleAdminCommand {
 
                 if (result == UpdateResult.OUTDATED) {
                     updater.broadcastLink();
-                } else {
+                }
+                else {
                     Chat.sendMessage(sender, result.getMessage());
                 }
             }
@@ -52,7 +54,8 @@ public final class EternaCommand extends SimpleAdminCommand {
                 if (updater.getLastResult() == UpdateResult.OUTDATED) {
                     Chat.sendMessage(sender, "&aLatest version: " + updater.getLatestVersion());
                     Chat.sendMessage(sender, "&aDownload here: &e" + updater.getDownloadUrl());
-                } else if (updater.getLastResult() == UpdateResult.UP_TO_DATE) {
+                }
+                else if (updater.getLastResult() == UpdateResult.UP_TO_DATE) {
                     Chat.sendMessage(sender, "&aYou're up to date!");
                 }
             }
@@ -65,15 +68,17 @@ public final class EternaCommand extends SimpleAdminCommand {
                     }
 
                     new QuestJournal(player);
-                } else {
+                }
+                else {
                     Chat.sendMessage(sender, "&cThis command can only be executed by players.");
                 }
             }
 
             case "reload" -> {
-                // eterna reload (value)
+                // eterna reload [value]
                 if (args.length < 2) {
-                    Chat.sendMessage(sender, "&4Invalid usage! &c/eterna update (config, addons) [config?String]");
+                    EternaPlugin.getPlugin().reloadConfig();
+                    EternaLogger.sendMessage(sender, "Reloaded config!");
                     return;
                 }
 
@@ -82,12 +87,12 @@ public final class EternaCommand extends SimpleAdminCommand {
                         final Player target = args.length >= 3 ? Bukkit.getPlayer(args[2]) : sender instanceof Player player ? player : null;
 
                         if (target == null) {
-                            Chat.sendMessage(sender, "&c%s is not online!", args[2]);
+                            EternaLogger.sendMessage(sender, "&c%s is not online!", args[2]);
                             return;
                         }
 
                         EternaRegistry.getConfigManager().getConfig(target).forceLoad(true);
-                        Chat.sendMessage(sender, "&aReloaded %s player config!", target.getName());
+                        EternaLogger.sendMessage(sender, "&aReloaded %s player config!", target.getName());
                     }
                 }
             }
