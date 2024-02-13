@@ -972,7 +972,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         EternaRegistry.getNpcRegistry().remove(getId());
     }
 
-    public void remove0() {
+    /**
+     * Removes the NPC without unregistering it.
+     */
+    public final void remove0() {
         this.alive = false;
         if (this.sitEntity != null) {
             Reflect.destroyEntity(this.sitEntity, getPlayers());
