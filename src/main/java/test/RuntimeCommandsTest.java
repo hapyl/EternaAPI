@@ -9,6 +9,7 @@ import me.hapyl.spigotutils.module.block.display.DisplayData;
 import me.hapyl.spigotutils.module.block.display.BlockStudioParser;
 import me.hapyl.spigotutils.module.block.display.DisplayEntity;
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.chat.messagebuilder.MessageBuilder;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
 import me.hapyl.spigotutils.module.command.SimpleCommand;
@@ -35,6 +36,8 @@ import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.Validate;
 import me.hapyl.spigotutils.module.util.WeightedCollection;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.ai.goal.PathfinderGoalFloat;
 import net.minecraft.world.entity.ai.goal.target.PathfinderGoalNearestAttackableTarget;
@@ -398,6 +401,38 @@ public final class RuntimeCommandsTest {
             Entities.ARMOR_STAND_MARKER.spawn(player.getLocation());
 
             Chat.sendMessage(player, "&aDone!");
+        });
+
+        registerTestCommand("messageBuilder", (player, args) -> {
+            final MessageBuilder builder = new MessageBuilder();
+
+            builder.append("&cHello &aworld!");
+            builder.append("&e&nClick ME!!");
+            builder.event(ClickEvent.Action.RUN_COMMAND, "/help");
+            builder.event(HoverEvent.Action.SHOW_TEXT, "&7YES YES YES CLICK ME!");
+
+            builder.append("       ");
+            builder.append("&9yapping hover me");
+            builder.eventShowText(
+                    "&aFirst line",
+                    "&2Second line",
+                    "&6Third line",
+                    "",
+                    "&8Skipped a line, didn't expect that?"
+            );
+
+            builder.append("      ");
+            builder.append("&cSMART YAPPING!!!");
+            builder.eventShowTextBlock("""
+                    This is the first line.
+                    
+                    &c;;This is a red text that will be wrapped after a given number of chars.
+                    
+                    
+                    Another line!
+                    """);
+
+            builder.send(player);
         });
     }
 
