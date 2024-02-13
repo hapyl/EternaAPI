@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.block.display;
 
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.util.Transformation;
 import org.joml.Matrix4f;
@@ -202,5 +203,12 @@ public interface IDisplay {
      */
     void setBrightness(@Nullable Display.Brightness brightness);
 
+    /**
+     * Gets the location of head.
+     *
+     * @return the location of the head.
+     */
+    @Nonnull
+    Location getLocation();
 
 }
