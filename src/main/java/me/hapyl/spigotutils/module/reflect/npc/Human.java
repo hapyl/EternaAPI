@@ -463,7 +463,7 @@ public interface Human {
     void updateDataWatcher();
 
     /**
-     * Completely removes NPC.
+     * Completely removes NPC and unregisters it.
      */
     void remove();
 

@@ -82,6 +82,12 @@ public class DisplayEntity implements Iterable<Display>, IDisplay {
 
     @Nonnull
     @Override
+    public Location getLocation() {
+        return head.getLocation();
+    }
+
+    @Nonnull
+    @Override
     public Transformation getTransformation() {
         return head.getTransformation();
     }

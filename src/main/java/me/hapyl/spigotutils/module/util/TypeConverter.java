@@ -1,63 +1,21 @@
 package me.hapyl.spigotutils.module.util;
 
-import com.google.common.collect.Lists;
-import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.math.Numbers;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.meta.When;
-import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
-public final class TypeConverter {
+public class TypeConverter {
 
     private final Object obj;
 
-    private TypeConverter(@Nonnull Object obj) {
-        Validate.notNull(obj, "cannot convert null object");
-
-        this.obj = obj;
-    }
-
-    /**
-     * @deprecated prefer staticly typed methods
-     */
-    @SuppressWarnings("all")
-    @Deprecated
-    @Nonnull
-    public <T> T to(@Nonnull Class<T> clazz, @Nonnull T def) {
-        if (clazz == String.class) {
-            return (T) toString();
-        }
-        else if (clazz == Byte.class) {
-            return (T) Byte.valueOf(toByte());
-        }
-        else if (clazz == Short.class) {
-            return (T) Short.valueOf(toShort());
-        }
-        else if (clazz == Integer.class) {
-            return (T) Integer.valueOf(toInt());
-        }
-        else if (clazz == Long.class) {
-            return (T) Long.valueOf(toLong());
-        }
-
-        return def;
-    }
-
-    /**
-     * @deprecated prefer staticly typed methods
-     */
-    @SuppressWarnings("all")
-    @Deprecated
-    @Nullable
-    public <T> T to(@Nonnull Class<T> clazz) {
-        return to(clazz, null);
+    public TypeConverter(@Nonnull Object obj) {
+        this.obj = Objects.requireNonNull(obj, "Convertible object cannot be null!");
     }
 
     /**
@@ -242,14 +200,45 @@ public final class TypeConverter {
     }
 
     /**
-     * Converts this object to an instance of {@link ConvApplicable}.
+     * Converts this object to a {@link UUID}, or null if invalid {@link UUID}.
      *
-     * @param conv - {@link ConvApplicable}.
-     * @param <T>  - Type of the {@link ConvApplicable}.
-     * @return the object.
+     * @return a UUID or null.
      */
-    public <T extends ConvApplicable> ConvApplicable toConvApplicable(@Nonnull T conv) {
-        return conv.convert(obj);
+    @Nullable
+    public UUID toUUID() {
+        try {
+            return UUID.fromString(toString());
+        } catch (IllegalArgumentException ignored0) {
+            return null;
+        }
+    }
+
+    /**
+     * Converts this object to a {@link UUID}, or def if invalid {@link UUID}.
+     *
+     * @param def - Default value.
+     * @return UUID or def.
+     */
+    @Nonnull
+    public UUID toUUID(@Nonnull UUID def) {
+        final UUID uuid = toUUID();
+
+        return uuid != null ? uuid : def;
+    }
+
+    /**
+     * Converts this object into a formatted {@link String} with the given format.
+     * <pre>
+     *     final TypeConverter converter = TypeConverter.from(12.34);
+     *
+     *     converter.toStringFormatted("%.1f"); // 12.3
+     * </pre>
+     * @param format - Format.
+     * @return the formatted string.
+     */
+    @Nonnull
+    public String toStringFormatted(@Nonnull String format) {
+        return format.formatted(obj);
     }
 
     /**
@@ -276,10 +265,6 @@ public final class TypeConverter {
      */
     public static TypeConverter from(@Nonnull Object any) {
         return new TypeConverter(any);
-    }
-
-    public interface ConvApplicable {
-        ConvApplicable convert(Object obj);
     }
 
 }
