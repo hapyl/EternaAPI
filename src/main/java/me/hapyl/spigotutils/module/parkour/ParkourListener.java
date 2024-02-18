@@ -1,6 +1,8 @@
 package me.hapyl.spigotutils.module.parkour;
 
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.player.tablist.Tablist;
+import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.cd.InternalCooldownStorage;
 import org.bukkit.Location;
 import org.bukkit.Material;
