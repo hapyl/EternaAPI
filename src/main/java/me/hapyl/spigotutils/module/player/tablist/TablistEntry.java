@@ -95,10 +95,6 @@ public class TablistEntry extends FakePlayer {
         return this;
     }
 
-    public void makePacket() {
-
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

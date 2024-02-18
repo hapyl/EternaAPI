@@ -41,9 +41,10 @@ public class FakePlayer extends EternaPlayer implements EternaEntity {
 
     protected final Set<Player> showingTo;
     protected final String scoreboardName;
-
+    private final String[] cachedTextures = { "", "" };
     protected String name;
     protected boolean hasHatLayer;
+    private Player skinnedPlayer;
 
     /**
      * Creates a new {@link FakePlayer}.
@@ -71,12 +72,16 @@ public class FakePlayer extends EternaPlayer implements EternaEntity {
      * @param newName - New name.
      */
     public void setName(@Nonnull @SupportsColorFormatting String newName) {
-        this.name = Chat.color(newName);
+        if (this.name.equals(newName)) {
+            return;
+        }
+
+        this.name = newName;
 
         // Update team
         showingTo.forEach(player -> {
             final Team team = workTeam(player, true); // should NEVER throw exception
-            team.setPrefix(name);
+            team.setPrefix(Chat.color(name));
         });
     }
 
@@ -98,14 +103,18 @@ public class FakePlayer extends EternaPlayer implements EternaEntity {
      *                 {@link FakePlayer} to be spawned in the world.
      */
     public FakePlayer setSkin(@Nonnull Player player, boolean hatLayer) {
-        final GameProfile profile = Reflect.getGameProfile(player);
+        if (skinnedPlayer != null && skinnedPlayer == player) {
+            return this;
+        }
 
+        final GameProfile profile = Reflect.getGameProfile(player);
         final Property textures = profile.getProperties()
                 .get("textures")
                 .stream()
                 .findFirst()
                 .orElse(new Property("null", "null"));
 
+        skinnedPlayer = player;
         return setSkin(textures.value(), textures.signature(), hatLayer);
     }
 
@@ -133,10 +142,17 @@ public class FakePlayer extends EternaPlayer implements EternaEntity {
      *                  {@link FakePlayer} to be spawned in the world.
      */
     public FakePlayer setSkin(@Nonnull String value, @Nullable String signature, boolean hatLayer) {
+        // Reduce calls since it probably will be updated a lot
+        if (cachedTextures[0].equals(value) && cachedTextures[1].equals(signature) && this.hasHatLayer == hatLayer) {
+            return this;
+        }
+
         setSkinRaw(value, signature);
+
+        final boolean hadHatLayer = this.hasHatLayer;
         this.hasHatLayer = hatLayer;
 
-        updateSkin();
+        updateSkin(hadHatLayer);
         return this;
     }
 
@@ -152,23 +168,22 @@ public class FakePlayer extends EternaPlayer implements EternaEntity {
     /**
      * Updates the skin for all players who can see this {@link FakePlayer}.
      */
-    public void updateSkin() {
+    public void updateSkin(boolean hadHatLayer) {
         showingTo.forEach(player -> {
             final ClientboundPlayerInfoRemovePacket packetRemove = packetFactory.getPacketRemovePlayer();
             final ClientboundPlayerInfoUpdatePacket packetAdd = packetFactory.getPacketInitPlayer();
 
             Reflect.sendPacket(player, packetRemove);
+            Reflect.sendPacket(player, packetAdd);
 
-            Runnables.runLater(() -> {
-                Reflect.sendPacket(player, packetAdd);
-
-                // If a fake player has second layer, it requires entity to actually be spawned to see the skin.
+            // If a fake player has second layer, it requires entity to actually be spawned to see the skin.
+            if (hadHatLayer) {
                 destroyEntity(player);
+            }
 
-                if (hasHatLayer) {
-                    createEntity(player);
-                }
-            }, 1);
+            if (hasHatLayer) {
+                createEntity(player);
+            }
         });
     }
 
@@ -225,11 +240,9 @@ public class FakePlayer extends EternaPlayer implements EternaEntity {
         return Sets.newHashSet(showingTo);
     }
 
-    public void debug() {
-        System.out.println("----------");
-        System.out.println("name=" + name);
-        System.out.println("score=" + scoreboardName);
-        System.out.println("uuid=" + uuid);
+    @Nonnull
+    protected String getTeamName() {
+        return scoreboardName;
     }
 
     private void destroyEntity(Player player) {
@@ -254,11 +267,9 @@ public class FakePlayer extends EternaPlayer implements EternaEntity {
 
         properties.removeAll("textures");
         properties.put("textures", new Property("textures", value, signature));
-    }
 
-    @Nonnull
-    protected String getTeamName() {
-        return scoreboardName;
+        cachedTextures[0] = value;
+        cachedTextures[1] = signature;
     }
 
     private Team workTeam(Player player, boolean create) {
