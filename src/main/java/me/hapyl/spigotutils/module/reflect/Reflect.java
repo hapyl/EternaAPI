@@ -582,7 +582,7 @@ public final class Reflect {
      * @param packet  - Packet.
      * @param viewers - Players.
      */
-    public static void sendPacket(Object packet, Player... viewers) {
+    public static void sendPacketToAll(Object packet, Player... viewers) {
         for (final Player viewer : viewers) {
             sendPacket(viewer, packet);
         }
@@ -728,8 +728,7 @@ public final class Reflect {
      * @param packet    - Packet.
      * @param receivers - Players.
      */
-    // FIXME (hapyl): 005, Dec 5: varargs are confusing
-    public static void sendPacket(Packet<?> packet, Player... receivers) {
+    public static void sendPacketToAll(Packet<?> packet, Player... receivers) {
         for (final Player receiver : receivers) {
             sendPacket(receiver, packet);
         }

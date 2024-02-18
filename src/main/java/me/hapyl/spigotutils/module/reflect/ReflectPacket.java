@@ -17,7 +17,7 @@ public class ReflectPacket {
 
     // use this for single packet sending
     public static void send(Packet<?> packet, Player... players) {
-        Reflect.sendPacket(packet, players);
+        Reflect.sendPacketToAll(packet, players);
     }
 
     public static void wrapAndSend(Packet<?> packet, Player... players) {
@@ -26,11 +26,11 @@ public class ReflectPacket {
 
     public void sendPackets(Player player) {
         if (this.packets.length == 1) {
-            Reflect.sendPacket(this.packets[0], player);
+            Reflect.sendPacketToAll(this.packets[0], player);
             return;
         }
         for (final Packet<?> packet1 : this.packets) {
-            Reflect.sendPacket(packet1, player);
+            Reflect.sendPacketToAll(packet1, player);
         }
     }
 
@@ -39,7 +39,7 @@ public class ReflectPacket {
             Chat.sendMessage(player, "&cCould not sent packet to your since it doesn't exist!");
             return;
         }
-        Reflect.sendPacket(this.packets[packet], player);
+        Reflect.sendPacketToAll(this.packets[packet], player);
     }
 
     @Nullable

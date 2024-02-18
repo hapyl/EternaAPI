@@ -29,6 +29,20 @@ final class NPCTest {
             return;
         }
 
+        if (name.equalsIgnoreCase("move")) {
+            npc.teleport(player.getLocation());
+            Chat.sendMessage(player, "Moved!");
+            return;
+        }
+
+        if (name.startsWith(".")) {
+            name = name.substring(1);
+            npc.setSkin(name);
+
+            Chat.sendMessage(player, "&aSet skin to %s.".formatted(name));
+            return;
+        }
+
         if (name.equalsIgnoreCase("remove")) {
             npc.remove();
             npc = null;

@@ -7,8 +7,10 @@ import com.mojang.authlib.properties.PropertyMap;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
+import me.hapyl.spigotutils.module.reflect.npc.EternaPlayer;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.EternaEntity;
+import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.SupportsColorFormatting;
 import net.md_5.bungee.api.ChatColor;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
@@ -18,6 +20,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -32,13 +35,12 @@ import java.util.UUID;
 /**
  * Represents a fake player, that can be shown in the {@link Tablist}.
  */
-public class FakePlayer implements EternaEntity {
+public class FakePlayer extends EternaPlayer implements EternaEntity {
+
+    private static final Location FAKE_PLAYER_LOCATION = BukkitUtils.defLocation(0, -64, 0);
 
     protected final Set<Player> showingTo;
-    protected final UUID uuid;
     protected final String scoreboardName;
-    protected final GameProfile profile;
-    protected final EntityPlayer human;
 
     protected String name;
     protected boolean hasHatLayer;
@@ -54,19 +56,13 @@ public class FakePlayer implements EternaEntity {
     }
 
     protected FakePlayer(boolean c, String scoreboardName) {
-        this.uuid = UUID.randomUUID();
+        super(FAKE_PLAYER_LOCATION, scoreboardName);
         this.name = "";
         this.scoreboardName = scoreboardName;
-        this.profile = new GameProfile(uuid, scoreboardName);
-
-        this.human = new EntityPlayer(
-                Reflect.getMinecraftServer(),
-                getServer(),
-                profile,
-                ClientInformation.a()
-        );
-
         this.showingTo = Sets.newHashSet();
+
+        // Hardcoding default textures to be GRAY
+        setSkinRaw(EntryTexture.GRAY.value(), EntryTexture.GRAY.signature());
     }
 
     /**
@@ -157,20 +153,23 @@ public class FakePlayer implements EternaEntity {
      * Updates the skin for all players who can see this {@link FakePlayer}.
      */
     public void updateSkin() {
-        showingTo.forEach(player -> setConnection(player, () -> {
-            final ClientboundPlayerInfoRemovePacket packetRemove = new ClientboundPlayerInfoRemovePacket(List.of(uuid));
-            final ClientboundPlayerInfoUpdatePacket packetAdd = ClientboundPlayerInfoUpdatePacket.a(List.of(human));
+        showingTo.forEach(player -> {
+            final ClientboundPlayerInfoRemovePacket packetRemove = packetFactory.getPacketRemovePlayer();
+            final ClientboundPlayerInfoUpdatePacket packetAdd = packetFactory.getPacketInitPlayer();
 
             Reflect.sendPacket(player, packetRemove);
-            Reflect.sendPacket(player, packetAdd);
 
-            // If a fake player has second layer, it requires entity to actually be spawned to see the skin.
-            destroyEntity(player);
+            Runnables.runLater(() -> {
+                Reflect.sendPacket(player, packetAdd);
 
-            if (hasHatLayer) {
-                createEntity(player);
-            }
-        }));
+                // If a fake player has second layer, it requires entity to actually be spawned to see the skin.
+                destroyEntity(player);
+
+                if (hasHatLayer) {
+                    createEntity(player);
+                }
+            }, 1);
+        });
     }
 
     /**
@@ -180,21 +179,19 @@ public class FakePlayer implements EternaEntity {
      */
     @Override
     public void show(@Nonnull Player player) {
-        setConnection(player, () -> {
-            final ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.a(List.of(human));
+        final ClientboundPlayerInfoUpdatePacket packet = packetFactory.getPacketInitPlayer();
 
-            workTeam(player, true);
-            Reflect.sendPacket(player, packet);
+        workTeam(player, true);
+        Reflect.sendPacket(player, packet);
 
-            // If a fake player has second layer, it requires entity to actually be spawned to see the skin.
-            if (hasHatLayer) {
-                createEntity(player);
-            }
-        });
+        // If a fake player has second layer, it requires entity to actually be spawned to see the skin.
+        if (hasHatLayer) {
+            createEntity(player);
+        }
 
         showingTo.add(player);
 
-        setSkin(EntryTexture.GRAY); // Default skin to GRAY
+        //setSkin(EntryTexture.GRAY); // Default skin to GRAY
     }
 
     /**
@@ -204,17 +201,15 @@ public class FakePlayer implements EternaEntity {
      */
     @Override
     public void hide(@Nonnull Player player) {
-        setConnection(player, () -> {
-            final ClientboundPlayerInfoRemovePacket packet = new ClientboundPlayerInfoRemovePacket(List.of(uuid));
+        final ClientboundPlayerInfoRemovePacket packet = packetFactory.getPacketRemovePlayer();
 
-            workTeam(player, false);
-            Reflect.sendPacket(player, packet);
+        workTeam(player, false);
+        Reflect.sendPacket(player, packet);
 
-            // If the second layer was applied, destroy entity as well
-            if (hasHatLayer) {
-                destroyEntity(player);
-            }
-        });
+        // If the second layer was applied, destroy entity as well
+        if (hasHatLayer) {
+            destroyEntity(player);
+        }
 
         showingTo.remove(player);
     }
@@ -230,21 +225,28 @@ public class FakePlayer implements EternaEntity {
         return Sets.newHashSet(showingTo);
     }
 
+    public void debug() {
+        System.out.println("----------");
+        System.out.println("name=" + name);
+        System.out.println("score=" + scoreboardName);
+        System.out.println("uuid=" + uuid);
+    }
+
     private void destroyEntity(Player player) {
-        final PacketPlayOutEntityDestroy packetDestroy = new PacketPlayOutEntityDestroy(Reflect.getEntityId(human));
+        final PacketPlayOutEntityDestroy packetDestroy = packetFactory.getPacketEntityDestroy();
         Reflect.sendPacket(player, packetDestroy);
     }
 
     private void createEntity(Player player) {
-        final PacketPlayOutSpawnEntity packetSpawn = new PacketPlayOutSpawnEntity(human);
+        final PacketPlayOutSpawnEntity packetSpawn = packetFactory.getPacketEntitySpawn();
 
-        Reflect.setEntityLocation(human, BukkitUtils.defLocation(0, -64, 0));
+        setLocation(FAKE_PLAYER_LOCATION);
         Reflect.sendPacket(player, packetSpawn);
 
-        Reflect.updateEntityLocation(human, player);
+        super.updateLocation(player);
 
-        Reflect.setDataWatcherByteValue(human, 17, (byte) (0x40)); // only care about hat layer
-        Reflect.updateMetadata(human, player);
+        setDataWatcherByteValue(17, (byte) (0x40)); // only care about hat layer
+        updateMetadata(player);
     }
 
     private void setSkinRaw(String value, String signature) {
@@ -254,8 +256,13 @@ public class FakePlayer implements EternaEntity {
         properties.put("textures", new Property("textures", value, signature));
     }
 
+    @Nonnull
+    protected String getTeamName() {
+        return scoreboardName;
+    }
+
     private Team workTeam(Player player, boolean create) {
-        final String teamName = "0-0-0-0-" + scoreboardName; // Force team to be before actual players
+        final String teamName = getTeamName();
         final Scoreboard scoreboard = player.getScoreboard();
 
         Team team = scoreboard.getTeam(teamName);
@@ -272,20 +279,6 @@ public class FakePlayer implements EternaEntity {
         return team;
     }
 
-    // Blame mojang for requiring NPCs to have an actual connection
-    private void setConnection(Player player, Runnable runnable) {
-        try {
-            final EntityPlayer nmsPlayer = Reflect.getMinecraftPlayer(player);
-
-            human.c = nmsPlayer.c;
-            runnable.run();
-
-            human.c = null;
-        } catch (Exception e) {
-            EternaLogger.exception(e);
-        }
-    }
-
     @Nonnull
     public static String generateScoreboardName() {
         final StringBuilder builder = new StringBuilder();
@@ -296,10 +289,6 @@ public class FakePlayer implements EternaEntity {
         }
 
         return builder.toString();
-    }
-
-    private static WorldServer getServer() {
-        return (WorldServer) Reflect.getMinecraftWorld(BukkitUtils.defWorld());
     }
 
 }

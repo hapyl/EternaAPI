@@ -35,7 +35,7 @@ public final class Packets {
     public final static class Server {
 
         public static void spawnEntityLiving(EntityLiving entity, Player... players) {
-            Reflect.sendPacket(new PacketPlayOutSpawnEntity(entity), players);
+            Reflect.sendPacketToAll(new PacketPlayOutSpawnEntity(entity), players);
         }
 
         public static void entityDestroy(Entity entity, Player... players) {
@@ -43,15 +43,15 @@ public final class Packets {
         }
 
         public static void entityTeleport(Entity entity, Player... players) {
-            Reflect.sendPacket(new PacketPlayOutEntityTeleport(entity), players);
+            Reflect.sendPacketToAll(new PacketPlayOutEntityTeleport(entity), players);
         }
 
         public static void entityMetadata(Entity entity, DataWatcher dataWatcher, Player... players) {
-            Reflect.sendPacket(new PacketPlayOutEntityMetadata(Reflect.getEntityId(entity), dataWatcher.c()), players);
+            Reflect.sendPacketToAll(new PacketPlayOutEntityMetadata(Reflect.getEntityId(entity), dataWatcher.c()), players);
         }
 
         public static void animation(Entity entity, NPCAnimation type, Player... players) {
-            Reflect.sendPacket(new PacketPlayOutAnimation(entity, type.getPos()), players);
+            Reflect.sendPacketToAll(new PacketPlayOutAnimation(entity, type.getPos()), players);
         }
 
         public static void entityEquipment(Entity entity, EntityEquipment equipment, Player... players) {
@@ -64,7 +64,7 @@ public final class Packets {
             list.add(new Pair<>(ItemSlot.MAINHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getItemInMainHand())));
             list.add(new Pair<>(ItemSlot.OFFHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getItemInOffHand())));
 
-            Reflect.sendPacket(new PacketPlayOutEntityEquipment(Reflect.getEntityId(entity), list), players);
+            Reflect.sendPacketToAll(new PacketPlayOutEntityEquipment(Reflect.getEntityId(entity), list), players);
         }
 
     }

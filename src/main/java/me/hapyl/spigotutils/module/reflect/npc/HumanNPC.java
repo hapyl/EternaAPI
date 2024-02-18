@@ -10,6 +10,8 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -32,6 +34,7 @@ import me.hapyl.spigotutils.module.quest.PlayerQuestObjective;
 import me.hapyl.spigotutils.module.quest.QuestManager;
 import me.hapyl.spigotutils.module.quest.QuestObjectiveType;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
+import me.hapyl.spigotutils.module.reflect.JsonHelper;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
@@ -41,9 +44,7 @@ import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
-import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EntityAreaEffectCloud;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.apache.commons.lang.NotImplementedException;
@@ -51,7 +52,6 @@ import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.NPC;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -80,11 +80,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public static final String CLICK_NAME = "&e&lCLICK";
     public static final String CHAT_FORMAT = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
-
+    private static final String nameToUuidRequest = "https://api.mojang.com/users/profiles/minecraft/%s";
+    private static final String uuidToProfileRequest = "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false";
     protected final Set<Player> showingTo = Sets.newHashSet();
     private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-    private final GameProfile profile;
-    private final EntityPlayer human;
+    private final EternaPlayer human;
     private final Hologram aboveHead;
     private final String hexName;
     private final String teamName;
@@ -94,10 +94,8 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     private final Map<Player, InteractionDelay> interactedAt = new HashMap<>();
     private final List<NPCEntry> entries = new ArrayList<>();
     private final int id;
-    private final NPCPacketHandler packetHandler;
     private String npcName;
     private Location location;
-    private String skinOwner;
     private String chatPrefix;
     private boolean alive;
     private boolean collision = true;
@@ -125,7 +123,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      *                  Use null or blank string to remove name.
      * @param skinOwner - Skin owner.
      *                  Leave empty or null to apply skin later.
-     *                  Only use online players names for this. See {@link HumanNPC#setSkinAsync(String)} disclaimer.
+     *                  Only use online players names for this. See {@link HumanNPC#setSkin(String)} disclaimer.
      */
     public HumanNPC(@Nonnull Location location, @Range(max = 32, throwsError = true) @Nullable String npcName, @Nullable String skinOwner) {
         this(location, npcName, skinOwner, uuid -> ("§8[NPC] " + uuid.toString().replace("-", "")).substring(0, 16));
@@ -146,31 +144,19 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
         this.uuid = UUID.randomUUID();
         this.location = location.clone();
-        this.skinOwner = skinOwner;
         this.npcName = npcName;
         this.hexName = hexNameFn.apply(uuid);
         this.aboveHead = new Hologram().addLine(this.npcName).create(getLocation().subtract(0.0d, 1.75d, 0.0d));
-        this.profile = new GameProfile(this.uuid, this.hexName);
         this.equipment = new NPCEquipment();
         this.teamName = TeamHelper.PARENT + "npc." + uuid;
+
+        this.human = new EternaPlayer(location, hexName);
+        this.human.setLocation(location);
+        this.id = human.getEntityId();
 
         if (skinOwner != null && !skinOwner.isEmpty()) {
             setSkin(skinOwner);
         }
-
-        final ClientInformation clientInformation = ClientInformation.a();
-
-        this.human = new EntityPlayer(
-                Reflect.getMinecraftServer(),
-                (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
-                profile,
-                clientInformation
-        );
-
-        this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-        this.id = Reflect.getEntityId(human);
-
-        this.packetHandler = new NPCPacketHandler(this);
 
         setVisibility(40);
         EternaRegistry.getNpcRegistry().register(this);
@@ -178,19 +164,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    @Nonnull
-    public NPCPacketHandler getPacketHandler() {
-        return packetHandler;
-    }
-
-    @Override
     public boolean isShaking() {
-        return Reflect.getDataWatcherValue(human, DataWatcherType.INT, 7) != 0;
+        return Reflect.getDataWatcherValue(human.getHuman(), DataWatcherType.INT, 7) != 0;
     }
 
     @Override
     public void setShaking(boolean shaking) {
-        Reflect.setDataWatcherValue(human, DataWatcherType.INT, 7, shaking ? Integer.MAX_VALUE : 0);
+        Reflect.setDataWatcherValue(human.getHuman(), DataWatcherType.INT, 7, shaking ? Integer.MAX_VALUE : 0);
         updateDataWatcher();
     }
 
@@ -232,10 +212,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void setLocation(Location location) {
         this.location = location;
-        this.human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        this.human.setLocation(location);
         this.setHeadRotation(this.location.getYaw());
 
-        sendPacket(new PacketPlayOutEntityTeleport(human));
+        sendPacket(human.packetFactory.getPacketTeleport());
         syncText();
 
         // Call "event"
@@ -262,7 +242,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             sitEntity.a(0.0f);            // setRadius(float arg0)
             sitEntity.a(Integer.MAX_VALUE); // setDuration(int arg0)
 
-            ((net.minecraft.world.entity.Entity) sitEntity).r = ImmutableList.of(human);
+            ((net.minecraft.world.entity.Entity) sitEntity).r = ImmutableList.of(human.getHuman());
 
             Reflect.createEntity(sitEntity, getPlayers());
             Reflect.updateMetadata(sitEntity, getPlayers());
@@ -289,16 +269,14 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void hideVisibility(@Nonnull Player player) {
-        packetHandler.sendPackets(player, NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
+        human.hide(player);
     }
 
     @Override
     public void showVisibility(@Nonnull Player player) {
         hideDisplayName();
 
-        setConnection(player, () -> {
-            packetHandler.sendPackets(player, NPCPacketType.ADD_PLAYER, NPCPacketType.SPAWN);
-        });
+        human.show(player);
 
         setLocation(location);
 
@@ -332,14 +310,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public UUID getUuid() {
         return uuid;
-    }
-
-    public String getSkinOwner() {
-        return skinOwner;
-    }
-
-    public void setSkinOwner(String skinOwner) {
-        this.skinOwner = skinOwner;
     }
 
     public String getChatPrefix() {
@@ -562,12 +532,12 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public NPCPose getPose() {
-        return NPCPose.fromNMS(human.an());
+        return human.getPose();
     }
 
     @Override
     public HumanNPC setPose(NPCPose pose) {
-        human.b(pose.getNMSValue());
+        human.setPose(pose);
         updateDataWatcher();
 
         if (pose == NPCPose.STANDING) {
@@ -729,15 +699,15 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     public void setHeadRotation(float yaw, float pitch) {
         location.setYaw(yaw);
         location.setPitch(pitch);
-        human.a(location.getX(), location.getY(), location.getZ(), yaw, pitch);
+        human.setYawPitch(yaw, pitch);
 
         setHeadRotation(yaw);
-        sendPacket(new PacketPlayOutEntityTeleport(human));
+        sendPacket(human.packetFactory.getPacketTeleport());
     }
 
     @Override
     public void setHeadRotation(float yaw) {
-        sendPacket(new PacketPlayOutEntityHeadRotation(this.human, (byte) ((yaw * 256) / 360)));
+        sendPacket(human.packetFactory.getPacketEntityHeadRotation(yaw));
     }
 
     @Override
@@ -751,7 +721,9 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public HumanNPC setSkin(String texture, String signature) {
+    public HumanNPC setSkin(@Nonnull String texture, @Nonnull String signature) {
+        final GameProfile profile = human.getProfile();
+
         profile.getProperties().removeAll("textures");
         profile.getProperties().put("textures", new Property("textures", texture, signature));
         return this;
@@ -763,31 +735,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     public Collection<Property> getSkin() {
-        return this.profile.getProperties().get("textures");
-    }
-
-    private HumanNPC setSkin(String skinOwner) {
-        final Player player = Bukkit.getPlayer(skinOwner);
-
-        if (player == null) {
-            setSkinAsync(skinOwner);
-        }
-        else {
-            setSkinSync(skinOwner);
-        }
-        return this;
-    }
-
-
-    public void setSkinSync(String skinOwner) {
-        final Player owner = Bukkit.getPlayer(skinOwner);
-
-        if (owner == null) {
-            return;
-        }
-
-        final String[] skin = getSkin(skinOwner);
-        setSkin(skin[0], skin[1]);
+        return this.human.getProfile().getProperties().get("textures");
     }
 
     /**
@@ -807,20 +755,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      * Grabbing skin from players name also means that skin is not
      * permanent and will change upon players changing it.
      *
-     * @param skinOwner - Name (nick) of minecraft account.
+     * @param username - Name (nick) of a minecraft account.
      */
-    public void setSkinAsync(String skinOwner) {
-        runAsync(skinOwner, callback -> {
-            this.setSkin(callback[0], callback[1]);
-            this.reloadNpcData();
-        });
-    }
+    public void setSkin(@Nonnull String username) {
+        final Player player = Bukkit.getPlayer(username);
 
-    @Nonnull
-    public String[] getSkin(String name) {
-        final Player player = Bukkit.getPlayer(name);
-
-        // If a player is online, grab their textures.
         if (player != null) {
             try {
                 final GameProfile profile = Reflect.getGameProfile(player);
@@ -831,34 +770,55 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
                         .findFirst()
                         .orElse(new Property("null", "null"));
 
-                return new String[] { textures.value(), textures.signature() };
+                final String signature = textures.signature();
+
+                setSkin(textures.value(), signature != null ? signature : "");
+                refresh();
+
             } catch (Exception e) {
                 EternaLogger.exception(e);
             }
 
-            return new String[] { "null", "null" };
+            return;
         }
-        // if name longer than max name than have to assume it's a texture
-        if (name.length() > 16) {
-            return new String[] { "invalidValue", "invalidSignature" };
-        }
-        try {
-            final Gson gson = new Gson();
-            String json = urlStringToString("https://api.mojang.com/users/profiles/minecraft/" + name.replace(" ", ""));
 
-            final String uuid = gson.fromJson(json, JsonObject.class).get("id").getAsString();
-            json = urlStringToString("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
+        // Fetch from API if the player is not online
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                final JsonObject uuidJson = JsonHelper.getJson(nameToUuidRequest.formatted(username));
 
-            final JsonObject mainObject = gson.fromJson(json, JsonObject.class);
-            final JsonObject jsonObject = mainObject.get("properties").getAsJsonArray().get(0).getAsJsonObject();
+                if (uuidJson == null) {
+                    return;
+                }
 
-            final String value = jsonObject.get("value").getAsString();
-            final String signature = jsonObject.get("signature").getAsString();
+                final JsonElement uuid = uuidJson.get("id");
 
-            return new String[] { value, signature };
-        } catch (Exception error) {
-            return new String[] { name, name };
-        }
+                if (uuid == null) {
+                    return;
+                }
+
+                final JsonObject profileObject = JsonHelper.getJson(uuidToProfileRequest.formatted(uuid.getAsString()));
+
+                if (profileObject == null) {
+                    return;
+                }
+
+                final JsonArray jsonArray = profileObject.get("properties").getAsJsonArray();
+
+                if (jsonArray.isEmpty()) {
+                    return;
+                }
+
+                final JsonObject textures = jsonArray.get(0).getAsJsonObject();
+
+                final String value = textures.get("value").getAsString();
+                final String signature = textures.get("signature").getAsString();
+
+                setSkin(value, signature);
+                refresh();
+            }
+        }.runTaskAsynchronously(EternaPlugin.getPlugin());
     }
 
     @Override
@@ -921,23 +881,23 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void setDataWatcherByteValue(int key, byte value) {
-        Reflect.setDataWatcherByteValue(human, key, value);
+        human.setDataWatcherByteValue(key, value);
     }
 
     @Override
     public byte getDataWatcherByteValue(int key) {
-        return Reflect.getDataWatcherValue(human, DataWatcherType.BYTE, key);
+        return human.getDataWatcherByteValue(key);
     }
 
     @Override
     public DataWatcher getDataWatcher() {
-        return Reflect.getDataWatcher(human);
+        return human.getDataWatcher();
     }
 
     @Override
     public void hideTabListName() {
         Bukkit.getScheduler().runTaskLater(EternaPlugin.getPlugin(), () -> {
-            packetHandler.sendPackets(NPCPacketType.REMOVE_PLAYER);
+            showingTo.forEach(human::hideTabName);
         }, 20L);
     }
 
@@ -954,7 +914,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void playAnimation(NPCAnimation animation) {
         if (animation == NPCAnimation.TAKE_DAMAGE) {
-            sendPacket(new ClientboundHurtAnimationPacket(human));
+            sendPacket(new ClientboundHurtAnimationPacket(human.getHuman()));
             return;
         }
 
@@ -963,7 +923,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void updateDataWatcher() {
-        Reflect.updateMetadata(human, getDataWatcher(), getPlayers());
+        human.updateMetadata(getPlayers());
     }
 
     @Override
@@ -995,7 +955,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         for (Player player : players) {
             showingTo.remove(player);
             aboveHead.hide(player);
-            packetHandler.sendPackets(player, NPCPacketType.REMOVE_PLAYER, NPCPacketType.DESTROY);
+            human.hide(player);
             onDespawn(player);
         }
     }
@@ -1016,6 +976,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     @Nonnull
     public EntityPlayer getHuman() {
+        return human.getHuman();
+    }
+
+    @Nonnull
+    public EternaPlayer getEternaPlayer() {
         return human;
     }
 
@@ -1050,21 +1015,8 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return showingTo.toArray(new Player[0]);
     }
 
-    void setConnection(Player player, Runnable andThen) {
-        final EntityPlayer nmsPlayer = Reflect.getMinecraftPlayer(player);
-
-        if (nmsPlayer != null) {
-            human.c = nmsPlayer.c;
-            andThen.run();
-
-            // We need to reset NPCs connection since it
-            // causes weird bugs with broadcast.
-            human.c = null;
-        }
-    }
-
     protected void sendPacket(Packet<?> packet) {
-        Reflect.sendPacket(packet, getPlayers());
+        Reflect.sendPacketToAll(packet, getPlayers());
     }
 
     @SuppressWarnings("all")
@@ -1086,6 +1038,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
 
         return delay.isOver();
+    }
+
+    private void refresh() {
+        showingTo.forEach(player -> {
+            hideVisibility(player);
+            showVisibility(player);
+        });
     }
 
     private String urlStringToString(String url) {
@@ -1160,16 +1119,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     private void swingArm(boolean b) {
-        sendPacket(new PacketPlayOutAnimation(this.human, b ? 0 : 3));
-    }
-
-    private void runAsync(String str, Consumer<String[]> callback) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                callback.accept(getSkin(str));
-            }
-        }.runTaskAsynchronously(EternaPlugin.getPlugin());
+        sendPacket(new PacketPlayOutAnimation(this.human.getHuman(), b ? 0 : 3));
     }
 
     private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
