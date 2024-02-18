@@ -1,147 +1,175 @@
 package me.hapyl.spigotutils.module.player.tablist;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.PlayerInfoData;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.bukkit.Bukkit;
+import me.hapyl.spigotutils.module.annotate.Range;
+import me.hapyl.spigotutils.module.math.Numbers;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
-// TODO: 0003, Oct 3 2022 -> Not Finished yet
+/**
+ * A four column customizable tab list.
+ * <br>
+ * Keep in mind this relies on player's scoreboard!
+ * Changing it with {@link Player#setScoreboard(Scoreboard)} will <b>break</b> the tablist!
+ */
 public class Tablist {
 
-    private static final ProtocolManager PROTOCOL = ProtocolLibrary.getProtocolManager();
+    private static final Map<UUID, Tablist> PLAYER_TAB_LIST_MAP = Maps.newHashMap();
+    private static final int MAX_ENTRIES = 80;
+    private static final int MAX_COLUMN = 3;
+    private static final int MAX_ENTRIES_PER_COLUMN = 20;
+    private static final TablistEntry DUMMY_ENTRY = new TablistEntry(0);
 
-    private final Map<Integer, Entry> entries;
+    private final Map<Integer, TablistEntry> entries;
     private final Set<Player> viewers;
 
     public Tablist() {
         this.viewers = Sets.newHashSet();
         this.entries = Maps.newLinkedHashMap();
 
-        for (int i = 0; i < 80; i++) {
-            this.entries.put(i, new Entry(i));
+        for (int i = 0; i < MAX_ENTRIES; i++) {
+            this.entries.put(i, new TablistEntry(i));
         }
     }
 
+    /**
+     * Gets the {@link TablistEntry} at the given index; or {@link #DUMMY_ENTRY} if there is no entry at that index.
+     *
+     * @param index - Index, from <code>0</code> to <code>79</code>.
+     * @return tablist entry.
+     */
     @Nonnull
-    public Entry getEntry(int index) {
-        if (index >= this.entries.size()) {
-            throw new IndexOutOfBoundsException("%s >= %s".formatted(index, this.entries.size()));
-        }
-
-        return this.entries.get(index);
+    public TablistEntry getEntry(int index) {
+        return this.entries.getOrDefault(index, DUMMY_ENTRY);
     }
 
-    public Entry getEntry(int column, int line) {
+    /**
+     * Gets the {@link TablistEntry} at the given column and line; or {@link #DUMMY_ENTRY} if there is no entry at that column and line.
+     *
+     * @param column - Column, from <code>0</code> to <code>3</code>.
+     * @param line   - Index, from <code>0</code> to <code>19</code>.
+     * @return tablist entry.
+     */
+    @Nonnull
+    public TablistEntry getEntry(int column, int line) {
         return getEntry(line + (column * 20));
     }
 
-    public void setEntry(int index, String line, PingBars ping, String textureValue, String textureSignature) {
-        getEntry(index).setText(line).setPing(ping).setTexture(textureValue, textureSignature);
-        updateLines();
+    /**
+     * Sets the column to the given {@link EntryList}.
+     *
+     * @param column - Column, from <code>0</code> to <code>3</code>.
+     * @param list   - {@link EntryList}.
+     * @return tablist entry.
+     * @see TablistEntry
+     */
+    public Tablist setColumn(int column, @Nonnull EntryList list) {
+        int index = Numbers.clamp(column, 0, MAX_COLUMN) * MAX_ENTRIES_PER_COLUMN;
+
+        for (String string : list) {
+            getEntry(index++).setText(string);
+        }
+
+        return this;
     }
 
-    public void setEntry(int column, int line, String text) {
-        getEntry(column, line).setText(text);
-        updateLines();
+    /**
+     * Sets the column to the given {@link String} {@link List}.
+     *
+     * @param column - Column, from <code>0</code> to <code>3</code>.
+     * @param lines  - List of lines, max 20 lines.
+     * @return tablist entry.
+     */
+    public Tablist setColumn(int column, @Range(max = 20) @Nonnull List<String> lines) {
+        return setColumn(column, new EntryList(lines));
     }
 
-    public void setEntry(int index, String line, PingBars ping) {
-        setEntry(index, line, ping, null, null);
+    /**
+     * Sets the column to the given {@link String} array.
+     *
+     * @param column - Column, from <code>0</code> to <code>3</code>.
+     * @param lines  - Array of lines, max 20 lines.
+     * @return tablist entry.
+     */
+    public Tablist setColumn(int column, @Range(max = 20) @Nonnull String... lines) {
+        return setColumn(column, new EntryList(lines));
     }
 
-    public void setEntry(int index, String line) {
-        setEntry(index, line, null);
-    }
-
-    public void show(Player player) {
+    /**
+     * Shows this {@link Tablist} to the given {@link Player}.
+     *
+     * @param player - Player.
+     */
+    public void show(@Nonnull Player player) {
         if (viewers.contains(player)) {
             return;
         }
 
         viewers.add(player);
-        hideRealPlayers();
-        createLines();
-        showRealPlayers();
+
+        entries.forEach((index, entry) -> {
+            entry.show(player);
+        });
+
+        PLAYER_TAB_LIST_MAP.put(player.getUniqueId(), this);
     }
 
-    public void hide(Player player) {
-        fetchEntries(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+    /**
+     * Hides this {@link Tablist} from the given {@link Player}.
+     *
+     * @param player - Player.
+     */
+    public void hide(@Nonnull Player player) {
+        if (!viewers.contains(player)) {
+            return;
+        }
+
+        entries.forEach((index, entry) -> {
+            entry.hide(player);
+        });
+
         viewers.remove(player);
+        PLAYER_TAB_LIST_MAP.remove(player.getUniqueId(), this);
     }
 
+    /**
+     * Completely destroys this {@link Tablist}, clearing all entries.
+     */
     public void destroy() {
-        viewers.forEach(this::hide);
+        viewers.forEach(player -> {
+            entries.forEach((index, entry) -> entry.hide(player));
+        });
+
+        viewers.clear();
         entries.clear();
     }
 
-    private void createLines() {
-        fetchPacket(
-                data -> entries.forEach((index, entry) -> data.add(entry.createPlayerInfoData())),
-                EnumWrappers.PlayerInfoAction.ADD_PLAYER
-        );
+    /**
+     * Gets the current {@link Tablist} for the given {@link Player}.
+     *
+     * @param player - Player.
+     * @return player's tablist, or null.
+     */
+    @Nullable
+    public static Tablist getPlayerTabList(@Nonnull Player player) {
+        return PLAYER_TAB_LIST_MAP.get(player.getUniqueId());
     }
 
-    public void updateLines() {
-        fetchEntries(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
-        fetchEntries(EnumWrappers.PlayerInfoAction.ADD_PLAYER);
-    }
-
-    private void hideRealPlayers() {
-        fetchPacket(data -> Bukkit.getOnlinePlayers().forEach(player -> {
-            data.add(new PlayerInfoData(WrappedGameProfile.fromPlayer(player), 0, EnumWrappers.NativeGameMode.ADVENTURE, null));
-        }), EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
-    }
-
-    private void showRealPlayers() {
-        fetchPacket(data -> {
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                data.add(new PlayerInfoData(
-                        WrappedGameProfile.fromPlayer(player),
-                        player.getPing(),
-                        EnumWrappers.NativeGameMode.fromBukkit(player.getGameMode()),
-                        WrappedChatComponent.fromText(player.getDisplayName())
-                ));
-            });
-        }, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
-    }
-
-    private void fetchEntries(EnumWrappers.PlayerInfoAction action) {
-        fetchPacket(data -> entries.forEach((index, entry) -> data.add(entry.createPlayerInfoData())), action);
-    }
-
-    private void fetchPacket(Consumer<List<PlayerInfoData>> data, EnumWrappers.PlayerInfoAction action) {
-        final PacketContainer packet = PROTOCOL.createPacket(PacketType.Play.Server.PLAYER_INFO);
-        final List<PlayerInfoData> playerInfoData = Lists.newArrayList();
-
-        data.accept(playerInfoData);
-        packet.getPlayerInfoAction().write(0, action);
-        packet.getPlayerInfoDataLists().write(0, playerInfoData);
-
-        sendPacket(packet);
-    }
-
-    private void sendPacket(PacketContainer packet) {
-        try {
-            for (Player player : viewers) {
-                PROTOCOL.sendServerPacket(player, packet);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    /**
+     * Iterates over all {@link Tablist}.
+     *
+     * @param consumer - Consumer to apply.
+     */
+    public static void forEach(@Nonnull Consumer<Tablist> consumer) {
+        PLAYER_TAB_LIST_MAP.values().forEach(consumer);
     }
 }

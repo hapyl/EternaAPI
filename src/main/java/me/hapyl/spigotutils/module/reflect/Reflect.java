@@ -17,10 +17,7 @@ import me.hapyl.spigotutils.module.util.ThreadRandom;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
@@ -30,7 +27,6 @@ import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.scores.ScoreboardTeam;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
@@ -896,5 +892,18 @@ public final class Reflect {
     @Nullable
     public static World getBukkitWorld(WorldServer worldServer) {
         return Bukkit.getWorld(worldServer.uuid);
+    }
+
+    public static void hidePlayerFromTab(@Nonnull Player player, @Nonnull Player whomToHide) {
+        final ClientboundPlayerInfoRemovePacket packet = new ClientboundPlayerInfoRemovePacket(List.of(whomToHide.getUniqueId()));
+
+        sendPacket(player, packet);
+    }
+
+    public static void showPlayerInTab(@Nonnull Player player, @Nonnull Player whomToShow) {
+        final ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.a(List.of(getMinecraftPlayer(whomToShow)));
+
+        sendPacket(player, packet);
+
     }
 }
