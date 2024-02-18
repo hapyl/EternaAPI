@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 /**
- * Represents a entry of {@link Tablist}.
+ * Represents an entry of {@link Tablist}.
  */
 public class TablistEntry extends FakePlayer {
 
@@ -95,6 +95,10 @@ public class TablistEntry extends FakePlayer {
         return this;
     }
 
+    public void makePacket() {
+
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -111,6 +115,13 @@ public class TablistEntry extends FakePlayer {
     @Override
     public int hashCode() {
         return Objects.hash(numeral);
+    }
+
+
+    @Nonnull
+    @Override
+    protected String getTeamName() {
+        return "0-" + scoreboardName;
     }
 
     @Nonnull

@@ -48,15 +48,6 @@ public interface Human {
     }
 
     /**
-     * Gets the packet handler for this NPC.
-     * Packet handler is responsible for storing and sending packets related to the NPC.
-     *
-     * @return Packet handler for this NPC.
-     */
-    @Nonnull
-    NPCPacketHandler getPacketHandler();
-
-    /**
      * Returns true if NPC is shaking of cold.
      *
      * @return true if NPC is shaking of cold.
