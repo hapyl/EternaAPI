@@ -2,13 +2,11 @@ package me.hapyl.spigotutils.module.player.tablist;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.math.Numbers;
-import me.hapyl.spigotutils.module.util.Runnables;
-import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,6 +21,9 @@ import java.util.function.Consumer;
  * <br>
  * Keep in mind this relies on player's scoreboard!
  * Changing it with {@link Player#setScoreboard(Scoreboard)} will <b>break</b> the tablist!
+ * <br>
+ * If using custom {@link Team} for players, make sure to add <code>'zzz'</code> or something before
+ * the team name so real players appear at the end of the tab list.
  */
 public class Tablist {
 
@@ -30,7 +31,8 @@ public class Tablist {
     private static final int MAX_ENTRIES = 80;
     private static final int MAX_COLUMN = 3;
     private static final int MAX_ENTRIES_PER_COLUMN = 20;
-    private static final TablistEntry DUMMY_ENTRY = new TablistEntry(0);
+    private static final String DEFAULT_ENTRY_NAME = "                 ";
+    private static final TablistEntry DUMMY_ENTRY = new TablistEntry(0, DEFAULT_ENTRY_NAME);
 
     private final Map<Integer, TablistEntry> entries;
     private final Set<Player> viewers;
@@ -40,7 +42,7 @@ public class Tablist {
         this.entries = Maps.newLinkedHashMap();
 
         for (int i = 0; i < MAX_ENTRIES; i++) {
-            this.entries.put(i, new TablistEntry(i));
+            this.entries.put(i, new TablistEntry(i, DEFAULT_ENTRY_NAME));
         }
     }
 

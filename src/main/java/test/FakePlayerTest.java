@@ -1,7 +1,7 @@
 package test;
 
 import me.hapyl.spigotutils.module.player.tablist.EntryTexture;
-import me.hapyl.spigotutils.module.player.tablist.FakePlayer;
+import me.hapyl.spigotutils.module.player.tablist.TablistEntry;
 import me.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.entity.Player;
 
@@ -12,8 +12,8 @@ final class FakePlayerTest {
     }
 
     public static void test(Player player, String[] args) {
-        final FakePlayer fake = new FakePlayer("test test").setSkin(EntryTexture.BLACK);
-        final FakePlayer fake2 = new FakePlayer("test test").setSkin(EntryTexture.RED);
+        final TablistEntry fake = new TablistEntry("test test").setTexture(EntryTexture.BLACK);
+        final TablistEntry fake2 = new TablistEntry("test test").setTexture(EntryTexture.RED);
 
         fake.show(player);
         fake2.show(player);

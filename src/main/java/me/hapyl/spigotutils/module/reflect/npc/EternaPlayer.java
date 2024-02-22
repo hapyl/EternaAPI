@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.reflect.npc;
 
 import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.EternaLogger;
+import me.hapyl.spigotutils.module.player.tablist.PingBars;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.nulls.NullConnection;
@@ -13,10 +14,14 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +56,35 @@ public class EternaPlayer {
         this.packetFactory = new PacketFactory();
 
         setConnection();
+    }
+
+    /**
+     * Sets the ping of this {@link EternaPlayer}.
+     *
+     * @param ping - New ping.
+     * @see PingBars
+     */
+    public void setPing(int ping) {
+        final ServerCommonPacketListenerImpl connection = human.c;
+
+        try {
+            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "i", true);
+
+            field.setAccessible(true);
+            field.set(connection, ping);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setPing(@Nonnull PingBars bars) {
+        setPing(bars.getValue());
+    }
+
+    public void updatePing(@Nonnull Player player) {
+        final ClientboundPlayerInfoUpdatePacket packet = packetFactory.getPacketUpdatePing();
+
+        Reflect.sendPacket(player, packet);
     }
 
     @Nonnull
@@ -175,8 +209,14 @@ public class EternaPlayer {
             return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.a, human);
         }
 
+        @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketInitPlayer() {
             return ClientboundPlayerInfoUpdatePacket.a(List.of(human));
+        }
+
+        @Nonnull
+        public ClientboundPlayerInfoUpdatePacket getPacketUpdatePing() {
+            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.e, human);
         }
 
         @Nonnull

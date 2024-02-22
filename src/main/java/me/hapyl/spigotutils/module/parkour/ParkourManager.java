@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
@@ -147,6 +148,8 @@ public class ParkourManager extends Registry<Position, Parkour> {
         );
     }
 
+
+
     private boolean handleStart(Data data) {
         if (data.getParkour() instanceof ParkourHandler handler) {
             return handler.onStart(data.get(), data) == ParkourHandler.Response.CANCEL;
@@ -195,13 +198,33 @@ public class ParkourManager extends Registry<Position, Parkour> {
     }
 
     @Nullable
-    public Parkour byStartOrFinish(Location target) {
+    public Parkour byStartOrFinish(@Nonnull Location target) {
         for (Parkour parkour : registry.values()) {
             if (parkour.getStart().compare(target) || parkour.getFinish().compare(target)) {
                 return parkour;
             }
         }
         return null;
+    }
+
+    @Nullable
+    public Parkour byCheckpoint(@Nonnull Location location) {
+        for (Parkour parkour : registry.values()) {
+            for (Position checkpoint : parkour.getCheckpoints()) {
+                if (checkpoint.compare(location)) {
+                    return parkour;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    public Parkour byLocation(@Nonnull Location location) {
+        final Parkour parkour = byStartOrFinish(location);
+
+        return parkour != null ? parkour : byCheckpoint(location);
     }
 
     public boolean isCheckpointOfAnyParkour(Location location) {

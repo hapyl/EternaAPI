@@ -3,7 +3,9 @@ package test;
 import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.player.tablist.EntryList;
+import me.hapyl.spigotutils.module.player.tablist.PingBars;
 import me.hapyl.spigotutils.module.player.tablist.Tablist;
+import me.hapyl.spigotutils.module.player.tablist.TablistEntry;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -35,6 +37,11 @@ final class TablistTest {
         if (tablist != null) {
             tablist.destroy();
             task.cancel();
+        }
+
+        final Tablist oldTablist = Tablist.getPlayerTabList(player);
+        if (oldTablist != null) {
+            oldTablist.destroy();
         }
 
         tablist = new Tablist();
@@ -70,7 +77,13 @@ final class TablistTest {
                         "&2Friends:",
                         "&8Friends? What friends?"
                 );
-                tablist.setColumn(3, "1", "2", "3", "4", "5", "6", "7");
+
+                int pingIndex = 0;
+                for (PingBars ping : PingBars.values()) {
+                    final TablistEntry entry = tablist.getEntry(3, pingIndex++);
+
+                    entry.setPing(ping);
+                }
 
             }
         }.runTaskTimer(EternaPlugin.getPlugin(), 0, 20);

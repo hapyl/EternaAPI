@@ -3,43 +3,39 @@ package me.hapyl.spigotutils.module.player.tablist;
 import javax.annotation.Nonnull;
 
 /**
- * Static textures for {@link FakePlayer}.
+ * Static textures for {@link TablistEntry}.
+ * <p>
+ * You can generate texture <a href="https://mineskin.org/">here</a>.
  *
  * @param value     - Skin value.
  * @param signature - Skin signature.
- * @param hatLayer  - Should have hat layer?
- *                  Note that hat layer requires entity to be spawned in the world.
  */
-public record EntryTexture(@Nonnull String value, @Nonnull String signature, boolean hatLayer) {
+public record EntryTexture(@Nonnull String value, @Nonnull String signature) {
 
-    public static final EntryTexture GRAY = new EntryTexture(
+    public static final EntryTexture GRAY = of(
             "ewogICJ0aW1lc3RhbXAiIDogMTY4ODgxNjI1Mzc0OCwKICAicHJvZmlsZUlkIiA6ICI4YmM3MjdlYThjZjA0YWUzYTI4MDVhY2YzNjRjMmQyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJub3RpbnZlbnRpdmUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2IxMTAxZWQ4YjRjMzk5MzcxNWU3YTFlZDI0MzU5NGVlZGZjY2NjNDRiNzc0ODM1MTZiOGRkNGQzNmQ2ZTI3ZiIKICAgIH0KICB9Cn0=",
             "F162Hgdn+/Yzh5dyn3RO3Eir2YE75dhllb2pr/bzS+fXaoXb9tmjfr3u0WB5FLprlqlQYPpPDjDardO3nhKl+crLByX/yPeS4k6So52zf36TFNMHz0eCkbB+o9gnxLiS5mV0eEULh9DsXMHOjCA9dg1rXkb7PX0QCHWBtbelnDcfhhLTgEigJgniyuiSUsYFs1BbpW2HUnvfNiqR/RjDrWWumNsKVF3urk4oxLKZlBfdsVPtRzxVXi0J2aPvQ1VF+BoT8UlIVuAOAVIxwYf5ndCloIjrIrs6leMV8BNvDM3hqbH6fi/g66gDCqq+7jMn2PEwj4EjzFhqfhjDg/TOyYyiW+8QvJZTIBsGWkKmxqt7MmJbvho4k/pl+zpwmJsW3JhYW2D4LHW6TRRekwxtE1wRjT8P13NU+xZO8bfC9G1aDSnlTGBiHVSQrvbYAmJt2gHjCchW9kIF8yBpUDmWazUJRiCmyPY1HScNNnDY/A4vqP/6TcZaCbLJzwAxu8qk3OL2iSvqwh1epVjXcvZ1tJcc7H39VWu9ysEgIwwf5NqkS5zctJ3QWVKOfr04Qs8zLmz1zD5BlgiNgrbBrGCg8A4zJlxkMJt0LH/ZTdvN05/P3Cke3oeVWlSCFYSKh840EWU7ZKyPJNxs9KJGp8qT3lsspLKn1o0OpeOJQEblkfk="
     );
 
-    public static final EntryTexture BLACK = new EntryTexture(
+    public static final EntryTexture BLACK = of(
             "ewogICJ0aW1lc3RhbXAiIDogMTY4MDA0NjAxMjAyMiwKICAicHJvZmlsZUlkIiA6ICJlMzcxMWU2Y2E0ZmY0NzA4YjY5ZjhiNGZlYzNhZjdhMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNckJ1cnN0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2E0OGI5OTQ2NWYwZmExMjgyNTVkNjdhYmFiZjI0OWU5ZDY3MTBhNmJhMmUzMGRiM2FkOTljNzBlMGY5N2RlYzYiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==",
             "XmME7FgWae9scYLPdPaf8VVchba0eTkwQLfREk5B75Gaa5MA4mGa0GO1dDVIMuoViU8axterqGwmnqI2RRB2Bc3JRYf5Fqbs+1TsrLg2lJnOgnLxl+PmgWlSXEl34XEm2tAFC85//VuRhzy+Lx7cqw11z+6rTn4yH8XOjPZ0g2Eylyd+zJOvSWx8vOIGHJPZ3TGIZojIqNNs0uyAIzG92XYfEhbI1LTKKCMnNLl6O9PxbEQKAQKvyRzWHLIwiTGgFoSj4LiMy16505AERns2MF9ngIE4Brq/QGUn66tBQgF7FyBgzN3bZMGXkn6EfgFBW7R8PckrO6dl8eHX3alOtGzHOFM/AlwPOHDf9kjfiqtGSaHSNBK9RicvwemzXlTYoL3h7Sr4eXOUz53lpL7wcUSB6flNcgxHPetKldAjVTpVZTP23GhA5PPi/iIE1jdmYxW/SmsI0ddc8PkUA4YtrfSqOxiwAqPrO7A2xZ4UhVkJsRWWhm1gDcTgHetsYlHcs2xfn5n8cUT0G6SB+n6Qf7aIvgpxC9jWQiqLteiUX7Y2tJ/0R61EgqLDPFR2ZhQk+54UeBCwGxsWoVp4wNbeu16LaIE3uBGysjs6LttY7vq6Moxfxci+xe0ztb48tZT5FEBlRWF8jKWqDlYkdTiCFQ3fQX4Opv2fqZio6NZ4AJs="
     );
 
-    public static final EntryTexture RED = new EntryTexture(
+    public static final EntryTexture RED = of(
             "ewogICJ0aW1lc3RhbXAiIDogMTY4ODgxOTgxNTc4NywKICAicHJvZmlsZUlkIiA6ICJmZDIwMGYwMDE4OTI0NzgxODI5OWIzZjE5Yzc4Y2E3MSIsCiAgInByb2ZpbGVOYW1lIiA6ICJ0dXNnIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2VhMThkMzMzODk5ZGUyZGQyMzZmNTdhNzRmNDhmNzYxZTU2MGExM2FkMzIwNjA4MjM1ZjE0OWIxYzdjYWNjNDUiCiAgICB9CiAgfQp9",
             "WW4MgzjE16r2Ms+2DiFeasOWoPjS7j6VLbDpic8xwSCX5cfyrDhltwV066t2+iaPGAebcmeT9YQ2MSuoS6YBLUlbzl+N/ZLZVgGd1Jrq1tUlrDmBHmxHADlA2MHUAq1v+rQdV2IvEGMWDn9Ud6HGPtCxhEkxFFWjtSNGw5I4u4utkXic6vPwt5FFbpDjD+h0RdIufMCYHQiuRC+rFDGnlraTEdCe4TzwLbAnyyP4UrxW5//Jiz0syQHC/F4s92gSDEHajp+N/qsi1AMX+73qrIqeK/ecU/445G1BqiZ0Vo5DlG0wQyjlQwgtsiSq1UG/HzTp6mC6YaYBQJOxlGu4eOIsZJtpMsWpwJ7O36XXCoFmNBPS4hjVutFwuw0kzxARK0riWBUv/NYHU2QI/yFxzjptWJOxrei9K9Xr8/efyzt+WlxBHXeiWacbRUzD/z/23mMhlSi90N+Ni3ueQHkXP4IgvPUwkkx5t+tOef/1MGY/lOGzzaGm1RfRbYTOEeR5xPxvmOn9n9HUNYkfV6+8MivVj8NCbN/EJYbBSNOTSW15pHyLElaHC7MBBs9UgtowL1q2sY4yxdTIRfnG9YpKcxD1OPf0zMbSqGx9mjltLoXsFLPh6ZWAxr678B9v0wmBUixSGlofwEKPF5tLibOBcj4epODQwUqHQEYHnQka/Iw="
     );
 
-    public static final EntryTexture GREEN = new EntryTexture(
+    public static final EntryTexture GREEN = of(
             "ewogICJ0aW1lc3RhbXAiIDogMTYzMjkwMzA2OTM5NywKICAicHJvZmlsZUlkIiA6ICI2MjM5ZWRhM2ExY2Y0YjJiYWMyODk2NGQ0NmNlOWVhOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJGYXRGYXRHb2QiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTdjNTdlY2M2ZjM0ZmMzNGNkMzUyNGNlMGI3YzFkZDFjNDA1ZjEzMTBlYTI1NDI1ZTcyYzhhNTAyZTk5YWQ1MiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
             "WQjhjggRDKhclwt85tPRtT7OtdzMdPJUukQqY/jjU5dtQBpIry+AnlVmeqWqAYIOK3a5SvwERlfvzBE7DU0o3k6WS1EAaJQMMfMMkSf5k5mGilzIthuFu2MiOKCMpI8whxYPFri/7wfnWalLvbcZ0UzliKOGWMHIGDkxpyDfqwq+qRRVmjgVOxuGv1T5sZAQwVC0GxoYzF+kL/JiAs8D2zu7a90cyEPAHTF+MoMBnDFcNBaZIgng/bATkZ5ZoypZFn9yGrnk9eSTtkz31pDg5hWLO0vKmq8gMzfdmqHzx0fU3ujemg0MeRfuxXQiyBLfxHbb0HMAZgsSn93f+M3tjNydYiJ2Oy+jNQCaHo8rOe1NWHdEoxEdkp82FFR4mVQncUURKv3OI7T4+7aADSJgJDOUVBtz1fUWoW7fSavNYaujXy3lz6KbdxK/V8CRMv7qViY5yiBgHjQTbGeEMAoygrFx8cyx4hKZJdhyOVWqUs0wZIJk2tGUKSAAuRxP5umlO4Pc26Cqp/aBFo6cmPTvU1HIQkTbQRub/dAJfSwUdZ9idWw1obMEgXqYCCANVBqrwCS7AkGZXhxkDPsZECqVDETkV8Yu/lTyFyE4WWADn4b27X4spCPZLSvvMn0lHITLtqwEEacjc0VbpROG8WS94nhAYd/tk0LcfN64E2QORas="
     );
 
-    public static final EntryTexture BLUE = new EntryTexture(
+    public static final EntryTexture BLUE = of(
             "ewogICJ0aW1lc3RhbXAiIDogMTY4ODkzOTQyOTIxNSwKICAicHJvZmlsZUlkIiA6ICJlYjA3ZmQzMmFiOTE0NjRjODVjYmU1YjVhYTlkYTRjZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJ4bUUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmMzZTE3N2UyODQyYWYyZDIzMDUxYTc0MjMwNWUwYzllM2M4NmY3YWU3MDljOGJlMDVkNGU3MTM1YjM1YTIzOSIKICAgIH0KICB9Cn0=",
             "xzHcxA9zNPZwFinFhvn3y42AYZJY8PCzUX9XiB/uuEXS31yIZ5SD09EKGgCQHVEva2BfurnnKW6mGt1rBzgMLuHUV7EYtPJ60FilyZs4gziRgNxHDlNDnvqIpJHlHPEaeVUQ9NNXGn5u0Y6vLfIouWA0Rxs6PqdPPzPk4e8tiVsjQYJ3KJoqgWBgCrJ3XIIsA+SfuiML+tg0O/gzraVvsxY1mCtP/gKVK0x6NIpXwR97tYUzX3PCruP3EfdHC9KBeYHYvUuXB54FnXaxtb1t84fInUy6KsuPqy5NYpX/Kcdq5IoBF5tHrzUfoteHubm9GDB6TJ+NKvaLmsCKpNi5706yar13q56CW7uTseFyq35bQ6zERmCKQLHAPI0nnr4wJWkDv81wQ3kvL+kWCwZ5CPqbUHtXqvLo8P76HcAzTfMJYbGvXRK3FtTE7epnK6p+xWV8ahX0ct8oy3IW6M5E33IvPzw7l2KuqIYIqHb9xON2iDMF0DRtbtkgLqegsA/YHe7jMkejIsxah443yW3Ht2PRDqkWSIb78H+GD41J1HJUrk7FLkUnh3SVHKtW96GPzoFY87Zrq1XpmZ3hybaFcFiajBBU6Hha6a0fkE+b2bukli1AWtthDumN79bhPz4ErHm3TyzZ7G2wefGDh2S+RBuaN4NPPwN3UwrwSP9O2bg="
     );
-
-    public EntryTexture(@Nonnull String value, @Nonnull String signature) {
-        this(value, signature, false);
-    }
 
     @Nonnull
     public String getValue() {
@@ -51,6 +47,7 @@ public record EntryTexture(@Nonnull String value, @Nonnull String signature, boo
         return signature;
     }
 
+    @Nonnull
     public static EntryTexture of(@Nonnull String value, @Nonnull String signature) {
         return new EntryTexture(value, signature);
     }

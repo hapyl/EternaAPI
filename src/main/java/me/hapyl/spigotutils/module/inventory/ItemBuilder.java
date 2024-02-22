@@ -1567,6 +1567,15 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
+     * Sets the custom model data for this item.
+     *
+     * @param data - Data.
+     */
+    public ItemBuilder setCustomModelData(int data) {
+        return modifyMeta(meta -> meta.setCustomModelData(data));
+    }
+
+    /**
      * Modifies the {@link ItemMeta} and applies it to the item.
      *
      * @param consumer - Consumer.
@@ -1960,8 +1969,6 @@ public class ItemBuilder implements Cloneable {
 
         return lastColors.isEmpty() ? def : lastColors.get(lastColors.size() - 1);
     }
-
-    // static helpers
 
     /**
      * Sets the item name.

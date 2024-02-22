@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.parkour;
 
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.player.tablist.Tablist;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.cd.InternalCooldownStorage;
@@ -162,10 +163,20 @@ public class ParkourListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handleParkourBlockBreak(BlockBreakEvent ev) {
-        final Material type = ev.getBlock().getType();
-        if (type == Position.Type.START_OR_FINISH.material() || type == Position.Type.CHECKPOINT.material()) {
-            ev.setCancelled(true);
+        final Player player = ev.getPlayer();
+        final Block block = ev.getBlock();
+        final Location location = block.getLocation();
+        final Material type = block.getType();
+
+        // Prevent breaking start/finish/checkpoint pressure plates
+        final Parkour parkour = manager().byLocation(location);
+
+        if (parkour == null) {
+            return;
         }
+
+        Chat.sendMessage(player, "&cCannot break parkour blocks!");
+        ev.setCancelled(true);
     }
 
     @EventHandler()
