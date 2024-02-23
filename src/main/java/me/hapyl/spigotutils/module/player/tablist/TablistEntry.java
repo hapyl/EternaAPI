@@ -1,7 +1,6 @@
 package me.hapyl.spigotutils.module.player.tablist;
 
 import com.google.common.collect.Sets;
-import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -30,6 +29,7 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
 
     private static final Location PLAYER_LOCATION = BukkitUtils.defLocation(0, -64, 0);
     private static final int RANDOM_SCOREBOARD_NAME = -1;
+    private static final EntryTexture DEFAULT_TEXTURE = EntryTexture.DARK_GRAY;
     private static final char[] COLOR_CHARS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
     protected final Set<Player> showingTo;
@@ -58,8 +58,8 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
         this.showingTo = Sets.newHashSet();
         this.bars = PingBars.FIVE;
 
-        // Hardcoding default textures to be GRAY
-        setTextureRaw(EntryTexture.GRAY.value(), EntryTexture.GRAY.signature());
+        // Hardcoding default textures
+        setTextureRaw(DEFAULT_TEXTURE.getValue(), DEFAULT_TEXTURE.getSignature());
     }
 
     /**
@@ -91,12 +91,7 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
             return this;
         }
 
-        final GameProfile profile = Reflect.getGameProfile(player);
-        final Property textures = profile.getProperties()
-                .get("textures")
-                .stream()
-                .findFirst()
-                .orElse(new Property("null", "null"));
+        final Property textures = BukkitUtils.getPlayerTextures(player);
 
         skinnedPlayer = player;
         return setTexture(textures.value(), textures.signature());
@@ -127,7 +122,7 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
      * @param skin - Skin to set.
      */
     public TablistEntry setTexture(@Nonnull EntryTexture skin) {
-        return setTexture(skin.value(), skin.signature());
+        return setTexture(skin.getValue(), skin.getSignature());
     }
 
     /**
@@ -184,11 +179,17 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
         return Sets.newHashSet(showingTo);
     }
 
+    @Nonnull
+    public PingBars getPing() {
+        return bars;
+    }
+
     public void setPing(@Nonnull PingBars bars) {
         if (this.bars == bars) { // optimization
             return;
         }
 
+        this.bars = bars;
         super.setPing(bars);
         showingTo.forEach(super::updatePing);
     }

@@ -2,10 +2,7 @@ package test;
 
 import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.player.tablist.EntryList;
-import me.hapyl.spigotutils.module.player.tablist.PingBars;
-import me.hapyl.spigotutils.module.player.tablist.Tablist;
-import me.hapyl.spigotutils.module.player.tablist.TablistEntry;
+import me.hapyl.spigotutils.module.player.tablist.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -62,16 +59,26 @@ final class TablistTest {
                 entryList.append("");
 
                 players.forEach(player -> {
-                    entryList.append(player.getName());
+                    entryList.append(player.getName(), EntryTexture.of(player));
                 });
 
+                final EntryList entryList2 = new EntryList();
+
+                for (ChatColor color : ChatColor.values()) {
+                    if (!color.isColor()) {
+                        continue;
+                    }
+
+                    entryList2.append(color.name(), EntryTexture.of(color));
+                }
+
                 tablist.setColumn(0, entryList);
+
                 tablist.setColumn(
                         1,
-                        "&aDaily:",
-                        "&b - Kill 69 players",
-                        "&b - Die 420 players"
+                        entryList2
                 );
+
                 tablist.setColumn(
                         2,
                         "&2Friends:",

@@ -14,8 +14,8 @@ import java.nio.charset.StandardCharsets;
 
 public final class Updater {
 
-    private static final String URL = "https://api.github.com/repos/hapyl/EternaAPI/releases/latest";
-    private static final String VERSION_REGEX = "-?SNAPSHOT.*";
+    public static final String URL = "https://api.github.com/repos/hapyl/EternaAPI/releases/latest";
+    public static final String VERSION_REGEX = "-?SNAPSHOT.*";
 
     private String pluginVersion;
     private String latestVersion;
@@ -99,6 +99,18 @@ public final class Updater {
         return lastResult;
     }
 
+    public String getPluginVersion() {
+        return pluginVersion;
+    }
+
+    public String getLatestVersion() {
+        return latestVersion;
+    }
+
+    public String getDownloadUrl() {
+        return downloadUrl;
+    }
+
     private UpdateResult compareVersions(String current, String remote) {
         current = current.replaceFirst(VERSION_REGEX, "");
         remote = remote.replaceFirst(VERSION_REGEX, "");
@@ -124,18 +136,6 @@ public final class Updater {
             e.printStackTrace();
             return UpdateResult.INVALID;
         }
-    }
-
-    public String getPluginVersion() {
-        return pluginVersion;
-    }
-
-    public String getLatestVersion() {
-        return latestVersion;
-    }
-
-    public String getDownloadUrl() {
-        return downloadUrl;
     }
 
     private String readAll(Reader rd) throws IOException {
