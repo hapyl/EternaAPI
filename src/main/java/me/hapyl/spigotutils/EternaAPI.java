@@ -2,11 +2,15 @@ package me.hapyl.spigotutils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.Validate;
 import me.hapyl.spigotutils.registry.PluginLibrary;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.NumberConversions;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,35 +36,61 @@ public final class EternaAPI {
 
     private final JavaPlugin plugin;
     private final PluginLibrary library;
-    private final boolean silent;
+    private final String minVersion;
 
+    /**
+     * Instantiates the API for the given {@link JavaPlugin}.
+     *
+     * @param plugin - Plugin.
+     * @throws IllegalArgumentException if the given plugin is already registered.
+     * @throws IllegalArgumentException if the given plugin doesn't depend nor soft-depend EternaAPI.
+     */
     public EternaAPI(@Nonnull JavaPlugin plugin) {
-        this(plugin, false);
+        this(plugin, null);
     }
 
-    public EternaAPI(@Nonnull JavaPlugin plugin, boolean silent) {
+    /**
+     * Instantiates the API for the given {@link JavaPlugin}.
+     *
+     * @param plugin     - Plugin.
+     * @param minVersion - Minimum required version of the EternaAPI plugin.
+     * @throws IllegalArgumentException if the given plugin is already registered.
+     *                                  if the given plugin doesn't depend nor soft-depend EternaAPI.
+     *                                  if the current version is lower than the min version.
+     */
+    public EternaAPI(@Nonnull JavaPlugin plugin, @Nullable String minVersion) {
         if (exists(plugin.getName())) {
             throw new IllegalArgumentException("Plugin named '%s' is already registered in EternaAPI!".formatted(plugin.getName()));
         }
 
         this.plugin = plugin;
-        this.silent = silent;
+        this.minVersion = minVersion;
 
-        Validate.notNull(plugin, "Could not load %s because the plugin is null!".formatted(getAPIName()));
         Validate.isTrue(
                 isDepends(),
                 "Could not load %s for %s since it doesn't depend on nor soft-depend the API!".formatted(getAPIName(), plugin.getName())
         );
 
+        if (minVersion != null) {
+            checkVersionAndDisable(minVersion);
+        }
+
         this.library = new PluginLibrary(plugin);
+
         byName.put(plugin.getName().toLowerCase(Locale.ROOT), this);
+    }
+
+    @Nullable
+    public String getMinVersion() {
+        return minVersion;
     }
 
     /**
      * Returns owning plugin.
      *
-     * @return owning plugin
+     * @return owning plugin.
      */
+    @Nonnull
     public JavaPlugin getPlugin() {
         return plugin;
     }
@@ -71,6 +101,7 @@ public final class EternaAPI {
      *
      * @return library for this API.
      */
+    @Nonnull
     public PluginLibrary getLibrary() {
         return library;
     }
@@ -84,26 +115,6 @@ public final class EternaAPI {
         final PluginDescriptionFile description = plugin.getDescription();
         final String pluginName = getAPIName();
         return description.getDepend().contains(pluginName) || description.getSoftDepend().contains(pluginName);
-    }
-
-    // static members
-
-    /**
-     * Returns current API version.
-     *
-     * @return current API version.
-     */
-    public static String getAPIVersion() {
-        return EternaPlugin.getPlugin().getDescription().getVersion();
-    }
-
-    /**
-     * Returns current API name.
-     *
-     * @return current API name.
-     */
-    public static String getAPIName() {
-        return EternaPlugin.getPlugin().getName();
     }
 
     /**
@@ -123,12 +134,66 @@ public final class EternaAPI {
 
                 final JavaPlugin javaPlugin = api.getPlugin();
                 final String string = "Loaded %s v%s.".formatted(javaPlugin.getName(), javaPlugin.getDescription().getVersion());
-                if (!api.silent) {
-                    EternaLogger.broadcastMessageOP(string);
-                }
+
+                EternaLogger.broadcastMessageOP(string);
                 EternaLogger.broadcastMessageConsole(string);
             });
         }, 20L);
+    }
+
+    private void throwAndDisableAPI(String message) {
+        final EternaPlugin plugin = EternaPlugin.getPlugin();
+        final PluginManager pluginManager = Bukkit.getPluginManager();
+
+        EternaLogger.broadcastMessageConsole(message);
+        pluginManager.disablePlugin(plugin);
+
+        throw new IllegalArgumentException(message);
+    }
+
+    private void checkVersionAndDisable(String minVersion) {
+        final String current = getAPIVersion().replaceFirst(Updater.VERSION_REGEX, "");
+        minVersion = minVersion.replaceFirst(Updater.VERSION_REGEX, "");
+
+        final String[] currentParts = current.split("\\.");
+        final String[] remoteParts = minVersion.split("\\.");
+
+        int length = Math.max(currentParts.length, remoteParts.length);
+        for (int i = 0; i < length; i++) {
+            final int thisPart = i < currentParts.length ? NumberConversions.toInt(currentParts[i]) : 0;
+            final int thatPart = i < remoteParts.length ? NumberConversions.toInt(remoteParts[i]) : 0;
+
+            if (thisPart < thatPart) {
+                final EternaPlugin eternaPlugin = EternaPlugin.getPlugin();
+                final PluginManager pluginManager = Bukkit.getPluginManager();
+
+                EternaLogger.severe("εεε ");
+                EternaLogger.severe("εεε Could not load %s!", plugin.getName());
+                EternaLogger.severe("εεε It requires EternaAPI version %s!", minVersion);
+                EternaLogger.severe("εεε You are on %s! Please update EternaAPI! ", current);
+                EternaLogger.severe("εεε ");
+
+                pluginManager.disablePlugin(eternaPlugin);
+            }
+        }
+    }
+
+    /**
+     * Returns current API version.
+     *
+     * @return current API version.
+     */
+    public static String getAPIVersion() {
+        return EternaPlugin.getPlugin().getDescription().getVersion();
+    }
+
+    /**
+     * Returns current API name.
+     *
+     * @return current API name.
+     */
+    public static String getAPIName() {
+        return EternaPlugin.getPlugin().getName();
     }
 
     /**

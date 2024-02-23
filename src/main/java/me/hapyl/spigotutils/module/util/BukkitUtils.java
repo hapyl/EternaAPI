@@ -1,7 +1,10 @@
 package me.hapyl.spigotutils.module.util;
 
 import com.google.common.collect.Sets;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import me.hapyl.spigotutils.module.annotate.Range;
+import me.hapyl.spigotutils.module.reflect.Reflect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -17,6 +20,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.Collection;
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -509,5 +513,22 @@ public class BukkitUtils {
         }
 
         return closest;
+    }
+
+    /**
+     * Gets {@link Player}'s texture {@link Property}.
+     *
+     * @param player - Player.
+     * @return the property containing texture value and signature.
+     */
+    @Nonnull
+    public static Property getPlayerTextures(@Nonnull Player player) {
+        final GameProfile profile = Reflect.getGameProfile(player);
+
+        return profile.getProperties()
+                .get("textures")
+                .stream()
+                .findFirst()
+                .orElse(new Property("null", "null"));
     }
 }

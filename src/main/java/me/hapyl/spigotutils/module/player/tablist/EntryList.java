@@ -1,20 +1,27 @@
 package me.hapyl.spigotutils.module.player.tablist;
 
-import me.hapyl.spigotutils.module.annotate.NotEmpty;
+import me.hapyl.spigotutils.module.util.SupportsColorFormatting;
 
 import javax.annotation.Nonnull;
-import java.util.Iterator;
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Represents an array of <code>20</code> lines exactly.
  */
-public class EntryList implements Iterable<String> {
+public class EntryList {
 
     private static final int ARRAY_SIZE = 20;
 
-    private final String[] array;
+    protected final EntryConsumer[] array;
 
+    /**
+     * Creates a new {@link EntryList} from the given {@link List}.
+     * {@link #ARRAY_SIZE} first list entries will be copied.
+     *
+     * @param list - String list.
+     */
     public EntryList(@Nonnull List<String> list) {
         this();
 
@@ -23,10 +30,17 @@ public class EntryList implements Iterable<String> {
                 break;
             }
 
-            array[i] = list.get(i);
+            final String newText = list.get(i);
+            array[i] = entry -> entry.setText(newText);
         }
     }
 
+    /**
+     * Creates a new {@link EntryList} from the given array.
+     * {@link #ARRAY_SIZE} first array entries will be copied.
+     *
+     * @param lines - String array.
+     */
     public EntryList(@Nonnull String[] lines) {
         this();
 
@@ -35,27 +49,16 @@ public class EntryList implements Iterable<String> {
                 break;
             }
 
-            array[i] = lines[i];
-        }
-    }
-
-    public EntryList() {
-        this.array = new String[ARRAY_SIZE];
-
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            this.array[i] = "";
+            final String line = lines[i];
+            array[i] = entry -> entry.setText(line);
         }
     }
 
     /**
-     * Gets the string at the given index.
-     *
-     * @param index - Index.
-     * @return the string at the given index.
+     * Creates a empty {@link EntryList}.
      */
-    @Nonnull
-    public String get(int index) {
-        return index < 0 || index >= ARRAY_SIZE ? "" : array[index];
+    public EntryList() {
+        this.array = new EntryConsumer[ARRAY_SIZE];
     }
 
     /**
@@ -64,45 +67,96 @@ public class EntryList implements Iterable<String> {
      * @param index - Index.
      * @param value - Value.
      */
-    public void set(int index, @Nonnull String value) {
+    public void set(int index, final @Nonnull String value) {
         if (index < 0 || index >= ARRAY_SIZE) {
             return;
         }
 
-        array[index] = value;
+        array[index] = entry -> entry.setText(value);
     }
 
     /**
-     * Appends a value at the first non-empty index of the array.
+     * Appends a value to the end of the list.
      *
-     * @param string - String to append.
-     * @return the index of added string, or <code>-1</code> if wasn't added.
+     * @param text - Text to append.
+     * @return true if was appended; false otherwise.
      */
-    public int append(@Nonnull @NotEmpty String string) {
-        for (int i = 0; i < array.length; i++) {
-            final String val = array[i];
-
-            if (val.isEmpty() || val.isBlank()) {
-                array[i] = string.isEmpty() ? " " : string;
-                return i;
-            }
-        }
-
-        return -1;
+    public boolean append(@Nonnull @SupportsColorFormatting String text) {
+        return append(text, null, null);
     }
 
     /**
-     * Appends an empty line at the first non-empty index of the array.
+     * Appends a value to the end of the list.
      *
-     * @return the index of added string, or <code>-1</code> if wasn't added.
+     * @param text    - Text to append.
+     * @param texture - Texture to set.
+     * @return true if was appended; false otherwise.
+     * @see EntryTexture
      */
-    public int append() {
+    public boolean append(@Nonnull @SupportsColorFormatting String text, @Nullable EntryTexture texture) {
+        return append(text, texture, null);
+    }
+
+    /**
+     * Appends a value to the end of the list.
+     *
+     * @param text - Text to append.
+     * @param ping - Ping to set.
+     * @return true if was appended; false otherwise.
+     */
+    public boolean append(@Nonnull @SupportsColorFormatting String text, @Nullable PingBars ping) {
+        return append(text, null, ping);
+    }
+
+    /**
+     * Appends a value to the end of the list.
+     *
+     * @param text    - Text to append.
+     * @param texture - Texture to set.
+     * @param ping    - Ping to set.
+     * @return true if was appended; false otherwise.
+     */
+    public boolean append(@Nonnull @SupportsColorFormatting String text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
+        return append0(text, texture != null ? texture.getStringArray() : null, ping);
+    }
+
+    /**
+     * Appends an empty text to the end of the list.
+     *
+     * @return true if was appended; false otherwise.
+     */
+    public boolean append() {
         return append("");
     }
 
-    @Nonnull
-    @Override
-    public Iterator<String> iterator() {
-        return List.of(array).iterator();
+    protected void forEach(@Nonnull Consumer<EntryConsumer> consumer) {
+        for (EntryConsumer entryConsumer : array) {
+            consumer.accept(entryConsumer);
+        }
     }
+
+    protected boolean append0(String text, String[] texture, PingBars ping) {
+        for (int i = 0; i < array.length; i++) {
+            final EntryConsumer val = array[i];
+
+            if (val == null) {
+                array[i] = entry -> {
+                    entry.setText(text);
+
+                    if (texture != null) {
+                        entry.setTexture(texture[0], texture[1]);
+                    }
+
+                    if (ping != null) {
+                        entry.setPing(ping);
+                    }
+                };
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }

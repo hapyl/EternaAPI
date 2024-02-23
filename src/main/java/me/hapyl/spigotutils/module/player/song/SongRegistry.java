@@ -56,7 +56,7 @@ public class SongRegistry extends Registry<String, Song> {
 
                 final File[] songs = directory.listFiles();
 
-                if (songs == null) {
+                if (songs == null || songs.length == 0) {
                     lock = false;
                     logger.info("No songs founds, skipping.");
                     return;
