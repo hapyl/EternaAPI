@@ -4,6 +4,7 @@ import me.hapyl.spigotutils.module.util.SupportsColorFormatting;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -55,7 +56,7 @@ public class EntryList {
     }
 
     /**
-     * Creates a empty {@link EntryList}.
+     * Creates an empty {@link EntryList}.
      */
     public EntryList() {
         this.array = new EntryConsumer[ARRAY_SIZE];
@@ -129,10 +130,28 @@ public class EntryList {
         return append("");
     }
 
-    protected void forEach(@Nonnull Consumer<EntryConsumer> consumer) {
+    /**
+     * Gets the size of non-null elements in this list.
+     *
+     * @return size of non-null elements.
+     */
+    public int size() {
+        int size = 0;
+
         for (EntryConsumer entryConsumer : array) {
-            consumer.accept(entryConsumer);
+            if (entryConsumer != null) {
+                size++;
+            }
         }
+
+        return size;
+    }
+
+    /**
+     * Clears this list.
+     */
+    public void clear() {
+        Arrays.fill(array, null);
     }
 
     protected boolean append0(String text, String[] texture, PingBars ping) {

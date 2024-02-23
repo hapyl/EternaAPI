@@ -78,16 +78,18 @@ public class Tablist {
      * @see TablistEntry
      */
     public Tablist setColumn(int column, @Nonnull EntryList list) {
-
         int index = Numbers.clamp(column, 0, MAX_COLUMN) * MAX_ENTRIES_PER_COLUMN;
+
         for (EntryConsumer entryConsumer : list.array) {
             final TablistEntry entry = getEntry(index++);
 
             if (entryConsumer == null) {
-                continue;
+                entry.setText(DEFAULT_ENTRY_NAME);
+                entry.setTexture(EntryTexture.DARK_GRAY);
             }
-
-            entryConsumer.apply(entry);
+            else {
+                entryConsumer.apply(entry);
+            }
         }
 
         return this;
