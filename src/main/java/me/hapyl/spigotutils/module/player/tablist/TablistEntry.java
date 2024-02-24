@@ -3,7 +3,6 @@ package me.hapyl.spigotutils.module.player.tablist;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.npc.EternaPlayer;
@@ -180,6 +179,11 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
         return Sets.newHashSet(showingTo);
     }
 
+    /**
+     * Gets the current {@link PingBars} of this {@link TablistEntry}.
+     *
+     * @return the current ping of this entry.
+     */
     @Nonnull
     public PingBars getPing() {
         return bars;

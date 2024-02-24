@@ -9,6 +9,7 @@ import me.hapyl.spigotutils.module.block.display.DisplayData;
 import me.hapyl.spigotutils.module.block.display.BlockStudioParser;
 import me.hapyl.spigotutils.module.block.display.DisplayEntity;
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.chat.MinecraftFont;
 import me.hapyl.spigotutils.module.chat.messagebuilder.MessageBuilder;
 import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
@@ -22,7 +23,6 @@ import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.math.geometry.WorldParticle;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.module.nbt.NBTType;
-import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.quest.Quest;
 import me.hapyl.spigotutils.module.quest.QuestManager;
 import me.hapyl.spigotutils.module.quest.QuestProgress;
@@ -38,10 +38,6 @@ import me.hapyl.spigotutils.module.util.WeightedCollection;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.ai.goal.PathfinderGoalFloat;
-import net.minecraft.world.entity.ai.goal.target.PathfinderGoalNearestAttackableTarget;
-import net.minecraft.world.entity.npc.EntityVillager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -54,7 +50,6 @@ import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.NumberConversions;
 
 import java.util.*;
@@ -425,14 +420,30 @@ public final class RuntimeCommandsTest {
             builder.append("&cSMART YAPPING!!!");
             builder.eventShowTextBlock("""
                     This is the first line.
-                    
+                                        
                     &c;;This is a red text that will be wrapped after a given number of chars.
-                    
-                    
+                                        
+                                        
                     Another line!
                     """);
 
             builder.send(player);
+        });
+
+        registerTestCommand("mcFont", (player, args) -> {
+            final String str = args[0];
+            final char c = str.charAt(0);
+
+            final int length = MinecraftFont.defaultFont.getCharLength(c);
+            final int boldLength = MinecraftFont.defaultFont.getCharLength(c, true);
+
+            Chat.sendMessage(player, "&aLength of '%s' is:".formatted(c));
+            Chat.sendMessage(player, "&aDefault: %s".formatted(length));
+            Chat.sendMessage(player, "&aBold: %s".formatted(boldLength));
+        });
+
+        registerTestCommand("centerText", (player, args) -> {
+            Chat.sendCenterMessage(player, Chat.arrayToString(args, 0));
         });
     }
 
@@ -443,7 +454,7 @@ public final class RuntimeCommandsTest {
                 final UUID uuid = player.getUniqueId();
 
                 if (!uuid.equals(HAPYL_UUID) && !uuid.equals(DIDEN_UUID)) {
-                    Chat.sendMessage(player, "&4You're now allowed to use this.");
+                    Chat.sendMessage(player, "&4You're not allowed to use this.");
                     return;
                 }
 
