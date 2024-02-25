@@ -23,31 +23,29 @@ public class MobSpellParticleBuilder extends RedstoneParticleBuilder {
         Validate.notNull(location.getWorld());
 
         location.getWorld().spawnParticle(this.getParticle(),
-                                          location.getX(),
-                                          location.getY(),
-                                          location.getZ(),
-                                          0,
-                                          this.getColor().getRed() / 255f,
-                                          this.getColor().getGreen() / 255f,
-                                          this.getColor().getBlue() / 255f, null
+                location.getX(),
+                location.getY(),
+                location.getZ(),
+                0,
+                this.getColor().getRed() / 255f,
+                this.getColor().getGreen() / 255f,
+                this.getColor().getBlue() / 255f, null
         );
     }
 
     @Override
-    public void display(@Nonnull Location location, @Nonnull Player... players) {
+    public void display(@Nonnull Location location, @Nonnull Player player) {
         Validate.notNull(location);
-        Validate.notNull(players);
+        Validate.notNull(player);
 
-        for (final Player player : players) {
-            player.spawnParticle(this.getParticle(),
-                                 location.getX(),
-                                 location.getY(),
-                                 location.getZ(),
-                                 0,
-                                 this.getColor().getRed() / 255f,
-                                 this.getColor().getGreen() / 255f,
-                                 this.getColor().getBlue() / 255f, null
-            );
-        }
+        player.spawnParticle(this.getParticle(),
+                location.getX(),
+                location.getY(),
+                location.getZ(),
+                0,
+                this.getColor().getRed() / 255f,
+                this.getColor().getGreen() / 255f,
+                this.getColor().getBlue() / 255f, null
+        );
     }
 }

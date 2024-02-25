@@ -77,6 +77,25 @@ public class MessageBuilder {
     /**
      * Adds {@link HoverEvent} to the current <code>target component</code>.
      *
+     * @param hoverEvent - Hover event.
+     */
+    public MessageBuilder event(@Nonnull HoverEvent hoverEvent) {
+        builder.event(hoverEvent);
+        return this;
+    }
+
+    /**
+     * Adds {@link HoverEvent} to the current <code>target component</code>.
+     *
+     * @param hoverEventBuilder - Hover event builder.
+     */
+    public MessageBuilder event(@Nonnull HoverEventBuilder hoverEventBuilder) {
+        return event(hoverEventBuilder.build());
+    }
+
+    /**
+     * Adds {@link HoverEvent} to the current <code>target component</code>.
+     *
      * @param action - Hover action.
      * @param values - Values to show.
      * @throws IllegalArgumentException if values are null or empty.

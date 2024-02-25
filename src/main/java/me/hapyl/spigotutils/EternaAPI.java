@@ -163,18 +163,20 @@ public final class EternaAPI {
             final int thisPart = i < currentParts.length ? NumberConversions.toInt(currentParts[i]) : 0;
             final int thatPart = i < remoteParts.length ? NumberConversions.toInt(remoteParts[i]) : 0;
 
-            if (thisPart < thatPart) {
-                final EternaPlugin eternaPlugin = EternaPlugin.getPlugin();
-                final PluginManager pluginManager = Bukkit.getPluginManager();
-
-                EternaLogger.severe("εεε ");
-                EternaLogger.severe("εεε Could not load %s!", plugin.getName());
-                EternaLogger.severe("εεε It requires EternaAPI version %s!", minVersion);
-                EternaLogger.severe("εεε You are on %s! Please update EternaAPI! ", current);
-                EternaLogger.severe("εεε ");
-
-                pluginManager.disablePlugin(eternaPlugin);
+            if (thisPart >= thatPart) {
+                break;
             }
+
+            final EternaPlugin eternaPlugin = EternaPlugin.getPlugin();
+            final PluginManager pluginManager = Bukkit.getPluginManager();
+
+            EternaLogger.severe("εεε ");
+            EternaLogger.severe("εεε Could not load %s!", plugin.getName());
+            EternaLogger.severe("εεε It requires EternaAPI version %s!", minVersion);
+            EternaLogger.severe("εεε You are on %s! Please update EternaAPI! ", current);
+            EternaLogger.severe("εεε ");
+
+            pluginManager.disablePlugin(eternaPlugin);
         }
     }
 

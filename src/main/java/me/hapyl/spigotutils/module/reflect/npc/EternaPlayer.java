@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -146,8 +147,14 @@ public class EternaPlayer {
         return Reflect.getDataWatcher(human);
     }
 
-    public void updateMetadata(@Nonnull Player... players) {
-        Reflect.updateMetadata(human, getDataWatcher(), players);
+    public void updateMetadata(@Nonnull Collection<Player> players) {
+        for (Player player : players) {
+            Reflect.updateMetadata(human, getDataWatcher(), player);
+        }
+    }
+
+    public void updateMetadata(@Nonnull Player player) {
+        Reflect.updateMetadata(human, getDataWatcher(), player);
     }
 
     void setConnection() {

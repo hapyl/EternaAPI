@@ -38,21 +38,19 @@ public class ItemBreakParticleBuilder extends ParticleBuilder {
     }
 
     @Override
-    public void display(@Nonnull Location location, @Nonnull Player... players) {
+    public void display(@Nonnull Location location, @Nonnull Player player) {
         Validate.notNull(location);
-        Validate.notNull(players);
+        Validate.notNull(player);
 
-        for (final Player player : players) {
-            player.spawnParticle(
-                    this.getParticle(),
-                    location,
-                    this.getAmount(),
-                    this.getOffX(),
-                    this.getOffY(),
-                    this.getOffZ(),
-                    this.getSpeed(),
-                    this.stack
-            );
-        }
+        player.spawnParticle(
+                this.getParticle(),
+                location,
+                this.getAmount(),
+                this.getOffX(),
+                this.getOffY(),
+                this.getOffZ(),
+                this.getSpeed(),
+                this.stack
+        );
     }
 }

@@ -28,6 +28,7 @@ import me.hapyl.spigotutils.module.quest.QuestManager;
 import me.hapyl.spigotutils.module.quest.QuestProgress;
 import me.hapyl.spigotutils.module.record.Record;
 import me.hapyl.spigotutils.module.record.Replay;
+import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
 import me.hapyl.spigotutils.module.reflect.npc.Human;
 import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
@@ -38,10 +39,8 @@ import me.hapyl.spigotutils.module.util.WeightedCollection;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
+import net.minecraft.server.level.EntityPlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
@@ -445,6 +444,17 @@ public final class RuntimeCommandsTest {
         registerTestCommand("centerText", (player, args) -> {
             Chat.sendCenterMessage(player, Chat.arrayToString(args, 0));
         });
+
+        registerTestCommand("getHandle", (player, args) -> {
+            final World world = player.getWorld();
+
+            final EntityPlayer playerHandle = Reflect.getHandle(player, EntityPlayer.class);
+            final net.minecraft.world.level.World worldHandle = Reflect.getHandle(world, net.minecraft.world.level.World.class);
+
+            player.sendMessage("playerHandle=" + playerHandle);
+            player.sendMessage("worldHandle=" + worldHandle);
+        });
+
     }
 
     private static void registerTestCommand(String test, Action action) {

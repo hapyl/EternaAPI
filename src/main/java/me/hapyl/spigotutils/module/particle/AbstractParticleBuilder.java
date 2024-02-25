@@ -30,9 +30,9 @@ public abstract class AbstractParticleBuilder {
      * Display particle with current options at location for provided players.
      *
      * @param location - Location to display particle at.
-     * @param players  - Player who will see the particle.
+     * @param player   - Player who will see the particle.
      */
-    public abstract void display(@Nonnull Location location, @Nonnull Player... players);
+    public abstract void display(@Nonnull Location location, @Nonnull Player player);
 
     public AbstractParticleBuilder setParticle(Particle particle) {
         this.particle = particle;

@@ -16,7 +16,10 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
+import org.checkerframework.checker.initialization.qual.NotOnlyInitialized;
 
+import javax.annotation.Nonnull;
+import java.sql.Ref;
 import java.util.List;
 
 /**
@@ -34,27 +37,27 @@ public final class Packets {
      */
     public final static class Server {
 
-        public static void spawnEntityLiving(EntityLiving entity, Player... players) {
-            Reflect.sendPacketToAll(new PacketPlayOutSpawnEntity(entity), players);
+        public static void spawnEntityLiving(@Nonnull EntityLiving entity, @Nonnull Player player) {
+            Reflect.sendPacket(player, new PacketPlayOutSpawnEntity(entity));
         }
 
-        public static void entityDestroy(Entity entity, Player... players) {
-            Reflect.destroyEntity(entity, players);
+        public static void entityDestroy(@Nonnull Entity entity, @Nonnull Player player) {
+            Reflect.destroyEntity(entity, player);
         }
 
-        public static void entityTeleport(Entity entity, Player... players) {
-            Reflect.sendPacketToAll(new PacketPlayOutEntityTeleport(entity), players);
+        public static void entityTeleport(@Nonnull Entity entity, @Nonnull Player player) {
+            Reflect.sendPacket(player, new PacketPlayOutEntityTeleport(entity));
         }
 
-        public static void entityMetadata(Entity entity, DataWatcher dataWatcher, Player... players) {
-            Reflect.sendPacketToAll(new PacketPlayOutEntityMetadata(Reflect.getEntityId(entity), dataWatcher.c()), players);
+        public static void entityMetadata(@Nonnull Entity entity, @Nonnull DataWatcher dataWatcher, @Nonnull Player player) {
+            Reflect.sendPacket(player, new PacketPlayOutEntityMetadata(Reflect.getEntityId(entity), dataWatcher.c()));
         }
 
-        public static void animation(Entity entity, NPCAnimation type, Player... players) {
-            Reflect.sendPacketToAll(new PacketPlayOutAnimation(entity, type.getPos()), players);
+        public static void animation(@Nonnull Entity entity, @Nonnull NPCAnimation type, @Nonnull Player player) {
+            Reflect.sendPacket(player, new PacketPlayOutAnimation(entity, type.getPos()));
         }
 
-        public static void entityEquipment(Entity entity, EntityEquipment equipment, Player... players) {
+        public static void entityEquipment(Entity entity, EntityEquipment equipment, Player player) {
             final List<Pair<EnumItemSlot, ItemStack>> list = Lists.newArrayList();
 
             list.add(new Pair<>(ItemSlot.HEAD.getSlot(), Reflect.bukkitItemToNMS(equipment.getHelmet())));
@@ -64,7 +67,7 @@ public final class Packets {
             list.add(new Pair<>(ItemSlot.MAINHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getItemInMainHand())));
             list.add(new Pair<>(ItemSlot.OFFHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getItemInOffHand())));
 
-            Reflect.sendPacketToAll(new PacketPlayOutEntityEquipment(Reflect.getEntityId(entity), list), players);
+            Reflect.sendPacket(player, new PacketPlayOutEntityEquipment(Reflect.getEntityId(entity), list));
         }
 
     }

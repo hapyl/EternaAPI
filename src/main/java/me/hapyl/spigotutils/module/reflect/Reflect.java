@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.EternaLogger;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
@@ -17,7 +18,10 @@ import me.hapyl.spigotutils.module.util.ThreadRandom;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
+import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
@@ -47,6 +51,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Useful utility class, which was indented to use reflection, hence the name - Reflect.
@@ -58,6 +63,13 @@ import java.util.List;
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+    private static final String mcVersion;
+    private static final String getHandleMethodName = "getHandle";
+
+    static {
+        final String name = Bukkit.getServer().getClass().getPackage().getName();
+        mcVersion = name.substring(name.lastIndexOf(".") + 1);
+    }
 
     private Reflect() {
     }
@@ -70,11 +82,11 @@ public final class Reflect {
      * @return net.minecraft.server class if exists, null otherwise
      */
     @Nullable
-    public static Class<?> getNetClass(String path) {
+    public static Class<?> getNetClass(@Nonnull String path) {
         try {
             return Class.forName("net.minecraft.server." + path);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
@@ -87,70 +99,64 @@ public final class Reflect {
      * @return org.bukkit.craftbukkit class if exists, null otherwise
      */
     @Nullable
-    public static Class<?> getCraftClass(String path) {
+    public static Class<?> getCraftClass(@Nonnull String path) {
         try {
             return Class.forName("org.bukkit.craftbukkit." + getVersion() + "." + path);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
 
     /**
-     * Sends a {@link PacketPlayOutEntityTeleport} packet to players.
+     * Sends a {@link PacketPlayOutEntityTeleport} packet to player.
      *
-     * @param entity  - Entity to update location of.
-     * @param players - Players to update location for.
+     * @param entity - Entity to update location of.
+     * @param player - Player to update location for.
      */
-    public static void updateEntityLocation(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityTeleport(entity), players);
+    public static void updateEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
+        sendPacket(player, new PacketPlayOutEntityTeleport(entity));
     }
 
     /**
      * Changes entity's location.
-     * You must call {@link Reflect#updateEntityLocation(net.minecraft.world.entity.Entity, Player...)}
-     * to see changes.
+     * <br>
+     * You must call {@link Reflect#updateEntityLocation(net.minecraft.world.entity.Entity, Player)} to see changes.
      *
      * @param entity   - Entity.
      * @param location - Location.
      */
-    public static void setEntityLocation(net.minecraft.world.entity.Entity entity, Location location) {
+    public static void setEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Location location) {
         entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**
-     * Sends a {@link PacketPlayOutEntityDestroy} packet to players.
+     * Sends a {@link PacketPlayOutEntityDestroy} packet to player.
      *
-     * @param entity  - Entity to remove.
-     * @param players - Players.
+     * @param entity - Entity to remove.
+     * @param player - Player to remove this entity for.
      */
-    public static void destroyEntity(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityDestroy(entity.getBukkitEntity().getEntityId()), players);
+    public static void destroyEntity(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
+        sendPacket(player, new PacketPlayOutEntityDestroy(entity.getBukkitEntity().getEntityId()));
     }
 
     /**
      * Changes DataWatcher value.
-     * Please follow <a href="https://wiki.vg/Entity_metadata#Entity_Metadata_Format">https://wiki.vg/Entity_metadata#Entity_Metadata_Format</a>
-     * format.
+     * Please follow <a href="https://wiki.vg/Entity_metadata#Entity_Metadata_Format">https://wiki.vg/Entity_metadata#Entity_Metadata_Format</a> format.
      * <p>
-     * This method also updates the entity's metadata!
+     * This method does <b>not</b> update the metadata,
+     * use {@link #updateMetadata(net.minecraft.world.entity.Entity, Player)} to update the metadata!
      *
-     * @param entity  - Entity.
-     * @param type    - Value type.
-     * @param key     - Key or index.
-     * @param value   - Value.
-     * @param players - Players who will see the change.
-     * @param <T>     - Type of the value.
+     * @param entity - Entity.
+     * @param type   - Value type.
+     * @param key    - Key or index.
+     * @param value  - Value.
+     * @param <T>    - Type of the value.
      */
-    public static <T> void setDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key, T value, @Nullable Player... players) {
+    public static <T> void setDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key, @Nullable T value) {
         final DataWatcher dataWatcher = getDataWatcher(entity);
+
         setDataWatcherValue0(dataWatcher, type.get().a(key), value);
-
-        if (players == null || players.length == 0) {
-            return;
-        }
-
-        updateMetadata(entity, dataWatcher, players);
     }
 
     /**
@@ -162,21 +168,23 @@ public final class Reflect {
      * @param <T>    - Type of the value.
      * @return Value.
      */
-    public static <T> T getDataWatcherValue(net.minecraft.world.entity.Entity entity, DataWatcherType<T> type, int key) {
+    public static <T> T getDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key) {
         final DataWatcher dataWatcher = getDataWatcher(entity);
         return dataWatcher.b(type.get().a(key));
     }
 
     /**
      * Sets entity's DataWatcher byte value.
+     * <p>
+     * This method does <b>not</b> update the metadata,
+     * use {@link #updateMetadata(net.minecraft.world.entity.Entity, Player)} to update the metadata!
      *
-     * @param entity  - Entity.
-     * @param key     - Key or index.
-     * @param value   - Value.
-     * @param viewers - Players.
+     * @param entity - Entity.
+     * @param key    - Key or index.
+     * @param value  - Value.
      */
-    public static void setDataWatcherByteValue(net.minecraft.world.entity.Entity entity, int key, byte value, Player... viewers) {
-        setDataWatcherValue(entity, DataWatcherType.BYTE, key, value, viewers);
+    public static void setDataWatcherByteValue(@Nonnull net.minecraft.world.entity.Entity entity, int key, byte value) {
+        setDataWatcherValue(entity, DataWatcherType.BYTE, key, value);
     }
 
     /**
@@ -188,27 +196,35 @@ public final class Reflect {
      * @param <T>         - Type of the value.
      */
     @Super
-    public static <T> void setDataWatcherValue0(DataWatcher dataWatcher, DataWatcherObject<T> type, T value) {
+    public static <T> void setDataWatcherValue0(@Nonnull DataWatcher dataWatcher, @Nonnull DataWatcherObject<T> type, T value) {
         try {
             dataWatcher.b(type, value);
         } catch (Exception e) {
-            e.printStackTrace();
+            EternaLogger.exception(e);
         }
     }
 
     /**
-     * Updates entity's metadata for players.
+     * Updates entity's metadata for player.
      *
      * @param entity  - Entity.
      * @param watcher - DataWatcher.
-     * @param players - Players who will see the update.
+     * @param player  - Player, who will see the update.
      */
-    public static void updateMetadata(net.minecraft.world.entity.Entity entity, DataWatcher watcher, Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityMetadata(getEntityId(entity), watcher.c()), players);
+    public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcher watcher, @Nonnull Player player) {
+        sendPacket(player, new PacketPlayOutEntityMetadata(getEntityId(entity), watcher.c()));
     }
 
-    public static void updateMetadata(net.minecraft.world.entity.Entity entity, Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityMetadata(getEntityId(entity), getDataWatcher(entity).c()), players);
+    /**
+     * Updates the metadata for the given entity for the given players.
+     * <br>
+     * This will use the entities actual {@link DataWatcher}.
+     *
+     * @param entity - Entity.
+     * @param player - Player, who will see the change.
+     */
+    public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
+        sendPacket(player, new PacketPlayOutEntityMetadata(getEntityId(entity), getDataWatcher(entity).c()));
     }
 
     /**
@@ -217,39 +233,24 @@ public final class Reflect {
      * @param entity - Entity.
      * @return entity's ID.
      */
-    public static int getEntityId(net.minecraft.world.entity.Entity entity) {
+    public static int getEntityId(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.ah();
     }
 
+    /**
+     * Gets the NMS world border from a bukkit world border.
+     *
+     * @param bukkitWorldBorder - Bukkit world border.
+     * @return the NMS world border or null.
+     */
     @Nullable
-    public static WorldBorder getNetWorldBorder(org.bukkit.WorldBorder bukkitWorldBorder) {
+    public static WorldBorder getNetWorldBorder(@Nonnull org.bukkit.WorldBorder bukkitWorldBorder) {
         try {
             return (WorldBorder) MethodUtils.invokeMethod(bukkitWorldBorder, "getHandle", null);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
-    }
-
-    /**
-     * Returns entity's ID.
-     *
-     * @param entity - Entity.
-     * @return entity's ID.
-     */
-    public static int getCraftEntityId(Object entity) {
-        if (entity instanceof Entity craftEntity) {
-            return craftEntity.getEntityId();
-        }
-        return (int) invokeMethod(getCraftMethod("entity.CraftEntity", "getEntityId"), entity);
-    }
-
-    /**
-     * @deprecated {@link Reflect#getEntityId(net.minecraft.world.entity.Entity)}
-     */
-    @Deprecated
-    public static int getNetEntityId(Object entity) {
-        return getEntityId((net.minecraft.world.entity.Entity) entity);
     }
 
     /**
@@ -257,16 +258,9 @@ public final class Reflect {
      *
      * @return a string of current bukkit version.
      */
+    @Nonnull
     public static String getVersion() {
-        return ReflectCache.getVersion();
-    }
-
-    // insured viewers
-    public static Player[] insureViewers(Player... in) {
-        if (in == null || in.length == 0) {
-            return Bukkit.getOnlinePlayers().toArray(new Player[] {});
-        }
-        return in;
+        return mcVersion;
     }
 
     /**
@@ -277,26 +271,35 @@ public final class Reflect {
      * @return NMS constructor if exists, null otherwise.
      */
     @Nullable
-    public static Constructor<?> getNetConstructor(String className, Class<?>... params) {
+    public static Constructor<?> getNetConstructor(@Nonnull String className, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = getNetClass(className);
+
             if (clazz == null) {
                 return null;
             }
+
             return clazz.getConstructor(params);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying to find NMS constructor.");
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
 
-    public static Constructor<?> getConstructor(String className, Class<?>... params) {
+    /**
+     * Gets a constructor for a given class with the given params.
+     *
+     * @param className - Class name.
+     * @param params    - Params.
+     * @return a constructor or null.
+     */
+    @Nullable
+    public static Constructor<?> getConstructor(@Nonnull String className, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = Class.forName(className);
             return clazz.getDeclaredConstructor(params);
         } catch (Exception e) {
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
@@ -309,16 +312,17 @@ public final class Reflect {
      * @return CraftBukkit constructor if exists, null otherwise.
      */
     @Nullable
-    public static Constructor<?> getCraftConstructor(String className, Class<?>... params) {
+    public static Constructor<?> getCraftConstructor(@Nonnull String className, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = getCraftClass(className);
+
             if (clazz == null) {
                 return null;
             }
+
             return clazz.getConstructor(params);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying to find CraftBukkit constructor.");
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
@@ -332,79 +336,115 @@ public final class Reflect {
      * @return NMS method if exists, null otherwise.
      */
     @Nullable
-    public static Method getNetMethod(String className, String methodName, Class<?>... params) {
+    public static Method getNetMethod(@Nonnull String className, @Nonnull String methodName, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = getNetClass(className);
+
             if (clazz == null) {
                 return null;
             }
+
             return clazz.getMethod(methodName, params);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying to find NMS method.");
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
 
+    /**
+     * Invokes a method.
+     *
+     * @param method   - Method to invoke.
+     * @param instance - Instance, null for static methods.
+     * @param params   - Method parameters.
+     * @return the returned value of the method.
+     */
     @Nullable
-    public static Object invokeMethod(Method method, Object instance, Object... params) {
+    public static Object invokeMethod(@Nonnull Method method, @Nullable Object instance, @Nullable Object... params) {
         try {
             return method.invoke(instance, params);
-        } catch (Exception error) {
-            Chat.broadcast("&4An error occurred whilst trying to invoke a method.");
-            error.printStackTrace();
+        } catch (Exception e) {
+            EternaLogger.exception(e);
             return null;
         }
     }
 
+    /**
+     * Creates a new instance from the constructor with the given parameters.
+     *
+     * @param constructor - Constructor.
+     * @param parameters  - Parameters.
+     * @return a new object.
+     */
     @Nullable
-    public static <T> T newInstance(Constructor<T> constructor, Object... values) {
+    public static <T> T newInstance(@Nonnull Constructor<T> constructor, @Nullable Object... parameters) {
         try {
-            return constructor.newInstance(values);
-        } catch (Exception error) {
-            Chat.broadcast("&4An error occurred whilst trying to invoke constructor.");
-            error.printStackTrace();
+            return constructor.newInstance(parameters);
+        } catch (Exception e) {
+            EternaLogger.exception(e);
             return null;
         }
     }
 
+    /**
+     * Craft a 'craftbukkit' field from the given class.
+     *
+     * @param className - Class name.
+     * @param fieldName - Field name.
+     * @return the field or null.
+     */
     @Nullable
-    public static Field getCraftField(String className, String fieldName) {
+    public static Field getCraftField(@Nonnull String className, @Nonnull String fieldName) {
         try {
             final Class<?> clazz = getCraftClass(className);
+
             if (clazz == null) {
                 return null;
             }
+
             return clazz.getField(fieldName);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying find CraftBukkit field.");
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
 
+    /**
+     * Gets an 'nms' field from the given class.
+     *
+     * @param className - Class name.
+     * @param fieldName - Field name.
+     * @return the field or null.
+     */
     @Nullable
-    public static Field getNetField(String className, String fieldName) {
+    public static Field getNetField(@Nonnull String className, @Nonnull String fieldName) {
         try {
             final Class<?> clazz = getNetClass(className);
+
             if (clazz == null) {
                 return null;
             }
+
             return clazz.getField(fieldName);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying find NMS field.");
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
 
+    /**
+     * Gets the field value.
+     *
+     * @param field    - Field.
+     * @param instance - Instance.
+     * @return the field value.
+     */
     @Nullable
-    public static Object getFieldValue(Field field, Object instance) {
+    public static Object getFieldValue(@Nonnull Field field, @Nonnull Object instance) {
         try {
             return field.get(instance);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying get field value.");
-            e.printStackTrace();
+            EternaLogger.exception(e);
             return null;
         }
     }
@@ -416,12 +456,21 @@ public final class Reflect {
      * @return BlockPosition.
      */
     @Nonnull
-    public static BlockPosition getBlockPosition(Block block) {
+    public static BlockPosition getBlockPosition(@Nonnull Block block) {
         final Location location = block.getLocation();
         return new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
-    public static void showBlockBreakAnimation(Block block, int stage, Player... players) {
+    /**
+     * Sends a block break animation for the given block.
+     * <br>
+     * Note that client only allows one block to be 'breaking'.
+     *
+     * @param block  - Block.
+     * @param stage  - Stace, from 0 to 9.
+     * @param player - Player, who will see the animation.
+     */
+    public static void showBlockBreakAnimation(@Nonnull Block block, @Range(max = 9) int stage, @Nonnull Player player) {
         final PacketContainer packet = new PacketContainer(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
         final Location location = block.getLocation();
 
@@ -433,7 +482,8 @@ public final class Reflect {
                         new com.comphenix.protocol.wrappers.BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ())
                 );
         packet.getBytes().write(0, (byte) Numbers.clamp(stage, 0, 9));
-        sendPacket(packet, players);
+
+        sendPacket(player, packet);
     }
 
     /**
@@ -442,7 +492,7 @@ public final class Reflect {
      * @param entity  - Entity to hide.
      * @param viewers - Viewers.
      */
-    public static void hideEntity(Entity entity, Collection<Player> viewers) {
+    public static void hideEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
         for (Player viewer : viewers) {
             hideEntity(entity, viewer);
         }
@@ -453,36 +503,62 @@ public final class Reflect {
      *
      * @param entity - Entity to hide.
      */
-    public static void hideEntity(Entity entity) {
+    public static void hideEntity(@Nonnull Entity entity) {
         Bukkit.getOnlinePlayers().forEach(player -> hideEntity(entity, player));
     }
 
     /**
      * Hides an entity for certain player.
      *
-     * @param entity  - Entity that will be hidden.
-     * @param players - Who entity will be hidden for.
+     * @param entity - Entity that will be hidden.
+     * @param player - Who entity will be hidden for.
      */
-    public static void hideEntity(Entity entity, Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityDestroy(entity.getEntityId()), players);
+    public static void hideEntity(@Nonnull Entity entity, @Nonnull Player player) {
+        sendPacket(player, new PacketPlayOutEntityDestroy(entity.getEntityId()));
     }
 
-    public static void createEntity(net.minecraft.world.entity.Entity netEntity, Player... players) {
-        ReflectPacket.send(new PacketPlayOutSpawnEntity(netEntity, getEntityId(netEntity)), players);
+    /**
+     * Shows the given entity to players.
+     *
+     * @param netEntity - Entity.
+     * @param player    - Player.
+     */
+    public static void createEntity(@Nonnull net.minecraft.world.entity.Entity netEntity, @Nonnull Player player) {
+        sendPacket(player, new PacketPlayOutSpawnEntity(netEntity, getEntityId(netEntity)));
     }
 
-    public static DataWatcher getDataWatcher(net.minecraft.world.entity.Entity entity) {
-        return entity.al();
-    }
-
+    /**
+     * Gets entity's {@link DataWatcher}.
+     *
+     * @param entity - Entity.
+     * @return the data watcher.
+     */
     @Nonnull
-    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(DataWatcher dataWatcher) {
+    public static DataWatcher getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return Objects.requireNonNull(entity.al(), "DataWatcher cannot be null.");
+    }
+
+    /**
+     * Gets the non-default values from the {@link DataWatcher}.
+     *
+     * @param dataWatcher - Data watcher.
+     * @return the list of non-default values.
+     */
+    @Nonnull
+    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(@Nonnull DataWatcher dataWatcher) {
         final List<DataWatcher.b<?>> values = dataWatcher.c();
+
         return values == null ? Lists.newArrayList() : values;
     }
 
+    /**
+     * Gets the non-default values from the entity's {@link DataWatcher}.
+     *
+     * @param entity - Entity.
+     * @return the list of non-default values.
+     */
     @Nonnull
-    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(net.minecraft.world.entity.Entity entity) {
+    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(@Nonnull net.minecraft.world.entity.Entity entity) {
         return getDataWatcherNonDefaultValues(getDataWatcher(entity));
     }
 
@@ -492,7 +568,7 @@ public final class Reflect {
      * @param entity  - Entity to show.
      * @param viewers - Viewers.
      */
-    public static void showEntity(Entity entity, Collection<Player> viewers) {
+    public static void showEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
         for (Player viewer : viewers) {
             showEntity(entity, viewer);
         }
@@ -501,32 +577,32 @@ public final class Reflect {
     /**
      * Shows hidden entity for every online player.
      *
-     * @param entity - Enity to show.
+     * @param entity - Entity to show.
      */
-    public static void showEntity(Entity entity) {
+    public static void showEntity(@Nonnull Entity entity) {
         Bukkit.getOnlinePlayers().forEach(player -> showEntity(entity, player));
     }
 
     /**
      * Shows hidden entity.
      *
-     * @param entity  - Entity to show.
-     * @param viewers - Players who will see the change.
+     * @param entity - Entity to show.
+     * @param player - Player, who will see the change.
      */
-    public static void showEntity(Entity entity, Player... viewers) {
+    public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
         final net.minecraft.world.entity.Entity netEntity = getMinecraftEntity(entity);
         if (netEntity == null) {
             return;
         }
 
-        createEntity(netEntity, viewers);
+        createEntity(netEntity, player);
     }
 
     /**
      * @param craftEntity - CraftEntity.
      * @return NMS class of the CraftEntity.
      */
-    public static Object getNetEntity(Entity craftEntity) {
+    public static Object getNetEntity(@Nonnull Entity craftEntity) {
         return invokeMethod(lazyMethod(craftEntity.getClass(), "getHandle"), craftEntity);
     }
 
@@ -534,7 +610,7 @@ public final class Reflect {
      * @param craftWorld - CraftWorld.
      * @return NMS class of the CraftWorld.
      */
-    public static Object getNetWorld(World craftWorld) {
+    public static Object getNetWorld(@Nonnull World craftWorld) {
         return invokeMethod(lazyMethod(craftWorld.getClass(), "getHandle"), craftWorld);
     }
 
@@ -542,23 +618,8 @@ public final class Reflect {
      * @param craftServer - CraftServer.
      * @return NMS class of the CraftWorld.
      */
-    public static Object getNetServer(Server craftServer) {
+    public static Object getNetServer(@Nonnull Server craftServer) {
         return invokeMethod(lazyMethod(craftServer.getClass(), "getServer"), craftServer);
-    }
-
-    @Deprecated
-    public static void damageEntity(Player player, double damage) {
-        player.damage(damage);
-    }
-
-    /**
-     * Sends the packet to the player.
-     *
-     * @param player - Receiver of the packet.
-     * @param packet - Object in a Packet form, must be instance of NMS 'Packet' class.
-     */
-    public static void sendPacket(Player player, Object packet) {
-        sendPacket(player, (Packet<?>) packet);
     }
 
     /**
@@ -567,8 +628,8 @@ public final class Reflect {
      * @param player - Player.
      * @param packet - Packet.
      */
-    public static void sendPacket(Player player, Packet<?> packet) {
-        if (player == null || HumanNPC.isNPC(player.getEntityId())) {
+    public static void sendPacket(@Nonnull Player player, @Nonnull Packet<?> packet) {
+        if (HumanNPC.isNPC(player.getEntityId())) {
             return;
         }
 
@@ -577,14 +638,16 @@ public final class Reflect {
     }
 
     /**
-     * Sends a packet to players.
+     * Sends a {@link PacketContainer} to the given player.
      *
-     * @param packet  - Packet.
-     * @param viewers - Players.
+     * @param player - Player.
+     * @param packet - Packet.
      */
-    public static void sendPacketToAll(Object packet, Player... viewers) {
-        for (final Player viewer : viewers) {
-            sendPacket(viewer, packet);
+    public static void sendPacket(@Nonnull Player player, @Nonnull PacketContainer packet) {
+        try {
+            manager.sendServerPacket(player, packet);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -608,11 +671,25 @@ public final class Reflect {
         return invokeMethod(lazyMethod(entity.getClass(), "getHandle"), entity);
     }
 
-    public static GameProfile getGameProfile(Player player) {
+    /**
+     * Gets player's {@link GameProfile}.
+     *
+     * @param player - Player.
+     * @return the game profile.
+     */
+    @Nonnull
+    public static GameProfile getGameProfile(@Nonnull Player player) {
         return getGameProfile(getMinecraftPlayer(player));
     }
 
-    public static GameProfile getGameProfile(EntityPlayer player) {
+    /**
+     * Gets player's {@link GameProfile}.
+     *
+     * @param player - Player.
+     * @return the game profile.
+     */
+    @Nonnull
+    public static GameProfile getGameProfile(@Nonnull EntityPlayer player) {
         return player.fQ();
     }
 
@@ -646,12 +723,13 @@ public final class Reflect {
         }
     }
 
-    // lazy calls
+    @Nullable // Avoid using
     public static Method lazyMethod(Object obj, String name, Class<?>... args) {
         Validate.notNull(obj);
         return lazyMethod(obj.getClass(), name, args);
     }
 
+    @Nullable // Avoid using
     public static Method lazyMethod(Class<?> clazz, String name, Class<?>... args) {
         try {
             return clazz.getMethod(name, args);
@@ -660,6 +738,7 @@ public final class Reflect {
         }
     }
 
+    @Nullable // Avoid using
     public static Field lazyField(Class<?> clazz, String name) {
         try {
             return clazz.getField(name);
@@ -668,6 +747,7 @@ public final class Reflect {
         }
     }
 
+    @Nullable // Avoid using
     public static Object lazyFieldValue(Class<?> clazz, String name, Object obj) {
         final Field field = lazyField(clazz, name);
         if (field == null) {
@@ -680,6 +760,7 @@ public final class Reflect {
         }
     }
 
+    @Nullable // Avoid using
     public static Constructor<?> lazyConstructor(Class<?> clazz, Class<?>... objects) {
         try {
             return clazz.getConstructor(objects);
@@ -689,13 +770,20 @@ public final class Reflect {
     }
 
     /**
-     * This CAN is theory be null, but really never should be!
+     * Gets the {@link MinecraftServer}.
+     *
+     * @return the server.
      */
     @Nonnull
     public static MinecraftServer getMinecraftServer() {
-        return MinecraftServer.getServer();
+        return Objects.requireNonNull(MinecraftServer.getServer(), "MinecraftServer cannot be null.");
     }
 
+    /**
+     * Gets the {@link DedicatedPlayerList}.
+     *
+     * @return the list.
+     */
     @Nullable
     public static DedicatedPlayerList getMinecraftPlayerList() {
         try {
@@ -706,41 +794,37 @@ public final class Reflect {
         }
     }
 
-    @Nullable
-    public static net.minecraft.world.entity.Entity getMinecraftEntity(Entity bukkitEntity) {
+    /**
+     * Gets the NMS entity from the bukkit entity.
+     *
+     * @param bukkitEntity - Bukkit entity.
+     * @return the NMS entity.
+     */
+    public static net.minecraft.world.entity.Entity getMinecraftEntity(@Nonnull Entity bukkitEntity) {
         return (net.minecraft.world.entity.Entity) Reflect.invokeMethod(
                 Reflect.lazyMethod(bukkitEntity.getClass(), "getHandle"),
                 bukkitEntity
         );
     }
 
-    public static EntityPlayer getMinecraftPlayer(Player player) {
+    /**
+     * Gets the NMS player from the bukkit entity.
+     *
+     * @param player - Bukkit player.
+     * @return the NMS player.
+     */
+    public static EntityPlayer getMinecraftPlayer(@Nonnull Player player) {
         return (EntityPlayer) Reflect.invokeMethod(Reflect.lazyMethod(player.getClass(), "getHandle"), player);
     }
 
-    public static net.minecraft.world.level.World getMinecraftWorld(World bukkitWorld) {
+    /**
+     * Gets the NMS world for the bukkit world.
+     *
+     * @param bukkitWorld - Bukkit world.
+     * @return the NMS world.
+     */
+    public static net.minecraft.world.level.World getMinecraftWorld(@Nonnull World bukkitWorld) {
         return (net.minecraft.world.level.World) Reflect.invokeMethod(Reflect.lazyMethod(bukkitWorld, "getHandle"), bukkitWorld);
-    }
-
-    /**
-     * Sends a native packet to players.
-     *
-     * @param packet    - Packet.
-     * @param receivers - Players.
-     */
-    public static void sendPacketToAll(Packet<?> packet, Player... receivers) {
-        for (final Player receiver : receivers) {
-            sendPacket(receiver, packet);
-        }
-    }
-
-    /**
-     * Sends a packet to all online players.
-     *
-     * @param packet - Packet to send.
-     */
-    public static void sendPacketGlobal(@Nonnull Packet<?> packet) {
-        Bukkit.getOnlinePlayers().forEach(player -> sendPacket(player, packet));
     }
 
     /**
@@ -749,28 +833,12 @@ public final class Reflect {
      * @param bukkitItem - Bukkit itemstack.
      * @return NMS itemstack.
      */
-    public static ItemStack bukkitItemToNMS(org.bukkit.inventory.ItemStack bukkitItem) {
+    public static ItemStack bukkitItemToNMS(@Nonnull org.bukkit.inventory.ItemStack bukkitItem) {
         return (ItemStack) invokeMethod(
                 getCraftMethod("inventory.CraftItemStack", "asNMSCopy", org.bukkit.inventory.ItemStack.class),
                 null,
                 bukkitItem
         );
-    }
-
-    /**
-     * Sends a protocol packet to players.
-     *
-     * @param packet    - Packet.
-     * @param receivers - Players.
-     */
-    public static void sendPacket(PacketContainer packet, Player... receivers) {
-        try {
-            for (Player receiver : receivers) {
-                manager.sendServerPacket(receiver, packet);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -780,7 +848,7 @@ public final class Reflect {
      * @return NMS scoreboard.
      */
     @Nullable
-    public static net.minecraft.world.scores.Scoreboard getNetScoreboard(Scoreboard scoreboard) {
+    public static net.minecraft.world.scores.Scoreboard getNetScoreboard(@Nonnull Scoreboard scoreboard) {
         try {
             return (net.minecraft.world.scores.Scoreboard) MethodUtils.invokeMethod(scoreboard, "getHandle", null);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -797,7 +865,7 @@ public final class Reflect {
      * @return NMS scoreboard team.
      */
     @Nullable
-    public static ScoreboardTeam getNetTeam(Scoreboard scoreboard, String teamName) {
+    public static ScoreboardTeam getNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
         final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
 
         if (netScoreboard == null) {
@@ -807,6 +875,13 @@ public final class Reflect {
         return netScoreboard.d(teamName);
     }
 
+    /**
+     * Gets a NMS team from the bukkit team.
+     *
+     * @param team - Bukkit team.
+     * @return the NMS team.
+     * @throws IllegalArgumentException if the team is somehow not a team.
+     */
     @Nonnull
     public static ScoreboardTeam getNetTeam(@Nonnull Team team) throws IllegalArgumentException {
         try {
@@ -824,8 +899,15 @@ public final class Reflect {
         throw new IllegalArgumentException("Could not parse getNetTeam() for some reason!");
     }
 
+    /**
+     * Gets the NMS team from the give scoreboard.
+     *
+     * @param scoreboard - Scoreboard.
+     * @param team       - Team.
+     * @return the NMS team or null.
+     */
     @Nullable
-    public static ScoreboardTeam getNetTeam(Scoreboard scoreboard, ScoreboardTeam team) {
+    public static ScoreboardTeam getNetTeam(@Nonnull Scoreboard scoreboard, ScoreboardTeam team) {
         if (team == null) {
             return null;
         }
@@ -840,7 +922,7 @@ public final class Reflect {
      * @param teamName   - Name of the team.
      * @return NMS scoreboard team.
      */
-    public static ScoreboardTeam createNetTeam(Scoreboard scoreboard, String teamName) {
+    public static ScoreboardTeam createNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
         final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
 
         if (netScoreboard == null) {
@@ -856,7 +938,7 @@ public final class Reflect {
      * @param scoreboard - Bukkit scoreboard.
      * @param teamName   - Name of the team.
      */
-    public static void deleteNetTeam(Scoreboard scoreboard, String teamName) {
+    public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
         final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
 
         if (netScoreboard == null) {
@@ -872,10 +954,16 @@ public final class Reflect {
         netScoreboard.d(team);
     }
 
-    public static void deleteNetTeam(Scoreboard scoreboard, ScoreboardTeam netTeam) {
+    /**
+     * Deletes the NMS scoreboard team.
+     *
+     * @param scoreboard - Scoreboard.
+     * @param netTeam    - Team.
+     */
+    public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull ScoreboardTeam netTeam) {
         final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
 
-        if (netTeam == null || netScoreboard == null) {
+        if (netScoreboard == null) {
             throw new IllegalArgumentException("either net scoreboard or net team is null");
         }
 
@@ -893,16 +981,42 @@ public final class Reflect {
         return Bukkit.getWorld(worldServer.uuid);
     }
 
-    public static void hidePlayerFromTab(@Nonnull Player player, @Nonnull Player whomToHide) {
-        final ClientboundPlayerInfoRemovePacket packet = new ClientboundPlayerInfoRemovePacket(List.of(whomToHide.getUniqueId()));
+    /**
+     * Gets a NMS handle of the craft object.
+     * <br>
+     * This calls the <code>getHandle()</code> method and casts the returned value.
+     *
+     * @param craftObject - Craft object.
+     * @param handleClass - NMS handle class.
+     * @return the NMS handle.
+     */
+    @Nonnull
+    public static <T> T getHandle(@Nonnull Object craftObject, @Nonnull Class<T> handleClass) {
+        try {
+            final Class<?> clazz = craftObject.getClass();
+            final Method method = clazz.getMethod(getHandleMethodName);
+            final Object object = method.invoke(craftObject);
 
-        sendPacket(player, packet);
+            if (object == null) {
+                throw makeIllegalArgumentHandle("CraftBukkit object returned null!");
+            }
+
+            if (!handleClass.isInstance(object)) {
+                throw makeIllegalArgumentHandle("CraftBukkit object is not an instance of %s!".formatted(handleClass.getSimpleName()));
+            }
+
+            return handleClass.cast(object);
+        } catch (NoSuchMethodException e) {
+            throw makeIllegalArgumentHandle("Provided object is not a CraftBukkit object!");
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            EternaLogger.exception(e);
+        }
+
+        throw new IllegalArgumentException();
     }
 
-    public static void showPlayerInTab(@Nonnull Player player, @Nonnull Player whomToShow) {
-        final ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.a(List.of(getMinecraftPlayer(whomToShow)));
-
-        sendPacket(player, packet);
-
+    private static IllegalArgumentException makeIllegalArgumentHandle(String msg) {
+        return new IllegalArgumentException("Cannot get the handle! " + msg);
     }
+
 }
