@@ -96,7 +96,7 @@ public class Replay extends ContainsViewers<Player> {
             npc.showAll();
         }
         else {
-            forEachViewer(npc::show);
+            forEachViewer(players -> npc.show(players));
         }
 
         new BukkitRunnable() {

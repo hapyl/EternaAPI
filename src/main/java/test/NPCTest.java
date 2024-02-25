@@ -3,7 +3,6 @@ package test;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.npc.ClickType;
-import me.hapyl.spigotutils.module.reflect.npc.FlippedHumanNPC;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

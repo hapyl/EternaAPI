@@ -18,6 +18,6 @@ public abstract class HologramAction<T> {
 
     public abstract T getObject();
 
-    public abstract void consume(Player... receivers);
+    public abstract void consume(Player receiver);
 
 }

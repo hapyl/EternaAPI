@@ -218,7 +218,9 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
      * Hides spawned holograms for each online player.
      */
     public void hideHolograms() {
-        this.holograms.forEach(Hologram::hide);
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            this.holograms.forEach(hologram -> hologram.hide(player));
+        });
     }
 
     /**

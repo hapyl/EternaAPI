@@ -20,4 +20,11 @@ public @interface SupportsColorFormatting {
      * @return a character that is used as color char.
      */
     char translateChar() default '&';
+
+    /**
+     * Gets if this string supports bukkit hex colors.
+     *
+     * @return true if this string supports bukkit hex colors.
+     */
+    boolean hex() default true;
 }

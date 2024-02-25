@@ -2,7 +2,6 @@ package me.hapyl.spigotutils.module.hologram;
 
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
@@ -12,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -43,30 +43,27 @@ public class HologramArmorStand {
     }
 
     public void show(Player player) {
-        ReflectPacket.send(new PacketPlayOutSpawnEntity(armorStand), player);
+        Reflect.sendPacket(player, new PacketPlayOutSpawnEntity(armorStand));
         update(player);
     }
 
     public void update(Player player) {
-        ReflectPacket.send(
-                new PacketPlayOutEntityMetadata(
-                        bukkit.getEntityId(),
-                        Reflect.getDataWatcherNonDefaultValues(armorStand)
-                ),
-                player
-        );
+        Reflect.sendPacket(player, new PacketPlayOutEntityMetadata(
+                bukkit.getEntityId(),
+                Reflect.getDataWatcherNonDefaultValues(armorStand)
+        ));
     }
 
     public void hide(Player player) {
-        ReflectPacket.send(new PacketPlayOutEntityDestroy(bukkit.getEntityId()), player);
+        Reflect.sendPacket(player, new PacketPlayOutEntityDestroy(bukkit.getEntityId()));
     }
 
     public void setLine(@Nullable String newText) {
         bukkit.setCustomName(newText == null ? "" : Chat.translateColor(newText));
     }
 
-    public void updateLocation(Player... players) {
-        ReflectPacket.send(new PacketPlayOutEntityTeleport(armorStand), players);
+    public void updateLocation(@Nonnull Player player) {
+        Reflect.sendPacket(player, new PacketPlayOutEntityTeleport(armorStand));
     }
 
     public void updateLocation(Set<Player> players) {

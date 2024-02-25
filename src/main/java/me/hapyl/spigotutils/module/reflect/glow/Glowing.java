@@ -403,13 +403,11 @@ public class Glowing implements Ticking, GlowingListener {
      * @param entity   - Entity, who will be glowing.
      * @param color    - Glowing color.
      * @param duration - Duration of the glowing.
-     * @param viewers  - Players, who will see the glowing.
+     * @param player   - Player, who will see the glowing.
      * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
      */
-    public static void glow(@Nonnull Entity entity, @Nonnull ChatColor color, int duration, @Nonnull Player... viewers) {
-        for (Player viewer : viewers) {
-            glow(viewer, entity, color, duration);
-        }
+    public static void glow(@Nonnull Entity entity, @Nonnull ChatColor color, int duration, @Nonnull Player player) {
+        glow(player, entity, color, duration);
     }
 
     /**
@@ -430,15 +428,13 @@ public class Glowing implements Ticking, GlowingListener {
     /**
      * Starts the glowing for the entity indefinitely.
      *
-     * @param entity  - Entity, who will be glowing.
-     * @param color   - Glowing color.
-     * @param viewers - Players, who will see the glowing.
+     * @param entity - Entity, who will be glowing.
+     * @param color  - Glowing color.
+     * @param player - Player, who will see the glowing.
      * @throws IllegalArgumentException if the color is <code>not {@link ChatColor#isColor()}</code>.
      */
-    public static void glowInfinitely(@Nonnull Entity entity, @Nonnull ChatColor color, @Nonnull Player... viewers) {
-        for (Player viewer : viewers) {
-            glow(viewer, entity, color, Integer.MAX_VALUE);
-        }
+    public static void glowInfinitely(@Nonnull Entity entity, @Nonnull ChatColor color, @Nonnull Player player) {
+        glow(player, entity, color, Integer.MAX_VALUE);
     }
 
     /**

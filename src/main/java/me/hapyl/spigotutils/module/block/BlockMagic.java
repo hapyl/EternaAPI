@@ -90,20 +90,14 @@ public class BlockMagic {
      * Sends a visual change to all blocks.
      *
      * @param material - Material to change.
-     * @param viewers  - Viewers that will see the change, if empty or null everyone will see the change.
+     * @param player   - Player, that will see the change.
      */
-    public void sendChange(Material material, Player... viewers) {
+    public void sendChange(Material material, Player player) {
         Validate.isTrue(material.isBlock(), "material must be block");
         final BlockData blockData = material.createBlockData();
-        this.forEach(block -> {
-            if (viewers == null || viewers.length == 0) {
-                Bukkit.getOnlinePlayers().forEach(player -> player.sendBlockChange(block.getLocation(), blockData));
-            }
-            else {
-                for (final Player viewer : viewers) {
-                    viewer.sendBlockChange(block.getLocation(), blockData);
-                }
-            }
+
+        forEach(block -> {
+            player.sendBlockChange(block.getLocation(), blockData);
         });
     }
 

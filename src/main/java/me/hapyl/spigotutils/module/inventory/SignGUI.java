@@ -5,7 +5,6 @@ import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.reflect.ReflectPacket;
 import me.hapyl.spigotutils.module.util.Runnables;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.chat.CommonComponents;
@@ -73,7 +72,7 @@ public abstract class SignGUI {
 
         if (prompt != null) {
             final List<String> splits = ItemBuilder.splitString(prompt, 14);
-            if (splits.size() == 0 || prompt.isBlank()) {
+            if (splits.isEmpty() || prompt.isBlank()) {
                 this.lines[3] = DASHED_LINE;
             }
             else if (splits.size() == 1) {
@@ -228,7 +227,7 @@ public abstract class SignGUI {
         }
 
         // Open sign editor
-        ReflectPacket.send(new PacketPlayOutOpenSignEditor(getBlockPosition(), true), player);
+        Reflect.sendPacket(player, new PacketPlayOutOpenSignEditor(getBlockPosition(), true));
 
         saved.put(player, this);
     }

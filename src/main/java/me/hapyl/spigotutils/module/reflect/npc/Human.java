@@ -246,6 +246,13 @@ public interface Human {
     NPCPose getPose();
 
     /**
+     * Gets if this NPC is showing to anyone.
+     *
+     * @return true if this NPC is showing to anyone; false otherwise.
+     */
+    boolean isShowing();
+
+    /**
      * Changes NPC's head position to look at entity.
      *
      * @param entity - Entity to look at.
@@ -357,11 +364,11 @@ public interface Human {
      * Ignores NPC's equipment and sends a "ghost" item to provided players.
      * {@link Human#updateEquipment()} will reset NPC's "ghost" equipment.
      *
-     * @param slot    - Slot to put items on.
-     * @param item    - Item.
-     * @param players - Players who will see the change.
+     * @param slot   - Slot to put items on.
+     * @param item   - Item.
+     * @param player - Player, who will see the change.
      */
-    void setGhostItem(ItemSlot slot, ItemStack item, @Nullable Player... players);
+    void setGhostItem(ItemSlot slot, ItemStack item, @Nullable Player player);
 
     /**
      * Changed actual equipment of the NPC, which is the same for every player.
@@ -384,9 +391,9 @@ public interface Human {
     /**
      * Shows this NPC to players.
      *
-     * @param players - Players who NPC will be shown to.
+     * @param player - Player, who NPC will be shown to.
      */
-    void show(@Nonnull Player... players);
+    void show(@Nonnull Player player);
 
     /**
      * Reloads (respawn) NPC to update its textures.
@@ -464,11 +471,11 @@ public interface Human {
     void hide();
 
     /**
-     * Hides the NPC from the specified players.
+     * Hides the NPC from the specified player.
      *
-     * @param players - The players to hide the NPC from.
+     * @param player - The player to hide the NPC from.
      */
-    void hide(Player... players);
+    void hide(@Nonnull Player player);
 
     /**
      * Sets the collision of the NPC.

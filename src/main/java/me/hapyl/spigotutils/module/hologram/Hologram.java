@@ -8,9 +8,7 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.registry.EternaRegistry;
-import org.apache.commons.io.filefilter.OrFileFilter;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -202,64 +200,49 @@ public class Hologram extends LimitedVisibility {
      * Shows this hologram to all online players.
      */
     public Hologram showAll() {
-        return this.show(BukkitUtils.onlinePlayersAsArray());
+        Bukkit.getOnlinePlayers().forEach(this::show);
+        return this;
     }
 
     /**
      * Shows this hologram to the given player.
      *
-     * @param players - Player to show to.
+     * @param player - Player to show to.
      */
     @Super
-    public Hologram show(Player... players) {
+    public Hologram show(@Nonnull Player player) {
         if (this.location == null) {
-            for (final Player player : players) {
-                Chat.sendMessage(player, "&4Could not spawn a hologram for you since it wasn't created yet!");
-            }
+            throw new IllegalStateException("Cannot spawn a hologram because it's not created yet!");
+        }
+
+        if (isShowingTo(player)) {
             return this;
         }
 
-        for (Player player : players) {
-            if (isShowingTo(player)) {
-                continue;
-            }
-
-            showingTo.add(player);
-            packets.forEach(hologram -> {
-                hologram.show(player);
-                hologram.updateLocation(player);
-            });
-        }
+        showingTo.add(player);
+        packets.forEach(hologram -> {
+            hologram.show(player);
+            hologram.updateLocation(player);
+        });
 
         return this;
     }
 
     /**
-     * Hides the hologram from the given players.
+     * Hides the hologram from the given player.
      *
-     * @param players - Players.
+     * @param player - Player to hide from.
      */
     @Super
-    public Hologram hide(Player... players) {
-        for (Player player : players) {
-            showingTo.remove(player);
-            packets.forEach(hologram -> hologram.hide(player));
-        }
+    public Hologram hide(@Nonnull Player player) {
+        showingTo.remove(player);
+        packets.forEach(hologram -> hologram.hide(player));
 
         return this;
     }
 
-    /**
-     * Executed every tick this hologram exists.
-     *
-     * @param action - Action to perform.
-     * @param tick   - Tick.
-     */
-    public Hologram onTick(HologramAction<?> action, int tick) {
-        return onTick(action, tick, Bukkit.getOnlinePlayers().toArray(new Player[] {}));
-    }
-
-    public Hologram onTick(HologramAction<?> action, int tick, Player... receivers) {
+    // FIXME (hapyl): 025, Feb 25: What the fuck is this
+    public Hologram onTick(HologramAction<?> action, int tick, Player player) {
         if (this.task != null) {
             this.task.cancel();
         }
@@ -267,7 +250,7 @@ public class Hologram extends LimitedVisibility {
         this.task = new BukkitRunnable() {
             @Override
             public void run() {
-                action.consume(receivers);
+                action.consume(player);
             }
         }.runTaskTimer(EternaPlugin.getPlugin(), 0, tick);
         return this;

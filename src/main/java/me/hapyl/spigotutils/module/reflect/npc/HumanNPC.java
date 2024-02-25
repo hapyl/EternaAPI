@@ -9,7 +9,6 @@ import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -65,8 +64,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Ref;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -170,7 +169,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void setShaking(boolean shaking) {
-        Reflect.setDataWatcherValue(human.getHuman(), DataWatcherType.INT, 7, shaking ? Integer.MAX_VALUE : 0);
+        showingTo.forEach(player -> Reflect.setDataWatcherValue(
+                human.getHuman(),
+                DataWatcherType.INT,
+                7,
+                shaking ? Integer.MAX_VALUE : 0
+        ));
+
         updateDataWatcher();
     }
 
@@ -230,7 +235,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void setSitting(boolean sitting) {
         if (sitEntity != null) {
-            Reflect.destroyEntity(sitEntity, getPlayers());
+            showingTo.forEach(player -> Reflect.destroyEntity(sitEntity, player));
             sitEntity = null;
         }
 
@@ -244,8 +249,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
             ((net.minecraft.world.entity.Entity) sitEntity).r = ImmutableList.of(human.getHuman());
 
-            Reflect.createEntity(sitEntity, getPlayers());
-            Reflect.updateMetadata(sitEntity, getPlayers());
+            showingTo.forEach(player -> {
+                Reflect.createEntity(sitEntity, player);
+                Reflect.updateMetadata(sitEntity, player);
+            });
 
             updateSitting();
         }
@@ -538,6 +545,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public HumanNPC setPose(NPCPose pose) {
         human.setPose(pose);
+
+        if (!isShowing()) { // don't care, plugins should not call this unless NPC is showing to someone
+            return this;
+        }
+
         updateDataWatcher();
 
         if (pose == NPCPose.STANDING) {
@@ -545,6 +557,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
 
         return this;
+    }
+
+    @Override
+    public boolean isShowing() {
+        showingTo.removeIf(player -> !player.isOnline());
+
+        return !showingTo.isEmpty();
     }
 
     @Override
@@ -822,8 +841,8 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public void setGhostItem(ItemSlot slot, ItemStack item, Player... players) {
-        sendEquipmentChange(slot, item, players);
+    public void setGhostItem(ItemSlot slot, ItemStack item, Player player) {
+        sendEquipmentChange(slot, item, player);
     }
 
     @Override
@@ -834,14 +853,15 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void updateEquipment() {
-        final Player[] players = getPlayers();
         if (this.equipment != null) {
-            sendEquipmentChange(ItemSlot.HEAD, equipment.getHelmet(), players);
-            sendEquipmentChange(ItemSlot.CHEST, equipment.getChestplate(), players);
-            sendEquipmentChange(ItemSlot.LEGS, equipment.getLeggings(), players);
-            sendEquipmentChange(ItemSlot.FEET, equipment.getBoots(), players);
-            sendEquipmentChange(ItemSlot.MAINHAND, equipment.getHand(), players);
-            sendEquipmentChange(ItemSlot.OFFHAND, equipment.getOffhand(), players);
+            showingTo.forEach(player -> {
+                sendEquipmentChange(ItemSlot.HEAD, equipment.getHelmet(), player);
+                sendEquipmentChange(ItemSlot.CHEST, equipment.getChestplate(), player);
+                sendEquipmentChange(ItemSlot.LEGS, equipment.getLeggings(), player);
+                sendEquipmentChange(ItemSlot.FEET, equipment.getBoots(), player);
+                sendEquipmentChange(ItemSlot.MAINHAND, equipment.getHand(), player);
+                sendEquipmentChange(ItemSlot.OFFHAND, equipment.getOffhand(), player);
+            });
         }
     }
 
@@ -863,25 +883,28 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public void show(@Nonnull Player... players) {
-        showingTo.addAll(Arrays.asList(players));
-        aboveHead.show(players);
+    public void show(@Nonnull Player player) {
+        showingTo.add(player);
+        aboveHead.show(player);
 
-        for (Player player : players) {
-            onSpawn(player);
-            showVisibility(player);
-        }
+        onSpawn(player);
+        showVisibility(player);
     }
 
     @Override
     public void reloadNpcData() {
-        hide();
-        show();
+        showingTo.forEach(player -> {
+            hideVisibility(player);
+            showVisibility(player);
+        });
     }
 
     @Override
     public void setDataWatcherByteValue(int key, byte value) {
-        human.setDataWatcherByteValue(key, value);
+        showingTo.forEach(player -> {
+            human.setDataWatcherByteValue(key, value);
+            human.updateMetadata(player);
+        });
     }
 
     @Override
@@ -923,7 +946,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void updateDataWatcher() {
-        human.updateMetadata(getPlayers());
+        human.updateMetadata(showingTo);
     }
 
     @Override
@@ -937,9 +960,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      */
     public final void remove0() {
         this.alive = false;
+
         if (this.sitEntity != null) {
-            Reflect.destroyEntity(this.sitEntity, getPlayers());
+            showingTo.forEach(player -> Reflect.destroyEntity(this.sitEntity, player));
         }
+
         this.hide();
         this.deleteTeam();
         this.showingTo.clear();
@@ -947,17 +972,22 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void hide() {
-        hide(showingTo.toArray(new Player[] {}));
+        showingTo.forEach(this::hide0);
+        showingTo.clear();
     }
 
     @Override
-    public void hide(@Nonnull Player... players) {
-        for (Player player : players) {
-            showingTo.remove(player);
-            aboveHead.hide(player);
-            human.hide(player);
-            onDespawn(player);
-        }
+    public void hide(@Nonnull Player player) {
+        hide0(player);
+
+        showingTo.remove(player);
+    }
+
+    public void hide0(@Nonnull Player player) {
+        aboveHead.hide(player);
+        human.hide(player);
+
+        onDespawn(player);
     }
 
     @Override
@@ -1015,8 +1045,12 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return showingTo.toArray(new Player[0]);
     }
 
-    protected void sendPacket(Packet<?> packet) {
-        Reflect.sendPacketToAll(packet, getPlayers());
+    protected void sendPacket(@Nonnull Packet<?> packet) {
+        if (showingTo.isEmpty()) {
+            return;
+        }
+
+        showingTo.forEach(player -> Reflect.sendPacket(player, packet));
     }
 
     @SuppressWarnings("all")
@@ -1122,10 +1156,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         sendPacket(new PacketPlayOutAnimation(this.human.getHuman(), b ? 0 : 3));
     }
 
-    private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player... players) {
+    private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player player) {
         final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
         list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
-        sendPacket(new PacketPlayOutEntityEquipment(this.getId(), list));
+
+        final PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment(this.getId(), list);
+
+        Reflect.sendPacket(player, packet);
     }
 
     private void updateCollision() {

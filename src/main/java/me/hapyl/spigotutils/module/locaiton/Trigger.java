@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.locaiton;
 
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Cuboid;
+import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -104,16 +105,8 @@ public abstract class Trigger {
     }
 
     // not implemented yet
-    public void showBorders(Particle particle, @Nullable Player... viewers) {
-
-        Collection<Player> players = new HashSet<>();
-        if (viewers == null || viewers.length == 0) {
-            players.addAll(Bukkit.getOnlinePlayers());
-        }
-        else {
-            players.addAll(Arrays.asList(viewers));
-        }
-
+    public void showBorders(Particle particle, @Nullable Player player) {
+        throw new NotImplementedException();
     }
 
     public void setId(int id) {

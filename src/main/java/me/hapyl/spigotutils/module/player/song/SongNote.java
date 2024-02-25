@@ -4,6 +4,7 @@ import org.bukkit.Instrument;
 import org.bukkit.Note;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
@@ -37,19 +38,13 @@ public class SongNote {
         return note;
     }
 
-    public void play(Collection<? extends Player> players) {
+    public void play(@Nonnull Collection<? extends Player> players) {
         for (final Player player : players) {
             this.play(player);
         }
     }
 
-    public void play(Player... players) {
-        for (final Player player : players) {
-            this.play(player);
-        }
-    }
-
-    public void play(Player player) {
+    public void play(@Nonnull Player player) {
         player.playNote(player.getLocation(), this.instrument, this.note);
     }
 
