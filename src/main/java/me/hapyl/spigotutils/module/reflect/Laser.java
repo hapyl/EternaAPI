@@ -58,7 +58,7 @@ public class Laser implements EternaEntity {
      *
      * @param player - Players who will see the laser.
      */
-    public void spawn(@Nullable Player player) {
+    public void spawn(@Nullable Player player) { // FIXME (hapyl): 025, Feb 25: nonnull
         create();
 
         // spawn entity

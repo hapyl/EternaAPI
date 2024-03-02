@@ -1,7 +1,10 @@
 package me.hapyl.spigotutils.module.inventory.gui;
 
+import com.google.common.collect.Maps;
 import org.bukkit.event.inventory.ClickType;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,24 +15,32 @@ public class GUIClick {
 
     private final Map<ClickType, Action> perClickAction;
 
-    public GUIClick(Action click) {
-        this.perClickAction = new HashMap<>();
-        this.perClickAction.put(ClickType.UNKNOWN, click);
+    public GUIClick() {
+        this.perClickAction = Maps.newHashMap();
     }
 
-    public void addPerClick(ClickType type, Action action) {
-        if (type == ClickType.UNKNOWN) {
-            throw new IllegalArgumentException("UNKNOWN Click Type is not allowed!");
+    public GUIClick(@Nonnull Action click) {
+        this();
+
+        setAction(ClickType.LEFT, click);
+    }
+
+    @Nonnull
+    public Action getFirstAction() {
+        for (final Action action : this.perClickAction.values()) {
+            return action;
         }
+
+        throw new IllegalStateException("No actions!");
+    }
+
+    public void setAction(@Nonnull ClickType type, @Nonnull Action action) {
         this.perClickAction.put(type, action);
     }
 
-    public Map<ClickType, Action> getEvents() {
-        return perClickAction;
-    }
-
-    public Action getByClick(ClickType click) {
-        return this.perClickAction.getOrDefault(click, null);
+    @Nullable
+    public Action getAction(@Nonnull ClickType type) {
+        return this.perClickAction.get(type);
     }
 
     @Override
@@ -39,5 +50,10 @@ public class GUIClick {
             builder.append(clickType.name()).append(",");
         }
         return builder.append("]").toString();
+    }
+
+    @Nonnull
+    protected Map<ClickType, Action> getEvents() {
+        return perClickAction;
     }
 }
