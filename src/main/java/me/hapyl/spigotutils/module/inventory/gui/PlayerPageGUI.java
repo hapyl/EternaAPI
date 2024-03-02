@@ -145,7 +145,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
      * @return The ItemStack that will be displayed.
      */
     @Nonnull
-    public abstract ItemStack asItem(Player player, T content, int index, int page);
+    public abstract ItemStack asItem(@Nonnull Player player, T content, int index, int page);
 
     /**
      * Executed when a player clicks on an item.
@@ -156,7 +156,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
      * @param page    - Page of the content between 1 and {@link #getMaxPage()}.
      */
     @Deprecated
-    public void onClick(@Nonnull Player player, @Nonnull T content, int index, int page) {
+    public void onClick(@Nonnull Player player, T content, int index, int page) {
     }
 
     /**

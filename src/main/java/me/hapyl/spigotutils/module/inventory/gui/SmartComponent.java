@@ -3,12 +3,14 @@ package me.hapyl.spigotutils.module.inventory.gui;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 
 /**
  * Stores a list of items and their actions.
  *
- * @author Hapyl
+ * @author hapyl
  */
 public class SmartComponent {
 
@@ -24,7 +26,7 @@ public class SmartComponent {
      * @param item   Item.
      * @param action Action to perform when clicked.
      */
-    public SmartComponent add(ItemStack item, GUIClick action) {
+    public SmartComponent add(@Nonnull ItemStack item, @Nonnull GUIClick action) {
         this.map.put(item, action);
         return this;
     }
@@ -35,8 +37,20 @@ public class SmartComponent {
      * @param item   Item.
      * @param action Action to perform when clicked.
      */
-    public SmartComponent add(ItemStack item, Action action) {
-        this.map.put(item, new GUIClick(action));
+    public SmartComponent add(@Nonnull ItemStack item, @Nullable Action action) {
+        this.map.put(item, action != null ? new GUIClick(action) : null);
+        return this;
+    }
+
+    /**
+     * Adds an item to the component with a click action.
+     *
+     * @param item   - Item.
+     * @param action - Action.
+     * @see StrictAction
+     */
+    public SmartComponent add(@Nonnull ItemStack item, @Nonnull StrictAction action) {
+        this.map.put(item, action.makeGUIClick());
         return this;
     }
 
@@ -47,14 +61,38 @@ public class SmartComponent {
      * @param action     Action to perform when clicked.
      * @param clickTypes Click types.
      */
-    public SmartComponent add(ItemStack item, Action action, ClickType... clickTypes) {
+    public SmartComponent add(@Nonnull ItemStack item, @Nonnull Action action, @Nonnull ClickType... clickTypes) {
         final GUIClick guiClick = this.map.computeIfAbsent(item, a -> new GUIClick(action));
 
         for (ClickType click : clickTypes) {
-            guiClick.addPerClick(click, action);
+            guiClick.setAction(click, action);
         }
 
         return this.add(item, guiClick);
+    }
+
+    /**
+     * Sets the action for the given item.
+     * <br>
+     * This does not add another item, only modifies the existing one.
+     * If there is no existing item, it will be added.
+     *
+     * @param item   - Item.
+     * @param action - Action.
+     * @param types  - Types.
+     */
+    public SmartComponent set(@Nonnull ItemStack item, @Nonnull Action action, @Nonnull ClickType... types) {
+        this.map.compute(item, (i, click) -> {
+            click = click != null ? click : new GUIClick();
+
+            for (ClickType type : types) {
+                click.setAction(type, action);
+            }
+
+            return click;
+        });
+
+        return this;
     }
 
     /**
@@ -62,7 +100,7 @@ public class SmartComponent {
      *
      * @param item Item.
      */
-    public SmartComponent add(ItemStack item) {
+    public SmartComponent add(@Nonnull ItemStack item) {
         return this.add(item, (Action) null);
     }
 
@@ -73,7 +111,7 @@ public class SmartComponent {
      * @param pattern  Pattern to apply.
      * @param startRow Row to start from.
      */
-    public void apply(GUI gui, SlotPattern pattern, int startRow) {
+    public void apply(@Nonnull GUI gui, @Nonnull SlotPattern pattern, int startRow) {
         pattern.apply(gui, getMap(), startRow);
     }
 
@@ -99,7 +137,8 @@ public class SmartComponent {
         return GUI.getSmartMenuSize(map.keySet());
     }
 
-    public LinkedHashMap<ItemStack, GUIClick> getMap() {
+    @Nonnull
+    protected LinkedHashMap<ItemStack, GUIClick> getMap() {
         return this.map;
     }
 

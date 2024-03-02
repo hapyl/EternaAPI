@@ -6,7 +6,6 @@ import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
 import me.hapyl.spigotutils.module.math.Numbers;
-import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -292,6 +291,17 @@ public class GUI {
     }
 
     /**
+     * Sets a given item to the given slot.
+     *
+     * @param slot   - Slot.
+     * @param item   - Item.
+     * @param action - Action.
+     */
+    public final void setItem(int slot, @Nonnull ItemStack item, @Nonnull StrictAction action) {
+        setItem(slot, item, action.makeGUIClick());
+    }
+
+    /**
      * Sets an item to provided slot.
      *
      * @param slot   - Slot to put item at.
@@ -304,7 +314,7 @@ public class GUI {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
         final GUIClick guiClick = getOrNew(slot, action);
         for (final ClickType type : types) {
-            guiClick.addPerClick(type, action);
+            guiClick.setAction(type, action);
         }
         this.setItem(slot, item, guiClick);
     }
@@ -406,7 +416,7 @@ public class GUI {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
         final GUIClick guiClick = getOrNew(slot, action);
         for (final ClickType type : types) {
-            guiClick.addPerClick(type, action);
+            guiClick.setAction(type, action);
         }
         this.setClick(slot, guiClick);
     }
@@ -704,16 +714,9 @@ public class GUI {
             return;
         }
 
-        // only 1 action
-        if (events.size() == 1) {
-            final Action action = events.get(ClickType.UNKNOWN);
-            Nulls.runIfNotNull(action, a -> action.invoke(player));
-            return;
-        }
-
-        events.forEach((click, action) -> {
-            if (click == type) {
-                Nulls.runIfNotNull(action, a -> action.invoke(player));
+        events.forEach((clickType, action) -> {
+            if (clickType == type && action != null) {
+                action.invoke(player);
             }
         });
     }
