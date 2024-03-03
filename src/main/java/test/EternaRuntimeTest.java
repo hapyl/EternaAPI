@@ -617,7 +617,15 @@ public final class EternaRuntimeTest {
                 );
                 scoreboard.addPlayer(player);
 
-                return true;
+                later(() -> {
+                    info(player, "Hid numbers");
+
+                    scoreboard.setHideNumbers(true);
+
+                    assertTestPassed();
+                }, 60);
+
+                return false;
             }
         });
 
@@ -1128,7 +1136,7 @@ public final class EternaRuntimeTest {
                 return;
             }
 
-            handleTestFail(currentTest, e.getMessage());
+            handleTestFail(currentTest, e);
         }
     }
 
@@ -1140,8 +1148,9 @@ public final class EternaRuntimeTest {
         EternaLogger.test("&aTest '%s' passed!".formatted(test));
     }
 
-    static void handleTestFail(EternaTest test, String message) {
-        EternaLogger.test("&4Test '%s' failed! &c%s".formatted(test, message));
+    static void handleTestFail(EternaTest test, Exception ex) {
+        EternaLogger.test("&4Test '%s' failed! &c%s".formatted(test, ex.getMessage()));
+        ex.printStackTrace();
     }
 
     static void handleTestSkipped(EternaTest test, String message) {

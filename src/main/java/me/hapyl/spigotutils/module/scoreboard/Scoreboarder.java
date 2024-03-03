@@ -3,24 +3,26 @@ package me.hapyl.spigotutils.module.scoreboard;
 import me.hapyl.spigotutils.module.EternaModule;
 import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.reflect.Reflect;
 import net.md_5.bungee.api.ChatColor;
+import net.minecraft.network.chat.numbers.BlankFormat;
+import net.minecraft.network.chat.numbers.FixedFormat;
+import net.minecraft.world.scores.ScoreboardObjective;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.*;
 
 import java.util.*;
 
 /**
- * This class allows to create per-player scoreboards.
+ * This class allows creating per-player scoreboards.
  */
 @EternaModule
 public class Scoreboarder {
 
     private final Scoreboard scoreboard;
     private final Objective objective;
+    private final ScoreboardObjective nmsObjective;
     private final List<String> lines;
     private final Set<Player> players;
 
@@ -34,7 +36,10 @@ public class Scoreboarder {
         this.players = new HashSet<>();
 
         this.scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
-        this.objective = this.scoreboard.registerNewObjective(UUID.randomUUID().toString().substring(0, 16), "dummy", "title");
+        this.objective = scoreboard.registerNewObjective(UUID.randomUUID().toString(), Criteria.DUMMY, title);
+
+        this.nmsObjective = Reflect.getHandle(this.objective, ScoreboardObjective.class);
+
         this.setTitle(title);
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
@@ -44,8 +49,12 @@ public class Scoreboarder {
         }
     }
 
+    public void setHideNumbers(boolean hideNumbers) {
+        nmsObjective.b(hideNumbers ? BlankFormat.a : null);
+    }
+
     /**
-     * Changes current title of the scoreboard.
+     * Changes the current title of the scoreboard.
      *
      * @param title - New title. Supports color codes.
      */
@@ -126,7 +135,7 @@ public class Scoreboarder {
     /**
      * Updates scoreboard lines, setting the values
      * and changing their respective positions.
-     *
+     * <p>
      * This is only called automatically at
      * {@link Scoreboarder#setLines(String...)} Must be
      * called manually after adding lines using
@@ -138,6 +147,7 @@ public class Scoreboarder {
             if (i <= (this.lines.size() - 1)) {
                 continue;
             }
+
             final String colorChar = colorCharAt(i);
             final Score score = this.objective.getScore(colorChar);
 

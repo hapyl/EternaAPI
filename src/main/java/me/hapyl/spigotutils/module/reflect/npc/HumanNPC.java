@@ -371,7 +371,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             return false;
         }
 
-        EternaLogger.debug("called onClickAuto");
         onClick(player, clickType);
 
         // Do the entry magic
