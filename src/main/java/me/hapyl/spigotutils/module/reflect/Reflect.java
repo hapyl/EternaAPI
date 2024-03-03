@@ -994,7 +994,9 @@ public final class Reflect {
     public static <T> T getHandle(@Nonnull Object craftObject, @Nonnull Class<T> handleClass) {
         try {
             final Class<?> clazz = craftObject.getClass();
-            final Method method = clazz.getMethod(getHandleMethodName);
+            final Method method = clazz.getDeclaredMethod(getHandleMethodName);
+            method.setAccessible(true);
+
             final Object object = method.invoke(craftObject);
 
             if (object == null) {
@@ -1012,7 +1014,7 @@ public final class Reflect {
             EternaLogger.exception(e);
         }
 
-        throw new IllegalArgumentException();
+        throw makeIllegalArgumentHandle("Something unexpected occurred.");
     }
 
     private static IllegalArgumentException makeIllegalArgumentHandle(String msg) {
