@@ -127,7 +127,7 @@ public class EternaPlayer {
     }
 
     public NPCPose getPose() {
-        return NPCPose.fromNMS(human.an());
+        return NPCPose.fromNMS(human.ap());
     }
 
     public void setPose(@Nonnull NPCPose pose) {

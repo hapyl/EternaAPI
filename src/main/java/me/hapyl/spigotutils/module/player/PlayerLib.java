@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.player;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
+import me.hapyl.spigotutils.module.util.Runnables;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -70,7 +71,7 @@ public class PlayerLib {
      */
     public static void playSoundAndCut(Player player, Sound sound, float pitch, int cutAfter) {
         playSound(player, sound, pitch);
-        EternaPlugin.runTaskLater((task) -> {
+        Runnables.runLater(() -> {
             player.stopSound(sound, SOUND_CATEGORY);
         }, cutAfter);
     }
@@ -87,7 +88,8 @@ public class PlayerLib {
     public static void playSoundAndCut(Location location, Sound sound, float pitch, int cutAfter) {
         final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
         players.forEach(player -> playSound(player, location, sound, pitch));
-        EternaPlugin.runTaskLater((task) -> {
+
+        Runnables.runLater(() -> {
             players.forEach(player -> player.stopSound(sound, SOUND_CATEGORY));
             players.clear();
         }, cutAfter);
@@ -105,7 +107,8 @@ public class PlayerLib {
      */
     public static void playSoundAndCut(Player player, Location location, Sound sound, float pitch, int cutAfter) {
         playSound(player, location, sound, pitch);
-        EternaPlugin.runTaskLater((task) -> {
+
+        Runnables.runLater(() -> {
             player.stopSound(sound, SOUND_CATEGORY);
         }, cutAfter);
     }

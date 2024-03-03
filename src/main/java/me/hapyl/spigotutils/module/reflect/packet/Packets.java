@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * This class is a shortcut to packet creating and sending.
  */
-@TestedOn(version = Version.V1_20_2)
+@TestedOn(version = Version.V1_20_4)
 public final class Packets {
 
     private Packets() {

@@ -10,6 +10,8 @@ import org.bukkit.command.CommandSender;
 public class EternaLogger {
 
     public static final String PREFIX = "&b&lEternaAPI&b> &a";
+    public static final String DEBUG_PREFIX = PREFIX + "&c&lDEBUG&4> &7&o";
+    public static final String TEST_PREFIX = PREFIX + "&2&lTEST&2> &a";
 
     public static void broadcastMessageOP(String string, Object... format) {
         Chat.broadcastOp(PREFIX + string, format);
@@ -47,7 +49,12 @@ public class EternaLogger {
     public static void debug(Object message, Object... format) {
         final String formatted = message.toString().formatted(format);
 
-        info("&8DEBUG> " + formatted);
-        Chat.broadcastOp(PREFIX + "&8DEBUG> " + formatted);
+        info(DEBUG_PREFIX + formatted);
+        Chat.broadcastOp(DEBUG_PREFIX + formatted);
+    }
+
+    public static void test(String s) {
+        info(TEST_PREFIX + s);
+        Chat.broadcastOp(TEST_PREFIX + s);
     }
 }

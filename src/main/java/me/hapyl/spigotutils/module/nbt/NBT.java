@@ -257,6 +257,16 @@ public class NBT {
     }
 
     /**
+     * Removes the element from the given path.
+     *
+     * @param holder - Holder.
+     * @param path   - Path.
+     */
+    public static void remove(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
+        holder.getPersistentDataContainer().remove(createKey(path));
+    }
+
+    /**
      * Returns true if this persistent data holder has a value for a given path.
      *
      * @param holder - Persistent Data Holder.

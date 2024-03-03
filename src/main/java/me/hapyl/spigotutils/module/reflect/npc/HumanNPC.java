@@ -38,6 +38,7 @@ import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
+import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.Packet;
@@ -74,7 +75,7 @@ import java.util.function.Function;
  * For complex NPCs use <a href="https://github.com/CitizensDev/CitizensAPI">CitizensAPI</a>!
  */
 @SuppressWarnings("unused")
-@TestedOn(version = Version.V1_20_2)
+@TestedOn(version = Version.V1_20_4)
 public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public static final String CLICK_NAME = "&e&lCLICK";
@@ -370,6 +371,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             return false;
         }
 
+        EternaLogger.debug("called onClickAuto");
         onClick(player, clickType);
 
         // Do the entry magic
@@ -379,22 +381,24 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             final IntInt i = new IntInt();
 
             for (final NPCEntry entry : this.entries) {
-                EternaPlugin.runTaskLater((task) -> {
-                    if (!this.exists() || !player.isOnline() || stopTalking) {
-                        stopTalking = false;
-                        task.cancel();
-                        return;
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (!exists() || !player.isOnline() || stopTalking) {
+                            stopTalking = false;
+                            cancel();
+                            return;
+                        }
+
+                        // Progress FINISH_DIALOG
+                        if (i.get() == (entries.size() - 1)) {
+                            quest.checkActiveQuests(player, QuestObjectiveType.FINISH_DIALOGUE, this);
+                        }
+
+                        i.increment();
+                        entry.invokeEntry(HumanNPC.this, player);
                     }
-
-                    // Progress FINISH_DIALOG
-                    if (i.get() == (this.entries.size() - 1)) {
-                        quest.checkActiveQuests(player, QuestObjectiveType.FINISH_DIALOGUE, this);
-                    }
-
-                    i.increment();
-                    entry.invokeEntry(this, player);
-
-                }, nextDelay.get());
+                }.runTaskLater(EternaPlugin.getPlugin(), nextDelay.get());
                 nextDelay.addAndGet(entry.getDelay());
             }
 

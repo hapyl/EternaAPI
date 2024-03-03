@@ -22,7 +22,7 @@ import java.lang.reflect.Constructor;
  * Create a visual bounding box between two points.
  * A bounding box size cannot exceed 48 blocks.
  */
-@TestedOn(version = Version.V1_20_2)
+@TestedOn(version = Version.V1_20_4)
 public class BoundingBox {
 
     public static final net.minecraft.world.level.block.Block STRUCTURE_BLOCK = Blocks.pa;
@@ -270,7 +270,7 @@ public class BoundingBox {
         hide();
 
         Runnables.runLater(() -> {
-            final IBlockData blockData = STRUCTURE_BLOCK.n();
+            final IBlockData blockData = STRUCTURE_BLOCK.o();
 
             final int minX = getMinX();
             final int minY = getMinY() - 10; // -10 to offset structure block

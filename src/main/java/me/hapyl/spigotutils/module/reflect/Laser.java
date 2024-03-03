@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * Creates a laser (Guardian beam) between start and end.
  */
-@TestedOn(version = Version.V1_20_2)
+@TestedOn(version = Version.V1_20_4)
 public class Laser implements EternaEntity {
 
     private final Location start;
@@ -58,7 +58,7 @@ public class Laser implements EternaEntity {
      *
      * @param player - Players who will see the laser.
      */
-    public void spawn(@Nullable Player player) { // FIXME (hapyl): 025, Feb 25: nonnull
+    public void spawn(@Nonnull Player player) {
         create();
 
         // spawn entity
