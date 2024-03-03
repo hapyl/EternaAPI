@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedOn(version = Version.V1_20_2)
+@TestedOn(version = Version.V1_20_4)
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";
@@ -130,15 +130,6 @@ public abstract class SignGUI {
             }
             case 4 -> System.arraycopy(prompt, 0, this.lines, 0, prompt.length);
         }
-    }
-
-    @Deprecated
-    public void openMenu() {
-        final RuntimeException exception = new RuntimeException("Deprecated 'openMenu()' call on SignGUI.");
-        final Logger logger = Bukkit.getLogger();
-
-        logger.warning("Deprecated call 'openMenu()'!");
-        logger.warning(Arrays.toString(exception.getStackTrace()));
     }
 
     /**
@@ -242,7 +233,7 @@ public abstract class SignGUI {
 
     // Spigot broke sendSignChange, using this ugly code for now
     private void createSignRaw() {
-        final TileEntitySign sign = new TileEntitySign(getBlockPosition(), Blocks.cE.n());
+        final TileEntitySign sign = new TileEntitySign(getBlockPosition(), Blocks.cE.o());
 
         sign.a(new SignText(
                 new IChatBaseComponent[] {

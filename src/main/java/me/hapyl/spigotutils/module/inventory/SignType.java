@@ -4,6 +4,8 @@ import me.hapyl.spigotutils.module.util.Enums;
 import me.hapyl.spigotutils.module.util.ThreadRandom;
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 /**
  * A type of sign to open for {@link SignGUI}.
  * Defaults to {@link SignType#OAK}.
@@ -28,6 +30,12 @@ public enum SignType {
         this.material = material;
     }
 
+    /**
+     * Gets a random {@link SignType}.
+     *
+     * @return a random sign type.
+     */
+    @Nonnull
     public static SignType random() {
         return Enums.getRandomValue(SignType.class, OAK);
     }

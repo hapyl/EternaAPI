@@ -20,9 +20,9 @@ import me.hapyl.spigotutils.module.quest.QuestListener;
 import me.hapyl.spigotutils.module.record.ReplayListener;
 import me.hapyl.spigotutils.module.reflect.NPCRunnable;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolEntitySpawn;
+import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolMetadata;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRegistry;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
-import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolMetadata;
 import me.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
 import me.hapyl.spigotutils.module.reflect.protocol.SignListener;
 import me.hapyl.spigotutils.module.util.Runnables;
@@ -32,11 +32,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
-import test.RuntimeCommandsTest;
 
+import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
@@ -48,6 +46,7 @@ public class EternaPlugin extends JavaPlugin {
 
     private EternaRegistry registry;
     private Updater updater;
+    private EternaConfig config;
 
     @Override
     public void onEnable() {
@@ -66,7 +65,7 @@ public class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new HologramListener(), this);
 
         // Init registry
-        registry = new EternaRegistry(this);
+        this.registry = new EternaRegistry(this);
 
         final BukkitScheduler scheduler = Bukkit.getScheduler();
 
@@ -75,6 +74,8 @@ public class EternaPlugin extends JavaPlugin {
 
         config.options().copyDefaults(true);
         saveConfig();
+
+        this.config = new EternaConfig(this);
 
         // Schedule tasks
         scheduler.runTaskTimer(this, new NPCRunnable(), 0, config.getInt("tick-time.npc", 2));
@@ -95,7 +96,7 @@ public class EternaPlugin extends JavaPlugin {
 
         // Create songs folder
         try {
-            boolean b = new File(this.getDataFolder() + "/songs").mkdir();
+            new File(this.getDataFolder() + "/songs").mkdir();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -108,22 +109,19 @@ public class EternaPlugin extends JavaPlugin {
 
         // Check for updates
         this.updater = new Updater();
-        if (config.getBoolean("check-for-updates", true)) {
+
+        if (this.config.isTrue(EternaConfigValue.CHECK_FOR_UPDATES)) {
             Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
         }
-
-        if (config.getBoolean("dev.keep-test-commands", true)) {
-            new RuntimeCommandsTest(this);
-        }
-    }
-
-    public EternaRegistry getRegistry() {
-        return registry;
     }
 
     @Override
     public void onDisable() {
         registry.onDisable();
+    }
+
+    public EternaRegistry getRegistry() {
+        return registry;
     }
 
     public CustomItemRegistry getItemHolder() {
@@ -146,23 +144,34 @@ public class EternaPlugin extends JavaPlugin {
         return updater;
     }
 
-    private int getConfigInt(String path, int def) {
-        return getConfig().getInt(path, def);
+    /**
+     * Gets the {@link EternaConfig}.
+     *
+     * @return the api config.
+     */
+    @Nonnull
+    public static EternaConfig config() {
+        return plugin.config;
     }
 
-    public static void runTaskLater(Consumer<BukkitTask> runnable, long later) {
-        Bukkit.getScheduler().runTaskLater(plugin, runnable, later);
-    }
-
-    public static void runTaskTimer(Consumer<BukkitTask> runnable, long period) {
-        Bukkit.getScheduler().runTaskTimer(plugin, runnable, 0L, period);
-    }
-
+    /**
+     * Gets the {@link EternaPlugin}.
+     *
+     * @return the plugin.
+     */
+    @Nonnull
     public static EternaPlugin getPlugin() {
         return plugin;
     }
 
+    /**
+     * Gets the {@link Logger}.
+     *
+     * @return the logger.
+     */
+    @Nonnull
     public static Logger logger() {
         return getPlugin().getLogger();
     }
+
 }

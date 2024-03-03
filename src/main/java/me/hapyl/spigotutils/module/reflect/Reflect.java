@@ -59,7 +59,7 @@ import java.util.Objects;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_20_2)
+@TestedOn(version = Version.V1_20_4)
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -234,7 +234,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return entity.ah();
+        return entity.aj();
     }
 
     /**
@@ -535,7 +535,7 @@ public final class Reflect {
      */
     @Nonnull
     public static DataWatcher getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return Objects.requireNonNull(entity.al(), "DataWatcher cannot be null.");
+        return Objects.requireNonNull(entity.an(), "DataWatcher cannot be null.");
     }
 
     /**
@@ -690,7 +690,7 @@ public final class Reflect {
      */
     @Nonnull
     public static GameProfile getGameProfile(@Nonnull EntityPlayer player) {
-        return player.fQ();
+        return player.fR();
     }
 
     /**
@@ -872,7 +872,7 @@ public final class Reflect {
             throw new IllegalArgumentException("cannot retrieve team from null scoreboard!");
         }
 
-        return netScoreboard.d(teamName);
+        return netScoreboard.b(teamName); // getPlayerTeam
     }
 
     /**
@@ -929,7 +929,7 @@ public final class Reflect {
             throw new IllegalArgumentException("cannot create team for null scoreboard!");
         }
 
-        return netScoreboard.g(teamName);
+        return netScoreboard.c(teamName); // addPlayerTeam
     }
 
     /**
@@ -951,7 +951,7 @@ public final class Reflect {
             return;
         }
 
-        netScoreboard.d(team);
+        netScoreboard.d(team); // removePlayerTeam
     }
 
     /**

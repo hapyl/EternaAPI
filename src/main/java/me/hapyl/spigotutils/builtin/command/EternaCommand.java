@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.builtin.command;
 
+import me.hapyl.spigotutils.EternaConfigValue;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.Rule;
@@ -12,14 +13,18 @@ import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import test.EternaRuntimeTest;
+
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 
 public final class EternaCommand extends SimpleAdminCommand {
     public EternaCommand(String name) {
         super(name);
 
         setDescription("Eterna management command.");
-        addCompleterValues(1, "update", "version", "quest", "reload");
-        addCompleterValues(2, "config");
+        addCompleterValues(1, "update", "version", "quest", "reload", "test", "testsq");
     }
 
     @Override
@@ -27,6 +32,8 @@ public final class EternaCommand extends SimpleAdminCommand {
         // eterna (update)
         // eterna (quest) --player_only
         // eterna reload (config, addons)
+        // eterna test (testName)
+        // eterna testall
 
         if (args.length == 0) {
             sendInvalidUsageMessage(sender);
@@ -97,10 +104,54 @@ public final class EternaCommand extends SimpleAdminCommand {
                 }
             }
 
+            case "test" -> {
+                if (!EternaPlugin.config().isTrue(EternaConfigValue.KEEP_TESTS)) {
+                    Chat.sendMessage(sender, "&cTests are disabled on this server.");
+                    return;
+                }
+
+                final String testName = getArgument(args, 1).toString();
+
+                if (testName.isEmpty()) {
+                    Chat.sendMessage(sender, "Invalid test.");
+                    return;
+                }
+
+                if (!(sender instanceof Player player)) {
+                    Chat.sendMessage(sender, "&4You must be a player to use this!");
+                    return;
+                }
+
+                EternaRuntimeTest.test(player, testName, Arrays.copyOfRange(args, 2, args.length));
+            }
+
+            case "testsq" -> {
+                if (!EternaPlugin.config().isTrue(EternaConfigValue.KEEP_TESTS)) {
+                    Chat.sendMessage(sender, "&cTests are disabled on this server.");
+                    return;
+                }
+
+                if (!(sender instanceof Player player)) {
+                    Chat.sendMessage(sender, "&4You must be a player to use this!");
+                    return;
+                }
+
+                EternaRuntimeTest.nextOrNewTestSq(player);
+            }
+
             default -> {
                 Chat.sendMessage(sender, "&cUnknown argument. " + getUsage());
             }
         }
     }
 
+    @Nullable
+    @Override
+    protected List<String> tabComplete(CommandSender sender, String[] args) {
+        if (matchArgs(args, "test")) {
+            return completerSort(EternaRuntimeTest.listTests(), args, false);
+        }
+
+        return null;
+    }
 }

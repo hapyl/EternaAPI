@@ -501,8 +501,22 @@ public abstract class SimpleCommand implements Handle<Command> {
      * @param string - String to match.
      * @return true if the argument of provided index is present and is equals to string.
      */
-    protected boolean matchArgs(String[] args, int index, String string) {
+    protected boolean matchArgs(@Nonnull String[] args, int index, @Nonnull String string) {
         return index < args.length && args[index].equalsIgnoreCase(string);
+    }
+
+    protected boolean matchArgs(@Nonnull String[] args, @Nonnull String... strings) {
+        for (int i = 0; i < strings.length; i++) {
+            if (i >= args.length) {
+                return false;
+            }
+
+            if (!args[i].equalsIgnoreCase(strings[i])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Nonnull

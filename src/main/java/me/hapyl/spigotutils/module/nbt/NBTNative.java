@@ -14,7 +14,7 @@ import java.util.Objects;
 /**
  * A native nbt implementation.
  */
-@TestedOn(version = Version.V1_20_2)
+@TestedOn(version = Version.V1_20_4)
 public class NBTNative {
 
     private static final Method CRAFT_AS_NMS_COPY_METHOD = Reflect.getCraftMethod("inventory.CraftItemStack", "asNMSCopy", ItemStack.class);
@@ -124,6 +124,27 @@ public class NBTNative {
             e.printStackTrace();
             throw new IllegalArgumentException("Could not parse NBT! " + e.getMessage());
         }
+    }
+
+    @Nonnull
+    public static String getString(@Nonnull ItemStack item, @Nonnull String key) {
+        return getCompound(item).l(key);
+    }
+
+    public static int getInt(@Nonnull ItemStack item, @Nonnull String key) {
+        return getCompound(item).h(key);
+    }
+
+    public static float getFloat(@Nonnull ItemStack item, @Nonnull String key) {
+        return getCompound(item).j(key);
+    }
+
+    public static double getDouble(@Nonnull ItemStack item, @Nonnull String key) {
+        return getCompound(item).k(key);
+    }
+
+    public static boolean getBoolean(@Nonnull ItemStack item, @Nonnull String key) {
+        return getCompound(item).q(key);
     }
 
 }
