@@ -63,7 +63,7 @@ public abstract class PlayerQuestObjective extends QuestObjective {
         if (this.getCompletionGoal() <= 1.0f) {
             return "";
         }
-        return Chat.format(" &7(%s%%)", BukkitUtils.decimalFormat(this.goalCurrent * 100 / this.getCompletionGoal(), "0.0"));
+        return Chat.format(" &7(%s%%)".formatted(BukkitUtils.decimalFormat(this.goalCurrent * 100 / this.getCompletionGoal(), "0.0")));
     }
 
     public void sendMessage(Type type) {

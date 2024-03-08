@@ -8,15 +8,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Set;
 
-public class ItemFunctionList {
+public class ItemFunctionList implements Cloneable {
 
-    private final String id;
-    private final Set<ItemFunction> functions;
-
+    protected Set<ItemFunction> functions;
     protected ItemEventHandler handler;
 
-    public ItemFunctionList(@Nonnull @ForceLowercase String id) {
-        this.id = id;
+    public ItemFunctionList() {
         this.functions = Sets.newHashSet();
     }
 
@@ -63,11 +60,6 @@ public class ItemFunctionList {
         return null;
     }
 
-    @Nonnull
-    public String getId() {
-        return id;
-    }
-
     @Nullable
     public ItemEventHandler getHandler() {
         return handler;
@@ -84,6 +76,20 @@ public class ItemFunctionList {
         }
 
         throw new IllegalArgumentException("Cannot get the first function because there are none!");
+    }
+
+    @Override
+    public ItemFunctionList clone() {
+        try {
+            final ItemFunctionList clone = (ItemFunctionList) super.clone();
+
+            clone.handler = handler;
+            clone.functions = Sets.newHashSet(functions);
+
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 
     protected void clearFunctions() {

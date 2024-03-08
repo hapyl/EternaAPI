@@ -1,6 +1,5 @@
 package me.hapyl.spigotutils.module.chat;
 
-import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.util.BFormat;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -15,60 +14,26 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
- * Allows manipulating with string easily such as formatting,
- * sending chat, actionbar and title messages.
+ * Provides easier {@link String} and minecraft chat manipulations.
  *
  * @author hapyl
  */
-public class Chat {
+public final class Chat {
 
-    /**
-     * Build In Colors.
-     */
-    public static final String BLACK = new Chat(ChatColor.RED).getColor();
-    public static final String DARK_BLUE = new Chat(ChatColor.DARK_BLUE).getColor();
-    public static final String DARK_GREEN = new Chat(ChatColor.DARK_GREEN).getColor();
-    public static final String DARK_AQUA = new Chat(ChatColor.DARK_AQUA).getColor();
-    public static final String DARK_RED = new Chat(ChatColor.DARK_RED).getColor();
-    public static final String DARK_PURPLE = new Chat(ChatColor.DARK_PURPLE).getColor();
-    public static final String GOLD = new Chat(ChatColor.GOLD).getColor();
-    public static final String GRAY = new Chat(ChatColor.GRAY).getColor();
-    public static final String DARK_GRAY = new Chat(ChatColor.DARK_GRAY).getColor();
-    public static final String BLUE = new Chat(ChatColor.BLUE).getColor();
-    public static final String GREEN = new Chat(ChatColor.GREEN).getColor();
-    public static final String AQUA = new Chat(ChatColor.AQUA).getColor();
-    public static final String RED = new Chat(ChatColor.RED).getColor();
-    public static final String LIGHT_PURPLE = new Chat(ChatColor.LIGHT_PURPLE).getColor();
-    public static final String YELLOW = new Chat(ChatColor.YELLOW).getColor();
-    public static final String WHITE = new Chat(ChatColor.WHITE).getColor();
-    public static final String MAGIC = new Chat(ChatColor.MAGIC).getColor();
-    public static final String BOLD = new Chat(ChatColor.BOLD).getColor();
-    public static final String STRIKETHROUGH = new Chat(ChatColor.STRIKETHROUGH).getColor();
-    public static final String UNDERLINE = new Chat(ChatColor.UNDERLINE).getColor();
-    public static final String ITALIC = new Chat(ChatColor.ITALIC).getColor();
-    // Custom Colors
-    public static final String GREEN_BOLD = new Chat(ChatColor.GREEN, ChatColor.BOLD).getColor();
     public static final char ALTERNATE_COLOR_CHAR = '&';
-    private final String color;
 
-    private Chat(ChatColor... colors) {
-        StringBuilder abc = new StringBuilder();
-        for (final ChatColor chatColor : colors) {
-            abc.append(chatColor.toString());
-        }
-        this.color = abc.toString();
-    }
-
-    public String getColor() {
-        return this.color;
+    private Chat() {
     }
 
     /**
@@ -77,9 +42,11 @@ public class Chat {
      * @param stack - ItemStack.
      * @return Safely returns ItemStack name if present, prettified material name otherwise.
      */
+    @Nonnull
     public static String getItemName(@Nonnull ItemStack stack) {
-        return (stack.getItemMeta() == null) ? Chat.stringifyItemName(stack.getType()) : (stack.getItemMeta()
-                .getDisplayName());
+        final ItemMeta meta = stack.getItemMeta();
+
+        return meta != null ? meta.getDisplayName() : stringifyItemName(stack.getType());
     }
 
     /**
@@ -88,67 +55,49 @@ public class Chat {
      * @param stack - ItemStack.
      * @return Prettified ItemStack name and amount.
      */
+    @Nonnull
     public static String stringifyItemStack(@Nonnull ItemStack stack) {
         return String.format("x%s %s", stack.getAmount(), getItemName(stack));
     }
 
     /**
-     * Formats provided an object with replacements using {{@link String#format(String, Object...)}}
+     * Formats the string by coloring it with {@link Chat#ALTERNATE_COLOR_CHAR} and {@link ColorBlockParser}.
      *
-     * @param input        - Object to format, will be called {{@link Object#toString()}}
-     * @param replacements - Replacements.
-     * @return A formatted string or error, if invalid size of replacements.
+     * @param input - String to format.
+     * @return a formatted string.
      */
     @Nonnull
-    public static String format(Object input, Object... replacements) {
-        return format(input.toString(), replacements);
-    }
+    public static String format(@Nonnull Object input) {
+        String string = color(input);
 
-    /**
-     * Formats a string with a given replacements.
-     *
-     * @param input        - String to format.
-     * @param replacements - Replacements.
-     * @return a formatted string with a given replacements.
-     */
-    @Nonnull
-    public static String format(@Nonnull String input, @Nullable Object... replacements) {
-        try {
-            String string = (replacements == null || replacements.length == 0) ? color(input) : color(input.formatted(replacements));
-
-            // Parse color text if possible
-            if (ColorBlockParser.canParse(string)) {
-                string = ColorBlockParser.parse(string);
-            }
-
-            return string;
-        } catch (Exception ex) {
-            EternaPlugin.getPlugin().getLogger().severe("Could not parse string in Chat module!");
-            ex.printStackTrace();
-
-            return ChatColor.DARK_RED + "Error parsing string! Check the console for details.";
+        // Parse color text if possible
+        if (ColorBlockParser.canParse(string)) {
+            string = ColorBlockParser.parse(string);
         }
+
+        return string;
     }
 
     /**
-     * Colors the given string.
+     * Colors the given string with an {@link Chat#ALTERNATE_COLOR_CHAR}.
      *
      * @param string - String to color.
      * @return the colored string.
      */
-    public static String color(@Nonnull String string) {
-        return ChatColor.translateAlternateColorCodes(ALTERNATE_COLOR_CHAR, string);
+    @Nonnull
+    public static String color(@Nonnull Object string) {
+        return ChatColor.translateAlternateColorCodes(ALTERNATE_COLOR_CHAR, String.valueOf(string));
     }
 
     /**
-     * Returns a Text component with formatted string.
+     * Returns a {@link Text} component from a give input.
      *
-     * @param input        - Object to format.
-     * @param replacements - Replacements.
+     * @param input - Object to format.
      * @return a Text component with formatted string.
      */
-    public static Text text(Object input, Object... replacements) {
-        return new Text(Chat.format(input, replacements));
+    @Nonnull
+    public static Text text(@Nonnull Object input) {
+        return new Text(Chat.format(input));
     }
 
     /**
@@ -158,58 +107,45 @@ public class Chat {
      * @param string  - String to format.
      * @param objects - Replacements.
      */
-    public static void sendFormat(Player player, String string, Object... objects) {
+    public static void sendFormat(@Nonnull Player player, @Nonnull String string, @Nonnull Object... objects) {
         player.sendMessage(bformat(string, objects));
     }
 
     /**
      * Sends a formatted message to a sender.
      *
-     * @param sender       - Receiver actually.
-     * @param message      - Message.
-     * @param replacements - Replacements.
+     * @param sender  - Receiver actually.
+     * @param message - Message.
      */
-    public static void sendMessage(CommandSender sender, Object message, Object... replacements) {
-        sender.sendMessage(format(message, replacements));
-    }
-
-    /**
-     * Sends IChatMessage (packets) to player.
-     *
-     * @param player       - Player.
-     * @param iChat        - String to convert to IChat.
-     * @param replacements - Replacements.
-     */
-    @Deprecated(forRemoval = true)
-    public static void sendIChatMessage(Player player, String iChat, Object... replacements) {
-        sendMessage(player, iChat, replacements);
+    public static void sendMessage(@Nonnull CommandSender sender, @Nonnull Object message) {
+        sender.sendMessage(format(message));
     }
 
     /**
      * Sends a formatted message to a player.
      *
-     * @param player       - Player.
-     * @param message      - Message to send.
-     * @param replacements - Replacements.
+     * @param player  - Player.
+     * @param message - Message to send.
      */
-    public static void sendMessage(Player player, Object message, Object... replacements) {
-        sendMessage((CommandSender) player, message, replacements);
+    public static void sendMessage(@Nonnull Player player, @Nonnull Object message) {
+        sendMessage((CommandSender) player, message);
     }
 
     /**
-     * Performs a 'bformat' to a string. See: {@link BFormat}
+     * Performs a 'bformat' to a string.
      *
      * @param input   - String to format.
      * @param objects - Replacements.
      * @return formatted String.
+     * @see BFormat
      */
     @Nonnull
-    public static String bformat(String input, Object... objects) {
+    public static String bformat(@Nonnull String input, @Nonnull Object... objects) {
         return Chat.format(BFormat.format(input, objects));
     }
 
     /**
-     * Converts seconds into array of time formatted as such: [hours, minutes, seconds]
+     * Converts seconds into an array of time formatted as such: [hours, minutes, seconds]
      *
      * @param sec - Time in seconds to format.
      * @return formatted array in format [hours, minutes, seconds]
@@ -233,6 +169,7 @@ public class Chat {
      * @param millis - Time in milliseconds to format.
      * @return formatted string.
      */
+    @Nonnull
     public static String formatTimeString(long millis) {
         if (millis >= 3600000) {
             return new SimpleDateFormat("hh:mm:ss").format(millis);
@@ -249,7 +186,8 @@ public class Chat {
      * @param material - Material to format.
      * @return MATERIAL_NAME -> Material Name
      */
-    public static String stringifyItemName(Material material) {
+    @Nonnull
+    public static String stringifyItemName(@Nonnull Material material) {
         return capitalize(material.name());
     }
 
@@ -261,11 +199,14 @@ public class Chat {
      * @param <T>     - Type of the array.
      * @return a String of array values separated by space.
      */
-    public static <T> String arrayToString(T[] array, int startAt) {
+    @Nonnull
+    public static <T> String arrayToString(@Nonnull T[] array, int startAt) {
         final StringBuilder builder = new StringBuilder();
+
         for (int i = startAt; i < array.length; i++) {
             builder.append(array[i]).append(" ");
         }
+
         return builder.toString().trim();
     }
 
@@ -276,11 +217,14 @@ public class Chat {
      * @param <T>   - Type of the array.
      * @return List of String
      */
-    public static <T> List<String> arrayToList(T[] array) {
+    @Nonnull
+    public static <T> List<String> arrayToList(@Nonnull T[] array) {
         final List<String> newList = new ArrayList<>(array.length);
+
         for (final T t : array) {
             newList.add(String.valueOf(t));
         }
+
         return newList;
     }
 
@@ -289,10 +233,11 @@ public class Chat {
      *
      * @param list           - List to sort.
      * @param args           - Args.
-     * @param forceLowerCase - If value should be forced to lower case.
+     * @param forceLowerCase - If value should be forced to lowercase.
      * @return a sorted list.
      */
-    public static List<String> tabCompleterSort(List<?> list, String[] args, boolean forceLowerCase) {
+    @Nonnull
+    public static List<String> tabCompleterSort(@Nonnull List<?> list, @Nonnull String[] args, boolean forceLowerCase) {
         return tabCompleterSort0(list, args, forceLowerCase, true);
     }
 
@@ -301,12 +246,15 @@ public class Chat {
      *
      * @param list           - List to sort.
      * @param args           - Args.
-     * @param forceLowerCase - If value should be forced to lower case.
+     * @param forceLowerCase - If value should be forced to lowercase.
+     * @param method         - Whether to use {@link String#startsWith(String)} or {@link String#contains(CharSequence)}.
      * @return a sorted list.
      */
-    public static List<String> tabCompleterSort0(List<?> list, String[] args, boolean forceLowerCase, boolean method) {
+    @Nonnull
+    public static List<String> tabCompleterSort0(@Nonnull List<?> list, @Nonnull String[] args, boolean forceLowerCase, boolean method) {
         final List<String> result = new ArrayList<>();
         String latest = args[args.length - 1];
+
         if (forceLowerCase) {
             latest = latest.toLowerCase();
         }
@@ -323,13 +271,15 @@ public class Chat {
                 result.add(str);
             }
         }
+
         return result;
     }
 
     /**
-     * See: {@link Chat#tabCompleterSort(List, String[], boolean)}
+     * @see Chat#tabCompleterSort(List, String[], boolean)
      */
-    public static List<String> tabCompleterSort(List<?> list, String[] args) {
+    @Nonnull
+    public static List<String> tabCompleterSort(@Nonnull List<?> list, @Nonnull String[] args) {
         return tabCompleterSort(list, args, true);
     }
 
@@ -340,7 +290,7 @@ public class Chat {
      * @return capitalized String.
      */
     @Nonnull
-    public static String capitalize(String str) {
+    public static String capitalize(@Nonnull String str) {
         return WordUtils.capitalize(str.toLowerCase().replace('_', ' '));
     }
 
@@ -350,7 +300,8 @@ public class Chat {
      * @param enumQ - Enum to capitalize.
      * @return capitalized Enum.
      */
-    public static String capitalize(Enum<?> enumQ) {
+    @Nonnull
+    public static String capitalize(@Nonnull Enum<?> enumQ) {
         return capitalize(enumQ.name());
     }
 
@@ -359,34 +310,29 @@ public class Chat {
      *
      * @param sender  - Receiver actually.
      * @param message - Message to center.
-     * @param format  - Replacements.
      */
-    public static void sendCenterMessage(CommandSender sender, Object message, Object... format) {
-        sender.sendMessage(CenterChat.makeString(Chat.format(message.toString(), format)));
-    }
-
-    public static void broadcastCenterMessage(Object message, Object... format) {
-        Bukkit.getOnlinePlayers().forEach(player -> sendCenterMessage(player, message, format));
+    public static void sendCenterMessage(@Nonnull CommandSender sender, @Nonnull Object message) {
+        sender.sendMessage(CenterChat.makeString(Chat.format(message)));
     }
 
     /**
-     * I really have no idea why this is here.
+     * Broadcasts a centered message to all online players.
+     *
+     * @param message - Message.
      */
-    @Deprecated(forRemoval = true)
-    public static void sendMessage_(Player player, Object s, Object... format) {
-        sendMessage(player, s, format);
+    public static void broadcastCenterMessage(@Nonnull Object message) {
+        Bukkit.getOnlinePlayers().forEach(player -> sendCenterMessage(player, message));
     }
 
     /**
      * Sends a clickable message to a player.
      *
      * @param sender     - Receiver.
-     * @param runCommand - Command to run which is really just a chat string, don't forget '/' to make this a command.
+     * @param runCommand - Command to run, which is really just a chat string, remember '/' to make this a command.
      * @param message    - Message.
-     * @param format     - Replacements.
      */
-    public static void sendClickableMessage(CommandSender sender, String runCommand, String message, Object... format) {
-        sendClickableMessage(sender, LazyClickEvent.RUN_COMMAND.of(runCommand), message, format);
+    public static void sendClickableMessage(@Nonnull CommandSender sender, @Nonnull String runCommand, @Nonnull String message) {
+        sendClickableMessage(sender, LazyClickEvent.RUN_COMMAND.of(runCommand), message);
     }
 
     /**
@@ -395,10 +341,9 @@ public class Chat {
      * @param sender   - Receiver.
      * @param showText - Text to show; Forgettable.
      * @param message  - Message.
-     * @param format   - Replacements.
      */
-    public static void sendHoverableMessage(CommandSender sender, String showText, String message, Object... format) {
-        sendHoverableMessage(sender, LazyHoverEvent.SHOW_TEXT.of(showText), message, format);
+    public static void sendHoverableMessage(@Nonnull CommandSender sender, @Nonnull String showText, @Nonnull String message) {
+        sendHoverableMessage(sender, LazyHoverEvent.SHOW_TEXT.of(showText), message);
     }
 
     /**
@@ -408,15 +353,13 @@ public class Chat {
      * @param runCommand - Command to run; Remember '/'!
      * @param showText   - Text to show on hover.
      * @param message    - Message.
-     * @param format     - Replacements.
      */
-    public static void sendClickableHoverableMessage(CommandSender sender, String runCommand, String showText, String message, Object... format) {
+    public static void sendClickableHoverableMessage(@Nonnull CommandSender sender, @Nonnull String runCommand, @Nonnull String showText, @Nonnull String message) {
         sendClickableHoverableMessage(
                 sender,
                 LazyClickEvent.RUN_COMMAND.of(runCommand),
                 LazyHoverEvent.SHOW_TEXT.of(showText),
-                message,
-                format
+                message
         );
     }
 
@@ -424,43 +367,54 @@ public class Chat {
      * Sends a clickable message to a player.
      *
      * @param sender  - Receiver.
-     * @param event   - ClickEvent. See {@link LazyClickEvent}
+     * @param event   - ClickEvent.
      * @param message - Message.
-     * @param format  - Replacements.
+     * @see LazyEvent
+     * @see LazyClickEvent
      */
-    public static void sendClickableMessage(CommandSender sender, ClickEvent event, Object message, Object... format) {
-        sender.spigot()
-                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
+    public static void sendClickableMessage(@Nonnull CommandSender sender, @Nonnull ClickEvent event, @Nonnull Object message) {
+        sender.spigot().sendMessage(
+                new ComponentBuilder(Chat.format(message))
+                        .event(event)
+                        .create()
+        );
     }
 
     /**
      * Sends hoverable message to a player.
      *
      * @param sender  - Receiver.
-     * @param event   - HoverEvent. See {@link LazyHoverEvent}
+     * @param event   - HoverEvent.
      * @param message - Message.
-     * @param format  - Replacements.
+     * @see LazyEvent
+     * @see LazyHoverEvent
      */
-    public static void sendHoverableMessage(CommandSender sender, HoverEvent event, Object message, Object... format) {
-        sender.spigot()
-                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(event).create());
+    public static void sendHoverableMessage(@Nonnull CommandSender sender, @Nonnull HoverEvent event, @Nonnull Object message) {
+        sender.spigot().sendMessage(
+                new ComponentBuilder(Chat.format(message))
+                        .event(event)
+                        .create()
+        );
     }
 
     /**
      * Sends clicakble and hoverable message to a player.
      *
      * @param sender     - Receiver.
-     * @param clickEvent - ClickEvent. See {@link LazyClickEvent}
-     * @param hoverEvent - HoverEvent. See {@link LazyHoverEvent}
+     * @param clickEvent - ClickEvent.
+     * @param hoverEvent - HoverEvent.
      * @param message    - Message.
-     * @param format     - Replacements.
+     * @see LazyEvent
+     * @see LazyClickEvent
+     * @see LazyHoverEvent
      */
-    public static void sendClickableHoverableMessage(CommandSender sender, ClickEvent clickEvent, HoverEvent hoverEvent, Object message, Object... format) {
-        sender
-                .spigot()
-                .sendMessage(new ComponentBuilder(Chat.format(message.toString(), format)).event(clickEvent)
+    public static void sendClickableHoverableMessage(@Nonnull CommandSender sender, @Nonnull ClickEvent clickEvent, @Nonnull HoverEvent hoverEvent, @Nonnull Object message) {
+        sender.spigot().sendMessage(
+                new ComponentBuilder(Chat.format(message))
+                        .event(clickEvent)
                         .event(hoverEvent)
-                        .create());
+                        .create()
+        );
     }
 
     /**
@@ -468,10 +422,9 @@ public class Chat {
      *
      * @param player  - Player.
      * @param message - Message to send.
-     * @param format  - Replacements.
      */
-    public static void sendActionbar(Player player, String message, Object... format) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(format(message, format)));
+    public static void sendActionbar(@Nonnull Player player, @Nonnull Object message) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(format(message)));
     }
 
     /**
@@ -484,7 +437,7 @@ public class Chat {
      * @param stay     - stay text ticks.
      * @param fadeOut  - fade out animation ticks.
      */
-    public static void sendTitle(Player player, @Nonnull String title, @Nonnull String subtitle, int fadeIn, int stay, int fadeOut) {
+    public static void sendTitle(@Nonnull Player player, @Nonnull String title, @Nonnull String subtitle, int fadeIn, int stay, int fadeOut) {
         player.sendTitle(Chat.format(title.isEmpty() ? " " : title), Chat.format(subtitle), fadeIn, stay, fadeOut);
     }
 
@@ -522,33 +475,143 @@ public class Chat {
     /**
      * Broadcasts a message to the whole server.
      *
-     * @param string      - Message to broadcast.
-     * @param replacement - Replacements.
+     * @param string - Message to broadcast.
      */
-    public static void broadcast(String string, Object... replacement) {
-        Bukkit.broadcastMessage(format(string, replacement));
+    public static void broadcast(@Nonnull String string) {
+        Bukkit.broadcastMessage(format(string));
     }
 
     /**
      * Broadcasts a message to server operators.
      *
-     * @param string      - Message to broadcast.
-     * @param replacement - Replacements.
+     * @param string - Message to broadcast.
      */
-    public static void broadcastOp(String string, Object... replacement) {
+    public static void broadcastOp(@Nonnull String string) {
         Bukkit.getOnlinePlayers()
                 .stream()
                 .filter(Player::isOp)
-                .forEach(player -> Chat.sendMessage_(player, string, replacement));
+                .forEach(player -> Chat.sendMessage(player, string));
     }
 
     /**
-     * Translates the color using the '&' char.
+     * Reverses the string completely.
+     * <pre>
+     *     Hello world -> dlrow olleH
+     * </pre>
      *
-     * @param string - String to translate.
-     * @return colored string.
+     * @param input - String to reverse.
+     * @return a reversed string.
      */
-    public static String translateColor(@Nonnull String string) {
-        return ChatColor.translateAlternateColorCodes('&', string);
+    @Nonnull
+    public static String reverseString(@Nonnull String input) {
+        final StringBuilder builder = new StringBuilder();
+        final String[] strings = input.split(" ");
+
+        for (int i = strings.length - 1; i >= 0; i--) {
+            if (i != strings.length) {
+                builder.append(" ");
+            }
+
+            final char[] chars = strings[i].toCharArray();
+
+            for (int j = chars.length - 1; j >= 0; j--) {
+                builder.append(chars[j]);
+            }
+        }
+
+        return builder.toString().trim();
     }
+
+    /**
+     * Appends an integer with an appropriate <code>st</code>, <code>nd</code> or <code>th</code>.
+     *
+     * @param i - Integer.
+     * @return an appended string.
+     */
+    @Nonnull
+    public static String stNdTh(int i) {
+        if (i >= 11 && i <= 13) {
+            return i + "th";
+        }
+
+        final int lastDigit = i % 10;
+
+        return i + switch (lastDigit) {
+            case 1 -> "st";
+            case 2 -> "nd";
+            case 3 -> "rd";
+            default -> "th";
+        };
+    }
+
+    /**
+     * Returns a colored fractional string with the following format:
+     * <pre>
+     *    current/max
+     * </pre>
+     * <p>
+     * The color of the <code>current</code> is base on a percent.
+     *
+     * @param current - Current.
+     * @param max     - Max
+     * @return a colored string.
+     */
+    @Nonnull
+    public static String makeStringFractional(int current, int max) {
+        final float percent = (float) current / max;
+        final ChatColor color;
+
+        if (percent >= 1.0f) {
+            color = ChatColor.GREEN;
+        }
+        else if (percent >= 0.75f) {
+            color = ChatColor.GOLD;
+        }
+        else if (percent >= 0.5f) {
+            color = ChatColor.YELLOW;
+        }
+        else {
+            color = ChatColor.RED;
+        }
+
+        return "%s%s&7/&a%s".formatted(color, current, max);
+    }
+
+    /**
+     * Makes a string from the given collection, following the format:
+     * <pre>
+     *     First, Second, Third and Fourth
+     * </pre>
+     * <p>
+     * Meaning appends commands between each element except the last one, where <code>and</code> is used instead of commad.
+     *
+     * @param collection - Collection.
+     * @param fn         - Function.
+     * @return a string.
+     */
+    @Nonnull
+    public static <T> String makeStringCommaAnd(@Nonnull Collection<T> collection, @Nonnull Function<T, String> fn) {
+        final StringBuilder builder = new StringBuilder();
+        final int size = collection.size();
+        int index = 0;
+
+        for (T t : collection) {
+            if (size == 1) {
+                return fn.apply(t);
+            }
+
+            if (index == size - 1) {
+                builder.append(" and ");
+            }
+            else if (index != 0) {
+                builder.append(", ");
+            }
+
+            builder.append(fn.apply(t));
+            ++index;
+        }
+
+        return builder.toString();
+    }
+
 }

@@ -14,15 +14,15 @@ public class EternaLogger {
     public static final String TEST_PREFIX = PREFIX + "&2&lTEST&2> &a";
 
     public static void broadcastMessageOP(String string, Object... format) {
-        Chat.broadcastOp(PREFIX + string, format);
+        Chat.broadcastOp((PREFIX + string).formatted(format));
     }
 
     public static void broadcastMessageConsole(String string, Object... format) {
-        Chat.sendMessage(Bukkit.getConsoleSender(), PREFIX + string, format);
+        Chat.sendMessage(Bukkit.getConsoleSender(), (PREFIX + string).formatted(format));
     }
 
     public static void sendMessage(CommandSender player, String message, Object... format) {
-        Chat.sendMessage(player, PREFIX + message, format);
+        Chat.sendMessage(player, (PREFIX + message).formatted(format));
     }
 
     public static void info(String message, Object... format) {

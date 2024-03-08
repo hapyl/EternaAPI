@@ -209,7 +209,8 @@ public class SongPlayer extends Holder<JavaPlugin> {
                 if (tick++ >= currentSong.getLength()) {
                     if (repeat) {
                         tick = -20; // give it a second of windup
-                    } else {
+                    }
+                    else {
                         stopPlaying();
                         queue.playNext();
                     }
@@ -257,7 +258,7 @@ public class SongPlayer extends Holder<JavaPlugin> {
 
     // shortcuts
     public void sendMessage(CommandSender player, String msg, Object... dot) {
-        Chat.sendMessage(player, prefix + msg, dot);
+        Chat.sendMessage(player, (prefix + msg).formatted(dot));
     }
 
     public void sendMessage(CommandSender player, BaseComponent[] components) {
@@ -266,7 +267,7 @@ public class SongPlayer extends Holder<JavaPlugin> {
 
     public void sendMessage(String msg, Object... dot) {
         for (final Player player : getListeners()) {
-            Chat.sendMessage(player, prefix + msg, dot);
+            Chat.sendMessage(player, (prefix + msg).formatted(dot));
         }
     }
 }

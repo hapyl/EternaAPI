@@ -43,26 +43,44 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
  */
 public class ItemBuilder implements Cloneable {
 
+    /**
+     * The default smart split char limit.
+     *
+     * @see ItemBuilder#splitString(String)
+     */
     public static final int DEFAULT_SMART_SPLIT_CHAR_LIMIT = 35;
-    public static final String NEW_LINE_SEPARATOR = "__";
-    public static final char MANUAL_SPLIT_CHAR = '_';
-    public static final String DEFAULT_COLOR = "&7";
 
+    /**
+     * The manual separator for lore.
+     */
+    public static final String NEW_LINE_SEPARATOR = "__";
+
+    /**
+     * The default color of lore.
+     * Will replace the ugly vanilla purple.
+     */
+    public static final ChatColor DEFAULT_COLOR = ChatColor.GRAY;
+
+    /**
+     * The default color of name.
+     */
+    public static final ChatColor DEFAULT_NAME_COLOR = ChatColor.GREEN;
+
+    private static final char MANUAL_SPLIT_CHAR = '_';
     private static final String PLUGIN_PATH = "ItemBuilderId";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
 
     protected static Map<String, ItemFunctionList> registeredFunctions = Maps.newHashMap();
 
-    private final String id;
-
     protected ItemStack item;
+
+    private String id;
     private String nativeNbt;
     private ItemFunctionList functions;
 
@@ -127,14 +145,21 @@ public class ItemBuilder implements Cloneable {
     @Nonnull
     public ItemFunctionList getFunctions() {
         if (functions == null) {
-            if (id == null) {
-                throw new IllegalStateException("Id is not set, cannot get the function list!");
-            }
-
-            functions = new ItemFunctionList(id);
+            functions = new ItemFunctionList();
         }
 
         return functions;
+    }
+
+    /**
+     * Clears all functions if there are any.
+     */
+    public ItemBuilder clearFunctions() {
+        if (functions != null) {
+            functions.clearFunctions();
+        }
+
+        return this;
     }
 
     /**
@@ -193,25 +218,6 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
-     * Creates a copy of this builder.
-     *
-     * @return a copy of this builder.
-     */
-    @Override
-    @Nonnull
-    public ItemBuilder clone() {
-        try {
-            final ItemBuilder cloned = (ItemBuilder) super.clone();
-
-            cloned.item.setItemMeta(item.getItemMeta());
-
-            return cloned;
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-    }
-
-    /**
      * Sets if click events from inventory are allowed.
      *
      * @param allowInventoryClick - New value.
@@ -232,7 +238,7 @@ public class ItemBuilder implements Cloneable {
      *
      * @param view - New map view.
      */
-    public ItemBuilder setMapView(MapView view) {
+    public ItemBuilder setMapView(@Nullable MapView view) {
         return modifyMeta(MapMeta.class, Material.FILLED_MAP, meta -> meta.setMapView(view));
     }
 
@@ -243,7 +249,7 @@ public class ItemBuilder implements Cloneable {
      * @param name - New book name.
      */
     public ItemBuilder setBookName(@Nullable String name) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setTitle(colorize(name)));
+        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setTitle(name != null ? Chat.format(name) : null));
     }
 
     /**
@@ -252,8 +258,8 @@ public class ItemBuilder implements Cloneable {
      *
      * @param author - New book author.
      */
-    public ItemBuilder setBookAuthor(String author) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setAuthor(colorize(author)));
+    public ItemBuilder setBookAuthor(@Nonnull String author) {
+        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setAuthor(Chat.format(author)));
     }
 
     /**
@@ -263,7 +269,7 @@ public class ItemBuilder implements Cloneable {
      * @param title - New book title.
      */
     public ItemBuilder setBookTitle(@Nullable String title) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setTitle(colorize(title)));
+        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setTitle(title != null ? Chat.format(title) : null));
     }
 
     /**
@@ -366,7 +372,7 @@ public class ItemBuilder implements Cloneable {
         }
 
         final ItemFunctionList functions = getFunctions();
-        final ItemFunction function = new ItemFunction(id, runnable);
+        final ItemFunction function = new ItemFunction(runnable);
 
         for (Action action : actions) {
             function.accept(action);
@@ -411,13 +417,15 @@ public class ItemBuilder implements Cloneable {
 
     /**
      * Adds and returns a new {@link ItemFunction}.
+     * <br>
+     * <b>Do not forget to add a click type! {@link ItemFunction#accept(Action)}</b>
      *
      * @param consumer - Action.
      */
     @Nonnull
     public ItemFunction addFunction(@Nonnull Consumer<Player> consumer) {
         final ItemFunctionList functions = getFunctions();
-        final ItemFunction function = new ItemFunction(id, consumer);
+        final ItemFunction function = new ItemFunction(consumer);
 
         functions.addFunction(function);
         return function;
@@ -428,7 +436,9 @@ public class ItemBuilder implements Cloneable {
      *
      * @param path  - Path to the data.
      * @param value - Value to set.
+     * @deprecated Prefer {@link ItemBuilder#setNbt(String, NBTType, Object)}
      */
+    @Deprecated
     public ItemBuilder setPersistentData(@Nonnull String path, @Nonnull Object value) {
         if (value instanceof String) {
             setPersistentData(path, PersistentDataType.STRING, (String) value);
@@ -487,7 +497,7 @@ public class ItemBuilder implements Cloneable {
      * @param limit - Char limit.
      */
     public ItemBuilder setSmartLore(@Nonnull String lore, final int limit) {
-        return setSmartLore(lore, "&7", limit);
+        return setSmartLore(lore, DEFAULT_COLOR.toString(), limit);
     }
 
     /**
@@ -567,7 +577,7 @@ public class ItemBuilder implements Cloneable {
             final List<String> strings = getLore();
 
             if (line < strings.size()) {
-                strings.set(line, colorize(lore));
+                strings.set(line, Chat.format(lore));
                 meta.setLore(strings);
             }
         });
@@ -576,7 +586,7 @@ public class ItemBuilder implements Cloneable {
     /**
      * Sets the item lore.
      * You can use {@link #NEW_LINE_SEPARATOR} to insert a new line,
-     * or use {@link #addTextBlockLore(String, Object...)}.
+     * or use {@link #addTextBlockLore(String)}.
      *
      * @param lore        - Lore to set.
      * @param prefixColor - Color of the text after split.
@@ -586,7 +596,7 @@ public class ItemBuilder implements Cloneable {
             final List<String> metaLore = getLore();
 
             for (String value : lore.split(NEW_LINE_SEPARATOR)) {
-                metaLore.add(prefixColor + colorize(value));
+                metaLore.add(prefixColor + Chat.format(value));
             }
 
             meta.setLore(metaLore);
@@ -596,7 +606,7 @@ public class ItemBuilder implements Cloneable {
     /**
      * Sets the item lore.
      * You can use {@link #NEW_LINE_SEPARATOR} to insert a new line,
-     * or use {@link #addTextBlockLore(String, Object...)}.
+     * or use {@link #addTextBlockLore(String)}}.
      *
      * @param lore - Lore to set.
      */
@@ -641,15 +651,6 @@ public class ItemBuilder implements Cloneable {
         return setLore(lore, NEW_LINE_SEPARATOR);
     }
 
-    /**
-     * Adds lore to the item.
-     *
-     * @param lore   - Lore to add.
-     * @param format - Format for the lore.
-     */
-    public ItemBuilder addLore(@Nonnull String lore, @Nullable Object... format) {
-        return addLore(format(lore, format));
-    }
 
     /**
      * Adds lore to the item if the condition is met.
@@ -658,20 +659,10 @@ public class ItemBuilder implements Cloneable {
      * @param condition - Condition.
      */
     public ItemBuilder addLoreIf(@Nonnull String lore, boolean condition) {
-        return addLoreIf(lore, condition, "");
-    }
-
-    /**
-     * Adds lore to the item if the condition is met.
-     *
-     * @param lore         - Lore to add.
-     * @param condition    - Condition.
-     * @param replacements - Replacements for the lore.
-     */
-    public ItemBuilder addLoreIf(@Nonnull String lore, boolean condition, @Nullable Object... replacements) {
         if (condition) {
-            addLore(lore, replacements);
+            addLore(lore);
         }
+
         return this;
     }
 
@@ -690,13 +681,7 @@ public class ItemBuilder implements Cloneable {
      * @param separator - Separator to split the lines.
      */
     public ItemBuilder setLore(@Nonnull String lore, @Nonnull String separator) {
-        try {
-            return modifyMeta(meta -> meta.setLore(Arrays.asList(colorize(lore).split(separator))));
-        } catch (PatternSyntaxException ex) {
-            Bukkit.getConsoleSender().sendMessage(format("&4[ERROR] &cChar &e%s &cused as separator for lore!", separator));
-        }
-
-        return this;
+        return modifyMeta(meta -> meta.setLore(Arrays.asList(Chat.format(lore).split(separator))));
     }
 
     /**
@@ -717,8 +702,8 @@ public class ItemBuilder implements Cloneable {
      *
      * @param textBlock - Text block.
      */
-    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nullable Object... format) {
-        return addTextBlockLore(textBlock, DEFAULT_SMART_SPLIT_CHAR_LIMIT, format);
+    public ItemBuilder addTextBlockLore(@Nonnull String textBlock) {
+        return addTextBlockLore(textBlock, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
     }
 
     /**
@@ -740,13 +725,33 @@ public class ItemBuilder implements Cloneable {
      * @param textBlock - Text block.
      * @param charLimit - Char wrap limit.
      */
-    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, int charLimit, @Nullable Object... format) {
-        return addTextBlockLore(textBlock, "&7", charLimit, format);
+    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, int charLimit) {
+        return addTextBlockLore(textBlock, "&7", charLimit);
     }
 
-    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nonnull String linePrefix, int charLimit, @Nullable Object... format) {
+    /**
+     * Adds text block as smart lore to the item.
+     * Each line will be treated as a paragraph.
+     * <p>
+     * {@link #NEW_LINE_SEPARATOR} can be used as a custom separator.
+     * <p>
+     * Prefix can be added by using <code>;;</code> before the actual string, ex:
+     * <pre>
+     *     &c;;Hello World__Goodbye World
+     * </pre>
+     * will be formatted as:
+     * <pre>
+     *     &cHello World
+     *     &cGoodbye World
+     * </pre>
+     *
+     * @param textBlock  - Text block.
+     * @param linePrefix - Prefix to put before each line.
+     * @param charLimit  - Char wrap limit.
+     */
+    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nonnull String linePrefix, int charLimit) {
         return modifyMeta(meta -> {
-            final String[] strings = textBlock.formatted(format).split("\n");
+            final String[] strings = textBlock.split("\n");
             final List<String> lore = getLore();
 
             for (String string : strings) {
@@ -829,17 +834,7 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
-     * Sets the name of the item.
-     *
-     * @param name   - Name to set.
-     * @param format - Format for the name.
-     */
-    public ItemBuilder setName(@Nonnull String name, @Nullable Object... format) {
-        return setName(format(name, format));
-    }
-
-    /**
-     * Adds enchant to the item.
+     * Adds an enchantment to the item.
      *
      * @param enchant - Enchantment to add.
      * @param lvl     - Level of the enchantment.
@@ -849,7 +844,7 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
-     * Adds enchant to the item.
+     * Adds an enchantment to the item.
      *
      * @param enchantment - Enchantment to add.
      * @param lvl         - Level of the enchantment.
@@ -1061,12 +1056,12 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
-     * Skips {@link ItemBuilder#build(boolean)} ID checks and only finalized item stack.
+     * Gets the {@link ItemStack} of this {@link ItemBuilder}.
      *
-     * @return ItemStack.
+     * @return the item stack of this builder.
      */
+    @Nonnull
     public ItemStack toItemStack() {
-        //item.setItemMeta(getMetaNonNull());
         return item;
     }
 
@@ -1075,6 +1070,7 @@ public class ItemBuilder implements Cloneable {
      *
      * @return cleaned ItemStack.
      */
+    @Nonnull
     public ItemStack cleanToItemSack() {
         hideFlags();
         setName("&0");
@@ -1090,6 +1086,7 @@ public class ItemBuilder implements Cloneable {
      *
      * @return icon-themed ItemStack.
      */
+    @Nonnull
     public ItemStack asIcon() {
         hideFlags();
         return build();
@@ -1112,8 +1109,7 @@ public class ItemBuilder implements Cloneable {
             }
         }
 
-        //this.item.setItemMeta(getMetaNonNull());
-
+        // FIXME (hapyl): 008, Mar 8: This will break with 1.21.1
         // Apply native NBT
         if (!nativeNbt.isBlank()) {
             item = NBTNative.setNbt(item, nativeNbt);
@@ -1127,6 +1123,7 @@ public class ItemBuilder implements Cloneable {
      *
      * @return finalized ItemStack.
      */
+    @Nonnull
     public ItemStack build() {
         return build(false);
     }
@@ -1148,7 +1145,7 @@ public class ItemBuilder implements Cloneable {
      * @param name - Name to set.
      */
     public ItemBuilder setName(@Nonnull String name) {
-        return modifyMeta(meta -> meta.setDisplayName(ChatColor.GREEN + colorize(name)));
+        return modifyMeta(meta -> meta.setDisplayName(DEFAULT_NAME_COLOR + Chat.format(name)));
     }
 
     /**
@@ -1246,7 +1243,7 @@ public class ItemBuilder implements Cloneable {
     public boolean isUnbreakable() {
         final ItemMeta meta = getMeta();
 
-        return meta == null ? false : meta.isUnbreakable();
+        return meta != null && meta.isUnbreakable();
     }
 
     /**
@@ -1431,6 +1428,18 @@ public class ItemBuilder implements Cloneable {
     @Nullable
     public String getId() {
         return id;
+    }
+
+    /**
+     * Sets the new Id for this {@link ItemBuilder}.
+     * <br>
+     * Don't forget to change the Id if changing the functions!
+     *
+     * @param newId - New Id.
+     */
+    public ItemBuilder setId(@Nonnull @ForceLowercase String newId) {
+        this.id = newId;
+        return this;
     }
 
     /**
@@ -1623,68 +1632,35 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
+     * Creates a copy of this builder.
+     *
+     * @return a copy of this builder.
+     */
+    @Override
+    @Nonnull
+    public ItemBuilder clone() {
+        try {
+            final ItemBuilder cloned = (ItemBuilder) super.clone();
+
+            cloned.item = new ItemStack(item);
+            cloned.functions = functions.clone();
+
+            return cloned;
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+    }
+
+    // *=* Static members *=* //
+
+    /**
      * Creates builder of provided ItemStack.
      *
      * @param itemStack - ItemStack.
      */
-    public static ItemBuilder of(ItemStack itemStack) {
+    @Nonnull
+    public static ItemBuilder of(@Nonnull ItemStack itemStack) {
         return new ItemBuilder(itemStack);
-    }
-
-    /**
-     * Creates player head from texture.
-     *
-     * @param texture - Texture to use.
-     * @deprecated {@link ItemBuilder#playerHeadUrl(String)}
-     */
-    @Deprecated
-    public static ItemBuilder playerHead(@Nonnull String texture) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
-    }
-
-    /**
-     * Creates player head from texture from url.
-     *
-     * @param url - Url to texture.
-     */
-    public static ItemBuilder playerHeadUrl(@Nonnull String url) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
-    }
-
-    /**
-     * Creates leather helmet with provided color.
-     *
-     * @param color - Color to use.
-     */
-    public static ItemBuilder leatherHat(@Nullable Color color) {
-        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
-    }
-
-    /**
-     * Creates leather chestplate with provided color.
-     *
-     * @param color - Color to use.
-     */
-    public static ItemBuilder leatherTunic(@Nullable Color color) {
-        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
-    }
-
-    /**
-     * Creates leather leggings with provided color.
-     *
-     * @param color - Color to use.
-     */
-    public static ItemBuilder leatherPants(@Nullable Color color) {
-        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
-    }
-
-    /**
-     * Creates leather boots with provided color.
-     *
-     * @param color - Color to use.
-     */
-    public static ItemBuilder leatherBoots(@Nullable Color color) {
-        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
     }
 
     /**
@@ -1692,6 +1668,7 @@ public class ItemBuilder implements Cloneable {
      *
      * @param material - Material to use.
      */
+    @Nonnull
     public static ItemBuilder of(@Nonnull Material material) {
         return new ItemBuilder(material);
     }
@@ -1702,6 +1679,7 @@ public class ItemBuilder implements Cloneable {
      * @param material - Material to use.
      * @param name     - Name to use.
      */
+    @Nonnull
     public static ItemBuilder of(@Nonnull Material material, @Nonnull String name) {
         return new ItemBuilder(material).setName(name);
     }
@@ -1713,6 +1691,7 @@ public class ItemBuilder implements Cloneable {
      * @param name     - Name to use.
      * @param lore     - Lore to use.
      */
+    @Nonnull
     public static ItemBuilder of(@Nonnull Material material, @Nonnull String name, @Nonnull @Range(min = 1) String... lore) {
         final ItemBuilder builder = new ItemBuilder(material).setName(name);
 
@@ -1724,28 +1703,73 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
+     * Creates player head from texture.
+     *
+     * @param texture - Texture to use.
+     * @deprecated {@link ItemBuilder#playerHeadUrl(String)}
+     */
+    @Deprecated(forRemoval = true)
+    public static ItemBuilder playerHead(@Nonnull String texture) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
+    }
+
+    /**
+     * Creates player head from texture from url.
+     *
+     * @param url - Url to texture.
+     */
+    @Nonnull
+    public static ItemBuilder playerHeadUrl(@Nonnull String url) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureUrl(url);
+    }
+
+    /**
+     * Creates leather helmet with provided color.
+     *
+     * @param color - Color to use.
+     */
+    @Nonnull
+    public static ItemBuilder leatherHat(@Nullable Color color) {
+        return new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather chestplate with provided color.
+     *
+     * @param color - Color to use.
+     */
+    @Nonnull
+    public static ItemBuilder leatherTunic(@Nullable Color color) {
+        return new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather leggings with provided color.
+     *
+     * @param color - Color to use.
+     */
+    @Nonnull
+    public static ItemBuilder leatherPants(@Nullable Color color) {
+        return new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color);
+    }
+
+    /**
+     * Creates leather boots with provided color.
+     *
+     * @param color - Color to use.
+     */
+    @Nonnull
+    public static ItemBuilder leatherBoots(@Nullable Color color) {
+        return new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color);
+    }
+
+    /**
      * Creates air builder.
      */
+    @Nonnull
     public static ItemBuilder air() {
         return of(Material.AIR);
     }
-
-    /**
-     * Create builder from existing ItemStack.
-     *
-     * @param stack - Item Stack.
-     */
-    public static ItemBuilder fromItemStack(@Nonnull ItemStack stack) {
-        return new ItemBuilder(stack);
-    }
-
-    /**
-     * Gets the item by its ID; or null if it doesn't exist.
-     *
-     * @param id - Id.
-     * @return the item by its ID; or null if it doesn't exist.
-     */
-
 
     /**
      * Gets the {@link ItemFunctionList} by the given Id; or null if none.
@@ -1796,7 +1820,8 @@ public class ItemBuilder implements Cloneable {
      */
     public static boolean itemHasID(@Nonnull ItemStack item, @Nonnull String id) {
         final String itemId = getItemID(item);
-        return itemHasID(item) && itemId != null && itemId.equalsIgnoreCase(id);
+
+        return itemHasID(item) && !itemId.isEmpty() && itemId.equalsIgnoreCase(id);
     }
 
     /**
@@ -1808,7 +1833,8 @@ public class ItemBuilder implements Cloneable {
      */
     public static boolean itemContainsId(@Nonnull ItemStack item, @Nonnull String id) {
         final String itemId = getItemID(item);
-        return itemHasID(item) && itemId != null && itemId.contains(id);
+
+        return itemHasID(item) && !itemId.isEmpty() && itemId.contains(id);
     }
 
     /**
@@ -1818,7 +1844,7 @@ public class ItemBuilder implements Cloneable {
      * @return true if an item has any ID; false otherwise.
      */
     public static boolean itemHasID(ItemStack item) {
-        return getItemID(item) != null;
+        return !getItemID(item).isEmpty();
     }
 
     /**
@@ -1833,7 +1859,7 @@ public class ItemBuilder implements Cloneable {
         final List<String> list = new ArrayList<>();
         final char[] chars = string.toCharArray();
 
-        StringBuilder lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR : prefix);
+        StringBuilder lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR.toString() : prefix);
         StringBuilder builder = new StringBuilder(lastColor);
         int counter = 0;
 
@@ -1854,11 +1880,11 @@ public class ItemBuilder implements Cloneable {
                     builder.append(c);
                 }
 
-                list.add(colorize(builder.toString().trim()));
+                list.add(Chat.format(builder.toString().trim()));
 
                 counter = 0;
                 builder = new StringBuilder(lastColor);
-                lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR : prefix);
+                lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR.toString() : prefix);
                 continue;
             }
 
@@ -1888,12 +1914,12 @@ public class ItemBuilder implements Cloneable {
     }
 
     @Deprecated
-    public static List<String> splitAfter(String text, int max) {
-        return splitAfter("&7", text, max);
+    public static List<String> splitAfter(@Nonnull String text, int max) {
+        return splitAfter(DEFAULT_COLOR.toString(), text, max);
     }
 
     @Deprecated
-    public static List<String> splitAfter(String text, int max, String prefix) {
+    public static List<String> splitAfter(@Nonnull String text, int max, @Nonnull String prefix) {
         return splitAfter(prefix, text, max);
     }
 
@@ -1905,6 +1931,7 @@ public class ItemBuilder implements Cloneable {
      * @param limit  - Character limit.
      * @return a list of strings that are less or equals to the limit.
      */
+    @Nonnull
     public static List<String> splitString(@Nonnull String string, int limit) {
         return splitString(null, string, limit);
     }
@@ -1916,6 +1943,7 @@ public class ItemBuilder implements Cloneable {
      * @param string - String to wrap.
      * @return a list of strings that are less or equals to the limit.
      */
+    @Nonnull
     public static List<String> splitString(@Nonnull String string) {
         return splitString(string, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
     }
@@ -1964,6 +1992,7 @@ public class ItemBuilder implements Cloneable {
      * @param def    - Default value.
      * @return the last color from the given string; or default is none.
      */
+    @Nonnull
     public static String getLastColor(@Nonnull String string, String def) {
         final List<String> lastColors = getLastColors(string);
 
@@ -1978,7 +2007,7 @@ public class ItemBuilder implements Cloneable {
      */
     public static void setName(@Nonnull ItemStack item, @Nonnull String name) {
         final ItemMeta meta = item.getItemMeta();
-        Nulls.runIfNotNull(meta, m -> m.setDisplayName(colorize(name)));
+        Nulls.runIfNotNull(meta, m -> m.setDisplayName(Chat.format(name)));
         item.setItemMeta(meta);
     }
 
@@ -1994,21 +2023,9 @@ public class ItemBuilder implements Cloneable {
         item.setItemMeta(meta);
     }
 
-    public static String format(@Nonnull String string, @Nullable Object... format) {
-        if (format == null || format.length == 0) {
-            return ChatColor.translateAlternateColorCodes('&', string);
-        }
-
-        return Chat.format(string, format);
-    }
-
     private static boolean isManualSplit(char[] chars, int index) {
         return (index < chars.length && index + 1 < chars.length)
                 && (chars[index] == MANUAL_SPLIT_CHAR && chars[index + 1] == MANUAL_SPLIT_CHAR);
-    }
-
-    private static String colorize(String s) {
-        return format(s);
     }
 
     private static boolean isIdRegistered(String id) {
@@ -2046,7 +2063,7 @@ public class ItemBuilder implements Cloneable {
                     }
                 }
 
-                list.add(colorize(linePrefix + line.substring(0, line.length() - 1).trim()));
+                list.add(Chat.format(linePrefix + line.substring(0, line.length() - 1).trim()));
                 line = "";
                 counter = 0;
                 i++;
@@ -2055,7 +2072,7 @@ public class ItemBuilder implements Cloneable {
 
             if (counter >= maxChars || i == text.length() - 1) {
                 if (Character.isWhitespace(c) || checkLast) {
-                    list.add(colorize(linePrefix + line.trim()));
+                    list.add(Chat.format(linePrefix + line.trim()));
                     line = "";
                     counter = 0;
                 }

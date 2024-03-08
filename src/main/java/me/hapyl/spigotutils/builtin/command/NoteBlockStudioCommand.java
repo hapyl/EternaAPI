@@ -166,6 +166,12 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
             if (args.length >= 2) {
                 if (argument0.equalsIgnoreCase("play")) {
                     final String query = buildSongName(args);
+
+                    if (registry.isEmpty()) {
+                        radio.sendMessage("&cThere are no songs!");
+                        return;
+                    }
+
                     final Song song = registry.byName(query);
 
                     if (song == null) {

@@ -267,6 +267,7 @@ public final class EternaRuntimeTest {
                 cloned.setName("CLONED BUT WITH A DIFFERENT NAME AND TYPE");
                 cloned.setType(Material.BLUE_WOOL);
 
+                cloned.setId("itembuildertest_1");
                 cloned.addFunction(p -> {
                     p.sendMessage("CLONED EXLUSIVE");
                 }).accept(Action.LEFT_CLICK_AIR).setCdSec(1);
@@ -274,7 +275,17 @@ public final class EternaRuntimeTest {
                 inventory.addItem(cloned.build());
                 inventory.addItem(new ItemBuilder(Material.PLAYER_HEAD).setSkullOwner("hapyl", Sound.ENTITY_IRON_GOLEM_DAMAGE).build());
 
-                inventory.addItem(new ItemBuilder(Material.DIAMOND_BLOCK, "itembuildertest_1")
+                final ItemBuilder clonedClone = cloned.clone();
+                clonedClone.setName("CLONED CLONE");
+                clonedClone.setId("itembuildertest_2");
+                clonedClone.clearFunctions();
+                clonedClone.addFunction(p -> {
+                    p.sendMessage("Clicked with clone clone.");
+                }).accept(Action.LEFT_CLICK_AIR);
+
+                inventory.addItem(clonedClone.build());
+
+                inventory.addItem(new ItemBuilder(Material.DIAMOND_BLOCK, "itembuildertest_3")
                         .setEventHandler(new ItemEventHandler() {
                             @Override
                             public void onClick(@Nonnull Player player, @Nonnull PlayerInteractEvent ev) {

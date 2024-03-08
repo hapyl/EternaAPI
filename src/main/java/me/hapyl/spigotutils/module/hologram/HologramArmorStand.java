@@ -36,7 +36,7 @@ public class HologramArmorStand {
         bukkit.setInvisible(true);
         bukkit.setSmall(true);
         bukkit.setMarker(true);
-        bukkit.setCustomName(Chat.translateColor(name));
+        bukkit.setCustomName(Chat.format(name));
         bukkit.setCustomNameVisible(true);
 
         // Create packets
@@ -59,7 +59,7 @@ public class HologramArmorStand {
     }
 
     public void setLine(@Nullable String newText) {
-        bukkit.setCustomName(newText == null ? "" : Chat.translateColor(newText));
+        bukkit.setCustomName(newText == null ? "" : Chat.format(newText));
     }
 
     public void updateLocation(@Nonnull Player player) {

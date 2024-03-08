@@ -171,8 +171,7 @@ public class QuestProgress {
                             progress
                     )),
                     LazyHoverEvent.SHOW_TEXT.of("&7Click to copy debug data."),
-                    "&cCould not load progress for quest '%s' because it no longer exists!",
-                    questId
+                    "&cCould not load progress for quest '%s' because it no longer exists!".formatted(questId)
             );
             return;
         }

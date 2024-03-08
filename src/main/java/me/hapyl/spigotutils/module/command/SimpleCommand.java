@@ -6,13 +6,8 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.completer.Checker;
 import me.hapyl.spigotutils.module.command.completer.Checker2;
 import me.hapyl.spigotutils.module.command.completer.CompleterHandler;
-import me.hapyl.spigotutils.module.player.PlayerLib;
-import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.Handle;
 import me.hapyl.spigotutils.module.util.TypeConverter;
-import net.minecraft.server.commands.CommandHelp;
-import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -551,7 +546,7 @@ public abstract class SimpleCommand implements Handle<Command> {
      * @param sender - Receiver actually.
      */
     protected void sendInvalidUsageMessage(CommandSender sender) {
-        Chat.sendMessage(sender, "&cInvalid Usage! &e%s.", this.usage);
+        Chat.sendMessage(sender, "&cInvalid Usage! &e%s.".formatted(this.usage));
     }
 
     private <E> List<String> eToString(Collection<E> list) {

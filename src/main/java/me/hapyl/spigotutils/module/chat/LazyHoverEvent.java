@@ -15,9 +15,7 @@ public enum LazyHoverEvent {
     TEXT(HoverEvent.Action.SHOW_TEXT),
     SHOW_TEXT(HoverEvent.Action.SHOW_TEXT),
     SHOW_ITEM(HoverEvent.Action.SHOW_ITEM),
-    SHOW_ENTITY(HoverEvent.Action.SHOW_ENTITY),
-    @Deprecated
-    SHOW_ACHIEVEMENT(HoverEvent.Action.SHOW_ACHIEVEMENT);
+    SHOW_ENTITY(HoverEvent.Action.SHOW_ENTITY);
 
     private final HoverEvent.Action action;
 
@@ -26,8 +24,8 @@ public enum LazyHoverEvent {
     }
 
     @Nonnull
-    public HoverEvent of(Object value, @Nullable Object... replacements) {
-        return new HoverEvent(this.action, new Text(Chat.format(value, replacements)));
+    public HoverEvent of(@Nonnull Object value) {
+        return new HoverEvent(this.action, new Text(Chat.format(value)));
     }
 
 }

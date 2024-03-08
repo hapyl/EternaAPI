@@ -66,9 +66,10 @@ public interface ParkourFormatter extends Formatter {
         public void sendCheckpointPassed(@Nonnull Data data) {
             Chat.sendMessage(
                     data.get(),
-                    "&aCheckpoint! (%s/%s)",
-                    data.passedCheckpointsCount(),
-                    data.getParkour().getCheckpoints().size()
+                    "&aCheckpoint! (%s/%s)".formatted(
+                            data.passedCheckpointsCount(),
+                            data.getParkour().getCheckpoints().size()
+                    )
             );
 
             PlayerLib.playSound(data.get(), Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f);
@@ -76,25 +77,28 @@ public interface ParkourFormatter extends Formatter {
 
         @Override
         public void sendResetTime(@Nonnull Player player, @Nonnull Parkour parkour) {
-            Chat.sendMessage(player, "&cReset time for %s!", parkour.getName());
+            Chat.sendMessage(player, "&cReset time for %s!".formatted(parkour.getName()));
             PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
         }
 
         @Override
         public void sendParkourStarted(@Nonnull Player player, @Nonnull Parkour parkour) {
-            Chat.sendMessage(player, "&aStarted %s!", parkour.getName());
+            Chat.sendMessage(player, "&aStarted %s!".formatted(parkour.getName()));
             PlayerLib.playSound(player, Sound.UI_BUTTON_CLICK, 1.0f);
         }
 
         @Override
         public void sendParkourFinished(@Nonnull Data data) {
-            Chat.sendMessage(data.get(), "&aFinished &a%s&7 in &b%ss&7!", data.getParkour().getName(), data.getTimePassedFormatted());
+            Chat.sendMessage(
+                    data.get(),
+                    "&aFinished &a%s&7 in &b%ss&7!".formatted(data.getParkour().getName(), data.getTimePassedFormatted())
+            );
         }
 
         @Override
         public void sendParkourFailed(@Nonnull Data data, @Nonnull FailType type) {
             final Player player = data.get();
-            Chat.sendMessage(player, "&cParkour failed, &4%s&c!", type.getReason());
+            Chat.sendMessage(player, "&cParkour failed, &4%s&c!".formatted(type.getReason()));
             PlayerLib.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0f);
         }
 
@@ -102,40 +106,41 @@ public interface ParkourFormatter extends Formatter {
         public void sendHaventPassedCheckpoint(@Nonnull Data data) {
             final Player player = data.get();
             Chat.sendMessage(player, "&cYou haven't passed any checkpoints yet!");
-            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+            PlayerLib.endermanTeleport(player, 0.0f);
         }
 
         @Override
         public void sendQuit(@Nonnull Data data) {
-            Chat.sendMessage(data.get(), "&cQuit %s!", data.getParkour().getName());
+            Chat.sendMessage(data.get(), "&cQuit %s!".formatted(data.getParkour().getName()));
         }
 
         @Override
         public void sendTickActionbar(@Nonnull Data data) {
-            Chat.sendActionbar(data.get(), "&a&l%s: &b%ss", data.getParkour().getName(), data.getTimePassedFormatted());
+            Chat.sendActionbar(data.get(), "&a&l%s: &b%ss".formatted(data.getParkour().getName(), data.getTimePassedFormatted()));
         }
 
         @Override
         public void sendCheckpointTeleport(@Nonnull Data data) {
-            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(data.get(), 1.25f);
+            PlayerLib.endermanTeleport(data.get(), 1.25f);
         }
 
         @Override
         public void sendErrorParkourNotStarted(@Nonnull Player player, @Nonnull Parkour parkour) {
             Chat.sendMessage(player, "&cYou must first start this parkour!");
-            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+            PlayerLib.endermanTeleport(player, 0.0f);
         }
 
         @Override
         public void sendErrorMissedCheckpointCannotFinish(Data data) {
-            Chat.sendMessage(data.get(), "&cYou missed &l%s&c checkpoints!", data.missedCheckpointsCount());
+            Chat.sendMessage(data.get(), "&cYou missed &l%s&c checkpoints!".formatted(data.missedCheckpointsCount()));
         }
 
         @Override
         public void sendErrorMissedCheckpoint(Data data) {
             final Player player = data.get();
+
             Chat.sendMessage(player, "&cYou missed a checkpoint!");
-            PlayerLib.Sounds.ENDERMAN_TELEPORT.play(player, 0.0f);
+            PlayerLib.endermanTeleport(player, 0.0f);
         }
     };
 
