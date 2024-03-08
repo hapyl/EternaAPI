@@ -20,7 +20,6 @@ import java.util.function.Predicate;
 
 public class ItemFunction {
 
-    private final String id;
     private final Consumer<Player> runnable;
     private final Set<Action> actions;
 
@@ -31,17 +30,11 @@ public class ItemFunction {
     private Predicate<Player> predicate;
     private String errorMessage;
 
-    public ItemFunction(@Nonnull @ForceLowercase String id, @Nonnull Consumer<Player> runnable) {
-        this.id = id;
+    public ItemFunction(@Nonnull Consumer<Player> runnable) {
         this.runnable = runnable;
         this.actions = Sets.newHashSet();
         this.isCancelClicks = true;
         this.errorMessage = "Cannot use this!";
-    }
-
-    @Nonnull
-    public String getId() {
-        return id;
     }
 
     public boolean isAllowInventoryClick() {
@@ -105,8 +98,12 @@ public class ItemFunction {
 
         runnable.accept(player);
 
-        // Progress USE_CUSTOM_ITEM
-        QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, id);
+        if (item != null) {
+            final String id = ItemBuilder.getItemID(item);
+
+            // Progress USE_CUSTOM_ITEM
+            QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, id);
+        }
     }
 
     public boolean isAccepts(@Nonnull Action action) {

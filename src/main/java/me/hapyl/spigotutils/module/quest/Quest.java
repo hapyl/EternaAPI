@@ -177,7 +177,7 @@ public class Quest {
     public final void startQuest(Player player) {
         final QuestManager manager = QuestManager.current();
         if (!this.isValid()) {
-            Chat.sendMessage(player, "&cCould not invalid quest (%s), please report this!", this.getQuestName());
+            Chat.sendMessage(player, "&cCould not invalid quest (%s), please report this!".formatted(this.getQuestName()));
             return;
         }
 

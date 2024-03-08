@@ -22,6 +22,7 @@ import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Some utils for things that I do regularly.
@@ -531,4 +532,24 @@ public class BukkitUtils {
                 .findFirst()
                 .orElse(new Property("null", "null"));
     }
+
+    /**
+     * Gets the {@link UUID} from the given {@link String}.
+     *
+     * @param string - String.
+     * @return uuid, or null is invalid UUID.
+     */
+    @Nullable
+    public static UUID getUUIDfromString(@Nullable String string) {
+        if (string == null) {
+            return null;
+        }
+
+        try {
+            return UUID.fromString(string);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
 }

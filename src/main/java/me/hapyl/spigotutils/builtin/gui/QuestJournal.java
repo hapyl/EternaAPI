@@ -8,6 +8,7 @@ import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.quest.PlayerQuestObjective;
 import me.hapyl.spigotutils.module.quest.QuestManager;
 import me.hapyl.spigotutils.module.quest.QuestProgress;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -51,13 +52,13 @@ public final class QuestJournal extends PlayerGUI {
                         .hideFlags()
                         .predicate(progress.isComplete(), ItemBuilder::glow);
 
-                builder.setName(Chat.GREEN + progress.getQuest().getQuestName());
+                builder.setName(ChatColor.GREEN + progress.getQuest().getQuestName());
                 builder.addLore(progress.isComplete() ? "&aFinished Quest" : "&8Ongoing Quest");
                 builder.addLore();
-                builder.addLore(
-                        "&7Stage: &b%s",
-                        progress.isComplete() ? "COMPLETE" : progress.getCurrentStage() + 1 + "/" + progress.getTotalStages()
-                );
+                builder.addLore("&7Stage: &b%s".formatted(progress.isComplete()
+                        ? "COMPLETE"
+                        : progress.getCurrentStage() + 1 + "/" + progress.getTotalStages()
+                ));
                 builder.addLore();
 
                 builder.addLore("&7Objectives:");
@@ -71,7 +72,7 @@ public final class QuestJournal extends PlayerGUI {
                     // current objective
                     else if (progress.getCurrentStage() == i) {
                         final PlayerQuestObjective current = progress.getCurrentObjective();
-                        builder.addLore(" &e→ %s%s", obj.getObjectiveName(), current.getPercentComplete());
+                        builder.addLore(" &e→ %s%s".formatted(obj.getObjectiveName(), current.getPercentComplete()));
                         builder.addSmartLore(obj.getObjectiveShortInfo(), "  &7&o");
                     }
                     // next objectives

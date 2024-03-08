@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -31,7 +32,7 @@ public class Scoreboarder {
      *
      * @param title - Title. Supports color codes.
      */
-    public Scoreboarder(String title) {
+    public Scoreboarder(@Nonnull String title) {
         this.lines = new ArrayList<>();
         this.players = new HashSet<>();
 
@@ -49,6 +50,11 @@ public class Scoreboarder {
         }
     }
 
+    /**
+     * Sets if the numbers on the right are hidden.
+     *
+     * @param hideNumbers - Is hidden.
+     */
     public void setHideNumbers(boolean hideNumbers) {
         nmsObjective.b(hideNumbers ? BlankFormat.a : null);
     }
@@ -58,7 +64,7 @@ public class Scoreboarder {
      *
      * @param title - New title. Supports color codes.
      */
-    public void setTitle(String title) {
+    public void setTitle(@Nonnull String title) {
         this.objective.setDisplayName(Chat.format(title));
     }
 
@@ -96,7 +102,7 @@ public class Scoreboarder {
      *
      * @param lines - Lines to add.
      */
-    public void addLines(String... lines) {
+    public void addLines(@Nonnull String... lines) {
         this.lines.addAll(Arrays.asList(lines));
     }
 
@@ -105,10 +111,9 @@ public class Scoreboarder {
      * Does NOT update scoreboard lines.
      *
      * @param line    - Line to add.
-     * @param objects - Format replacements.
      */
-    public void addLine(String line, Object... objects) {
-        this.lines.add(line.formatted(objects));
+    public void addLine(@Nonnull String line) {
+        this.lines.add(line);
     }
 
     /**
@@ -174,7 +179,7 @@ public class Scoreboarder {
      *
      * @param player - Player to show scoreboard to.
      */
-    public void addPlayer(Player player) {
+    public void addPlayer(@Nonnull Player player) {
         if (this.players.contains(player)) {
             return;
         }
@@ -189,7 +194,7 @@ public class Scoreboarder {
      *
      * @param player - PLayer to hide scoreboard from.
      */
-    public void removePlayer(Player player) {
+    public void removePlayer(@Nonnull Player player) {
         if (!this.players.contains(player)) {
             return;
         }
@@ -202,6 +207,7 @@ public class Scoreboarder {
      *
      * @return a set of players who can see this scoreboard.
      */
+    @Nonnull
     public Set<Player> getPlayers() {
         return players;
     }
@@ -211,6 +217,7 @@ public class Scoreboarder {
      *
      * @return scoreboard object of this builder.
      */
+    @Nonnull
     public Scoreboard getScoreboard() {
         return scoreboard;
     }
@@ -220,6 +227,7 @@ public class Scoreboarder {
      *
      * @return objective of this scoreboard.
      */
+    @Nonnull
     public Objective getObjective() {
         return objective;
     }
@@ -227,6 +235,7 @@ public class Scoreboarder {
     /**
      * Returns lines of this scoreboard.
      */
+    @Nonnull
     public List<String> getLines() {
         return lines;
     }

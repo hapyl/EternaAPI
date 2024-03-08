@@ -174,4 +174,8 @@ public class SongRegistry extends Registry<String, Song> {
     public int maxPage() {
         return registry.size() / ITEMS_PER_PAGE + 1;
     }
+
+    public boolean isEmpty() {
+        return registry.isEmpty();
+    }
 }

@@ -140,7 +140,7 @@ public class Parser {
             }
 
         } catch (Exception e) {
-            Chat.broadcastOp("&b&lNBS> &cCould not parse '%s', see console for details!", file.getName());
+            Chat.broadcastOp("&b&lNBS> &cCould not parse '%s', see console for details!".formatted(file.getName()));
             e.printStackTrace();
         }
     }

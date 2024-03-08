@@ -25,8 +25,8 @@ public enum LazyClickEvent {
     }
 
     @Nonnull
-    public ClickEvent of(Object value, @Nullable Object... replacements) {
-        return new ClickEvent(this.action, Chat.format(value, replacements));
+    public ClickEvent of(@Nonnull Object value) {
+        return new ClickEvent(this.action, Chat.format(value));
     }
 
 }
