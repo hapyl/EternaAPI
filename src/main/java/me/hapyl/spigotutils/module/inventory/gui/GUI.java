@@ -309,13 +309,17 @@ public class GUI {
      * @param action - Click action of provided slot.
      * @param types  - Click Types action is applied to.
      * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
+     * @throws IllegalArgumentException  if the given {@link ClickType} are empty or null.
      */
     public final void setItem(int slot, @Nullable ItemStack item, @Nonnull Action action, @Range(min = 1) ClickType... types) {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
-        final GUIClick guiClick = getOrNew(slot, action);
+
+        final GUIClick guiClick = getOrNew(slot);
+
         for (final ClickType type : types) {
             guiClick.setAction(type, action);
         }
+
         this.setItem(slot, item, guiClick);
     }
 
@@ -411,13 +415,17 @@ public class GUI {
      * @param slot   - Slot to put click at.
      * @param action - Action.
      * @param types  - ClickType action will be applied to.
+     * @throws IllegalArgumentException if the given {@link ClickType} are empty or null.
      */
     public final void setClick(int slot, Action action, ClickType... types) {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
-        final GUIClick guiClick = getOrNew(slot, action);
+
+        final GUIClick guiClick = getOrNew(slot);
+
         for (final ClickType type : types) {
             guiClick.setAction(type, action);
         }
+
         this.setClick(slot, guiClick);
     }
 
@@ -850,8 +858,8 @@ public class GUI {
         fillItems(hashMap, SlotPattern.DEFAULT, startLine);
     }
 
-    private GUIClick getOrNew(int slot, Action action) {
-        return this.bySlot.getOrDefault(slot, new GUIClick(action));
+    private GUIClick getOrNew(int slot) {
+        return this.bySlot.getOrDefault(slot, new GUIClick());
     }
 
     private ItemStack notNull(ItemStack item) {
