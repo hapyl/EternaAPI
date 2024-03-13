@@ -4,11 +4,10 @@ import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.module.annotate.NotFormatted;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.inventory.ItemBuilder;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.*;
 import net.md_5.bungee.api.chat.hover.content.Text;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -32,12 +31,36 @@ public class MessageBuilder {
     }
 
     /**
-     * Appends a {@link String} and makes it the current the <code>target component</code>.
+     * Appends a {@link String} and makes it the current <code>target component</code>.
      *
      * @param string - String.
      */
     public MessageBuilder append(@Nonnull String string) {
         builder.append(Chat.color(string), DEFAULT_FORMAT_RETENTION);
+        return this;
+    }
+
+    /**
+     * Appends a new line and makes it the current <code>target component</code>.
+     */
+    public MessageBuilder appendNewLine() {
+        return append("\n");
+    }
+
+    /**
+     * Appends a new line and makes it the current <code>target component</code>.
+     */
+    public MessageBuilder nl() {
+        return appendNewLine();
+    }
+
+    /**
+     * Appends a {@link Keybind} and makes it the current <code>target component</code>.
+     *
+     * @param keybind - Keybind.
+     */
+    public MessageBuilder append(@Nonnull Keybind keybind) {
+        builder.append(new KeybindComponent(keybind.key()));
         return this;
     }
 
@@ -125,7 +148,7 @@ public class MessageBuilder {
 
         for (int i = 1; i < values.length; i++) {
             if (i != 1) {
-                event.addContent(nl());
+                event.addContent(nlText());
             }
 
             event.addContent(text(values[i]));
@@ -176,7 +199,7 @@ public class MessageBuilder {
 
         for (String string : strings) {
             if (string.isEmpty() || string.isBlank() || string.equalsIgnoreCase(" ")) { // paragraph
-                textList.add(nl());
+                textList.add(nlText());
                 continue;
             }
 
@@ -198,7 +221,7 @@ public class MessageBuilder {
             final boolean isNl = text.getValue().equals("\n");
 
             if (i != 1) {
-                event.addContent(nl());
+                event.addContent(nlText());
 
                 if (isNl) {
                     continue;
@@ -223,12 +246,44 @@ public class MessageBuilder {
     }
 
     /**
-     * Builds the message and sends it to the given player.
+     * Sets the {@link ChatColor} if the <code>target component</code>.
      *
-     * @param player - Player.
+     * @param color - Color.
      */
-    public void send(@Nonnull Player player) {
-        player.spigot().sendMessage(builder.create());
+    public MessageBuilder color(@Nonnull ChatColor color) {
+        builder.color(color);
+        return this;
+    }
+
+    /**
+     * Sets the {@link ChatColor} if the <code>target component</code>.
+     *
+     * @param color - Color.
+     */
+    public MessageBuilder color(@Nonnull org.bukkit.ChatColor color) {
+        return color(color.asBungee());
+    }
+
+    /**
+     * Formats the <code>target component</code> with the given {@link Format}.
+     *
+     * @param format - Format.
+     */
+    public MessageBuilder format(@Nonnull Format... format) {
+        for (Format f : format) {
+            f.accept(builder, true);
+        }
+
+        return this;
+    }
+
+    /**
+     * Builds the message and sends it to the given {@link CommandSender}.
+     *
+     * @param sender - Command sender.
+     */
+    public void send(@Nonnull CommandSender sender) {
+        sender.spigot().sendMessage(builder.create());
     }
 
     /**
@@ -238,6 +293,7 @@ public class MessageBuilder {
      *
      * @return the built message.
      */
+    @Nonnull
     public BaseComponent[] build() {
         return builder.create();
     }
@@ -265,7 +321,7 @@ public class MessageBuilder {
         return new Text(Chat.color(string));
     }
 
-    private static Text nl() {
+    private static Text nlText() {
         return new Text("\n");
     }
 

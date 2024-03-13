@@ -11,6 +11,8 @@ import me.hapyl.spigotutils.module.ai.goal.MeleeAttackGoal;
 import me.hapyl.spigotutils.module.block.display.BlockStudioParser;
 import me.hapyl.spigotutils.module.block.display.DisplayData;
 import me.hapyl.spigotutils.module.block.display.DisplayEntity;
+import me.hapyl.spigotutils.module.chat.messagebuilder.Format;
+import me.hapyl.spigotutils.module.chat.messagebuilder.Keybind;
 import me.hapyl.spigotutils.module.chat.messagebuilder.MessageBuilder;
 import me.hapyl.spigotutils.module.entity.Entities;
 import me.hapyl.spigotutils.module.entity.Rope;
@@ -36,8 +38,7 @@ import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import me.hapyl.spigotutils.module.reflect.npc.NPCPose;
 import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import me.hapyl.spigotutils.module.util.*;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.*;
@@ -1031,6 +1032,26 @@ public final class EternaRuntimeTest {
                         """);
 
                 builder.send(player);
+
+                final MessageBuilder keybindBuilder = new MessageBuilder();
+
+                keybindBuilder.append("Testing keybinds:");
+
+                Keybind.getDefaultValues().forEach(key -> {
+                    keybindBuilder.append(key);
+                    keybindBuilder.appendNewLine();
+                });
+
+                keybindBuilder.send(player);
+
+                final MessageBuilder bukkitComponent = new MessageBuilder();
+
+                bukkitComponent.append(new SelectorComponent("@e[type=player]")).format(Format.ITALIC).nl();
+                bukkitComponent.append(new ScoreComponent(".eterna", "test")).format(Format.BOLD).nl();
+                bukkitComponent.append(new TranslatableComponent("block.minecraft.lily_pad")).color(ChatColor.YELLOW).format(Format.BOLD).nl();
+
+                bukkitComponent.send(player);
+
                 return false;
             }
         });
