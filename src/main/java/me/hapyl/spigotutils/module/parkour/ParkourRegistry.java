@@ -17,13 +17,13 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-public class ParkourManager extends Registry<Position, Parkour> {
+public class ParkourRegistry extends Registry<Position, Parkour> {
 
     public final ParkourItemStorage parkourItemStorage = new ParkourItemStorage(this);
 
     private final Map<Player, Data> parkourData;
 
-    public ParkourManager(EternaPlugin plugin) {
+    public ParkourRegistry(EternaPlugin plugin) {
         super(plugin);
         this.parkourData = Maps.newHashMap();
     }

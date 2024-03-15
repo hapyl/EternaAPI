@@ -4,6 +4,7 @@ import me.hapyl.spigotutils.module.entity.IdHolder;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class IdRegistry<V extends IdHolder> extends Registry<Integer, V> {
 
@@ -18,18 +19,22 @@ public class IdRegistry<V extends IdHolder> extends Registry<Integer, V> {
         super.register(v.getId(), v);
     }
 
-    public void unregisterValue(V v) {
-        super.unregister(v.getId());
+    public boolean unregisterValue(V v) {
+        return super.unregister(v.getId());
     }
 
     @Override
-    public void register(@Nonnull Integer integer, @Nonnull V v) {
+    public void register(@Nonnull Integer integer, @Nullable V v) {
+        if (v == null) {
+            throw new IllegalArgumentException("v cannot be null");
+        }
+
         registerValue(v);
     }
 
     @Override
     public boolean unregister(@Nonnull Integer integer, @Nonnull V v) {
-        unregisterValue(v);
+        return unregisterValue(v);
     }
 
     @Deprecated
@@ -40,7 +45,7 @@ public class IdRegistry<V extends IdHolder> extends Registry<Integer, V> {
 
     @Deprecated
     @Override
-    public void unregister(@Nonnull Integer integer) {
+    public boolean unregister(@Nonnull Integer integer) {
         throw new IllegalArgumentException("Cannot unregister integer");
     }
 }

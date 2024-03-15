@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.builtin.event;
 
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.builtin.updater.UpdateResult;
 import me.hapyl.spigotutils.builtin.updater.Updater;
@@ -22,14 +23,14 @@ public final class PlayerConfigEvent implements Listener {
     public void handlePlayerJoinEvent(PlayerJoinEvent ev) {
         final Player player = ev.getPlayer();
 
-        EternaRegistry.getConfigManager().getConfig(player).loadAll();
+        Eterna.getRegistry().configRegistry.getConfig(player).loadAll();
 
         // Operator checks
         if (!player.isOp()) {
             return;
         }
 
-        final Updater updater = EternaPlugin.getPlugin().getUpdater();
+        final Updater updater = Eterna.getUpdater();
         final UpdateResult lastUpdateResult = updater.getLastResult();
 
         if (lastUpdateResult == UpdateResult.OUTDATED) {
@@ -39,7 +40,7 @@ public final class PlayerConfigEvent implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerQuitEvent(PlayerQuitEvent ev) {
-        EternaRegistry.getConfigManager().getConfig(ev.getPlayer()).saveAll();
+        Eterna.getRegistry().configRegistry.getConfig(ev.getPlayer()).saveAll();
     }
 
 }

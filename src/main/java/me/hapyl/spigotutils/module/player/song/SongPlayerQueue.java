@@ -1,6 +1,8 @@
 package me.hapyl.spigotutils.module.player.song;
 
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
+import me.hapyl.spigotutils.registry.EternaRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +42,7 @@ public class SongPlayerQueue implements SongQueue {
     public void playNext() {
         if (this.hasNext()) {
             this.current = this.queue.poll();
-            final SongPlayer player = EternaPlugin.getPlugin().getSongPlayer();
+            final SongPlayer player = Eterna.getRegistry().songPlayer;
             player.setCurrentSong(this.current);
             player.startPlaying();
         }

@@ -10,18 +10,14 @@ import me.hapyl.spigotutils.module.hologram.HologramRunnable;
 import me.hapyl.spigotutils.module.inventory.ItemBuilderListener;
 import me.hapyl.spigotutils.module.inventory.gui.GUIListener;
 import me.hapyl.spigotutils.module.inventory.item.CustomItemListener;
-import me.hapyl.spigotutils.module.inventory.item.CustomItemRegistry;
 import me.hapyl.spigotutils.module.locaiton.TriggerManager;
 import me.hapyl.spigotutils.module.parkour.ParkourListener;
-import me.hapyl.spigotutils.module.parkour.ParkourManager;
 import me.hapyl.spigotutils.module.parkour.ParkourRunnable;
-import me.hapyl.spigotutils.module.player.song.SongPlayer;
 import me.hapyl.spigotutils.module.quest.QuestListener;
 import me.hapyl.spigotutils.module.record.ReplayListener;
 import me.hapyl.spigotutils.module.reflect.NPCRunnable;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolEntitySpawn;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolMetadata;
-import me.hapyl.spigotutils.module.reflect.glow.GlowingRegistry;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
 import me.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
 import me.hapyl.spigotutils.module.reflect.protocol.SignListener;
@@ -35,7 +31,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.logging.Logger;
 
 /**
  * Represents EternaAPI plugin.
@@ -44,13 +39,13 @@ public class EternaPlugin extends JavaPlugin {
 
     private static EternaPlugin plugin;
 
-    private EternaRegistry registry;
-    private Updater updater;
-    private EternaConfig config;
+    protected EternaRegistry registry;
+    protected Updater updater;
+    protected EternaConfig config;
 
     @Override
     public void onEnable() {
-        plugin = this;
+        plugin = Eterna.plugin = this;
 
         final PluginManager manager = this.getServer().getPluginManager();
 
@@ -102,7 +97,7 @@ public class EternaPlugin extends JavaPlugin {
         }
 
         // Load PlayerConfig for online players
-        Runnables.runLater(() -> Bukkit.getOnlinePlayers().forEach(player -> registry.configManager.getConfig(player).loadAll()), 10L);
+        Runnables.runLater(() -> Bukkit.getOnlinePlayers().forEach(player -> registry.configRegistry.getConfig(player).loadAll()), 10L);
 
         // Load dependencies
         EternaAPI.loadAll();
@@ -120,40 +115,6 @@ public class EternaPlugin extends JavaPlugin {
         registry.onDisable();
     }
 
-    public EternaRegistry getRegistry() {
-        return registry;
-    }
-
-    public CustomItemRegistry getItemHolder() {
-        return registry.itemHolder;
-    }
-
-    public SongPlayer getSongPlayer() {
-        return registry.songPlayer;
-    }
-
-    public ParkourManager getParkourManager() {
-        return registry.parkourManager;
-    }
-
-    public GlowingRegistry getGlowingManager() {
-        return registry.glowingManager;
-    }
-
-    public Updater getUpdater() {
-        return updater;
-    }
-
-    /**
-     * Gets the {@link EternaConfig}.
-     *
-     * @return the api config.
-     */
-    @Nonnull
-    public static EternaConfig config() {
-        return plugin.config;
-    }
-
     /**
      * Gets the {@link EternaPlugin}.
      *
@@ -162,16 +123,6 @@ public class EternaPlugin extends JavaPlugin {
     @Nonnull
     public static EternaPlugin getPlugin() {
         return plugin;
-    }
-
-    /**
-     * Gets the {@link Logger}.
-     *
-     * @return the logger.
-     */
-    @Nonnull
-    public static Logger logger() {
-        return getPlugin().getLogger();
     }
 
 }

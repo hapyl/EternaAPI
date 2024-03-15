@@ -2,16 +2,15 @@ package me.hapyl.spigotutils.module.hologram;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
-import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
@@ -30,7 +29,6 @@ public class Hologram extends LimitedVisibility {
     protected final Set<Player> showingTo;
     private final List<String> lines;
     private final List<HologramArmorStand> packets;
-    private BukkitTask task;
     private Location location;
 
     /**
@@ -44,7 +42,7 @@ public class Hologram extends LimitedVisibility {
         this.showingTo = Sets.newConcurrentHashSet();
 
         setVisibility(25);
-        EternaRegistry.getHologramRegistry().register(this);
+        Eterna.getRegistry().hologramRegistry.register(this);
     }
 
     /**
@@ -189,11 +187,7 @@ public class Hologram extends LimitedVisibility {
     public void destroy() {
         this.removeStands();
 
-        if (this.task != null) {
-            this.task.cancel();
-        }
-
-        EternaRegistry.getHologramRegistry().unregister(this);
+        Eterna.getRegistry().hologramRegistry.unregister(this);
     }
 
     /**

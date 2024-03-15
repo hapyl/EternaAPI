@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.builtin.command;
 
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.BuiltIn;
 import me.hapyl.spigotutils.module.chat.Chat;
@@ -31,7 +32,7 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
     public NoteBlockStudioCommand(String str) {
         super(str);
-        radio = EternaPlugin.getPlugin().getSongPlayer();
+        radio = Eterna.getRegistry().songPlayer;
         radio.everyoneIsListener();
 
         setAliases("radio");
@@ -265,7 +266,7 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
     }
 
     private SongRegistry getRegistry() {
-        return EternaPlugin.getPlugin().getRegistry().songRegistry;
+        return Eterna.getRegistry().songRegistry;
     }
 
 }

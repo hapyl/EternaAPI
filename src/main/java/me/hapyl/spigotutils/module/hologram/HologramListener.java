@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.hologram;
 
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,7 +13,7 @@ public final class HologramListener implements Listener {
     public void handlePlayerJoinEvent(PlayerJoinEvent ev) {
         final Player player = ev.getPlayer();
 
-        for (Hologram hologram : EternaRegistry.getHologramRegistry().getHolograms()) {
+        for (Hologram hologram : Eterna.getRegistry().hologramRegistry.getHolograms()) {
             if (!(hologram instanceof GlobalHologram) || hologram.isShowingTo(player) || !hologram.isCreated()) {
                 continue;
             }

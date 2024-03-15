@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.inventory.item;
 
 import com.google.common.collect.Maps;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.registry.Registry;
@@ -42,7 +43,7 @@ public final class CustomItemRegistry extends Registry<String, CustomItem> {
     }
 
     @Override
-    public void register(@Nonnull String id, @Nonnull CustomItem customItem) {
+    public void register(@Nonnull String id, @Nullable CustomItem customItem) {
         if (isItemExists(id)) {
             throw new IllegalArgumentException("cannot register %s since it's already registered!".formatted(id));
         }
@@ -60,7 +61,7 @@ public final class CustomItemRegistry extends Registry<String, CustomItem> {
     }
 
     public static CustomItemRegistry getInstance() {
-        return EternaPlugin.getPlugin().getItemHolder();
+        return Eterna.getRegistry().itemRegistry;
     }
 
 }

@@ -5,6 +5,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.reflect.protocol.ProtocolListener;
 import org.bukkit.entity.Entity;
@@ -15,7 +16,7 @@ import java.util.List;
 
 public class GlowingProtocolMetadata extends ProtocolListener {
 
-    private final GlowingRegistry registry = EternaPlugin.getPlugin().getGlowingManager();
+    private final GlowingRegistry registry = Eterna.getRegistry().glowingRegistry;
 
     public GlowingProtocolMetadata() {
         super(PacketType.Play.Server.ENTITY_METADATA);

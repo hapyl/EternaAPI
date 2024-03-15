@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.entity;
 
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.module.util.Validate;
-import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
@@ -43,7 +43,7 @@ public class Rope implements IdHolder, Spawnable<Rope> {
 
         entities[0].setLeashHolder(entities[1]);
 
-        EternaRegistry.getRopeRegistry().registerValue(this);
+        Eterna.getRegistry().ropeRegistry.registerValue(this);
 
         return this;
     }

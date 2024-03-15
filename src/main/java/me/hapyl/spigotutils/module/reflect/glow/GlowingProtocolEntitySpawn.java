@@ -3,8 +3,8 @@ package me.hapyl.spigotutils.module.reflect.glow;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.module.reflect.protocol.ProtocolListener;
-import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
 
 public class GlowingProtocolEntitySpawn extends ProtocolListener {
 
-    private final GlowingRegistry registry = EternaRegistry.getGlowingManager();
+    private final GlowingRegistry registry = Eterna.getRegistry().glowingRegistry;
 
     public GlowingProtocolEntitySpawn() {
         super(PacketType.Play.Server.SPAWN_ENTITY);
