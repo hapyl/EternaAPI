@@ -241,21 +241,6 @@ public class Hologram extends LimitedVisibility {
         return this;
     }
 
-    // FIXME (hapyl): 025, Feb 25: What the fuck is this
-    public Hologram onTick(HologramAction<?> action, int tick, Player player) {
-        if (this.task != null) {
-            this.task.cancel();
-        }
-
-        this.task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                action.consume(player);
-            }
-        }.runTaskTimer(EternaPlugin.getPlugin(), 0, tick);
-        return this;
-    }
-
     /**
      * Moves this hologram to the provided location.
      * This will only move the hologram for players who this hologram is showing to.

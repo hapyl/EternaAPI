@@ -955,7 +955,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void remove() {
         remove0();
-        EternaRegistry.getNpcRegistry().remove(getId());
+        EternaRegistry.getNpcRegistry().unregister(getId());
     }
 
     /**
@@ -1217,7 +1217,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Nullable
     public static HumanNPC getById(int id) {
-        return EternaRegistry.getNpcRegistry().getById(id);
+        return EternaRegistry.getNpcRegistry().byKey(id);
     }
 
     public static void hideAllNames(Scoreboard score) {

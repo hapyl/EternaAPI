@@ -3,6 +3,8 @@ package me.hapyl.spigotutils.registry;
 import me.hapyl.spigotutils.module.entity.IdHolder;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
+
 public class IdRegistry<V extends IdHolder> extends Registry<Integer, V> {
 
     private int next;
@@ -21,24 +23,24 @@ public class IdRegistry<V extends IdHolder> extends Registry<Integer, V> {
     }
 
     @Override
-    public void register(Integer integer, V v) {
+    public void register(@Nonnull Integer integer, @Nonnull V v) {
         registerValue(v);
     }
 
     @Override
-    public void unregister(Integer integer, V v) {
+    public boolean unregister(@Nonnull Integer integer, @Nonnull V v) {
         unregisterValue(v);
     }
 
     @Deprecated
     @Override
-    public void register(Integer integer) throws IllegalArgumentException {
+    public void register(@Nonnull Integer integer) throws IllegalArgumentException {
         throw new IllegalArgumentException("Cannot register integer");
     }
 
     @Deprecated
     @Override
-    public void unregister(Integer integer) {
+    public void unregister(@Nonnull Integer integer) {
         throw new IllegalArgumentException("Cannot unregister integer");
     }
 }

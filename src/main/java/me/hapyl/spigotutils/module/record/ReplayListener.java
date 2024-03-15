@@ -14,16 +14,14 @@ public class ReplayListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void handlePlayerInteractEvent(PlayerInteractEvent ev) {
         final Player player = ev.getPlayer();
-        final Record record = Record.getReplay(player);
         final Action action = ev.getAction();
+        final EquipmentSlot hand = ev.getHand();
 
-        if (record == null || (action != Action.LEFT_CLICK_AIR && action != Action.LEFT_CLICK_BLOCK)) {
+        if (action != Action.LEFT_CLICK_AIR && action != Action.LEFT_CLICK_BLOCK) {
             return;
         }
 
-        record
-                .getDataAtCurrentFrame()
-                .addAction(ev.getHand() == EquipmentSlot.HAND ? ReplayAction.ATTACK_MAIN_HAND : ReplayAction.ATTACK_OFF_HAND);
+        Record.fetchRecordAction(player, hand == EquipmentSlot.HAND ? RecordAction.ATTACK : RecordAction.ATTACK_OFFHAND);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -32,12 +30,7 @@ public class ReplayListener implements Listener {
             return;
         }
 
-        final Record record = Record.getReplay(player);
-        if (record == null) {
-            return;
-        }
-
-        record.getDataAtCurrentFrame().addAction(ReplayAction.TAKE_DAMAGE);
+        Record.fetchRecordAction(player, RecordAction.TAKE_DAMAGE);
     }
 
 }

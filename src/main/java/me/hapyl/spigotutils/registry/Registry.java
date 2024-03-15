@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public abstract class Registry<K, V> {
+public abstract class Registry<K, V> implements IRegistry<K, V> {
 
     protected final Logger logger;
     protected final Map<K, V> registry = Maps.newLinkedHashMap();
@@ -24,38 +24,19 @@ public abstract class Registry<K, V> {
      *
      * @param plugin - Eterna Main.
      */
-    public Registry(JavaPlugin plugin) {
+    public Registry(@Nonnull JavaPlugin plugin) {
         this.owningPlugin = plugin;
         this.logger = plugin.getLogger();
     }
 
-    /**
-     * Returns plugin that owns this registry.
-     *
-     * @return plugin that owns this registry.
-     */
+    @Override
+    @Nonnull
     public final JavaPlugin getPlugin() {
         return owningPlugin;
     }
 
-    /**
-     * Returns a <b>copy</b> hash map of this registry.
-     * Original hash map is only accessible to self.
-     *
-     * @return a <b>copy</b> hash map of this registry.
-     */
-    public final Map<K, V> getRegistryCopy() {
-        return Maps.newHashMap(this.registry);
-    }
-
-    /**
-     * Registers key to a value.
-     * Ignored if key already has any non-null value assigned.
-     *
-     * @param k - Key.
-     * @param v - Value.
-     */
-    public void register(K k, V v) {
+    @Override
+    public void register(@Nonnull K k, @Nullable V v) {
         if (registry.containsKey(k)) {
             return;
         }
@@ -63,51 +44,30 @@ public abstract class Registry<K, V> {
         registry.put(k, v);
     }
 
-    /**
-     * Registers key.
-     * Sometimes registries only need to
-     * register just keys.
-     *
-     * @param k - Key.
-     */
-    public void register(K k) {
-        if (registry.containsKey(k)) {
-            return;
-        }
-
-        registry.put(k, null);
-    }
-
-    /**
-     * Unregisters value from a key if value matches 'v'.
-     *
-     * @param k - Key.
-     * @param v - Value.
-     */
-    public void unregister(K k, V v) {
+    @Override
+    public boolean unregister(@Nonnull K k, @Nonnull V v) {
         final V v1 = registry.get(k);
+
         if (v1 == null || !v1.equals(v)) {
-            return;
+            return false;
         }
 
-        unregister(k);
+        return unregister(k);
     }
 
-    /**
-     * Unregisters values from a key.
-     *
-     * @param k - Key.
-     */
-    public void unregister(K k) {
-        registry.remove(k);
+    @Override
+    public boolean unregister(@Nonnull K k) {
+        return registry.remove(k) != null;
     }
 
-    /**
-     * Accepts consumer on all non-null key and values.
-     *
-     * @param consumer - Consumer.
-     */
-    public final void forEach(BiConsumer<K, V> consumer) {
+    @Override
+    @Nonnull
+    public final Map<K, V> getRegistryCopy() {
+        return Maps.newHashMap(this.registry);
+    }
+
+    @Override
+    public void forEach(@Nonnull BiConsumer<K, V> consumer) {
         registry.forEach((k, v) -> {
             if (k == null || v == null) {
                 return;
@@ -133,15 +93,6 @@ public abstract class Registry<K, V> {
     }
 
     /**
-     * Returns keys of the original hash map.
-     *
-     * @return keys of the original hash map.
-     */
-    public final Set<K> getKeys() {
-        return registry.keySet();
-    }
-
-    /**
      * Accepts consumer on all non-null values.
      *
      * @param consumer - Consumer.
@@ -156,30 +107,25 @@ public abstract class Registry<K, V> {
         });
     }
 
-    /**
-     * Returns values of the original hash map.
-     *
-     * @return values of the original hash map.
-     */
-    public final Collection<V> getValues() {
-        return registry.values();
+    @Override
+    public boolean isRegistered(@Nonnull K k) {
+        return registry.containsKey(k);
     }
 
-    @Nonnull
-    public final V byKey(K k, @Nonnull V def) {
-        if (k == null) {
-            return def;
-        }
-
-        return registry.getOrDefault(k, def);
+    @Override
+    public boolean isRegistered(@Nonnull K k, @Nonnull V v) {
+        return v.equals(registry.get(k));
     }
 
+    @Override
     @Nullable
-    public final V byKey(K k) {
-        return k == null ? null : registry.get(k);
+    public final V byKey(@Nonnull K k) {
+        return registry.get(k);
     }
 
-    public final K byValue(V v, K def) {
+    @Override
+    @Nullable
+    public final K byValue(@Nonnull V v) {
         for (K k : registry.keySet()) {
             final V v1 = registry.get(k);
             if (v1 == null) {
@@ -191,16 +137,30 @@ public abstract class Registry<K, V> {
             }
         }
 
-        return def;
+        return null;
     }
 
-    @Nullable
-    public final K byValue(V v) {
-        return byValue(v, null);
-    }
-
+    @Override
     public int size() {
         return registry.size();
+    }
+
+    /**
+     * Returns keys of the original hash map.
+     *
+     * @return keys of the original hash map.
+     */
+    protected final Set<K> getKeys() {
+        return registry.keySet();
+    }
+
+    /**
+     * Returns values of the original hash map.
+     *
+     * @return values of the original hash map.
+     */
+    protected final Collection<V> getValues() {
+        return registry.values();
     }
 
     /**
@@ -208,6 +168,7 @@ public abstract class Registry<K, V> {
      *
      * @return original hash map of this registry.
      */
+    @Nonnull
     protected final Map<K, V> getRegistry() {
         return registry;
     }
