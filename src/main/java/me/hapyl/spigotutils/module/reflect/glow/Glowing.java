@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.reflect.Reflect;
@@ -231,10 +232,10 @@ public class Glowing implements Ticking, GlowingListener {
     private void forceStop(boolean callOnStop) {
         status = false; // no check for status because it's force
 
+        getManager().removeGlowing(this);
+
         sendPacket(false);
         createTeam(false);
-
-        getManager().removeGlowing(this);
 
         if (callOnStop) {
             this.onGlowingStop();
@@ -370,10 +371,6 @@ public class Glowing implements Ticking, GlowingListener {
     private void addToTeam(Team team) {
         final ScoreboardTeam nmsTeam = Reflect.getNetTeam(team);
 
-        if (nmsTeam == null) {
-            return;
-        }
-
         Reflect.sendPacket(
                 player,
                 PacketPlayOutScoreboardTeam.a(nmsTeam, getEntityName(), PacketPlayOutScoreboardTeam.a.a)
@@ -477,7 +474,7 @@ public class Glowing implements Ticking, GlowingListener {
      */
     @Nonnull
     public static GlowingRegistry getManager() {
-        return EternaRegistry.getGlowingManager();
+        return Eterna.getRegistry().glowingRegistry;
     }
 
     @Nonnull

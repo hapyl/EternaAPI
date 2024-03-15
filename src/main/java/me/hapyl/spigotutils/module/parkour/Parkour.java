@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.parkour;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.hologram.Hologram;
@@ -55,12 +56,12 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
 
     @Override
     public void start(Player player) {
-        EternaPlugin.getPlugin().getParkourManager().startParkour(player, this);
+        Eterna.getRegistry().parkourRegistry.startParkour(player, this);
     }
 
     @Override
     public void finish(Player player) {
-        EternaPlugin.getPlugin().getParkourManager().finishParkour(player);
+        Eterna.getRegistry().parkourRegistry.finishParkour(player);
     }
 
     /**

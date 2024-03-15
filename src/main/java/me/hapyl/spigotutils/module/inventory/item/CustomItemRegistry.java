@@ -1,11 +1,13 @@
 package me.hapyl.spigotutils.module.inventory.item;
 
 import com.google.common.collect.Maps;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.registry.Registry;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Locale;
 import java.util.Map;
@@ -41,7 +43,7 @@ public final class CustomItemRegistry extends Registry<String, CustomItem> {
     }
 
     @Override
-    public void register(String id, CustomItem customItem) {
+    public void register(@Nonnull String id, @Nullable CustomItem customItem) {
         if (isItemExists(id)) {
             throw new IllegalArgumentException("cannot register %s since it's already registered!".formatted(id));
         }
@@ -50,16 +52,16 @@ public final class CustomItemRegistry extends Registry<String, CustomItem> {
     }
 
     @Override
-    public void unregister(String id, CustomItem customItem) {
+    public boolean unregister(@Nonnull String id, @Nonnull CustomItem customItem) {
         if (!isItemExists(id)) {
-            throw new IllegalArgumentException("cannot unregister %s since it's doesn't exist!".formatted(id));
+            return false;
         }
 
-        super.unregister(id, customItem);
+        return super.unregister(id, customItem);
     }
 
     public static CustomItemRegistry getInstance() {
-        return EternaPlugin.getPlugin().getItemHolder();
+        return Eterna.getRegistry().itemRegistry;
     }
 
 }

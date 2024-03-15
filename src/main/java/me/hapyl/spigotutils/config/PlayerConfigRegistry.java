@@ -11,11 +11,11 @@ import java.util.UUID;
 /**
  * Manager for {@link PlayerConfig}
  */
-public class PlayerConfigManager extends Registry<UUID, PlayerConfig> {
+public class PlayerConfigRegistry extends Registry<UUID, PlayerConfig> {
 
     protected final Map<UUID, PlayerConfig> playerConfig;
 
-    public PlayerConfigManager(EternaPlugin plugin) {
+    public PlayerConfigRegistry(EternaPlugin plugin) {
         super(plugin);
         playerConfig = Maps.newHashMap();
     }

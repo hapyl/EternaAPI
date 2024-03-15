@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.reflect;
 
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.module.reflect.npc.RestPosition;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
@@ -11,7 +12,7 @@ public class NPCRunnable implements Runnable {
 
     @Override
     public void run() {
-        EternaRegistry.getNpcRegistry().getRegistered().forEach((id, npc) -> {
+        Eterna.getRegistry().npcRegistry.getRegistered().forEach((id, npc) -> {
             // Visibility
             for (Player player : npc.getViewers()) {
                 LimitedVisibility.check(player, npc);

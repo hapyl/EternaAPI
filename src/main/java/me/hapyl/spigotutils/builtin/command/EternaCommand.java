@@ -1,15 +1,11 @@
 package me.hapyl.spigotutils.builtin.command;
 
-import me.hapyl.spigotutils.EternaConfigValue;
-import me.hapyl.spigotutils.EternaLogger;
-import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.Rule;
+import me.hapyl.spigotutils.*;
 import me.hapyl.spigotutils.builtin.gui.QuestJournal;
 import me.hapyl.spigotutils.builtin.updater.UpdateResult;
 import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
-import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -42,7 +38,7 @@ public final class EternaCommand extends SimpleAdminCommand {
 
         switch (args[0].toLowerCase()) {
             case "update" -> {
-                final Updater updater = EternaPlugin.getPlugin().getUpdater();
+                final Updater updater = Eterna.getUpdater();
                 final UpdateResult result = updater.checkForUpdates();
 
                 if (result == UpdateResult.OUTDATED) {
@@ -54,7 +50,7 @@ public final class EternaCommand extends SimpleAdminCommand {
             }
 
             case "version" -> {
-                final Updater updater = EternaPlugin.getPlugin().getUpdater();
+                final Updater updater = Eterna.getUpdater();
 
                 Chat.sendMessage(sender, "&aYour version: " + updater.getPluginVersion());
 
@@ -98,14 +94,14 @@ public final class EternaCommand extends SimpleAdminCommand {
                             return;
                         }
 
-                        EternaRegistry.getConfigManager().getConfig(target).forceLoad(true);
+                        Eterna.getRegistry().configRegistry.getConfig(target).forceLoad(true);
                         EternaLogger.sendMessage(sender, "&aReloaded %s player config!", target.getName());
                     }
                 }
             }
 
             case "test" -> {
-                if (!EternaPlugin.config().isTrue(EternaConfigValue.KEEP_TESTS)) {
+                if (!Eterna.getConfig().isTrue(EternaConfigValue.KEEP_TESTS)) {
                     Chat.sendMessage(sender, "&cTests are disabled on this server.");
                     return;
                 }
@@ -126,7 +122,7 @@ public final class EternaCommand extends SimpleAdminCommand {
             }
 
             case "testsq" -> {
-                if (!EternaPlugin.config().isTrue(EternaConfigValue.KEEP_TESTS)) {
+                if (!Eterna.getConfig().isTrue(EternaConfigValue.KEEP_TESTS)) {
                     Chat.sendMessage(sender, "&cTests are disabled on this server.");
                     return;
                 }

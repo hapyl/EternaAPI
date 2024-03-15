@@ -1,9 +1,8 @@
 package me.hapyl.spigotutils.module.parkour;
 
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.chat.Chat;
-import me.hapyl.spigotutils.module.player.tablist.Tablist;
-import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.cd.InternalCooldownStorage;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,8 +21,8 @@ import org.bukkit.event.player.*;
 
 public class ParkourListener implements Listener {
 
-    private ParkourManager manager() {
-        return EternaPlugin.getPlugin().getParkourManager();
+    private ParkourRegistry manager() {
+        return Eterna.getRegistry().parkourRegistry;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -114,7 +113,7 @@ public class ParkourListener implements Listener {
 
         /** Checkpoint */
         else if (clickedBlockType == Position.Type.CHECKPOINT.material()) {
-            if (EternaPlugin.getPlugin().getParkourManager().isCheckpointOfAnyParkour(clickedBlockLocation)) {
+            if (manager().isCheckpointOfAnyParkour(clickedBlockLocation)) {
                 ev.setUseInteractedBlock(Event.Result.DENY);
                 ev.setCancelled(true);
             }

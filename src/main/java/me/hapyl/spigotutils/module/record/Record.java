@@ -1,267 +1,251 @@
 package me.hapyl.spigotutils.module.record;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.event.replay.ReplayFinishRecordingEvent;
-import me.hapyl.spigotutils.module.event.replay.ReplayStartRecordingEvent;
-import me.hapyl.spigotutils.module.math.Numbers;
-import me.hapyl.spigotutils.module.util.BukkitUtils;
+import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
+import me.hapyl.spigotutils.module.util.EternaRunnable;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
- * Records any action of a player and allows to replay them using NPC.
- *
- * This includes:
- * - Location.
- * - Equipment.
- * - Poses, such as:
- * --- Sneaking
- * --- Sleeping
- * --- Swimming
- *
- * Not implemented: (mark as todo)
- * - Taking damage.
- * - Swinging hands.
+ * Records any action of a {@link Player} and allows to replay them using a {@link HumanNPC}.
+ * <br>
+ * <b>Actions:</b>
+ * <ul>
+ *     <li>Movement
+ *     <li>Equipment
+ *     <li>Poses:
+ *     <ul>
+ *         <li>Sneaking
+ *         <li>Sleeping
+ *         <li>Swimming
+ *     </ul>
+ * </ul>
  */
-// FIXME (hapyl): 009, Jun 9: Crouching does not seem to work
-public class Record {
+public class Record extends EternaRunnable {
 
-    // only one instance of replays allowed per player
-    private static final Map<UUID, Record> replays = Maps.newHashMap();
+    public static final long MAX_RECORDING_FRAMES = 6000L;
+
+    private static final Map<Integer, Record> cachedRecords = Maps.newHashMap();
+    private static final Map<UUID, Record> runningRecords = Maps.newHashMap();
 
     private final Player player;
-    private final Map<Long, Data> frames;
+    private final Map<Long, ReplayData> frames;
+    private final Set<RecordAction> ignoredActions;
 
-    private Replay replay;
-    private boolean isRecordingFinished;
-    private long maxFrames;
-    private BukkitTask task;
+    private boolean status;
 
-    public Record(Player player) {
+    public Record(@Nonnull Player player) {
+        super(EternaPlugin.getPlugin());
+
         this.player = player;
         this.frames = Maps.newHashMap();
-        this.isRecordingFinished = false;
-        this.maxFrames = 6000;
+        this.ignoredActions = Sets.newHashSet();
+        this.status = false;
 
-        // stop old replay
-        final Record oldRecord = getReplay(player);
-        if (oldRecord != null) {
-            oldRecord.cleanup();
+        final Record previousRecord = runningRecords.put(player.getUniqueId(), this);
+
+        if (previousRecord != null) {
+            previousRecord.stopRecording();
         }
-        replays.put(player.getUniqueId(), this);
+    }
 
-        startRecording();
+    public void addIgnoredAction(@Nonnull RecordAction action) {
+        ignoredActions.add(action);
+    }
+
+    @Override
+    public void run() {
+        if (status || frames.size() >= MAX_RECORDING_FRAMES) {
+            stopRecording();
+            return;
+        }
+
+        // Add step
+        getData(frames.size());
     }
 
     /**
-     * Stars recording of this replay is not already finished.
-     * Cannot be called if {@link this#isRecordFinished()} is true.
-     * Will override ongoing recording if exists.
+     * Starts the recording of the replay.
      */
     public void startRecording() {
-        if (isRecordFinished()) {
-            return;
-        }
-
-        if (BukkitUtils.callCancellableEvent(new ReplayStartRecordingEvent(player, this))) {
-            return;
-        }
-
-        if (task != null) {
-            task.cancel();
-        }
-
-        frames.clear();
-
-        task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // finished recording
-                if (isRecordingFinished || isMaxFrames()) {
-                    isRecordingFinished = true;
-                    this.cancel();
-                    return;
-                }
-
-                // add step
-                getDataAtNextFrame();
-            }
-        }.runTaskTimer(EternaPlugin.getPlugin(), 0L, 1L);
-
+        runTaskTimer(1, 1);
     }
 
     /**
-     * Stops recording os this {@link Record}.
-     * Recording must be stopped before {@link Replay} can to played.
-     */
-    public void stopRecording() {
-        if (BukkitUtils.callCancellableEvent(new ReplayFinishRecordingEvent(player, this))) {
-            return;
-        }
-        isRecordingFinished = true;
-    }
-
-    /**
-     * Returns new {@link Replay} which is NOT linked to this {@link Record}.
+     * Stops the recoding and saves it in <b>memory</b>.
      *
-     * @return new replay.
-     * @throws IllegalStateException if called before recording is finished.
+     * @return true if the recording was stopped, false otherwise.
      */
-    public Replay newReplay() {
-        if (!isRecordFinished()) {
-            throw new IllegalStateException("replay must be finished before replay can be created");
+    public boolean stopRecording() {
+        if (isCancelled()) {
+            return false;
         }
-        return new Replay(this);
+
+        cancel();
+        status = true;
+
+        runningRecords.remove(player.getUniqueId());
+        cachedRecords.put(cachedRecords.size(), this);
+
+        return true;
+    }
+
+    public boolean isComplete() {
+        return status;
     }
 
     /**
-     * Returns {@link Replay} of this {@link Record} which is linked
-     * to this record and may only exist in one instance.
+     * Returns true if this recording is in progress, false otherwise.
      *
-     * @return replay of this record.
-     */
-    @Nonnull
-    public Replay getReplay() {
-        if (replay == null) {
-            replay = newReplay();
-        }
-        return replay;
-    }
-
-    /**
-     * Returns true recording is in progress, false otherwise.
-     *
-     * @return true recording is in progress, false otherwise.
+     * @return true if this recording is in progress, false otherwise.
      */
     public boolean isRecordingInProgress() {
-        return !isRecordingFinished && frames.size() > 0 && frames.size() <= maxFrames;
+        return !status && !frames.isEmpty() && frames.size() <= MAX_RECORDING_FRAMES;
     }
 
     /**
-     * Returns player of this record.
+     * Gets the player of this record.
      *
-     * @return player of this record.
+     * @return the player of this record.
      */
+    @Nonnull
     public Player getPlayer() {
         return player;
     }
 
     /**
-     * Returns current amount of frames recorded in ticks.
+     * Returns current number of frames recorded in ticks.
      *
-     * @return current amount of frames recorded in ticks.
+     * @return current number of frames recorded in ticks.
      */
     public int getFrames() {
         return frames.size();
     }
 
     /**
-     * Returns true if amount of frames recorded is
-     * equals or greater than maximum allowed, or maxFrames is 0, false otherwise.
+     * Returns true if the number of frames recorded is equals or greater than the maximum allowed, false otherwise.
      *
-     * @return Returns true if amount of frames recorded is equals
-     * or greater than maximum allowed, or maxFrames is 0, false otherwise.
+     * @return true if the number of frames recorded is equals or greater than the maximum allowed, false otherwise.
      */
     public boolean isMaxFrames() {
-        return getFrames() >= maxFrames || maxFrames == 0;
+        return getFrames() >= MAX_RECORDING_FRAMES;
     }
 
     /**
-     * Returns maximum amount of frames allowed for this record in ticks.
+     * Get the {@link ReplayData} at the given frame.
+     * <br>
+     * This method will always compute new data if it doesn't exist already.
      *
-     * @return maximum amount of frames allowed for this record in ticks.
-     */
-    public long getMaxFrames() {
-        return maxFrames;
-    }
-
-    /**
-     * Returns true if recording is finished.
-     * Plugin should call this method before
-     * calling {@link this#getReplay()} or {@link this#newReplay()}
-     *
-     * @return true if recording is finished.
-     */
-    public boolean isRecordFinished() {
-        return isRecordingFinished;
-    }
-
-    /**
-     * Changes maximum amount of frames allowed to this
-     * record in ticks. Default is 6000, maximum is 72000.
-     *
-     * @param frames - new maximum amount.
-     */
-    public void setMaxFrames(long frames) {
-        maxFrames = Numbers.clamp(frames, 6000, 72000);
-    }
-
-    /**
-     * Returns data at provided frame, or creates new data if null.
-     *
-     * @param frame - frame (tick) of data.
-     * @return data at provided frame, or creates new data if null.
+     * @param frame - Frame.
+     * @return the replay data at the given frame.
      */
     @Nonnull
-    public Data getData(long frame) {
-        return frames.computeIfAbsent(frame, d -> new Data(player));
+    public ReplayData getData(long frame) {
+        if (frame < 0 || frame > MAX_RECORDING_FRAMES) {
+            throw new IllegalArgumentException("Frame cannot negative not greater than %s!".formatted(MAX_RECORDING_FRAMES));
+        }
+
+        return frames.computeIfAbsent(frame, d -> new ReplayData(this));
     }
 
     /**
-     * Returns data of the first frame, or creates new data if null.
+     * Get the {@link ReplayData} at the first frame.
      *
-     * @return data of the first frame, or creates new data if null.
+     * @return the replay data at the first frame.
      */
     @Nonnull
-    public Data getDataAtFirstFrame() {
+    public ReplayData getDataAtFirstFrame() {
         return getData(0);
     }
 
     /**
-     * Returns data of the last frame recorded, or creates new data if null.
+     * Gets the {@link ReplayData} at the current frame.
      *
-     * @return data of the last frame recorded, or creates new data if null.
+     * @return the replay data at the current frame.
      */
     @Nonnull
-    public Data getDataAtCurrentFrame() {
+    public ReplayData getDataAtCurrentFrame() {
         return getData(frames.size() - 1);
     }
 
     /**
-     * Returns data of the next frame, or creates new data if null.
+     * Creates a {@link SimpleReplay} of this {@link Record}.
      *
-     * @return data of the next frame, or creates new data if null.
+     * @return a replay.
      */
     @Nonnull
-    public Data getDataAtNextFrame() {
-        return getData(frames.size());
+    public Replay replay() {
+        return replay(SimpleReplay::new);
     }
-
-    // static members
 
     /**
-     * Returns stored replay of a player if exists, null otherwise.
-     * Note that only one replay can be stored at the time, though
-     * any amount of replaying can be recording at the same time.
+     * Creates a {@link Replay}.
      *
-     * @param player - Player.
-     * @return stored replay of a player if exists, null otherwise.
+     * @param fn - Function on how to create {@link Replay}.
+     *           Since {@link Replay} has 'events', this is the way it should be created.
+     * @return a replay.
      */
-    @Nullable
-    public static Record getReplay(Player player) {
-        return replays.get(player.getUniqueId());
+    @Nonnull
+    public Replay replay(@Nonnull Function<Record, Replay> fn) {
+        if (!status) {
+            stopRecording();
+        }
+
+        return fn.apply(this);
     }
 
-    private void cleanup() {
-        maxFrames = 0;
-        frames.clear();
+    public boolean isIgnoredAction(@Nonnull RecordAction action) {
+        return ignoredActions.contains(action);
+    }
+
+    /**
+     * Gets the currently running {@link Record} for the given player if it exists, <code>null</code> otherwise.
+     *
+     * @param player - Player.
+     * @return the currently running record for the given player, or null.
+     */
+    @Nullable
+    public static Record getRunningRecord(@Nonnull Player player) {
+        return runningRecords.get(player.getUniqueId());
+    }
+
+    /**
+     * Gets a <b>copy</b> of all the cached {@link Record}s.
+     *
+     * @return the copy of all the cached records.
+     */
+    @Nonnull
+    public static Map<Integer, Record> getCachedRecords() {
+        return Maps.newHashMap(cachedRecords);
+    }
+
+    /**
+     * Fetches the current running {@link Record} for the players and adds a {@link RecordAction} at the current frame.
+     * <br>
+     * Does nothing if:
+     * <ul>
+     *     <li>Player has not running {@link Record}.
+     *     <li>The {@link Record} is finished.
+     * </ul>
+     *
+     * @param player - Player.
+     */
+    public static void fetchRecordAction(@Nonnull Player player, @Nonnull RecordAction action) {
+        final Record record = getRunningRecord(player);
+
+        if (record == null || record.status) {
+            return;
+        }
+
+        record.getDataAtCurrentFrame().addAction(action);
     }
 
 }

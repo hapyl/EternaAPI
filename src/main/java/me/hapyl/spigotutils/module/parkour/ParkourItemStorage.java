@@ -6,19 +6,19 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class ParkourItemStorage extends Holder<ParkourManager> {
+public class ParkourItemStorage extends Holder<ParkourRegistry> {
 
     private final ItemStack itemTeleport;
     private final ItemStack itemReset;
     private final ItemStack itemQuit;
 
-    public ParkourItemStorage(ParkourManager parkourManager) {
-        super(parkourManager);
+    public ParkourItemStorage(ParkourRegistry parkourRegistry) {
+        super(parkourRegistry);
 
         this.itemTeleport = new ItemBuilder(Material.HEAVY_WEIGHTED_PRESSURE_PLATE, "parkour_teleport")
                 .setName("&aTeleport to Checkpoint")
                 .addLore("Teleport to previous checkpoint.")
-                .addClickEvent(parkourManager::teleportToCheckpoint)
+                .addClickEvent(parkourRegistry::teleportToCheckpoint)
                 .withCooldown(20)
                 .build();
 
@@ -26,14 +26,14 @@ public class ParkourItemStorage extends Holder<ParkourManager> {
         this.itemReset = new ItemBuilder(Material.REDSTONE, "parkour_reset")
                 .setName("&aReset Time")
                 .addSmartLore("Reset parkour time and teleport to the start.")
-                .addClickEvent(parkourManager::resetParkour)
+                .addClickEvent(parkourRegistry::resetParkour)
                 .withCooldown(20)
                 .build();
 
         this.itemQuit = new ItemBuilder(Material.REDSTONE_BLOCK, "parkour_quit")
                 .setName("&cQuit Parkour")
                 .addSmartLore("Reset parkour time and teleport to the start.")
-                .addClickEvent(parkourManager::quitParkour)
+                .addClickEvent(parkourRegistry::quitParkour)
                 .withCooldown(20)
                 .build();
 

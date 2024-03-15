@@ -29,6 +29,7 @@ import me.hapyl.spigotutils.module.player.synthesizer.Synthesizer;
 import me.hapyl.spigotutils.module.player.tablist.*;
 import me.hapyl.spigotutils.module.record.Record;
 import me.hapyl.spigotutils.module.record.Replay;
+import me.hapyl.spigotutils.module.record.ReplayData;
 import me.hapyl.spigotutils.module.reflect.Laser;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.border.PlayerBorder;
@@ -815,6 +816,7 @@ public final class EternaRuntimeTest {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final Record record = new Record(player);
+                record.startRecording();
 
                 info(player, "Recording...");
 
@@ -824,13 +826,45 @@ public final class EternaRuntimeTest {
 
                     later(() -> {
                         info(player, "Playing recording");
-                        final Replay replay = record.getReplay();
 
-                        replay.setGlobalReplay(true);
-                        replay.start();
+                        final Replay replay = record.replay(r -> {
+                            return new Replay(r) {
+                                @Override
+                                public void onStart() {
+                                    info(player, "Start custom replay.");
+                                }
 
-                        // FIXME (hapyl): 003, Mar 3: Recordings are very weird, add like events?
-                        assertTestPassed();
+                                @Override
+                                public void onStop() {
+                                    assertTestPassed();
+                                }
+
+                                @Override
+                                public void onPause(boolean pause) {
+                                    info(player, "Paused custom replay: " + pause);
+                                }
+
+                                @Override
+                                public void onStep(@Nonnull ReplayData data, long frame) {
+                                    info(player, "Step custom replay: " + frame);
+                                }
+                            };
+                        });
+
+                        replay.start(player);
+
+                        later(() -> {
+                            info(player, "Paused replay.");
+
+                            replay.pause();
+
+                            later(() -> {
+                                info(player, "Unpause replay.");
+
+                                replay.pause();
+                            }, 30);
+                        }, 30);
+
                     }, 20);
                 }, 100);
 
@@ -1048,7 +1082,10 @@ public final class EternaRuntimeTest {
 
                 bukkitComponent.append(new SelectorComponent("@e[type=player]")).format(Format.ITALIC).nl();
                 bukkitComponent.append(new ScoreComponent(".eterna", "test")).format(Format.BOLD).nl();
-                bukkitComponent.append(new TranslatableComponent("block.minecraft.lily_pad")).color(ChatColor.YELLOW).format(Format.BOLD).nl();
+                bukkitComponent.append(new TranslatableComponent("block.minecraft.lily_pad"))
+                        .color(ChatColor.YELLOW)
+                        .format(Format.BOLD)
+                        .nl();
 
                 bukkitComponent.send(player);
 

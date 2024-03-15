@@ -17,6 +17,7 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Range;
@@ -38,9 +39,7 @@ import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
-import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.TeamHelper;
-import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
@@ -65,7 +64,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Ref;
 import java.util.*;
 import java.util.function.Function;
 
@@ -159,7 +157,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
 
         setVisibility(40);
-        EternaRegistry.getNpcRegistry().register(this);
+        Eterna.getRegistry().npcRegistry.register(this);
         this.alive = true;
     }
 
@@ -461,7 +459,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public boolean exists() {
-        return EternaRegistry.getNpcRegistry().isRegistered(getId());
+        return Eterna.getRegistry().npcRegistry.isRegistered(getId());
     }
 
     @Override
@@ -955,7 +953,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void remove() {
         remove0();
-        EternaRegistry.getNpcRegistry().remove(getId());
+        Eterna.getRegistry().npcRegistry.unregister(getId());
     }
 
     /**
@@ -1212,16 +1210,16 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     public static boolean isNPC(int entityId) {
-        return EternaRegistry.getNpcRegistry().isRegistered(entityId);
+        return Eterna.getRegistry().npcRegistry.isRegistered(entityId);
     }
 
     @Nullable
     public static HumanNPC getById(int id) {
-        return EternaRegistry.getNpcRegistry().getById(id);
+        return Eterna.getRegistry().npcRegistry.byKey(id);
     }
 
     public static void hideAllNames(Scoreboard score) {
-        for (final HumanNPC value : EternaRegistry.getNpcRegistry().getRegistered().values()) {
+        for (final HumanNPC value : Eterna.getRegistry().npcRegistry.getRegistered().values()) {
             value.hideTabListName();
         }
     }
