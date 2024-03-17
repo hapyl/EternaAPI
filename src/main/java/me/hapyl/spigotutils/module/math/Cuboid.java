@@ -4,10 +4,12 @@ import me.hapyl.spigotutils.module.util.BukkitUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -341,22 +343,61 @@ public class Cuboid {
         final int destY = location.getBlockY();
         final int destZ = location.getBlockZ();
 
+        iterateBlocks(block -> {
+            if (block.getType().isAir() && skipAir) {
+                return;
+            }
+
+            final int x = block.getX();
+            final int y = block.getY();
+            final int z = block.getZ();
+
+            final Block targetBlock = world.getBlockAt(destX + (x - xMin), destY + (y - yMin), destZ + (z - zMin));
+
+            targetBlock.setType(block.getType(), false);
+            targetBlock.setBlockData(block.getBlockData(), false);
+        });
+    }
+
+    /**
+     * Fills all the blocks within the cuboid with the given {@link BlockData}.
+     *
+     * @param blockData - Block data.
+     * @param skipAir   - Should skip air?
+     */
+    public void fill(@Nonnull BlockData blockData, boolean skipAir) {
+        iterateBlocks(block -> {
+            if (block.getType().isAir() && skipAir) {
+                return;
+            }
+
+            block.setBlockData(blockData, false);
+        });
+    }
+
+    @Override
+    public String toString() {
+        return "[%s, %s, %s, %s, %s, %s]".formatted(
+                getMinX(),
+                getMinY(),
+                getMinZ(),
+                getMaxX(),
+                getMaxY(),
+                getMaxZ()
+        );
+    }
+
+    protected void iterateBlocks(@Nonnull Consumer<Block> consumer) {
         for (int x = this.xMin; x <= this.xMax; ++x) {
             for (int y = this.yMin; y <= this.yMax; ++y) {
                 for (int z = this.zMin; z <= this.zMax; ++z) {
                     final Block block = this.world.getBlockAt(x, y, z);
 
-                    if (block.getType().isAir() && skipAir) {
-                        continue;
-                    }
-
-                    final Block targetBlock = world.getBlockAt(destX + (x - xMin), destY + (y - yMin), destZ + (z - zMin));
-
-                    targetBlock.setType(block.getType(), false);
-                    targetBlock.setBlockData(block.getBlockData(), false);
+                    consumer.accept(block);
                 }
             }
         }
     }
+
 }
 

@@ -757,6 +757,7 @@ public class ItemBuilder implements Cloneable {
             for (String string : strings) {
                 if (string.equalsIgnoreCase("")) { // paragraph
                     lore.add("");
+                    continue;
                 }
 
                 final int prefixIndex = string.lastIndexOf(";;");
@@ -767,7 +768,9 @@ public class ItemBuilder implements Cloneable {
                     string = string.substring(prefixIndex + 2);
                 }
 
-                lore.addAll(splitString(prefix, string, charLimit));
+                final List<String> splitStrings = splitString(prefix, string, charLimit);
+
+                lore.addAll(splitStrings);
             }
 
             meta.setLore(lore);
@@ -1855,9 +1858,15 @@ public class ItemBuilder implements Cloneable {
      * @param limit  - Character limit.
      * @return a list of strings that are less or equals to the limit.
      */
+    @Nonnull
     public static List<String> splitString(@Nullable String prefix, @Nonnull String string, int limit) {
+        // If the string is less than the limit, return it
+        if (calculateStringLengthSkipColors(string) <= limit) {
+            return List.of(Chat.format((prefix != null ? prefix : DEFAULT_COLOR) + string));
+        }
+
         final List<String> list = new ArrayList<>();
-        final char[] chars = string.toCharArray();
+        final char[] chars = (string + " ").toCharArray();
 
         StringBuilder lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR.toString() : prefix);
         StringBuilder builder = new StringBuilder(lastColor);
@@ -1868,8 +1877,8 @@ public class ItemBuilder implements Cloneable {
             final boolean nextCharInRange = i + 1 < chars.length;
             final boolean isManualSplit = isManualSplit(chars, i);
 
-            // If out of limit and hit whitespace then add line.
-            final boolean lastChar = i == chars.length - 1;
+            // If out of limit and hit whitespace, then add line.
+            final boolean lastChar = i >= chars.length - 1;
             if (lastChar || (counter >= limit && Character.isWhitespace(c)) || isManualSplit) {
                 if (isManualSplit) {
                     i++;
@@ -1911,6 +1920,23 @@ public class ItemBuilder implements Cloneable {
 
     public static boolean isColorChar(char c) {
         return net.md_5.bungee.api.ChatColor.ALL_CODES.indexOf(c) != -1;
+    }
+
+    public static int calculateStringLengthSkipColors(@Nonnull String string) {
+        final char[] chars = string.toCharArray();
+        int count = 0;
+
+        for (int i = 0; i < chars.length; i++) {
+            final char c = chars[i];
+
+            if (isColorCode(c) && (i + 1 < chars.length && isColorChar(chars[i + 1]))) {
+                continue;
+            }
+
+            count++;
+        }
+
+        return count;
     }
 
     @Deprecated
