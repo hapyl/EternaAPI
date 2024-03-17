@@ -90,12 +90,12 @@ public final class EternaCommand extends SimpleAdminCommand {
                         final Player target = args.length >= 3 ? Bukkit.getPlayer(args[2]) : sender instanceof Player player ? player : null;
 
                         if (target == null) {
-                            EternaLogger.sendMessage(sender, "&c%s is not online!", args[2]);
+                            EternaLogger.sendMessage(sender, "&c%s is not online!".formatted(args[2]));
                             return;
                         }
 
                         Eterna.getRegistry().configRegistry.getConfig(target).forceLoad(true);
-                        EternaLogger.sendMessage(sender, "&aReloaded %s player config!", target.getName());
+                        EternaLogger.sendMessage(sender, "&aReloaded %s player config!".formatted(target.getName()));
                     }
                 }
             }

@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Utility class for collections.
@@ -716,4 +717,46 @@ public class CollectionUtils {
         collection.add(element);
         return collection;
     }
+
+    /**
+     * Attempts to find an element in a given {@link Collection} that matches the {@link Predicate}.
+     *
+     * @param collection - Collection.
+     * @param predicate  - Predicate.
+     * @return the first element that matches the predicate, or null if none does.
+     */
+    @Nullable
+    public static <T> T find(@Nonnull Collection<T> collection, @Nonnull Predicate<T> predicate) {
+        for (T t : collection) {
+            if (predicate.test(t)) {
+                return t;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Attempts to find an element in a given {@link Collection} that matches the {@link Predicate} and removes it.
+     *
+     * @param collection - Collection.
+     * @param predicate  - Predicate.
+     * @return the first element that matches the predicate, or null if none does.
+     */
+    @Nullable
+    public static <T> T findAndRemove(@Nonnull Collection<T> collection, @Nonnull Predicate<T> predicate) {
+        final Iterator<T> iterator = collection.iterator();
+
+        while (iterator.hasNext()) {
+            final T next = iterator.next();
+
+            if (predicate.test(next)) {
+                iterator.remove();
+                return next;
+            }
+        }
+
+        return null;
+    }
+
 }

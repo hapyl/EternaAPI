@@ -13,28 +13,28 @@ public class EternaLogger {
     public static final String DEBUG_PREFIX = PREFIX + "&c&lDEBUG&4> &7&o";
     public static final String TEST_PREFIX = PREFIX + "&2&lTEST&2> &a";
 
-    public static void broadcastMessageOP(String string, Object... format) {
-        Chat.broadcastOp((PREFIX + string).formatted(format));
+    public static void broadcastMessageOP(String string) {
+        Chat.broadcastOp(PREFIX + string);
     }
 
-    public static void broadcastMessageConsole(String string, Object... format) {
-        Chat.sendMessage(Bukkit.getConsoleSender(), (PREFIX + string).formatted(format));
+    public static void broadcastMessageConsole(String string) {
+        Chat.sendMessage(Bukkit.getConsoleSender(), PREFIX + string);
     }
 
-    public static void sendMessage(CommandSender player, String message, Object... format) {
-        Chat.sendMessage(player, (PREFIX + message).formatted(format));
+    public static void sendMessage(CommandSender player, String message) {
+        Chat.sendMessage(player, PREFIX + message);
     }
 
-    public static void info(String message, Object... format) {
-        EternaPlugin.getPlugin().getLogger().info(message.formatted(format));
+    public static void info(String message) {
+        EternaPlugin.getPlugin().getLogger().info(message);
     }
 
-    public static void warn(String message, Object... format) {
-        EternaPlugin.getPlugin().getLogger().warning(message.formatted(format));
+    public static void warn(String message) {
+        EternaPlugin.getPlugin().getLogger().warning(message);
     }
 
-    public static void severe(String message, Object... format) {
-        EternaPlugin.getPlugin().getLogger().severe(message.formatted(format));
+    public static void severe(String message) {
+        EternaPlugin.getPlugin().getLogger().severe(message);
     }
 
     public static void exception(Exception e) {
@@ -46,8 +46,8 @@ public class EternaLogger {
         e.printStackTrace();
     }
 
-    public static void debug(Object message, Object... format) {
-        final String formatted = message.toString().formatted(format);
+    public static void debug(Object message) {
+        final String formatted = message.toString();
 
         info(DEBUG_PREFIX + formatted);
         Chat.broadcastOp(DEBUG_PREFIX + formatted);

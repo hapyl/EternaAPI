@@ -127,8 +127,8 @@ public final class EternaAPI {
         }
 
         Runnables.runLater(() -> {
-            EternaLogger.broadcastMessageConsole("&eAPI version is %s. Loading plugins...", getAPIVersion());
-            EternaLogger.broadcastMessageOP("&eAPI version is %s. Loading plugins...", getAPIVersion());
+            EternaLogger.broadcastMessageConsole("&eAPI version is %s. Loading plugins...".formatted(getAPIVersion()));
+            EternaLogger.broadcastMessageOP("&eAPI version is %s. Loading plugins...".formatted(getAPIVersion()));
             byName.forEach((name, api) -> {
                 // api.getLibrary().load();
 
@@ -171,9 +171,9 @@ public final class EternaAPI {
             final PluginManager pluginManager = Bukkit.getPluginManager();
 
             EternaLogger.severe("εεε ");
-            EternaLogger.severe("εεε Could not load %s!", plugin.getName());
-            EternaLogger.severe("εεε It requires EternaAPI version %s!", minVersion);
-            EternaLogger.severe("εεε You are on %s! Please update EternaAPI! ", current);
+            EternaLogger.severe("εεε Could not load %s!".formatted(plugin.getName()));
+            EternaLogger.severe("εεε It requires EternaAPI version %s!".formatted(minVersion));
+            EternaLogger.severe("εεε You are on %s! Please update EternaAPI! ".formatted(current));
             EternaLogger.severe("εεε ");
 
             pluginManager.disablePlugin(eternaPlugin);
