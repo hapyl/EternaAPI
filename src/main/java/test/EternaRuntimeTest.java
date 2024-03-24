@@ -20,11 +20,13 @@ import me.hapyl.spigotutils.module.hologram.DisplayHologram;
 import me.hapyl.spigotutils.module.hologram.Hologram;
 import me.hapyl.spigotutils.module.inventory.*;
 import me.hapyl.spigotutils.module.inventory.gui.*;
+import me.hapyl.spigotutils.module.locaiton.LocationHelper;
 import me.hapyl.spigotutils.module.math.Geometry;
 import me.hapyl.spigotutils.module.math.geometry.WorldParticle;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.module.nbt.NBTNative;
 import me.hapyl.spigotutils.module.nbt.NBTType;
+import me.hapyl.spigotutils.module.particle.ParticleBuilder;
 import me.hapyl.spigotutils.module.player.synthesizer.Synthesizer;
 import me.hapyl.spigotutils.module.player.tablist.*;
 import me.hapyl.spigotutils.module.record.Record;
@@ -1131,6 +1133,72 @@ public final class EternaRuntimeTest {
 
                     assertTestPassed();
                 }, 5);
+
+                return false;
+            }
+        });
+
+        addTest(new EternaTest("particleBuilder") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final Location location = player.getLocation();
+
+                info(player, "redstoneDust");
+                ParticleBuilder.redstoneDust(Color.ORANGE, 2).display(location);
+
+                later(() -> {
+                    info(player, "blockBreak");
+                    ParticleBuilder.blockBreak(Material.EMERALD_BLOCK).display(location);
+
+                    later(() -> {
+                        info(player, "blockDust");
+                        ParticleBuilder.blockDust(Material.GOLD_BLOCK).display(location);
+
+                        later(() -> {
+                            info(player, "mobSpell");
+                            ParticleBuilder.mobSpell(Color.BLACK, false).display(location);
+
+                            later(() -> {
+                                info(player, "mobSpellAmbient");
+                                ParticleBuilder.mobSpell(Color.WHITE, true).display(location);
+
+                                later(() -> {
+                                    info(player, "itemBreak");
+                                    ParticleBuilder.itemBreak(new ItemStack(Material.EMERALD));
+
+                                    later(() -> {
+                                        info(player, "dustTransition");
+                                        ParticleBuilder.dustTransition(Color.RED, Color.GREEN, 1).display(location);
+
+                                        later(() -> {
+                                            info(player, "vibrationBlock");
+                                            ParticleBuilder.vibration(location, LocationHelper.addAsNew(location, 0, 5, 0), 20)
+                                                    .display(location);
+
+                                            later(() -> {
+                                                info(player, "virationEntity");
+                                                ParticleBuilder.vibration(location, player, 20).display(location);
+
+                                                later(() -> {
+                                                    info(player, "blockMarker");
+                                                    ParticleBuilder.blockMarker(Material.BRICKS).display(location);
+
+                                                    later(() -> {
+                                                        assertThrows(() -> ParticleBuilder.blockBreak(Material.DIAMOND));
+                                                        assertThrows(() -> ParticleBuilder.blockDust(Material.GOLD_NUGGET));
+                                                        assertThrows(() -> ParticleBuilder.blockMarker(Material.EMERALD));
+
+                                                        assertTestPassed();
+                                                    }, 20);
+                                                }, 20);
+                                            }, 20);
+                                        }, 20);
+                                    }, 20);
+                                }, 20);
+                            }, 20);
+                        }, 20);
+                    }, 20);
+                }, 20);
 
                 return false;
             }

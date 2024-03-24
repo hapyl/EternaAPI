@@ -8,6 +8,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -140,6 +141,24 @@ public final class PlayerLib {
      */
     public static void stopSound(@Nonnull Sound sound) {
         Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(sound, SOUND_CATEGORY));
+    }
+
+    /**
+     * Spawns a particle for the specific player.
+     * Only the given player will see the particle.
+     *
+     * @param player       - Player.
+     * @param location     - Location.
+     * @param particle     - Particle.
+     * @param amount       - Number of particles; Some particles might use this value for size.
+     * @param x            - X Offset of the particle.
+     * @param y            - Y Offset of the particle.
+     * @param z            - Z Offset of the particle.
+     * @param speed        - Speed of the particle.
+     * @param particleData - Particle data.
+     */
+    public static <T> void spawnParticle(@Nonnull Player player, @Nonnull Location location, @Nonnull Particle particle, int amount, double x, double y, double z, float speed, @Nullable T particleData) {
+        player.spawnParticle(particle, location, amount, x, y, z, speed, particleData);
     }
 
     /**

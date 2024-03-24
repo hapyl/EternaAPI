@@ -1,56 +1,28 @@
 package me.hapyl.spigotutils.module.particle;
 
-import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Display particle of an item breaking.
+ * Display a particle of an item breaking.
  */
 public class ItemBreakParticleBuilder extends ParticleBuilder {
 
     private final ItemStack stack;
 
-    public ItemBreakParticleBuilder(ItemStack item) {
+    ItemBreakParticleBuilder(@Nonnull ItemStack item) {
         super(Particle.ITEM_CRACK);
         this.stack = item;
     }
 
     @Override
-    public void display(@Nonnull Location location) {
-        Validate.notNull(location.getWorld());
-
-        location.getWorld()
-                .spawnParticle(
-                        this.getParticle(),
-                        location,
-                        this.getAmount(),
-                        this.getOffX(),
-                        this.getOffY(),
-                        this.getOffZ(),
-                        this.getSpeed(),
-                        this.stack
-                );
+    protected <T> void display0(@Nonnull Player player, @Nonnull Location location, int count, double x, double y, double z, float speed, @Nullable T particleData) {
+        super.display0(player, location, count, x, y, z, speed, stack);
     }
 
-    @Override
-    public void display(@Nonnull Location location, @Nonnull Player player) {
-        Validate.notNull(location);
-        Validate.notNull(player);
-
-        player.spawnParticle(
-                this.getParticle(),
-                location,
-                this.getAmount(),
-                this.getOffX(),
-                this.getOffY(),
-                this.getOffZ(),
-                this.getSpeed(),
-                this.stack
-        );
-    }
 }
