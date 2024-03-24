@@ -1,64 +1,29 @@
 package me.hapyl.spigotutils.module.particle;
 
-import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Creates a Redstone dust particle with certain color.
+ * Displays a redstone dust particle of the given color.
  */
-public class RedstoneParticleBuilder extends ParticleBuilder {
+public class RedstoneParticleBuilder extends ColoredParticleBuilder {
 
-    private final Color color;
+    private final Particle.DustOptions dustOptions;
 
-    public RedstoneParticleBuilder(Color color) {
-        super(Particle.REDSTONE);
-        this.color = color;
+    RedstoneParticleBuilder(@Nonnull Color color, float size) {
+        super(Particle.REDSTONE, color, size);
+
+        this.dustOptions = new Particle.DustOptions(color, size);
     }
 
     @Override
-    public void display(@Nonnull Location location) {
-        Validate.notNull(location.getWorld());
-
-        location.getWorld().spawnParticle(
-                this.getParticle(),
-                location,
-                this.getAmount(),
-                this.getOffX(),
-                this.getOffY(),
-                this.getOffZ(),
-                this.getSpeed(),
-                this.fetchColor()
-        );
-    }
-
-    @Override
-    public void display(@Nonnull Location location, @Nonnull Player player) {
-        Validate.notNull(location);
-        Validate.notNull(player);
-
-        player.spawnParticle(
-                this.getParticle(),
-                location,
-                this.getAmount(),
-                this.getOffX(),
-                this.getOffY(),
-                this.getOffZ(),
-                this.getSpeed(),
-                this.fetchColor()
-        );
-    }
-
-    private Particle.DustOptions fetchColor() {
-        return new Particle.DustOptions(this.color, this.getAmount());
-    }
-
-    public Color getColor() {
-        return color;
+    protected <T> void display0(@Nonnull Player player, @Nonnull Location location, int count, double x, double y, double z, float speed, @Nullable T particleData) {
+        super.display0(player, location, count, x, y, z, speed, dustOptions);
     }
 
 }

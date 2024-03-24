@@ -1,66 +1,33 @@
 package me.hapyl.spigotutils.module.particle;
 
-import me.hapyl.spigotutils.module.util.Validate;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Display particle of a block breaking.
+ * Display a particle of a block breaking.
  */
 public class BlockBreakParticleBuilder extends ParticleBuilder {
 
-    private final Material block;
+    private final BlockData block;
 
-    /**
-     * Display particle of a block breaking.
-     *
-     * @param block - Material.
-     * @throws IllegalArgumentException if material is not a block.
-     */
-    public BlockBreakParticleBuilder(Material block) {
+    BlockBreakParticleBuilder(@Nonnull Material material) {
         super(Particle.BLOCK_CRACK);
-        if (!block.isBlock()) {
-            throw new IllegalArgumentException("Material must be block");
+
+        if (!material.isBlock()) {
+            throw new IllegalArgumentException("Material must be a block, %s isn't!".formatted(material));
         }
-        this.block = block;
+
+        this.block = material.createBlockData();
     }
 
     @Override
-    public void display(@Nonnull Location location) {
-        Validate.notNull(location.getWorld());
-
-        location.getWorld().spawnParticle(
-                this.getParticle(),
-                location,
-                this.getAmount(),
-                this.getOffX(),
-                this.getOffY(),
-                this.getOffZ(),
-                this.getSpeed(),
-                this.block.createBlockData()
-        );
+    protected <T> void display0(@Nonnull Player player, @Nonnull Location location, int count, double x, double y, double z, float speed, @Nullable T particleData) {
+        super.display0(player, location, count, x, y, z, speed, block);
     }
-
-    @Override
-    public void display(@Nonnull Location location, @Nonnull Player player) {
-        Validate.notNull(location);
-        Validate.notNull(player);
-
-        player.spawnParticle(
-                this.getParticle(),
-                player.getLocation(),
-                this.getAmount(),
-                this.getOffX(),
-                this.getOffY(),
-                this.getOffZ(),
-                this.getSpeed(),
-                this.block.createBlockData()
-        );
-    }
-
-
 }

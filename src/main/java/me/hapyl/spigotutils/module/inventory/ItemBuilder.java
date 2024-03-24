@@ -1588,6 +1588,18 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
+     * Completely hides the tooltip of the item while hovering over it.
+     *
+     * @param hide - Is tooltip hidden.
+     * @deprecated reserved for 1.21
+     */
+    @Deprecated
+    public ItemBuilder setHideTooltip(boolean hide) {
+        // TODO (hapyl): 024, Mar 24:
+        return this;
+    }
+
+    /**
      * Modifies the {@link ItemMeta} and applies it to the item.
      *
      * @param consumer - Consumer.
