@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.player.tablist.PingBars;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
+import me.hapyl.spigotutils.module.reflect.InnerMojangEnums;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.nulls.NullConnection;
 import me.hapyl.spigotutils.module.reflect.nulls.NullPacketListener;
@@ -14,7 +15,6 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.network.CommonListenerCookie;
-import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Location;
@@ -127,7 +127,7 @@ public class EternaPlayer {
     }
 
     public NPCPose getPose() {
-        return NPCPose.fromNMS(human.ap());
+        return NPCPose.fromNMS(human.ar());
     }
 
     public void setPose(@Nonnull NPCPose pose) {
@@ -136,6 +136,10 @@ public class EternaPlayer {
 
     public void setDataWatcherByteValue(int key, byte value) {
         Reflect.setDataWatcherByteValue(human, key, value);
+    }
+
+    public <D> void setDataWatcherValue(@Nonnull DataWatcherType<D> type, int key, @Nonnull D value) {
+        Reflect.setDataWatcherValue(human, type, key, value);
     }
 
     public byte getDataWatcherByteValue(int key) {
@@ -167,7 +171,7 @@ public class EternaPlayer {
                     Reflect.getMinecraftServer(),
                     new NullConnection(),
                     human,
-                    new CommonListenerCookie(profile, 0, clientInformation)
+                    new CommonListenerCookie(profile, 0, clientInformation, true) // FIXME (hapyl): Mon, May 6:
             );
         } catch (Exception e) {
             EternaLogger.exception(e);
@@ -213,22 +217,22 @@ public class EternaPlayer {
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketAddPlayer() {
-            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.a, human);
+            return new ClientboundPlayerInfoUpdatePacket(InnerMojangEnums.ClientboundPlayerInfoUpdatePacket.ADD_PLAYER, human);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketInitPlayer() {
-            return ClientboundPlayerInfoUpdatePacket.a(List.of(human));
+            return net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.a(List.of(human));
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketUpdatePing() {
-            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.e, human);
+            return new ClientboundPlayerInfoUpdatePacket(InnerMojangEnums.ClientboundPlayerInfoUpdatePacket.UPDATE_LATENCY, human);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketUpdatePlayer() {
-            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.d, human);
+            return new ClientboundPlayerInfoUpdatePacket(InnerMojangEnums.ClientboundPlayerInfoUpdatePacket.UPDATE_DISPLAY_NAME, human);
         }
 
         @Nonnull

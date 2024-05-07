@@ -14,7 +14,7 @@ public class NullPacketListener extends PlayerConnection {
     }
 
     @Override
-    public void h() { // resumeFlushing
+    public void g() { // resumeFlushing
     }
 
     @Override

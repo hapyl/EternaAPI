@@ -40,7 +40,7 @@ public class NullConnection extends NetworkManager {
     }
 
     @Override
-    public boolean k() { // isConnected
+    public boolean i() { // isConnected
         return true;
     }
 

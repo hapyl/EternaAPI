@@ -51,7 +51,7 @@ public abstract class EternaTest {
 
     protected void assertEquals(@Nonnull Object a, Object b) {
         if (!a.equals(b)) {
-            throw new EternaTestException(this, "Objects are not the same! (Expected '%s', got '%s'!)".formatted(a, b));
+            throw new EternaTestException(this, "Objects are not the same! (Expected '%s', got '%s'!)".formatted(b, a));
         }
     }
 

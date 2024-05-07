@@ -4,16 +4,15 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.EternaLogger;
-import me.hapyl.spigotutils.module.annotate.Range;
-import me.hapyl.spigotutils.module.annotate.Super;
-import me.hapyl.spigotutils.module.annotate.TestedOn;
-import me.hapyl.spigotutils.module.annotate.Version;
+import me.hapyl.spigotutils.module.annotate.*;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
+import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.ThreadRandom;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
@@ -28,6 +27,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.projectile.EntityEgg;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.scores.ScoreboardTeam;
@@ -59,12 +59,14 @@ import java.util.Objects;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_20_4)
+@TestedOn(version = Version.V1_20_6)
 public final class Reflect {
 
     private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
     private static final String mcVersion;
     private static final String getHandleMethodName = "getHandle";
+    @AccessViaGetter("Reflect#getFakeEntity()")
+    private static EntityEgg fakeEntity;
 
     static {
         final String name = Bukkit.getServer().getClass().getPackage().getName();
@@ -170,7 +172,7 @@ public final class Reflect {
      */
     public static <T> T getDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key) {
         final DataWatcher dataWatcher = getDataWatcher(entity);
-        return dataWatcher.b(type.get().a(key));
+        return dataWatcher.a(type.get().a(key)); // get(EntityDataAccessor arg0)
     }
 
     /**
@@ -198,7 +200,7 @@ public final class Reflect {
     @Super
     public static <T> void setDataWatcherValue0(@Nonnull DataWatcher dataWatcher, @Nonnull DataWatcherObject<T> type, T value) {
         try {
-            dataWatcher.b(type, value);
+            dataWatcher.a(type, value); // set(EntityDataAccessor arg0, Object arg1)
         } catch (Exception e) {
             EternaLogger.exception(e);
         }
@@ -234,7 +236,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return entity.aj();
+        return entity.al(); // getId()
     }
 
     /**
@@ -535,7 +537,7 @@ public final class Reflect {
      */
     @Nonnull
     public static DataWatcher getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return Objects.requireNonNull(entity.an(), "DataWatcher cannot be null.");
+        return Objects.requireNonNull(entity.ap(), "DataWatcher cannot be null."); // getEntityData()
     }
 
     /**
@@ -545,8 +547,8 @@ public final class Reflect {
      * @return the list of non-default values.
      */
     @Nonnull
-    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(@Nonnull DataWatcher dataWatcher) {
-        final List<DataWatcher.b<?>> values = dataWatcher.c();
+    public static List<DataWatcher.c<?>> getDataWatcherNonDefaultValues(@Nonnull DataWatcher dataWatcher) {
+        final List<DataWatcher.c<?>> values = dataWatcher.c();
 
         return values == null ? Lists.newArrayList() : values;
     }
@@ -558,7 +560,7 @@ public final class Reflect {
      * @return the list of non-default values.
      */
     @Nonnull
-    public static List<DataWatcher.b<?>> getDataWatcherNonDefaultValues(@Nonnull net.minecraft.world.entity.Entity entity) {
+    public static List<DataWatcher.c<?>> getDataWatcherNonDefaultValues(@Nonnull net.minecraft.world.entity.Entity entity) {
         return getDataWatcherNonDefaultValues(getDataWatcher(entity));
     }
 
@@ -690,7 +692,7 @@ public final class Reflect {
      */
     @Nonnull
     public static GameProfile getGameProfile(@Nonnull EntityPlayer player) {
-        return player.fR();
+        return player.gb(); // getGameProfile()
     }
 
     /**
@@ -707,7 +709,7 @@ public final class Reflect {
      * @param className  - Name of the CraftBukkit class.
      * @param methodName - Name of the method.
      * @param params     - Parameters if required.
-     * @return CraftBukkit method is exists, null otherwise.
+     * @return CraftBukkit method if exists, null otherwise.
      */
     public static Method getCraftMethod(String className, String methodName, Class<?>... params) {
         try {
@@ -1015,6 +1017,20 @@ public final class Reflect {
         }
 
         throw makeIllegalArgumentHandle("Something unexpected occurred.");
+    }
+
+    @Nonnull
+    public static String getScoreboardEntityName(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return entity.cB();
+    }
+
+    @Nonnull
+    public static EntityEgg getFakeEntity() {
+        if (fakeEntity == null) {
+            fakeEntity = new EntityEgg(Reflect.getMinecraftWorld(BukkitUtils.defWorld()), 0, 0, 0);
+        }
+
+        return fakeEntity;
     }
 
     private static IllegalArgumentException makeIllegalArgumentHandle(String msg) {

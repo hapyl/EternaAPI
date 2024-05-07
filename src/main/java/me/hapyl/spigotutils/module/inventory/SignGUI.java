@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";
-    public static boolean IS_SPIGOT_SEND_SIGN_CHANGE_BROKEN = true;
+    public static boolean IS_SPIGOT_SEND_SIGN_CHANGE_BROKEN = false;
 
     private static final Map<Player, SignGUI> saved = new HashMap<>();
 
@@ -246,7 +246,7 @@ public abstract class SignGUI {
                 EnumColor.p, false
         ), true);
 
-        Reflect.sendPacket(player, sign.j());
+        Reflect.sendPacket(player, sign.l());
     }
 
     public static Map<Player, SignGUI> getMap() {

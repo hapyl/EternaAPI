@@ -10,6 +10,7 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.Super;
+import me.hapyl.spigotutils.module.reflect.InnerMojangEnums;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.Ticking;
 import me.hapyl.spigotutils.module.util.Runnables;
@@ -294,6 +295,8 @@ public class Glowing implements Ticking, GlowingListener {
 
         final byte bitMask = dataWatcher.getByte(0);
 
+        // FIXME (hapyl): Mon, May 6: Waiting on ProtocolLib
+
         modifier.write(
                 0,
                 List.of(new WrappedDataValue(
@@ -373,7 +376,7 @@ public class Glowing implements Ticking, GlowingListener {
 
         Reflect.sendPacket(
                 player,
-                PacketPlayOutScoreboardTeam.a(nmsTeam, getEntityName(), PacketPlayOutScoreboardTeam.a.a)
+                PacketPlayOutScoreboardTeam.a(nmsTeam, getEntityName(), InnerMojangEnums.PacketPlayOutScoreboardTeam.ADD)
         );
     }
 

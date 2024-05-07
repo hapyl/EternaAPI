@@ -13,16 +13,8 @@ import javax.annotation.Nullable;
  */
 public class MobSpellParticleBuilder extends ColoredParticleBuilder {
 
-    private final double[] colors;
-
     MobSpellParticleBuilder(@Nonnull Color color, boolean ambient) {
-        super(ambient ? Particle.SPELL_MOB_AMBIENT : Particle.SPELL_MOB, color, 0);
-
-        colors = new double[] {
-                magicColorNumber(color.getRed()),
-                magicColorNumber(color.getGreen()),
-                magicColorNumber(color.getBlue())
-        };
+        super(Particle.ENTITY_EFFECT, ambient ? color.setAlpha(127) : color, 1);
     }
 
     @Override
@@ -30,17 +22,13 @@ public class MobSpellParticleBuilder extends ColoredParticleBuilder {
         super.display0(
                 player,
                 location,
-                0/*FIXME: Count must be 0 to display color, though I think 1.21 will break this*/,
-                colors[0],
-                colors[1],
-                colors[2],
+                count,
+                x,
+                y,
+                z,
                 speed,
-                particleData
+                color
         );
-    }
-
-    private static double magicColorNumber(int v) {
-        return v == 0 ? 0.0001f : v / 255f;
     }
 
 }

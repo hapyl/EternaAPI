@@ -4,9 +4,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.WrappedDataValue;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
@@ -36,6 +33,7 @@ import me.hapyl.spigotutils.module.quest.QuestObjectiveType;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.JsonHelper;
 import me.hapyl.spigotutils.module.reflect.Reflect;
+import me.hapyl.spigotutils.module.reflect.metadata.MetadataIndex;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
@@ -45,6 +43,7 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.EntityAreaEffectCloud;
+import net.minecraft.world.entity.EntityPose;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.reflect.FieldUtils;
@@ -59,6 +58,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
+import org.checkerframework.checker.nullness.qual.AssertNonNullIfNonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,10 +78,14 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public static final String CLICK_NAME = "&e&lCLICK";
     public static final String CHAT_FORMAT = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
+
     private static final String nameToUuidRequest = "https://api.mojang.com/users/profiles/minecraft/%s";
     private static final String uuidToProfileRequest = "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false";
+
+    private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+
     protected final Set<Player> showingTo = Sets.newHashSet();
-    private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+
     private final EternaPlayer human;
     private final Hologram aboveHead;
     private final String hexName;
@@ -246,7 +250,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             sitEntity.a(0.0f);            // setRadius(float arg0)
             sitEntity.a(Integer.MAX_VALUE); // setDuration(int arg0)
 
-            ((net.minecraft.world.entity.Entity) sitEntity).r = ImmutableList.of(human.getHuman());
+            ((net.minecraft.world.entity.Entity) sitEntity).p = ImmutableList.of(human.getHuman());
 
             showingTo.forEach(player -> {
                 Reflect.createEntity(sitEntity, player);
@@ -516,45 +520,28 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return this;
     }
 
-    // The old way does not actually work
-    public void resetPose() {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
-        packet.getIntegers().write(0, getId());
-
-        WrappedDataWatcher watcher = new WrappedDataWatcher();
-
-        packet.getDataValueCollectionModifier()
-                .write(
-                        0,
-                        List.of(new WrappedDataValue(
-                                6,
-                                WrappedDataWatcher.Registry.get(EnumWrappers.getEntityPoseClass()),
-                                EnumWrappers.EntityPose.STANDING
-                        ))
-                );
-
-        for (Player player : getPlayers()) {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-        }
-    }
-
     @Override
     public NPCPose getPose() {
         return human.getPose();
     }
 
     @Override
-    public HumanNPC setPose(NPCPose pose) {
-        human.setPose(pose);
-
+    public HumanNPC setPose(@Nonnull NPCPose pose) {
         if (!isShowing()) { // don't care, plugins should not call this unless NPC is showing to someone
             return this;
         }
 
-        updateDataWatcher();
-
+        // STANDING pose handled differently because fuck me
         if (pose == NPCPose.STANDING) {
-            resetPose();
+            human.setPose(NPCPose.fakeStandingPoseForNPCBecauseActualStandingPoseDoesNotWorkForSomeReason());
+            updateDataWatcher();
+
+            // Actually set the pose to STANDING for getPose()
+            human.setPose(NPCPose.STANDING);
+        }
+        else {
+            human.setPose(pose);
+            updateDataWatcher();
         }
 
         return this;
@@ -902,10 +889,15 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void setDataWatcherByteValue(int key, byte value) {
-        showingTo.forEach(player -> {
-            human.setDataWatcherByteValue(key, value);
-            human.updateMetadata(player);
-        });
+        human.setDataWatcherByteValue(key, value);
+
+        updateDataWatcher();
+    }
+
+    public <D> void setDataWatcherValue(@Nonnull DataWatcherType<D> type, int key, @Nonnull D value) {
+        human.setDataWatcherValue(type, key, value);
+
+        updateDataWatcher();
     }
 
     @Override

@@ -82,7 +82,7 @@ public class MobAI implements AI {
 
     @Override
     public Stream<PathfinderGoalWrapped> getRunningGoals() {
-        return goalSelector.c();
+        return goalSelector.b().stream(); // FIXME (hapyl): Mon, May 6: 
     }
 
     @Override

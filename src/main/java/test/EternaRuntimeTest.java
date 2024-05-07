@@ -2,6 +2,7 @@ package test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mojang.serialization.ListBuilder;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.ai.AI;
@@ -24,7 +25,6 @@ import me.hapyl.spigotutils.module.locaiton.LocationHelper;
 import me.hapyl.spigotutils.module.math.Geometry;
 import me.hapyl.spigotutils.module.math.geometry.WorldParticle;
 import me.hapyl.spigotutils.module.nbt.NBT;
-import me.hapyl.spigotutils.module.nbt.NBTNative;
 import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.particle.ParticleBuilder;
 import me.hapyl.spigotutils.module.player.synthesizer.Synthesizer;
@@ -42,7 +42,6 @@ import me.hapyl.spigotutils.module.reflect.npc.NPCPose;
 import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
 import me.hapyl.spigotutils.module.util.*;
 import net.md_5.bungee.api.chat.*;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -359,13 +358,19 @@ public final class EternaRuntimeTest {
         });
 
         addTest(new EternaTest("npcPose") {
+
+            private final List<NPCPose> testPoses = CollectionBuilder.<NPCPose>ofList()
+                    .addAll(NPCPose.values())
+                    .putLast(NPCPose.STANDING) // move standing last to test if it works or not
+                    .build();
+
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final HumanNPC npc = new HumanNPC(player.getLocation(), "pose test", player.getName());
                 npc.show(player);
 
                 int delay = 20;
-                for (NPCPose pose : NPCPose.values()) {
+                for (NPCPose pose : testPoses) {
                     later(() -> {
                         info(player, "Posing " + pose.name());
                         npc.setPose(pose);
@@ -1108,33 +1113,6 @@ public final class EternaRuntimeTest {
                 });
 
                 return true;
-            }
-        });
-
-        addTest(new EternaTest("nbtNative") {
-            @Override
-            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final PlayerInventory inventory = player.getInventory();
-                final ItemStack item = inventory.getItemInMainHand();
-
-                assertFalse(item.getType().isAir(), "Must hold an item.");
-
-                final ItemStack newItem = NBTNative.setNbt(item, "{s: blah_BLAH123, i: 1, f: 1.2f, d: 1.23d, b: true}");
-                inventory.setItemInMainHand(newItem);
-
-                later(() -> {
-                    final NBTTagCompound compound = NBTNative.getCompound(newItem);
-
-                    assertEquals(NBTNative.getString(item, "s"), "blah_BLAH123");
-                    assertEquals(NBTNative.getInt(item, "i"), 1);
-                    assertEquals(NBTNative.getFloat(item, "f"), 1.2f);
-                    assertEquals(NBTNative.getDouble(item, "d"), 1.23d);
-                    assertEquals(NBTNative.getBoolean(item, "b"), true);
-
-                    assertTestPassed();
-                }, 5);
-
-                return false;
             }
         });
 
