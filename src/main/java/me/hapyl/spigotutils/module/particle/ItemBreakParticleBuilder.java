@@ -16,7 +16,7 @@ public class ItemBreakParticleBuilder extends ParticleBuilder {
     private final ItemStack stack;
 
     ItemBreakParticleBuilder(@Nonnull ItemStack item) {
-        super(Particle.ITEM_CRACK);
+        super(Particle.ITEM);
         this.stack = item;
     }
 

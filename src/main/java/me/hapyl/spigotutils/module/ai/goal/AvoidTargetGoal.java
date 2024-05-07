@@ -26,6 +26,8 @@ import net.minecraft.world.entity.npc.EntityVillager;
 import net.minecraft.world.entity.npc.EntityVillagerTrader;
 import org.bukkit.entity.EntityType;
 
+import javax.annotation.Nonnull;
+
 /**
  * Adds a goal to avoid an entity type.
  */
@@ -50,6 +52,7 @@ public class AvoidTargetGoal extends Goal {
         ));
     }
 
+    @Nonnull
     public static Class<? extends EntityLiving> entityLivingClassFromType(EntityType type) {
         return switch (type) {
             case PLAYER -> EntityPlayer.class;
@@ -79,8 +82,8 @@ public class AvoidTargetGoal extends Goal {
             case CHICKEN -> EntityChicken.class;
             case SQUID -> EntitySquid.class;
             case WOLF -> EntityWolf.class;
-            case MUSHROOM_COW -> EntityMushroomCow.class;
-            case SNOWMAN -> EntitySnowman.class;
+            case MOOSHROOM -> EntityMushroomCow.class;
+            case SNOW_GOLEM -> EntitySnowman.class;
             case OCELOT -> EntityOcelot.class;
             case IRON_GOLEM -> EntityIronGolem.class;
             case HORSE -> EntityHorse.class;

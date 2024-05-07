@@ -70,7 +70,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
         players.forEach(player -> {
             final TeamHelper fakeEntity = TeamHelper.FAKE_ENTITY;
             final Team team = fakeEntity.getTeam(player.getScoreboard());
-            final String uuid = entity.cx(); // getScoreboardName()
+            final String uuid = Reflect.getScoreboardEntityName(entity);
 
             if (collision) {
                 team.removeEntry(uuid);

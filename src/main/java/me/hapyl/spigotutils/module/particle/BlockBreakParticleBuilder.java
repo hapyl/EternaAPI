@@ -17,7 +17,7 @@ public class BlockBreakParticleBuilder extends ParticleBuilder {
     private final BlockData block;
 
     BlockBreakParticleBuilder(@Nonnull Material material) {
-        super(Particle.BLOCK_CRACK);
+        super(Particle.BLOCK);
 
         if (!material.isBlock()) {
             throw new IllegalArgumentException("Material must be a block, %s isn't!".formatted(material));

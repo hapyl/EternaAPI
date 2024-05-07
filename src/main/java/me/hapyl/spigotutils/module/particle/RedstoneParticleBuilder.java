@@ -16,7 +16,7 @@ public class RedstoneParticleBuilder extends ColoredParticleBuilder {
     private final Particle.DustOptions dustOptions;
 
     RedstoneParticleBuilder(@Nonnull Color color, float size) {
-        super(Particle.REDSTONE, color, size);
+        super(Particle.DUST, color, size);
 
         this.dustOptions = new Particle.DustOptions(color, size);
     }

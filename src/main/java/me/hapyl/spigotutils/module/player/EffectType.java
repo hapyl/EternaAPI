@@ -5,20 +5,23 @@ import org.bukkit.potion.PotionEffectType;
 
 /**
  * Renamed some effect to match the vanilla minecraft names.
+ *
+ * @deprecated Spigot renamed the effects to be the same as vanilla.
  */
+@Deprecated
 public enum EffectType {
 
     SPEED(PotionEffectType.SPEED),
-    SLOWNESS(PotionEffectType.SLOW),
-    HASTE(PotionEffectType.FAST_DIGGING),
-    MINING_FATIGUE(PotionEffectType.SLOW_DIGGING),
-    STRENGTH(PotionEffectType.INCREASE_DAMAGE),
-    INSTANT_HEAL(PotionEffectType.HEAL),
-    INSTANT_DAMAGE(PotionEffectType.HARM),
-    JUMP_BOOST(PotionEffectType.JUMP),
-    NAUSEA(PotionEffectType.CONFUSION),
+    SLOWNESS(PotionEffectType.SLOWNESS),
+    HASTE(PotionEffectType.HASTE),
+    MINING_FATIGUE(PotionEffectType.MINING_FATIGUE),
+    STRENGTH(PotionEffectType.STRENGTH),
+    INSTANT_HEAL(PotionEffectType.INSTANT_DAMAGE),
+    INSTANT_DAMAGE(PotionEffectType.INSTANT_DAMAGE),
+    JUMP_BOOST(PotionEffectType.JUMP_BOOST),
+    NAUSEA(PotionEffectType.NAUSEA),
     REGENERATION(PotionEffectType.REGENERATION),
-    RESISTANCE(PotionEffectType.DAMAGE_RESISTANCE),
+    RESISTANCE(PotionEffectType.RESISTANCE),
     FIRE_RESISTANCE(PotionEffectType.FIRE_RESISTANCE),
     WATER_BREATHING(PotionEffectType.WATER_BREATHING),
     INVISIBILITY(PotionEffectType.INVISIBILITY),

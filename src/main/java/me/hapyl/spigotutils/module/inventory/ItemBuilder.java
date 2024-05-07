@@ -11,7 +11,6 @@ import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.nbt.NBT;
-import me.hapyl.spigotutils.module.nbt.NBTNative;
 import me.hapyl.spigotutils.module.nbt.NBTType;
 import me.hapyl.spigotutils.module.util.Nulls;
 import org.apache.commons.lang.reflect.FieldUtils;
@@ -81,7 +80,6 @@ public class ItemBuilder implements Cloneable {
     protected ItemStack item;
 
     private String id;
-    private String nativeNbt;
     private ItemFunctionList functions;
 
     /**
@@ -122,7 +120,6 @@ public class ItemBuilder implements Cloneable {
     public ItemBuilder(@Nonnull ItemStack stack, @Nullable @ForceLowercase String id) {
         this.item = stack;
         this.id = id;
-        this.nativeNbt = "";
     }
 
     /**
@@ -159,27 +156,6 @@ public class ItemBuilder implements Cloneable {
             functions.clearFunctions();
         }
 
-        return this;
-    }
-
-    /**
-     * Gets item's NBT in string format, same as you would use it in give command.
-     *
-     * @return item's NBT or empty string if none.
-     */
-    @Nonnull
-    public String getNbt() {
-        return nativeNbt;
-    }
-
-    /**
-     * Set item's raw NBT.
-     * This method uses native minecraft nbt stored in the '<i>tag:{<b>HERE</b>}</i>' compound.
-     *
-     * @param nbt - New NBT or null to remove.
-     */
-    public ItemBuilder setNbt(@Nullable String nbt) {
-        this.nativeNbt = nbt == null ? "" : nbt;
         return this;
     }
 
@@ -967,7 +943,7 @@ public class ItemBuilder implements Cloneable {
      */
     public ItemBuilder setSkullOwner(@Nonnull String owner, @Nullable Sound sound) {
         return modifyMeta(SkullMeta.class, meta -> {
-            meta.setOwner(owner);
+            meta.setOwnerProfile(Bukkit.createPlayerProfile(owner));
             meta.setNoteBlockSound(sound != null ? sound.getKey() : null);
         });
     }
@@ -1110,12 +1086,6 @@ public class ItemBuilder implements Cloneable {
             if (functions != null && (!isIdRegistered(id) || overrideFunctions)) {
                 registeredFunctions.put(id, functions);
             }
-        }
-
-        // FIXME (hapyl): 008, Mar 8: This will break with 1.21.1
-        // Apply native NBT
-        if (!nativeNbt.isBlank()) {
-            item = NBTNative.setNbt(item, nativeNbt);
         }
 
         return item;
@@ -1493,12 +1463,18 @@ public class ItemBuilder implements Cloneable {
 
     /**
      * Makes the item glow with enchantment glint.
-     * This method will add {@link Enchantment#LUCK} and will hide item's enchants.
      */
     public ItemBuilder glow() {
-        addEnchant(Enchantment.LUCK, 1);
-        hideFlag(ItemFlag.HIDE_ENCHANTS);
-        return this;
+        return setEnchantmentGlintOverride(true);
+    }
+
+    /**
+     * Sets whenever this item will have enchantment glint, regardless of if it has enchantments or glint by default.
+     *
+     * @param glow - Should glow.
+     */
+    public ItemBuilder setEnchantmentGlintOverride(boolean glow) {
+        return modifyMeta(meta -> meta.setEnchantmentGlintOverride(glow));
     }
 
     /**
@@ -1591,12 +1567,18 @@ public class ItemBuilder implements Cloneable {
      * Completely hides the tooltip of the item while hovering over it.
      *
      * @param hide - Is tooltip hidden.
-     * @deprecated reserved for 1.21
      */
-    @Deprecated
     public ItemBuilder setHideTooltip(boolean hide) {
-        // TODO (hapyl): 024, Mar 24:
-        return this;
+        return modifyMeta(meta -> meta.setHideTooltip(hide));
+    }
+
+    /**
+     * Sets if this item is fire-resistant, like netherite items.
+     *
+     * @param fireResistant - Is fire-resistant.
+     */
+    public ItemBuilder setFireResistant(boolean fireResistant) {
+        return modifyMeta(meta -> meta.setFireResistant(fireResistant));
     }
 
     /**

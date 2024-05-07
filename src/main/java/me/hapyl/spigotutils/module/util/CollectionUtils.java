@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
+import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.module.math.Numbers;
 
 import javax.annotation.Nonnull;
@@ -702,20 +703,6 @@ public class CollectionUtils {
             list.add(i);
         }
         return list;
-    }
-
-    /**
-     * Appends a value to a collection.
-     *
-     * @param collection - Collection.
-     * @param element    - Element.
-     * @param <T>        - Element type.
-     * @param <C>        - Collection.
-     * @return collection.
-     */
-    public static <T, C extends Collection<T>> Collection<T> append(@Nonnull C collection, T element) {
-        collection.add(element);
-        return collection;
     }
 
     /**

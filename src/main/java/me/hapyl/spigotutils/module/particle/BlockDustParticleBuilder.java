@@ -15,7 +15,7 @@ public class BlockDustParticleBuilder extends BlockBreakParticleBuilder {
 
     BlockDustParticleBuilder(@Nonnull Material material) {
         super(material);
-        particle = Particle.BLOCK_DUST;
+        particle = Particle.FALLING_DUST;
     }
 
     @Override
