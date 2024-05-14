@@ -1305,6 +1305,16 @@ public final class EternaRuntimeTest {
         EternaRuntimeTest.test = new EternaRuntimeTest(tester, null, new String[] {});
     }
 
+    public static boolean testExists(@Nonnull String name) {
+        for (String s : allTests.keySet()) {
+            if (s.equals(name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Nonnull
     public static List<String> listTests() {
         return Lists.newArrayList(allTests.keySet());

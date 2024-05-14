@@ -45,35 +45,35 @@ public final class EternaCommand extends SimpleAdminCommand {
                     updater.broadcastLink();
                 }
                 else {
-                    Chat.sendMessage(sender, result.getMessage());
+                    EternaLogger.sendMessage(sender, result.getMessage());
                 }
             }
 
             case "version" -> {
                 final Updater updater = Eterna.getUpdater();
 
-                Chat.sendMessage(sender, "&aYour version: " + updater.getPluginVersion());
+                EternaLogger.sendMessage(sender, "&aYour version: " + updater.getPluginVersion());
 
                 if (updater.getLastResult() == UpdateResult.OUTDATED) {
-                    Chat.sendMessage(sender, "&aLatest version: " + updater.getLatestVersion());
-                    Chat.sendMessage(sender, "&aDownload here: &e" + updater.getDownloadUrl());
+                    EternaLogger.sendMessage(sender, "&aLatest version: " + updater.getLatestVersion());
+                    EternaLogger.sendMessage(sender, "&aDownload here: &e" + updater.getDownloadUrl());
                 }
                 else if (updater.getLastResult() == UpdateResult.UP_TO_DATE) {
-                    Chat.sendMessage(sender, "&aYou're up to date!");
+                    EternaLogger.sendMessage(sender, "&aYou're up to date!");
                 }
             }
 
             case "quest" -> {
                 if (sender instanceof Player player) {
                     if (Rule.ALLOW_QUEST_JOURNAL.isFalse()) {
-                        Chat.sendMessage(player, "&cThis server does not allow Quest Journal!");
+                        EternaLogger.sendMessage(player, "&cThis server does not allow Quest Journal!");
                         return;
                     }
 
                     new QuestJournal(player);
                 }
                 else {
-                    Chat.sendMessage(sender, "&cThis command can only be executed by players.");
+                    EternaLogger.sendMessage(sender, "&cThis command can only be executed by players.");
                 }
             }
 
@@ -102,14 +102,19 @@ public final class EternaCommand extends SimpleAdminCommand {
 
             case "test" -> {
                 if (!Eterna.getConfig().isTrue(EternaConfigValue.KEEP_TESTS)) {
-                    Chat.sendMessage(sender, "&cTests are disabled on this server.");
+                    EternaLogger.sendMessage(sender, "&cTests are disabled on this server.");
                     return;
                 }
 
                 final String testName = getArgument(args, 1).toString();
 
                 if (testName.isEmpty()) {
-                    Chat.sendMessage(sender, "Invalid test.");
+                    EternaLogger.sendMessage(sender, "Invalid test.");
+                    return;
+                }
+
+                if (!EternaRuntimeTest.testExists(testName)) {
+                    EternaLogger.sendMessage(sender, "&cInvalid test.");
                     return;
                 }
 

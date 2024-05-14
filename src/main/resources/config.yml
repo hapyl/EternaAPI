@@ -18,4 +18,4 @@ dev:
   # Whenever to keep developer test commands.
   keep-test-commands: true
   # Print stack traces.
-  print-stack-traces: false
+  print-stack-traces: true

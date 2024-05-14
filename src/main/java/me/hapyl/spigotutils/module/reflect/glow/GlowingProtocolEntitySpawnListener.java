@@ -1,32 +1,34 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import me.hapyl.spigotutils.Eterna;
-import me.hapyl.spigotutils.module.reflect.protocol.ProtocolListener;
+import me.hapyl.spigotutils.module.event.protocol.PacketSendEvent;
+import me.hapyl.spigotutils.module.reflect.wrapper.WrappedBundlePacket;
+import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 
-import javax.annotation.Nonnull;
-
-public class GlowingProtocolEntitySpawn extends ProtocolListener {
+public class GlowingProtocolEntitySpawnListener implements Listener {
 
     private final GlowingRegistry registry = Eterna.getRegistry().glowingRegistry;
 
-    public GlowingProtocolEntitySpawn() {
-        super(PacketType.Play.Server.SPAWN_ENTITY);
-    }
+    @EventHandler()
+    public void handlePacketSendEvent(PacketSendEvent ev) {
+        final Player player = ev.getPlayer();
+        final WrappedBundlePacket bundlePacket = ev.getBundlePacket();
 
-    @Override
-    public void onPacketReceiving(@Nonnull PacketEvent event) {
-    }
+        if (bundlePacket == null) {
+            return;
+        }
 
-    @Override
-    public void onPacketSending(@Nonnull PacketEvent event) {
-        final PacketContainer packet = event.getPacket();
-        final Player player = event.getPlayer();
-        final int entityId = packet.getIntegers().read(0);
+        final PacketPlayOutSpawnEntity packet = bundlePacket.getFirstPacket(PacketPlayOutSpawnEntity.class);
+
+        if (packet == null) {
+            return;
+        }
+
+        final int entityId = packet.b();
         final Entity entity = registry.getById(entityId);
 
         if (entity == null) {

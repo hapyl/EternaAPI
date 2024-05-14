@@ -1,22 +1,22 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.WrappedDataValue;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.Super;
+import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.InnerMojangEnums;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.Ticking;
+import me.hapyl.spigotutils.module.reflect.wrapper.Wrapper;
+import me.hapyl.spigotutils.module.reflect.wrapper.Wrappers;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import net.minecraft.EnumChatFormat;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
+import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.world.scores.ScoreboardTeam;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
@@ -37,7 +37,6 @@ public class Glowing implements Ticking, GlowingListener {
 
     public static final byte GLOWING_BIT_MASK = 0x40;
 
-    private final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
     private final Player player; // only one player per glowing is now allowed
     private final Entity entity;
     private ChatColor color;
@@ -285,33 +284,23 @@ public class Glowing implements Ticking, GlowingListener {
     }
 
     @Nonnull
-    protected PacketContainer createPacket(boolean flag) {
-        final PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-        packet.getIntegers().write(0, entity.getEntityId());
+    protected Packet<?> createPacket(boolean flag) {
+        final DataWatcher dataWatcher = Reflect.getDataWatcher(Reflect.getMinecraftEntity(entity));
+        final Byte bitMask = dataWatcher.a(DataWatcherType.BYTE.get().a(0));
 
-        final WrappedDataWatcher dataWatcher = WrappedDataWatcher.getEntityWatcher(entity);
-        final WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.get(Byte.class);
-        final StructureModifier<List<WrappedDataValue>> modifier = packet.getDataValueCollectionModifier();
-
-        final byte bitMask = dataWatcher.getByte(0);
-
-        // FIXME (hapyl): Mon, May 6: Waiting on ProtocolLib
-
-        modifier.write(
-                0,
-                List.of(new WrappedDataValue(
+        return new PacketPlayOutEntityMetadata(
+                entity.getEntityId(),
+                List.of(new DataWatcher.c<>(
                         0,
-                        serializer,
+                        DataWatcherType.BYTE.get(),
                         !flag ? (byte) (bitMask & ~GLOWING_BIT_MASK) : (byte) (bitMask | GLOWING_BIT_MASK)
                 ))
         );
-
-        return packet;
     }
 
     protected void sendPacket(boolean flag) {
         try {
-            manager.sendServerPacket(player, createPacket(flag));
+            Reflect.sendPacket(player, createPacket(flag));
         } catch (Exception e) {
             EternaLogger.exception(e);
         }

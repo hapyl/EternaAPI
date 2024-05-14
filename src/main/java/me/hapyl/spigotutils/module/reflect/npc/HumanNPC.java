@@ -1,9 +1,5 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
@@ -81,8 +77,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     private static final String nameToUuidRequest = "https://api.mojang.com/users/profiles/minecraft/%s";
     private static final String uuidToProfileRequest = "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false";
-
-    private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
     protected final Set<Player> showingTo = Sets.newHashSet();
 
@@ -1118,25 +1112,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     private void move0(double x, double y, double z) {
-        final Location loc = getLocation();
-        final PacketContainer packet = new PacketContainer(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
-
-        packet.getIntegers().write(0, getId());
-
-        packet.getShorts().write(0, (short) ((x * 32 - loc.getX() * 32) * 128));
-        packet.getShorts().write(1, (short) ((y * 32 - loc.getY() * 32) * 128));
-        packet.getShorts().write(2, (short) ((z * 32 - loc.getZ() * 32) * 128));
-
-        packet.getBytes().write(0, (byte) (loc.getYaw() * 256 / 360));
-        packet.getBytes().write(1, (byte) (loc.getPitch() * 256 / 360));
-
-        packet.getBooleans().write(0, isOnGround());
-
-        for (Player player : getPlayers()) {
-            manager.sendServerPacket(player, packet);
-        }
-
-        syncText();
     }
 
     private void teleportY(double y) {
@@ -1182,11 +1157,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     private net.minecraft.world.item.ItemStack toNMSItemStack(ItemStack stack) {
-        return (net.minecraft.world.item.ItemStack) Reflect.invokeMethod(Reflect.getCraftMethod(
-                "inventory.CraftItemStack",
-                "asNMSCopy",
-                ItemStack.class
-        ), null, stack);
+        return Reflect.bukkitItemToNMS(stack);
     }
 
     public static Human create(Location location) {
