@@ -25,22 +25,11 @@ public void onEnable() {
 
 ### Maven
 
-[![](https://jitpack.io/v/hapyl/EternaAPI.svg)](https://jitpack.io/#hapyl/EternaAPI)
-
-```maven
-<repositories>
-  <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-  </repository>
-</repositories>
-```
-
 ```maven
 <dependency>
-    <groupId>com.github.hapyl</groupId>
-    <artifactId>EternaAPI</artifactId>
-    <version>VERSION</version>
+  <groupId>me.hapyl</groupId>
+  <artifactId>eternaapi</artifactId>
+  <version>3.1.1-SNAPSHOT</version>
 </dependency>
 ```
 
