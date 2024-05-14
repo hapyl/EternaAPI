@@ -13,14 +13,15 @@ import me.hapyl.spigotutils.module.inventory.item.CustomItemListener;
 import me.hapyl.spigotutils.module.locaiton.TriggerManager;
 import me.hapyl.spigotutils.module.parkour.ParkourListener;
 import me.hapyl.spigotutils.module.parkour.ParkourRunnable;
+import me.hapyl.spigotutils.module.protocol.EternaProtocol;
 import me.hapyl.spigotutils.module.quest.QuestListener;
 import me.hapyl.spigotutils.module.record.ReplayListener;
 import me.hapyl.spigotutils.module.reflect.NPCRunnable;
-import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolEntitySpawn;
-import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolMetadata;
+import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolEntitySpawnListener;
+import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolMetadataListener;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
-import me.hapyl.spigotutils.module.reflect.protocol.HumanNPCListener;
-import me.hapyl.spigotutils.module.reflect.protocol.SignListener;
+import me.hapyl.spigotutils.module.reflect.npc.HumanNPCListener;
+import me.hapyl.spigotutils.module.inventory.SignListener;
 import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
@@ -42,10 +43,17 @@ public class EternaPlugin extends JavaPlugin {
     protected EternaRegistry registry;
     protected Updater updater;
     protected EternaConfig config;
+    protected EternaProtocol protocol;
 
     @Override
     public void onEnable() {
         plugin = Eterna.plugin = this;
+
+        // Init protocol
+        protocol = new EternaProtocol(this);
+
+        // Init registry
+        this.registry = new EternaRegistry(this);
 
         final PluginManager manager = this.getServer().getPluginManager();
 
@@ -58,9 +66,10 @@ public class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new PlayerConfigEvent(), this);
         manager.registerEvents(new ReplayListener(), this);
         manager.registerEvents(new HologramListener(), this);
-
-        // Init registry
-        this.registry = new EternaRegistry(this);
+        manager.registerEvents(new SignListener(), this);
+        manager.registerEvents(new HumanNPCListener(), this);
+        manager.registerEvents(new GlowingProtocolMetadataListener(), this);
+        manager.registerEvents(new GlowingProtocolEntitySpawnListener(), this);
 
         final BukkitScheduler scheduler = Bukkit.getScheduler();
 
@@ -77,12 +86,6 @@ public class EternaPlugin extends JavaPlugin {
         scheduler.runTaskTimer(this, new HologramRunnable(), 0, config.getInt("tick-time.hologram", 2));
         scheduler.runTaskTimer(this, new ParkourRunnable(), 0, config.getInt("tick-time.parkour", 2));
         scheduler.runTaskTimer(this, new GlowingRunnable(), 0, config.getInt("tick-time.glowing", 1));
-
-        // Load ProtocolLib listeners
-        new SignListener();
-        new GlowingProtocolMetadata();
-        new GlowingProtocolEntitySpawn();
-        new HumanNPCListener();
 
         // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);

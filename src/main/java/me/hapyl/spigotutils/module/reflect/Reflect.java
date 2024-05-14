@@ -1,32 +1,26 @@
 package me.hapyl.spigotutils.module.reflect;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
+import io.netty.channel.Channel;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.*;
-import me.hapyl.spigotutils.module.chat.Chat;
-import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
-import me.hapyl.spigotutils.module.util.ThreadRandom;
 import me.hapyl.spigotutils.module.util.Validate;
 import net.minecraft.core.BlockPosition;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
+import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
+import net.minecraft.server.network.ServerConnection;
 import net.minecraft.world.entity.projectile.EntityEgg;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
@@ -62,7 +56,6 @@ import java.util.Objects;
 @TestedOn(version = Version.V1_20_6)
 public final class Reflect {
 
-    private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
     private static final String mcVersion;
     private static final String getHandleMethodName = "getHandle";
     @AccessViaGetter("Reflect#getFakeEntity()")
@@ -452,6 +445,70 @@ public final class Reflect {
     }
 
     /**
+     * Reads the <b>declared</b> field value from the given instance.
+     *
+     * @param instance  - Instance.
+     * @param fieldName - Field name.
+     * @param valueType - Value type.
+     * @return the value or null.
+     */
+    @Nullable
+    public static <T> T getDeclaredFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull Class<T> valueType) {
+        return getFieldValue0(instance, fieldName, valueType, true);
+    }
+
+    /**
+     * Reads the field value from the given instance.
+     *
+     * @param instance  - Instance.
+     * @param fieldName - Field name.
+     * @param valueType - Value type.
+     * @return the value or null.
+     */
+    @Nullable
+    public static <T> T getFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull Class<T> valueType) {
+        return getFieldValue0(instance, fieldName, valueType, false);
+    }
+
+    /**
+     * Sets the <b>declared</b> field value for the given instance.
+     *
+     * @param instance  - Instance.
+     * @param fieldName - Field name.
+     * @param value     - Value.
+     */
+    public static <T> void setDeclaredFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull T value) {
+        setDeclaredFieldValue0(instance, fieldName, value, true);
+    }
+
+    /**
+     * Sets the field value for the given instance.
+     *
+     * @param instance  - Instance.
+     * @param fieldName - Field name.
+     * @param value     - Value.
+     */
+    public static <T> void setFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull T value) {
+        setDeclaredFieldValue0(instance, fieldName, value, false);
+    }
+
+    public static <T> void setDeclaredFieldValue0(Object instance, String fieldName, T value, boolean isDeclared) {
+        try {
+            final Class<?> clazz = instance.getClass();
+            final Field field = isDeclared ? FieldUtils.getDeclaredField(clazz, fieldName, true) : FieldUtils.getField(
+                    clazz,
+                    fieldName,
+                    true
+            );
+
+            field.setAccessible(true);
+            field.set(instance, value);
+        } catch (Exception e) {
+            EternaLogger.exception(e);
+        }
+    }
+
+    /**
      * Returns BlockPosition of provided block.
      *
      * @param block - Block.
@@ -461,31 +518,6 @@ public final class Reflect {
     public static BlockPosition getBlockPosition(@Nonnull Block block) {
         final Location location = block.getLocation();
         return new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-    }
-
-    /**
-     * Sends a block break animation for the given block.
-     * <br>
-     * Note that client only allows one block to be 'breaking'.
-     *
-     * @param block  - Block.
-     * @param stage  - Stace, from 0 to 9.
-     * @param player - Player, who will see the animation.
-     */
-    public static void showBlockBreakAnimation(@Nonnull Block block, @Range(max = 9) int stage, @Nonnull Player player) {
-        final PacketContainer packet = new PacketContainer(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-        final Location location = block.getLocation();
-
-        packet.getIntegers().write(0, ThreadRandom.nextInt(10000, Integer.MAX_VALUE));
-        packet
-                .getBlockPositionModifier()
-                .write(
-                        0,
-                        new com.comphenix.protocol.wrappers.BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ())
-                );
-        packet.getBytes().write(0, (byte) Numbers.clamp(stage, 0, 9));
-
-        sendPacket(player, packet);
     }
 
     /**
@@ -635,22 +667,50 @@ public final class Reflect {
             return;
         }
 
-        final EntityPlayer mc = getMinecraftPlayer(player);
-        mc.c.b(packet);
+        getPlayerConnection(player).b(packet);
     }
 
     /**
-     * Sends a {@link PacketContainer} to the given player.
+     * Gets a {@link PlayerConnection} for the given {@link Player}.
+     *
+     * @param player - Player to get the connection for.
+     * @return the player connection.
+     */
+    @Nonnull
+    public static PlayerConnection getPlayerConnection(@Nonnull Player player) {
+        return getMinecraftPlayer(player).c;
+    }
+
+    /**
+     * Gets the {@link Channel} associated with the given {@link Player}.
      *
      * @param player - Player.
-     * @param packet - Packet.
+     * @return the channel.
      */
-    public static void sendPacket(@Nonnull Player player, @Nonnull PacketContainer packet) {
+    @Nonnull
+    public static Channel getNettyChannel(@Nonnull Player player) {
+        return getNetworkManager(player).n;
+    }
+
+    /**
+     * Gets a {@link NetworkManager} for the given {@link Player}.
+     *
+     * @param player - Player to get the manager for.
+     * @return the player manager.
+     */
+    @Nonnull
+    public static NetworkManager getNetworkManager(@Nonnull Player player) {
+        final PlayerConnection playerConnection = getPlayerConnection(player);
+
         try {
-            manager.sendServerPacket(player, packet);
+            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "e", true);
+
+            return (NetworkManager) field.get(playerConnection);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            EternaLogger.exception(e);
         }
+
+        throw new IllegalStateException("Couldn't get NetworkManager! Report this!");
     }
 
     /**
@@ -710,18 +770,21 @@ public final class Reflect {
      * @param methodName - Name of the method.
      * @param params     - Parameters if required.
      * @return CraftBukkit method if exists, null otherwise.
+     * @throws IllegalArgumentException if the method does not exist, or there is an error in arguments.
      */
-    public static Method getCraftMethod(String className, String methodName, Class<?>... params) {
+    @Nonnull
+    public static Method getCraftMethod(@Nonnull String className, @Nonnull String methodName, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = getCraftClass(className);
+
             if (clazz == null) {
-                return null;
+                throw new IllegalArgumentException("Could not find class '%s'!".formatted(className));
             }
+
             return clazz.getMethod(methodName, params);
         } catch (Exception e) {
-            Chat.broadcast("&4An error occurred whilst trying get CraftBukkit method.");
-            e.printStackTrace();
-            return null;
+            EternaLogger.exception(e);
+            throw new IllegalArgumentException(e);
         }
     }
 
@@ -1031,6 +1094,35 @@ public final class Reflect {
         }
 
         return fakeEntity;
+    }
+
+    /**
+     * Gets the {@link ServerConnection} for the server.
+     *
+     * @return server connection.
+     */
+    @Nonnull
+    public static ServerConnection getServerConnection() {
+        return getMinecraftServer().ai();
+    }
+
+
+    private static <T> T getFieldValue0(Object instance, String name, Class<T> type, boolean isDeclared) {
+        try {
+            final Object object = isDeclared ? FieldUtils.readDeclaredField(instance, name, true) : FieldUtils.readField(
+                    instance,
+                    name,
+                    true
+            );
+
+            if (type.isInstance(object)) {
+                return type.cast(object);
+            }
+        } catch (Exception e) {
+            EternaLogger.exception(e);
+        }
+
+        return null;
     }
 
     private static IllegalArgumentException makeIllegalArgumentHandle(String msg) {

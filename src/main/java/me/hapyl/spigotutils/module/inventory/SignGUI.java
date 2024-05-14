@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.inventory;
 
-import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
+import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
 import me.hapyl.spigotutils.module.reflect.Reflect;
@@ -14,22 +14,19 @@ import net.minecraft.world.item.EnumColor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.entity.TileEntitySign;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedOn(version = Version.V1_20_4)
+@TestedOn(version = Version.V1_20_6)
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";

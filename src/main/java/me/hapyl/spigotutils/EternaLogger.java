@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils;
 
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.entity.Experimental;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 

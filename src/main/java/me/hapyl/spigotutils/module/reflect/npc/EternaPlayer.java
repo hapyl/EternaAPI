@@ -171,7 +171,7 @@ public class EternaPlayer {
                     Reflect.getMinecraftServer(),
                     new NullConnection(),
                     human,
-                    new CommonListenerCookie(profile, 0, clientInformation, true) // FIXME (hapyl): Mon, May 6:
+                    new CommonListenerCookie(profile, 0, clientInformation, true)
             );
         } catch (Exception e) {
             EternaLogger.exception(e);

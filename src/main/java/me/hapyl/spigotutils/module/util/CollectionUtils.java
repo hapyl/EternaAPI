@@ -2,6 +2,7 @@ package me.hapyl.spigotutils.module.util;
 
 import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.module.math.Numbers;
+import net.minecraft.network.protocol.Packet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
