@@ -59,7 +59,6 @@ public class EternaProtocol implements Listener {
         final Player player = ev.getPlayer();
 
         inject(player);
-
     }
 
     @EventHandler()
