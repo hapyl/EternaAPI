@@ -23,6 +23,7 @@ public void onEnable() {
 *As of now, it is <b>not neccessery</b> to instantiate the API at onEnable(), and all tasks and registries delegete to Eterna. But in the future, everything might migrate to per-plugin registries.*
 
 ### Maven
+*Check the Packages page for the latest version!*
 
 ```maven
 <dependency>
