@@ -1106,6 +1106,45 @@ public final class Reflect {
         return getMinecraftServer().ai();
     }
 
+    /**
+     * Gets a {@link Class} by name, or throws an exception if class is not found.
+     *
+     * @param className - Class name.
+     * @return a class.
+     */
+    @Nonnull
+    public static Class<?> getClass(@Nonnull String className) {
+        try {
+            return Class.forName(className);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Cannot find class named '%s'!".formatted(className));
+        }
+    }
+
+    @Nullable
+    public static Field getDeclaredField(@Nonnull Object instance, @Nonnull String fieldName) {
+        return getField0(instance, fieldName, true);
+    }
+
+    @Nullable
+    public static Field getField(@Nonnull Object instance, @Nonnull String fieldName) {
+        return getField0(instance, fieldName, false);
+    }
+
+    @Nullable
+    public static <T> T cast(@Nonnull Object value, @Nonnull Class<T> clazz) {
+        return clazz.isInstance(value) ? clazz.cast(value) : null;
+    }
+
+    private static Field getField0(Object instance, String name, boolean isDeclared) {
+        try {
+            final Class<?> clazz = instance.getClass();
+
+            return isDeclared ? clazz.getDeclaredField(name) : clazz.getField(name);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     private static <T> T getFieldValue0(Object instance, String name, Class<T> type, boolean isDeclared) {
         try {
@@ -1114,6 +1153,10 @@ public final class Reflect {
                     name,
                     true
             );
+
+            if (object == null) {
+                return null;
+            }
 
             if (type.isInstance(object)) {
                 return type.cast(object);

@@ -1,11 +1,13 @@
 package me.hapyl.spigotutils.builtin.command;
 
 import me.hapyl.spigotutils.*;
+import me.hapyl.spigotutils.builtin.fixer.EternaFixers;
 import me.hapyl.spigotutils.builtin.gui.QuestJournal;
 import me.hapyl.spigotutils.builtin.updater.UpdateResult;
 import me.hapyl.spigotutils.builtin.updater.Updater;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.command.SimpleAdminCommand;
+import me.hapyl.spigotutils.module.util.Enums;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,7 +22,7 @@ public final class EternaCommand extends SimpleAdminCommand {
         super(name);
 
         setDescription("Eterna management command.");
-        addCompleterValues(1, "update", "version", "quest", "reload", "test", "testsq");
+        addCompleterValues(1, "update", "version", "quest", "reload", "test", "testsq", "fixer");
     }
 
     @Override
@@ -143,6 +145,17 @@ public final class EternaCommand extends SimpleAdminCommand {
             default -> {
                 Chat.sendMessage(sender, "&cUnknown argument. " + getUsage());
             }
+
+            case "fixer" -> {
+                final EternaFixers fixer = getArgument(args, 1).toEnum(EternaFixers.class);
+
+                if (fixer == null) {
+                    EternaLogger.sendMessage(sender, "&cInvalid fixer!");
+                    return;
+                }
+
+                fixer.tryFix();
+            }
         }
     }
 
@@ -151,6 +164,10 @@ public final class EternaCommand extends SimpleAdminCommand {
     protected List<String> tabComplete(CommandSender sender, String[] args) {
         if (matchArgs(args, "test")) {
             return completerSort(EternaRuntimeTest.listTests(), args, false);
+        }
+
+        if (matchArgs(args, "fixer")) {
+            return completerSort(Enums.getValuesNameAsList(EternaFixers.class), args, false);
         }
 
         return null;

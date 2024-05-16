@@ -1,18 +1,13 @@
-package me.hapyl.spigotutils.module.protocol;
+package me.hapyl.spigotutils.protocol;
 
-import com.google.common.collect.Sets;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
-import me.hapyl.spigotutils.module.event.protocol.PacketReceiveEvent;
-import me.hapyl.spigotutils.module.event.protocol.PacketSendEvent;
 import me.hapyl.spigotutils.module.player.PlayerLib;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.util.Runnables;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -29,7 +24,6 @@ import org.bukkit.plugin.PluginManager;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 public class EternaProtocol implements Listener {
 
@@ -38,11 +32,9 @@ public class EternaProtocol implements Listener {
     public static final String ADD_BEFORE_NAME = "packet_handler";
 
     private final EternaPlugin plugin;
-    private final Set<Class<?>> ignoredPackets;
 
     public EternaProtocol(EternaPlugin plugin) {
         this.plugin = plugin;
-        this.ignoredPackets = Sets.newHashSet();
 
         // Inject online players
         Runnables.runLater(() -> Bukkit.getOnlinePlayers().forEach(this::inject), 10);
@@ -140,28 +132,7 @@ public class EternaProtocol implements Listener {
     }
 
     /**
-     * Marks the given {@link Packet} as 'ignored' packet.
-     * <br>
-     * Events for ignored packets will <b>not</b> be fired.
-     *
-     * @param packetClass - Packet class.
-     */
-    public <T extends Packet<?>> void addIgnoredPacket(@Nonnull Class<T> packetClass) {
-        ignoredPackets.add(packetClass);
-    }
-
-    /**
-     * Returns true if the given {@link Packet} is marked as 'ignored'; false otherwise.
-     *
-     * @param packetClass - Packet class.
-     * @return true if the given packet is marked as 'ignored'; false otherwise.
-     */
-    public <T extends Packet<?>> boolean isIgnoredPacket(@Nonnull Class<T> packetClass) {
-        return ignoredPackets.contains(packetClass);
-    }
-
-    /**
-     * Injects all the players.
+     * Uninject all the players.
      * <br>
      * Called upon server shutdown.
      */

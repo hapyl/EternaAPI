@@ -1,13 +1,14 @@
 package me.hapyl.spigotutils.module.event.protocol;
 
 import io.netty.channel.Channel;
-import me.hapyl.spigotutils.module.reflect.wrapper.WrappedBundlePacket;
-import me.hapyl.spigotutils.module.reflect.wrapper.Wrapper;
-import me.hapyl.spigotutils.module.reflect.wrapper.Wrappers;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.PacketWrapper;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.PacketWrappers;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.WrappedBundlePacket;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.WrappedPacket;
+import me.hapyl.spigotutils.module.util.Runnables;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
-import net.minecraft.network.protocol.game.PacketListenerPlayOut;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -16,6 +17,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * Fires before a {@link Packet} is delivered.
+ * <br>
+ * <h1>Packet events are ASYNC!</h1>
+ */
 public abstract class PacketEvent extends Event implements Cancellable {
 
     private final Player player;
@@ -33,10 +39,6 @@ public abstract class PacketEvent extends Event implements Cancellable {
 
     /**
      * Gets the player associated with this event.
-     * <br>
-     * Receiver for {@link PacketSendEvent}.
-     * <br>
-     * Sender for {@link PacketReceiveEvent}.
      *
      * @return the player.
      */
@@ -81,6 +83,18 @@ public abstract class PacketEvent extends Event implements Cancellable {
     }
 
     /**
+     * Gets a {@link WrappedPacket} for the given {@link PacketWrapper}, or null, if {@link Packet} is not the correct type.
+     *
+     * @param wrapper - Wrapper.
+     * @return a wrapped packet or null.
+     * @see PacketWrappers
+     */
+    @Nullable
+    public <T extends PacketListener, P extends Packet<T>, W extends WrappedPacket<P>> W getWrappedPacket(@Nonnull PacketWrapper<T, P, W> wrapper) {
+        return wrapper.wrap(packet);
+    }
+
+    /**
      * Gets a {@link WrappedBundlePacket} that contains a {@link List} of {@link Packet}, or null if the packet is not a bundle packet.
      *
      * @return a wrapped bundle packet.
@@ -88,14 +102,18 @@ public abstract class PacketEvent extends Event implements Cancellable {
     @Nullable
     public WrappedBundlePacket getBundlePacket() {
         if (packet instanceof ClientboundBundlePacket bundlePacket) {
-            return Wrappers.wrapBundlePacket(bundlePacket);
+            return new WrappedBundlePacket(bundlePacket);
         }
 
         return null;
     }
 
     /**
-     * {@inheritDoc}
+     * Returns true if this event was cancelled.
+     * <br>
+     * Cancelled event will ignore the packet, as it was never sent/received.
+     *
+     * @return true if this event was cancelled; false otherwise.
      */
     @Override
     public boolean isCancelled() {
@@ -103,10 +121,21 @@ public abstract class PacketEvent extends Event implements Cancellable {
     }
 
     /**
-     * {@inheritDoc}
+     * Sets if this event is cancelled.
+     * <br>
+     * Cancelled event will ignore the packet, as it was never sent/received.
      */
     @Override
     public void setCancelled(boolean cancel) {
         this.cancel = cancel;
+    }
+
+    /**
+     * A helper method to call method <b>synchronized</b>.
+     *
+     * @param runnable - Runnable to run synchronized.
+     */
+    protected void synchronize(@Nonnull Runnable runnable) {
+        Runnables.runSync(runnable);
     }
 }

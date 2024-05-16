@@ -19,6 +19,17 @@ public class PacketSendEvent extends PacketEvent {
         super(who, channel, packet);
     }
 
+    /**
+     * Gets the {@link Player} who this {@link Packet} is being sent to.
+     *
+     * @return the player who this packet is being sent to.
+     */
+    @Nonnull
+    @Override
+    public Player getPlayer() {
+        return super.getPlayer();
+    }
+
     @Nonnull
     @Override
     public HandlerList getHandlers() {

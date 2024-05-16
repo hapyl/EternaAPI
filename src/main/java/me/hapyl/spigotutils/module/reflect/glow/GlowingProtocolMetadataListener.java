@@ -1,22 +1,18 @@
 package me.hapyl.spigotutils.module.reflect.glow;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.Eterna;
-import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.event.protocol.PacketSendEvent;
-import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.Reflect;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.PacketWrappers;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.WrappedPacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.syncher.DataWatcher;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import java.lang.reflect.Constructor;
-import java.util.List;
 import java.util.Set;
 
 public class GlowingProtocolMetadataListener implements Listener {
@@ -27,16 +23,16 @@ public class GlowingProtocolMetadataListener implements Listener {
     @EventHandler()
     public void handlePacketSendEvent(PacketSendEvent ev) {
         final Player player = ev.getPlayer();
-        final PacketPlayOutEntityMetadata packet = ev.getPacket(PacketPlayOutEntityMetadata.class);
+        final WrappedPacketPlayOutEntityMetadata packet = ev.getWrappedPacket(PacketWrappers.PACKET_PLAY_OUT_ENTITY_METADATA);
 
         if (packet == null) {
             return;
         }
 
-        final int entityId = packet.b();
+        final int entityId = packet.getEntityId();
         final Entity entity = registry.getById(entityId);
 
-        if (ignoredPackets.contains(packet) || entity == null) {
+        if (ignoredPackets.contains(packet.getPacket()) || entity == null) {
             return;
         }
 
@@ -46,30 +42,22 @@ public class GlowingProtocolMetadataListener implements Listener {
             return;
         }
 
-        final List<DataWatcher.c<?>> watchingObjects = packet.e();
-        final List<DataWatcher.c<?>> watchingObjectsCopy = Lists.newArrayList();
+        final WrappedPacketPlayOutEntityMetadata.WrappedDataWatcherValueList packedItems = packet.getWrappedDataWatcherValueList();
 
-        for (DataWatcher.c<?> object : watchingObjects) {
-            final Object value = object.c();
+        for (WrappedPacketPlayOutEntityMetadata.WrappedDataWatcherValue item : packedItems) {
+            final int id = item.getId();
+            final Byte value = item.getValueAs(Byte.class);
 
-            if (object.a() == 0 && value instanceof Byte byteValue) {
-                watchingObjectsCopy.add(new DataWatcher.c<>(0, DataWatcherType.BYTE.get(), (byte) (byteValue | Glowing.GLOWING_BIT_MASK)));
-            }
-            else {
-                // Create copy via reflection
-                try {
-                    final Constructor<?> constructor = DataWatcher.c.class.getConstructors()[0];
-                    final Object newValue = constructor.newInstance(object.a(), object.b(), object.c());
-
-                    watchingObjectsCopy.add((DataWatcher.c<?>) newValue);
-                } catch (Exception e) {
-                    EternaLogger.exception(e);
-                }
+            // We need to override byte value with id 0
+            if (id == 0 && value != null) {
+                item.setValue((byte) (value | Glowing.GLOWING_BIT_MASK));
             }
         }
 
-        final PacketPlayOutEntityMetadata newPacket = new PacketPlayOutEntityMetadata(entityId, watchingObjectsCopy);
+        final PacketPlayOutEntityMetadata newPacket = new PacketPlayOutEntityMetadata(entityId, packedItems.getAsDataWatcherObjectList());
 
+        // Minecraft is annoying with the metadata and will send a Metadata Packet to all
+        // nearby players, we need to cancel the event and send our magic packet to the target.
         ev.setCancelled(true);
 
         ignoredPackets.add(newPacket);
