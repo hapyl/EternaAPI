@@ -13,7 +13,7 @@ import me.hapyl.spigotutils.module.inventory.item.CustomItemListener;
 import me.hapyl.spigotutils.module.locaiton.TriggerManager;
 import me.hapyl.spigotutils.module.parkour.ParkourListener;
 import me.hapyl.spigotutils.module.parkour.ParkourRunnable;
-import me.hapyl.spigotutils.module.protocol.EternaProtocol;
+import me.hapyl.spigotutils.protocol.EternaProtocol;
 import me.hapyl.spigotutils.module.quest.QuestListener;
 import me.hapyl.spigotutils.module.record.ReplayListener;
 import me.hapyl.spigotutils.module.reflect.NPCRunnable;

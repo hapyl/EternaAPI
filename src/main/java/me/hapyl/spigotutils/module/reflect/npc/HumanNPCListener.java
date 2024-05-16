@@ -1,16 +1,12 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
-import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.event.protocol.PacketReceiveEvent;
-import me.hapyl.spigotutils.module.reflect.Reflect;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.PacketWrappers;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.WrappedPacketPlayInUseEntity;
 import me.hapyl.spigotutils.module.util.Runnables;
-import net.minecraft.network.protocol.game.PacketPlayInUseEntity;
-import net.minecraft.world.EnumHand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-
-import java.lang.reflect.Method;
 
 public class HumanNPCListener implements Listener {
 
@@ -20,56 +16,29 @@ public class HumanNPCListener implements Listener {
     @EventHandler()
     public void handlePacketReceiveEvent(PacketReceiveEvent ev) {
         final Player player = ev.getPlayer();
-        final PacketPlayInUseEntity packet = ev.getPacket(PacketPlayInUseEntity.class);
+        final WrappedPacketPlayInUseEntity packet = ev.getWrappedPacket(PacketWrappers.PACKET_PLAY_IN_USE_ENTITY);
 
         if (packet == null) {
             return;
         }
 
-        final Integer entityId = Reflect.getDeclaredFieldValue(packet, "b", Integer.class);
-
-        if (entityId == null) {
-            return;
-        }
-
-        final HumanNPC npc = HumanNPC.getById(entityId);
+        final HumanNPC npc = HumanNPC.getById(packet.getEntityId());
 
         if (npc == null) {
             return;
         }
 
-        final Object useAction = Reflect.getDeclaredFieldValue(packet, "c", Object.class);
+        final WrappedPacketPlayInUseEntity.WrappedAction action = packet.getAction();
+        final WrappedPacketPlayInUseEntity.WrappedActionType type = action.getType();
+        final WrappedPacketPlayInUseEntity.WrappedHand hand = action.getHand();
 
-        if (useAction == null) {
+        // Don't care about INTERACT_AT or OFF_HAND clicks
+        if (type == WrappedPacketPlayInUseEntity.WrappedActionType.INTERACT_AT ||
+                hand == WrappedPacketPlayInUseEntity.WrappedHand.OFF_HAND) {
             return;
         }
 
-        try {
-            final Method method = useAction.getClass().getDeclaredMethod("a");
-            method.setAccessible(true);
-
-            final Object actionType = method.invoke(useAction);
-            final String actionTypeString = actionType.toString();
-
-            // Don't care about INTERACT_AT
-            if (actionTypeString.equals("INTERACT_AT")) {
-                return;
-            }
-
-            // Attack doesn't have EnumHand field, have to handle it separately
-            if (actionTypeString.equals("ATTACK")) {
-                workClick(player, npc, ClickType.ATTACK);
-            }
-            else {
-                final EnumHand enumHand = Reflect.getDeclaredFieldValue(useAction, "a", EnumHand.class);
-
-                if (enumHand != EnumHand.b) {
-                    workClick(player, npc, ClickType.INTERACT);
-                }
-            }
-        } catch (Exception e) {
-            EternaLogger.exception(e);
-        }
+        workClick(player, npc, type == WrappedPacketPlayInUseEntity.WrappedActionType.ATTACK ? ClickType.ATTACK : ClickType.INTERACT);
     }
 
     private void workClick(Player player, HumanNPC npc, ClickType clickType) {

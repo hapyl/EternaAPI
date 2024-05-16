@@ -1,4 +1,4 @@
-package me.hapyl.spigotutils.module.reflect.wrapper;
+package me.hapyl.spigotutils.module.reflect.packet.wrapped;
 
 import com.google.common.collect.Lists;
 import net.minecraft.network.PacketListener;
@@ -10,8 +10,9 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class WrappedBundlePacket extends Wrapper<BundlePacket<?>> {
-    WrappedBundlePacket(BundlePacket<?> bundlePacket) {
+public class WrappedBundlePacket extends WrappedPacket<BundlePacket<?>> {
+
+    public WrappedBundlePacket(BundlePacket<?> bundlePacket) {
         super(bundlePacket);
     }
 
@@ -22,7 +23,7 @@ public class WrappedBundlePacket extends Wrapper<BundlePacket<?>> {
      */
     @Nonnull
     public List<Packet<?>> getBundledPackets() {
-        return Collections.unmodifiableList(Lists.newArrayList(obj.b()));
+        return Collections.unmodifiableList(Lists.newArrayList(packet.b()));
     }
 
     /**
@@ -42,6 +43,20 @@ public class WrappedBundlePacket extends Wrapper<BundlePacket<?>> {
         }
 
         return null;
+    }
+
+    /**
+     * Gets the first {@link Packet} as a {@link WrappedPacket} that matches the given type from this bundle packet, or <code>null</code> if there are no such packets.
+     *
+     * @param wrapper - Packet wrapper.
+     * @return the first matching packet or null.
+     * @see PacketWrappers
+     */
+    @Nullable
+    public <T extends PacketListener, P extends Packet<T>, W extends WrappedPacket<P>> W getFirstPacketWrapped(@Nonnull PacketWrapper<T, P, W> wrapper) {
+        final P packet = getFirstPacket(wrapper.getClazz());
+
+        return packet != null ? wrapper.wrap(packet) : null;
     }
 
     /**

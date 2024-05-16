@@ -2,8 +2,9 @@ package me.hapyl.spigotutils.module.reflect.glow;
 
 import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.module.event.protocol.PacketSendEvent;
-import me.hapyl.spigotutils.module.reflect.wrapper.WrappedBundlePacket;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.PacketWrappers;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.WrappedBundlePacket;
+import me.hapyl.spigotutils.module.reflect.packet.wrapped.WrappedPacketPlayOutSpawnEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,13 +23,13 @@ public class GlowingProtocolEntitySpawnListener implements Listener {
             return;
         }
 
-        final PacketPlayOutSpawnEntity packet = bundlePacket.getFirstPacket(PacketPlayOutSpawnEntity.class);
+        final WrappedPacketPlayOutSpawnEntity packet = bundlePacket.getFirstPacketWrapped(PacketWrappers.PACKET_PLAY_OUT_SPAWN_ENTITY);
 
         if (packet == null) {
             return;
         }
 
-        final int entityId = packet.b();
+        final int entityId = packet.getEntityId();
         final Entity entity = registry.getById(entityId);
 
         if (entity == null) {

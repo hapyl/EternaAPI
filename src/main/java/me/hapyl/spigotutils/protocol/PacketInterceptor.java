@@ -1,4 +1,4 @@
-package me.hapyl.spigotutils.module.protocol;
+package me.hapyl.spigotutils.protocol;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,9 +12,15 @@ import me.hapyl.spigotutils.module.event.protocol.PacketSendEvent;
 import net.minecraft.network.protocol.Packet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.AuthorNagException;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredListener;
 
 import java.util.function.Function;
+import java.util.logging.Level;
 
 public class PacketInterceptor extends ChannelDuplexHandler {
 
@@ -26,7 +32,6 @@ public class PacketInterceptor extends ChannelDuplexHandler {
 
     @Override
     public final void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {
-        // cancel packet
         if (workPacket(object, packet -> new PacketReceiveEvent(player, ctx.channel(), packet))) {
             return;
         }
@@ -36,7 +41,6 @@ public class PacketInterceptor extends ChannelDuplexHandler {
 
     @Override
     public final void write(ChannelHandlerContext ctx, Object object, ChannelPromise promise) throws Exception {
-        // cancel packet
         if (workPacket(object, packet -> new PacketSendEvent(player, ctx.channel(), packet))) {
             return;
         }
@@ -46,11 +50,6 @@ public class PacketInterceptor extends ChannelDuplexHandler {
 
     private boolean workPacket(Object packetObject, Function<Packet<?>, PacketEvent> fn) {
         if (!(packetObject instanceof Packet<?> packet)) {
-            return false;
-        }
-
-        // Check for ignored packets
-        if (Eterna.getProtocol().isIgnoredPacket(packet.getClass())) {
             return false;
         }
 

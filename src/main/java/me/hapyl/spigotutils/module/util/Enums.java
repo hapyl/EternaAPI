@@ -1,7 +1,10 @@
 package me.hapyl.spigotutils.module.util;
 
+import com.google.common.collect.Lists;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Utility class for enums.
@@ -56,6 +59,7 @@ public final class Enums {
      * @param enumClass - Enum class.
      * @return array of strings filled with enum constants names.
      */
+    @Nonnull
     public static <T extends Enum<T>> String[] getValuesNames(Class<T> enumClass) {
         final Enum<T>[] values = getValues(enumClass);
         if (values == null || values.length == 0) {
@@ -63,6 +67,11 @@ public final class Enums {
         }
 
         return CollectionUtils.migrate(values, new String[values.length], Enum::name);
+    }
+
+    @Nonnull
+    public static <T extends Enum<T>> List<String> getValuesNameAsList(@Nonnull Class<T> enumClass) {
+        return Lists.newArrayList(getValuesNames(enumClass));
     }
 
     /**

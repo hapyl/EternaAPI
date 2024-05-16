@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils;
 
 import me.hapyl.spigotutils.builtin.updater.Updater;
-import me.hapyl.spigotutils.module.protocol.EternaProtocol;
+import me.hapyl.spigotutils.protocol.EternaProtocol;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
