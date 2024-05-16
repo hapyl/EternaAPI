@@ -28,7 +28,7 @@ public void onEnable() {
 <dependency>
   <groupId>me.hapyl</groupId>
   <artifactId>eternaapi</artifactId>
-  <version>3.1.1-SNAPSHOT</version>
+  <version>VERSION</version>
 </dependency>
 ```
 
