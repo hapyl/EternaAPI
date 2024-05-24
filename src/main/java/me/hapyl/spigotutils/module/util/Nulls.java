@@ -1,5 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -126,4 +127,15 @@ public class Nulls {
         return count;
     }
 
+    /**
+     * Gets the given object is it is <b>non null</b>, <code>def</code> otherwise.
+     *
+     * @param t   - Object.
+     * @param def - Default.
+     * @return the given object or default.
+     */
+    @Nonnull
+    public static <T> T getOrDefault(@Nullable T t, @Nonnull T def) {
+        return t != null ? t : def;
+    }
 }
