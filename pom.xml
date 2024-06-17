@@ -6,7 +6,7 @@
 
     <groupId>me.hapyl</groupId>
     <artifactId>eternaapi</artifactId>
-    <version>3.2.1-SNAPSHOT</version>
+    <version>3.3.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>EternaAPI</name>
     <description>An API for Spigot development.</description>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.20.6-R0.1-SNAPSHOT</version>
+            <version>1.21-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 

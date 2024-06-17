@@ -174,10 +174,9 @@ public final class EternaRuntimeTest {
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final Player diden = Bukkit.getPlayer("DiDenPro");
 
-                final Entity entity = diden != null ? diden : Entities.ARMOR_STAND.spawn(player.getLocation(), self -> {
+                final Entity entity = diden != null ? diden : Entities.PIG.spawn(player.getLocation(), self -> {
                     self.setInvisible(true);
-                    self.setSmall(true);
-                    self.setHelmet(new ItemStack(Material.STONE));
+                    self.setAI(false);
                 });
 
                 final Scoreboard scoreboard = player.getScoreboard();

@@ -14,7 +14,7 @@ public final class StaticAIAccessor {
             throw new IllegalArgumentException("Invalid entity.");
         }
 
-        final PathfinderGoalSelector goalSelector = minecraftEntity.bS;
+        final PathfinderGoalSelector goalSelector = minecraftEntity.bW; // goalSelector
         return new MobAI(entity, goalSelector);
     }
 

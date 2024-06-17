@@ -6,6 +6,7 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 import me.hapyl.spigotutils.EternaLogger;
+import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Runnables;
@@ -106,6 +107,7 @@ public class PlayerSkin {
     }
 
     private void createPlayer(@Nonnull Player player) {
+        final Location location = player.getLocation();
         final EntityPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
         final ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.a(List.of(mcPlayer)); // createPlayerInitializing()
 
@@ -113,7 +115,7 @@ public class PlayerSkin {
 
         // Re-created for others
         final PacketPlayOutEntityDestroy destroyPacket = new PacketPlayOutEntityDestroy(player.getEntityId());
-        final PacketPlayOutSpawnEntity spawnPacket = new PacketPlayOutSpawnEntity(mcPlayer);
+        final PacketPlayOutSpawnEntity spawnPacket = PacketFactory.makePacketPlayOutSpawnEntity(mcPlayer, location);
 
         Bukkit.getOnlinePlayers().forEach(online -> {
             if (online == player) {
@@ -126,18 +128,17 @@ public class PlayerSkin {
 
         // Respawn player
         final World playerWorld = player.getWorld();
-        final Location location = player.getLocation();
         final PlayerInventory inventory = player.getInventory();
         final int heldItemSlot = inventory.getHeldItemSlot();
 
         final net.minecraft.world.level.World mcWorld = Reflect.getMinecraftWorld(playerWorld);
 
         final PacketPlayOutRespawn respawnPacket = new PacketPlayOutRespawn(
-                mcPlayer.d(mcWorld.getMinecraftWorld()), (byte) 0
+                mcPlayer.b(mcWorld.getMinecraftWorld()), (byte) 0 // createCommonPlayerSpawnInfo
         );
 
         sendPacket(player, respawnPacket);
-        mcPlayer.y(); // onUpdateAbilities()
+        mcPlayer.z(); // onUpdateAbilities()
 
         // Load chunk
         final PacketPlayOutGameStateChange packetLoadChunk = new PacketPlayOutGameStateChange(
@@ -174,7 +175,8 @@ public class PlayerSkin {
         }
 
         // Update effects
-        final Collection<MobEffect> activeEffects = mcPlayer.ex(); // getActiveEffects()
+        final Collection<MobEffect> activeEffects = mcPlayer.et(); // getActiveEffects()
+
         activeEffects.forEach(effect -> {
             final PacketPlayOutEntityEffect packetEffect = new PacketPlayOutEntityEffect(player.getEntityId(), effect, false);
             sendPacket(player, packetEffect);

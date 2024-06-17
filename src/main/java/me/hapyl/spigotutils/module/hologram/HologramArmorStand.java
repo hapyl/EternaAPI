@@ -1,7 +1,9 @@
 package me.hapyl.spigotutils.module.hologram;
 
 import me.hapyl.spigotutils.module.chat.Chat;
+import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
+import me.hapyl.spigotutils.module.reflect.packet.Packets;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
@@ -43,7 +45,7 @@ public class HologramArmorStand {
     }
 
     public void show(Player player) {
-        Reflect.sendPacket(player, new PacketPlayOutSpawnEntity(armorStand));
+        Reflect.sendPacket(player, PacketFactory.makePacketPlayOutSpawnEntity(armorStand, location));
         update(player);
     }
 
