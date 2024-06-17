@@ -46,6 +46,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Useful utility class, which was indented to use reflection, hence the name - Reflect.
@@ -229,7 +230,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return entity.al(); // getId()
+        return entity.an(); // getId()
     }
 
     /**
@@ -558,7 +559,7 @@ public final class Reflect {
      * @param player    - Player.
      */
     public static void createEntity(@Nonnull net.minecraft.world.entity.Entity netEntity, @Nonnull Player player) {
-        sendPacket(player, new PacketPlayOutSpawnEntity(netEntity, getEntityId(netEntity)));
+        sendPacket(player, new PacketPlayOutSpawnEntity(netEntity, getEntityId(netEntity), getEntityBlockPosition(netEntity)));
     }
 
     /**
@@ -569,7 +570,7 @@ public final class Reflect {
      */
     @Nonnull
     public static DataWatcher getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return Objects.requireNonNull(entity.ap(), "DataWatcher cannot be null."); // getEntityData()
+        return Objects.requireNonNull(entity.ar(), "DataWatcher cannot be null."); // getEntityData()
     }
 
     /**
@@ -752,7 +753,7 @@ public final class Reflect {
      */
     @Nonnull
     public static GameProfile getGameProfile(@Nonnull EntityPlayer player) {
-        return player.gb(); // getGameProfile()
+        return player.fX(); // getGameProfile()
     }
 
     /**
@@ -1134,6 +1135,37 @@ public final class Reflect {
     @Nullable
     public static <T> T cast(@Nonnull Object value, @Nonnull Class<T> clazz) {
         return clazz.isInstance(value) ? clazz.cast(value) : null;
+    }
+
+    /**
+     * Gets a new {@link BlockPosition} of entity's position.
+     * <br>
+     * May not be accurate.
+     *
+     * @param entity - Entity.
+     * @return a new block position of entity.
+     */
+    @Nonnull
+    public static BlockPosition getEntityBlockPosition(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return new BlockPosition((int) entity.L, (int) entity.M, (int) entity.N);
+    }
+
+    @Nonnull
+    public static UUID getEntityUuid(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return entity.cz();
+    }
+
+    @Nonnull
+    public static Location getEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
+        @DoNotUseAutoCloseable final net.minecraft.world.level.World world = entity.dO();
+        final World bukkitWorld = getBukkitWorld(world.getMinecraftWorld());
+        final double[] location = getEntityLocation0(entity);
+
+        return new Location(bukkitWorld, location[0], location[1], location[2]);
+    }
+
+    private static double[] getEntityLocation0(net.minecraft.world.entity.Entity entity) {
+        return new double[] { entity.L, entity.M, entity.N };
     }
 
     private static Field getField0(Object instance, String name, boolean isDeclared) {

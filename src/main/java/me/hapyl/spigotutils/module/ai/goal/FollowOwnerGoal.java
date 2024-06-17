@@ -21,10 +21,9 @@ public class FollowOwnerGoal extends Goal {
      * @param speedModifier - Speed modifier.
      * @param minDistance   - Minimum distance.
      * @param maxDistance   - Maximum distance.
-     * @param canFly        - Can fly.
      */
-    public FollowOwnerGoal(AI ai, LivingEntity entity, double speedModifier, float minDistance, float maxDistance, boolean canFly) {
-        super(new PathfinderGoalFollowOwner(ai.getMob(EntityTameableAnimal.class), speedModifier, minDistance, maxDistance, canFly));
+    public FollowOwnerGoal(AI ai, LivingEntity entity, double speedModifier, float minDistance, float maxDistance) {
+        super(new PathfinderGoalFollowOwner(ai.getMob(EntityTameableAnimal.class), speedModifier, minDistance, maxDistance));
 
         final PathfinderGoal goal = getGoal();
 

@@ -5,6 +5,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.reflect.Reflect;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.util.MathHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -79,6 +81,7 @@ public class BukkitUtils {
      * @param location - Location to convert.
      * @return location in format: (x, y, z)
      */
+    @Nonnull
     public static String locationToString(@Nonnull Location location) {
         return locationToString(location, "%s, %s, %s");
     }
@@ -90,6 +93,7 @@ public class BukkitUtils {
      * @param includeRotation - include rotation.
      * @return location to readable format: "x, y, z (yaw, pitch)"
      */
+    @Nonnull
     public static String locationToString(@Nonnull Location location, boolean includeRotation) {
         return locationToString(location, "%s, %s, %s (%s, %s)", includeRotation);
     }
@@ -101,6 +105,7 @@ public class BukkitUtils {
      * @param format   - Format. Must contain exactly three '%s'!
      * @return location in provided format.
      */
+    @Nonnull
     public static String locationToString(@Nonnull Location location, @Nonnull String format) {
         return String.format(format, location.getX(), location.getY(), location.getZ());
     }
@@ -113,6 +118,7 @@ public class BukkitUtils {
      * @param includeRotation - include rotation.
      * @return location to readable format: "x, y, z (yaw, pitch)"
      */
+    @Nonnull
     public static String locationToString(@Nonnull Location location, @Nonnull String format, boolean includeRotation) {
         if (includeRotation) {
             return String.format(format, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
@@ -128,6 +134,7 @@ public class BukkitUtils {
      * @param distance - Distance to travel.
      * @return vector with velocity of provided distance in Y direction.
      */
+    @Nonnull
     public static Vector vector3Y(double distance) {
         return new Vector(0.0d, sqrtDistance(distance), 0.0d);
     }
@@ -148,6 +155,7 @@ public class BukkitUtils {
      * @param tick - Tick to format.
      * @return formatted string.
      */
+    @Nonnull
     public static String roundTick(int tick) {
         return roundTick(tick, "");
     }
@@ -159,7 +167,8 @@ public class BukkitUtils {
      * @param suffix - Suffix to append if tick is divisible by 20.
      * @return formatted string.
      */
-    public static String roundTick(int tick, String suffix) {
+    @Nonnull
+    public static String roundTick(int tick, @Nonnull String suffix) {
         return tick % 20 == 0 ? ((tick / 20) + suffix) : BukkitUtils.decimalFormat(tick / 20.0d);
     }
 
@@ -192,7 +201,8 @@ public class BukkitUtils {
      * @param location - Location to copy from.
      * @return new location.
      */
-    public static Location newLocation(Location location) {
+    @Nonnull
+    public static Location newLocation(@Nonnull Location location) {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
@@ -203,6 +213,7 @@ public class BukkitUtils {
      * @param location - Location to center.
      * @return new location with centered X, Y and Z.
      */
+    @Nonnull
     public static Location centerLocation(@Nonnull Location location) {
         return new Location(location.getWorld(), location.getBlockX() + 0.5d, location.getBlockY() + 0.5d, location.getBlockZ() + 0.5d);
     }
@@ -552,4 +563,18 @@ public class BukkitUtils {
         }
     }
 
+    @Nonnull
+    public static BlockPosition toBlockPosition(@Nonnull Location location) {
+        return toBlockPosition(location.getX(), location.getY(), location.getZ());
+    }
+
+    @Nonnull
+    public static BlockPosition toBlockPosition(double x, double y, double z) {
+        return new BlockPosition(roundToNearestInteger(x), roundToNearestInteger(y), roundToNearestInteger(z));
+    }
+
+    public static int roundToNearestInteger(double number) {
+        final int roundedNumber = (int) number;
+        return number < (double) roundedNumber ? roundedNumber - 1 : roundedNumber;
+    }
 }

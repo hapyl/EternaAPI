@@ -1,0 +1,577 @@
+[33mcommit 7942cd82e1fec6a5aa8f8ff73d42ad0c9bbf7959[m[33m ([m[1;36mHEAD -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri May 24 20:58:21 2024 +0500
+
+    Add PlayerSkin.
+
+[33mcommit 45aaecd85f222ad8ce0c50c4fac77eea2d145eed[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu May 16 13:09:16 2024 +0500
+
+    Add PacketWrappers
+
+[33mcommit fdc5a78a7c70d8f8ba94ac282ad524986f99a41c[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue May 14 17:18:01 2024 +0500
+
+    Update deploy
+
+[33mcommit 814b8f2283a4d19e9a1af9ce3954b7d27dc564bc[m[33m ([m[1;31morigin/protocol[m[33m, [m[1;32mprotocol[m[33m)[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue May 14 16:26:43 2024 +0500
+
+    Bump version
+
+[33mcommit b3baf63aaeda299f0483ce08916788b4c38f1768[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue May 14 16:13:04 2024 +0500
+
+    Remove ProtocolLib depend
+
+[33mcommit 8c6e1f8aae9dda6cff4cbe7837deee62d443f164[m[33m ([m[1;31morigin/update1_20_6[m[33m, [m[1;32mupdate1_20_6[m[33m)[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue May 7 19:19:07 2024 +0500
+
+    Initial update 1.20.6 (NOT EVERYTHING WORKS)
+
+[33mcommit be2bb38df6f9d670064810f0e935bbf409c5f7ac[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Mar 24 11:31:41 2024 +0500
+
+    Improve ParticleBuilder.
+
+[33mcommit 6dfba2351eca69983dbdeb3bb391ea873fe29f35[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Mar 17 18:54:11 2024 +0500
+
+    Fix smart lore eating lines sometimes
+
+[33mcommit c51630258088a0a5af52a952b938ad9ca67025fb[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Mar 15 18:03:00 2024 +0500
+
+    Internal Registry changes
+
+[33mcommit f51f8993be133a346199ba855f2f6d053ec01779[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Mar 15 17:27:42 2024 +0500
+
+    Rewrite Record & Replay
+
+[33mcommit 9c03bd4a9f33aae9ed44d30dfdeec6867d286ad2[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Mar 14 04:53:56 2024 +0500
+
+    Add more MessageBuilder methods.
+
+[33mcommit 8741ec934b687a03dc64abdaf91c0c9f003e5a4b[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Mar 12 17:11:15 2024 +0500
+
+    Fix GUI click defaulting to LEFT_CLICK when they shouldn't have.
+
+[33mcommit 215c76ab7c488dfb74d64f4d68627cd4b90225d5[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Mar 8 19:22:53 2024 +0500
+
+    Remove most of Varargs, Fixes to ItemBuilder functions.
+
+[33mcommit 38c936d03deb50f5c2d75439052dec04191f4052[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Mon Mar 4 02:19:51 2024 +0500
+
+    Add ability to hide scoreboard numbers.
+
+[33mcommit 1c8680e497cff653433b1266c297677ee0df6f98[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Mar 3 18:46:02 2024 +0500
+
+    Update to 1.20.4
+
+[33mcommit fd0714ca247879b6129f3f791886c4c93f79ee7c[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Mar 2 19:36:23 2024 +0500
+
+    Internal change on how GUI clicks work. This change also defaults the click to LEFT, rather than any click!
+
+[33mcommit 47f98fb758daf379c69a7a310d384861d679a207[m[33m ([m[1;32mall_my_homies_hate_varargs[m[33m)[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Feb 25 19:53:41 2024 +0600
+
+    Got rid of most varargs. (You'll need to clean build)
+
+[33mcommit 3d30dfc71f0c4ed8a4b2cf306a0c59712129a42b[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Feb 24 17:01:34 2024 +0600
+
+    Rewrite CenterChat.
+
+[33mcommit d2bdb810887a1e2c90f70252b60b410feaaf4bab[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Feb 23 08:49:14 2024 +0600
+
+    Null EntryList values now reset the line.
+
+[33mcommit 754da635cd3c79ba9eb3847147c7cccde2ef957d[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Feb 23 06:43:53 2024 +0600
+
+    You guessed it, another Tablist change.
+
+[33mcommit c1b44196ef7b7b836a074e09fa94f0de302f796d[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Feb 23 04:15:14 2024 +0600
+
+    Tablist changes.
+
+[33mcommit 9b174f8e7801f8359b0236a9382fbdc6066179a8[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Mon Feb 19 05:50:33 2024 +0600
+
+    Optimize Tablist.
+
+[33mcommit c4d551b696fa7676f82c1155347a4a624b52633b[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Mon Feb 19 05:11:39 2024 +0600
+
+    NPC backend changed and Tablist fix (I think I HOPE I PRAYGE)
+
+[33mcommit 2e0a852707a53495b7b907c8b8032dca112acbbe[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Feb 18 22:31:30 2024 +0600
+
+    Add Tablist.
+
+[33mcommit 1227e94927a424dc62ca25c9897e0b088439b93c[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Feb 13 19:48:54 2024 +0600
+
+    Add MessageBuilder.
+
+[33mcommit 38a068c1f059c52b6509647b68cb146666a46f15[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Feb 13 18:40:28 2024 +0600
+
+    Unfinalized TypeConverter.
+
+[33mcommit 1d7d1776763b93acaacff0038ef3f52c45749791[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Feb 13 18:32:58 2024 +0600
+
+    Add missing #getLocation() to IDisplay.
+
+[33mcommit 2f2dc0770d305cba65d4d1337811cee9ccedd145[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Mon Jan 29 14:51:08 2024 +0600
+
+    Fix DisplayEntity teleport duration.
+
+[33mcommit b7eb027a01bb0b995d786146f45126f831390780[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Mon Jan 29 12:31:28 2024 +0600
+
+    Remove unused dependencies.
+
+[33mcommit cef3d2c88488bb2b8b2132a42378bba0649a9a11[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Mon Jan 29 12:29:34 2024 +0600
+
+    Add PacketEntity.
+
+[33mcommit 530536713125c029dfdfb2910f6bb3acbfb8d186[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Jan 26 15:59:45 2024 +0600
+
+    Add acceptAll() to ItemFunction
+
+[33mcommit 32a96562d06fcd4db39f1ffb378e6125a90e9805[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Jan 26 15:58:44 2024 +0600
+
+    Fix Geometry#drawPolygon
+
+[33mcommit 7318f78554782595ca7c4828fbdb0e6dc35a5112[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Jan 26 05:26:58 2024 +0600
+
+    Fixed ItemBuilder not cloning ItemMeta.
+
+[33mcommit eed61b57ff2aa7aa07c08f197625b6e48fda9afa[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Jan 25 06:11:09 2024 +0600
+
+    Rewrite ItemBuider functions.
+
+[33mcommit efce62026508f51d1dd729d35ac2a41658072b27[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Wed Jan 24 01:47:07 2024 +0600
+
+    Fix Chat#format throwing Exceptions.
+
+[33mcommit c4705b75247590d6910529742440daef5613cd95[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Dec 23 18:23:41 2023 +0600
+
+    Actually fix HumanNPC.
+
+[33mcommit 1b5cb062b3f0c82b2f295bbae87930746af72fc3[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Dec 23 06:49:49 2023 +0600
+
+    Fix HumanNPC. Add FakePlayer.
+
+[33mcommit d5de72e6057987a399d1db092015ba5c49781dba[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Dec 23 05:06:51 2023 +0600
+
+    Fix SOUT in HumanNPC.
+
+[33mcommit 58b069079f204659bf23f97f7104b483f3be848a[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Dec 21 23:08:56 2023 +0600
+
+    Fix BoundingBox.
+
+[33mcommit b1c135b27c6112b2148d9d1a6b78f48e7b99bd5c[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Dec 16 18:54:27 2023 +0600
+
+    Patch Glowing respawning.
+
+[33mcommit ccc033bc2db819b92f9c99d907d184d741de36e4[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Dec 16 17:39:43 2023 +0600
+
+    Fix Glowing. Honestly I'm so tired of this stupid game and I'm not fixing Glowing anymore, GOOD ENOUGH FOR ME.
+
+[33mcommit 0b3ecdd96b8af4baa6ca691e209abe0c031f7a3b[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Dec 14 20:23:02 2023 +0600
+
+    Update PlayerHologram.
+
+[33mcommit beb6736a3cc7d17ec68b482e9ed315a435dcec10[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Dec 7 23:10:48 2023 +0600
+
+    Improve Synthesizer
+
+[33mcommit ea9b292f515cac9dd25ee50335630cf4e43fcac7[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Wed Dec 6 13:54:56 2023 +0600
+
+    Hopefully fix NPC spawning.
+
+[33mcommit 68aa077ef6e765a0499029665c0fe274db5b59c2[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Wed Dec 6 13:54:39 2023 +0600
+
+    Add Compute.
+
+[33mcommit 05a0508c2ffc5d0c7e9e80620e3b29307316ab4d[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Dec 5 18:42:14 2023 +0600
+
+    Fix custom heads console spam. (Thanks bukkit)
+
+[33mcommit 5f8ddd03905a4934981eee3ea66a5825b8aad2e0[m
+Merge: 3919486 4363770
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Dec 5 18:10:52 2023 +0600
+
+    Merge branch 'master' into dev
+
+[33mcommit 3919486dbd66cb3690a2cf3ac4f7495b7044c576[m
+Merge: 3944b5d fa51f87
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Dec 5 18:06:27 2023 +0600
+
+    Merge branch 'dev' of https://github.com/Hapyl/EternaAPI into dev
+
+[33mcommit 3944b5dbfa525f4c4d41b53e8ee320ff9538ae49[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 21:19:37 2023 +0600
+
+    Rollback to 1.20 because everything has broke
+
+[33mcommit ac1c4ec0f123613bb8a7a6cf786e005641a49f8e[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 21:10:35 2023 +0600
+
+    .
+
+[33mcommit 4a4c814f2a5f8503b21ee3cf36265fd290cbc3c5[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 21:07:51 2023 +0600
+
+    Rollback Protocol to 5.0
+
+[33mcommit fb0e431d1cc6baa43c7dec7712b7397930c9eeed[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 20:50:01 2023 +0600
+
+    Update to 1.20.1
+
+[33mcommit 98318e195db1aae5e24da49b98d2c648a5fb5616[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Oct 14 18:06:01 2023 +0600
+
+    Hopefully fixed glowing.
+
+[33mcommit 9cf067ce0c35062ce89976c0027d2c61711fa43a[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Oct 8 10:14:33 2023 +0600
+
+    Smart lore now remembers the last color upon splitting the line.
+
+[33mcommit b501334fc7b8bca017cfd893180bc8217dfa2bae[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Sep 17 16:06:24 2023 +0600
+
+    Fix npc teleport.
+
+[33mcommit b00aaa249eb3fa5b0b9fde9585e7a5b18d9ea83a[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Sep 10 13:10:09 2023 +0600
+
+    Update SimpleCommand and formatters.
+
+[33mcommit 97ea5a267f342178ae4f7df1aab4f589d62eb87f[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Sep 10 12:15:55 2023 +0600
+
+    Fix NPC not removing properly.
+
+[33mcommit 962864bd03a58610bb61447962da6d2db4a869ea[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Sep 9 13:40:34 2023 +0600
+
+    PacketHandler & more goals.
+
+[33mcommit 223f288f15bfd5bbbbbb2dd8b31990c9b8ea04ec[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Sep 9 12:25:37 2023 +0600
+
+    Fix NPC hurt animation.
+
+[33mcommit a0d16a36fcbee77c7abb3c207662012234aa1d8e[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Sep 7 12:27:00 2023 +0600
+
+    Fix sendClickableHoverableMessage() using wrong argument.
+
+[33mcommit a90fcef1fc7876de029d7f2471a2c4a5a5da8bd7[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Sep 7 12:26:05 2023 +0600
+
+    Chance PlayerPageGUI clear behaviour.
+
+[33mcommit 2957ee8053768bff0935a32428e7f93b52835792[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Sep 7 12:22:48 2023 +0600
+
+    Add rest head position.
+
+[33mcommit 23d954269caea867791e50e1f026d40d6b9d49ec[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Sep 7 11:50:37 2023 +0600
+
+    Fix NPC sitting resetting after reappearing.
+
+[33mcommit d66a27b3da1db14d6958f348f4729a12259493c3[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Sep 3 05:44:19 2023 +0600
+
+    Add NPC sitting.
+
+[33mcommit 2dbc3d27d1bc9c1608590106ba87d11ffa0ec125[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Aug 26 15:50:15 2023 +0600
+
+    Correct version.
+
+[33mcommit a722416105f50a61b4e29e479edfdb0a568ff1c4[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Aug 26 15:46:49 2023 +0600
+
+    Add FlippedHumanNPC.
+
+[33mcommit ca53dc20ed1a5e6282ed9494fb67cbffa416ebbe[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sat Aug 26 15:01:28 2023 +0600
+
+    Fix LimitedVisibility distance check.
+
+[33mcommit aff83b74fb89486bb41403bad6339e6a43471cab[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Aug 3 03:41:24 2023 +0600
+
+    Fix hologram not updating location.
+
+[33mcommit 2cf1f11e5c1d8e02484e487f599c9d09ed212137[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Jul 6 20:20:46 2023 +0600
+
+    Update string wrap to not count colors.
+
+[33mcommit a56e1785eebc589389aa626f8218bc64c0853413[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Jul 6 18:47:05 2023 +0600
+
+    Improve WeightedCollection
+
+[33mcommit 14bdb276ef5106906537afe65172d9f4b5e4ca08[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Jul 4 21:37:17 2023 +0600
+
+    Add preProcessInventory
+
+[33mcommit 4d44af1ecaa3914fc2371a28f8ed732b17287dbd[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Jul 4 21:35:40 2023 +0600
+
+    Update Holograms
+
+[33mcommit 0b68d109c210becda16359d43537873ffda5e9e1[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Jul 2 21:28:54 2023 +0600
+
+    Update PlayerPageGUI onClick()
+
+[33mcommit 43624b0ebbe7e24972bd6235409193049c8a3c04[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Jun 30 02:07:01 2023 +0600
+
+    Update BlockStudioParser
+
+[33mcommit 0be8bdf0d6afdc9e0cdd5250a6b006dda1928651[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Jun 25 16:48:43 2023 +0600
+
+    Add setNbt() to ItemBuilder
+
+[33mcommit a9cc2b192c65899d29d455f38e773afa195b0dec[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Jun 23 15:04:06 2023 +0600
+
+    Refactor Placeholder -> BFormat.
+
+[33mcommit 33f52382d87a29d727d3be5be6c16225eb817bfe[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Fri Jun 23 14:58:42 2023 +0600
+
+    Document & Refactor NBT.
+
+[33mcommit 89a00fd824701c930a9ed060624b99ba5236fa7f[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Jun 13 19:17:16 2023 +0600
+
+    Cleanup & Rewrite ItemBuilder.
+
+[33mcommit c5f9aada4ebb88acb28d4f89b782c660732b0786[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Jun 11 18:56:15 2023 +0600
+
+    Add armor trim to ItemBuilder
+
+[33mcommit e1b7548feee25f21f8c2f0fb8472f03165d88aed[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Sun Jun 11 01:22:24 2023 +0600
+
+    Fix SignGUI having empty prompt
+
+[33mcommit 43637700df0c67e649f78083e9b8c6c52c10d51b[m[33m ([m[1;32mmaster[m[33m)[m
+Merge: b5cf249 4bc8972
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Tue Dec 5 18:02:48 2023 +0600
+
+    Merge pull request #108 from hapyl/update_20_2
+    
+    Update to 1.20.2
+
+[33mcommit 4bc8972ce64dd3b10a4bb864afadb494be9cd3b0[m[33m ([m[1;31morigin/update_20_2[m[33m, [m[1;32mupdate_20_2[m[33m)[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Tue Dec 5 18:01:14 2023 +0600
+
+    Update to 1.20.2
+
+[33mcommit b5cf249e477a3a3f4cd3b53e3f1af9cd4f1674cc[m
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Tue Dec 5 09:23:36 2023 +0600
+
+    Update README.md
+
+[33mcommit bc8e9080f77f6a39433327a73f0ac6b050f51d2e[m
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Tue Dec 5 09:22:46 2023 +0600
+
+    Update README.md
+
+[33mcommit 3b584ae7ceb3bcf4a1849b2256efb54f9226fa03[m
+Merge: 84f2760 fa51f87
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Thu Oct 19 21:20:42 2023 +0600
+
+    Merge pull request #101 from hapyl/dev
+    
+    Rollback to 1.20 because everything has broke
+
+[33mcommit fa51f8789750eaedfeb92c364648bef8e48e5682[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 21:19:37 2023 +0600
+
+    Rollback to 1.20 because everything has broke
+
+[33mcommit 84f2760c8be39811285cd97ceca7007f4f7080eb[m[33m ([m[1;33mtag: 2.40.0-SNAPSHOT[m[33m)[m
+Merge: 23687c2 bc15508
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Thu Oct 19 21:11:59 2023 +0600
+
+    Merge pull request #100 from hapyl/dev
+    
+    Rollback Protocol to 5.0
+
+[33mcommit bc155080cc6990d0fca04e746341d3ebbfbb4dc9[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 21:10:35 2023 +0600
+
+    .
+
+[33mcommit 23687c28e40ca1a0ea3dba1f96fc46755d99ae22[m
+Merge: 40e712f 7aae417
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Thu Oct 19 21:10:06 2023 +0600
+
+    Merge pull request #99 from hapyl/dev
+    
+    Rollback Protocol to 5.0
+
+[33mcommit 7aae417003195cd0ebe27517402328476a1c9f50[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 21:07:51 2023 +0600
+
+    Rollback Protocol to 5.0
+
+[33mcommit 40e712fd055870d51ab7285390d51ee8abef182b[m[33m ([m[1;33mtag: 2.37.2-SNAPSHOT[m[33m)[m
+Merge: 723e2c9 5c059c6
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Thu Oct 19 20:52:05 2023 +0600
+
+    Merge pull request #98 from hapyl/dev
+    
+    Update to 1.20.1
+
+[33mcommit 5c059c6542b4659954e06ae16152f2a5458cb6ef[m
+Author: hapyl <deojoff@gmail.com>
+Date:   Thu Oct 19 20:50:01 2023 +0600
+
+    Update to 1.20.1
+
+[33mcommit 723e2c9fe2545aadfd7b8181943885dfe0aa2300[m[33m ([m[1;33mtag: 2.37.1-SNAPSHOT[m[33m)[m
+Merge: 96f7025 7f9405a
+Author: hapyl <23381135+hapyl@users.noreply.github.com>
+Date:   Sat Oct 14 18:07:46 2023 +0600
+
+    Merge pull request #96 from hapyl/dev
+    
+    Hopefully fixed glowing.

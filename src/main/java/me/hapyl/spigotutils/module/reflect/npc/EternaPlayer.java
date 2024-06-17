@@ -5,6 +5,7 @@ import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.player.tablist.PingBars;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.InnerMojangEnums;
+import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.nulls.NullConnection;
 import me.hapyl.spigotutils.module.reflect.nulls.NullPacketListener;
@@ -69,7 +70,7 @@ public class EternaPlayer {
         final ServerCommonPacketListenerImpl connection = human.c;
 
         try {
-            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "i", true);
+            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "o", true); // i
 
             field.setAccessible(true);
             field.set(connection, ping);
@@ -127,7 +128,7 @@ public class EternaPlayer {
     }
 
     public NPCPose getPose() {
-        return NPCPose.fromNMS(human.ar());
+        return NPCPose.fromNMS(human.at());
     }
 
     public void setPose(@Nonnull NPCPose pose) {
@@ -242,7 +243,7 @@ public class EternaPlayer {
 
         @Nonnull
         public PacketPlayOutSpawnEntity getPacketEntitySpawn() {
-            return new PacketPlayOutSpawnEntity(human);
+            return me.hapyl.spigotutils.module.reflect.PacketFactory.makePacketPlayOutSpawnEntity(human, location);
         }
 
         @Nonnull

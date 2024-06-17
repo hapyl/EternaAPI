@@ -16,16 +16,14 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
-import org.checkerframework.checker.initialization.qual.NotOnlyInitialized;
 
 import javax.annotation.Nonnull;
-import java.sql.Ref;
 import java.util.List;
 
 /**
  * This class is a shortcut to packet creating and sending.
  */
-@TestedOn(version = Version.V1_20_4)
+@TestedOn(version = Version.V1_21)
 public final class Packets {
 
     private Packets() {
@@ -38,7 +36,7 @@ public final class Packets {
     public final static class Server {
 
         public static void spawnEntityLiving(@Nonnull EntityLiving entity, @Nonnull Player player) {
-            Reflect.sendPacket(player, new PacketPlayOutSpawnEntity(entity));
+            Reflect.sendPacket(player, new PacketPlayOutSpawnEntity(entity, Reflect.getEntityId(entity), Reflect.getEntityBlockPosition(entity)));
         }
 
         public static void entityDestroy(@Nonnull Entity entity, @Nonnull Player player) {

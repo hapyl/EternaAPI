@@ -1,8 +1,6 @@
 package me.hapyl.spigotutils.module.util;
 
-import com.google.common.collect.Lists;
 import me.hapyl.spigotutils.module.math.Numbers;
-import net.minecraft.network.protocol.Packet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -581,7 +579,7 @@ public class CollectionUtils {
      * @param <E>  - type of the list.
      * @return a random element.
      */
-    public static <E> E randomElement(List<E> list, E def) {
+    public static <E> E randomElement(@Nonnull List<E> list, E def) {
         if (list.isEmpty()) {
             return def;
         }
@@ -595,7 +593,7 @@ public class CollectionUtils {
      * @param action    - action to execute.
      * @param <E>       - type of the list.
      */
-    public static <E> void forEachConcurrent(List<E> arrayList, Consumer<E> action) {
+    public static <E> void forEachConcurrent(@Nonnull List<E> arrayList, @Nonnull Consumer<E> action) {
         ArrayList<E> copy = new ArrayList<>(arrayList);
         for (final E t : copy) {
             action.accept(t);
@@ -610,7 +608,7 @@ public class CollectionUtils {
      * @param action  - action to execute.
      * @param <E>     - type of the set.
      */
-    public static <E> void forEachConcurrent(Set<E> hashSet, Consumer<E> action) {
+    public static <E> void forEachConcurrent(@Nonnull Set<E> hashSet, @Nonnull Consumer<E> action) {
         Set<E> copy = new HashSet<>(hashSet);
         for (final E t : copy) {
             action.accept(t);
@@ -626,7 +624,7 @@ public class CollectionUtils {
      * @param <K>     - type of the map key.
      * @param <V>     - type of the map value.
      */
-    public static <K, V> void forEachConcurrent(Map<K, V> hashMap, BiConsumer<K, V> action) {
+    public static <K, V> void forEachConcurrent(@Nonnull Map<K, V> hashMap, @Nonnull BiConsumer<K, V> action) {
         Map<K, V> copy = new HashMap<>(hashMap);
         copy.forEach(action);
         copy.clear();
@@ -639,7 +637,7 @@ public class CollectionUtils {
      * @param element   - element to add.
      * @param <E>       - type of the list.
      */
-    public static <E> void addIfAbsent(List<E> arrayList, E element) {
+    public static <E> void addIfAbsent(@Nonnull List<E> arrayList, @Nonnull E element) {
         if (!arrayList.contains(element)) {
             arrayList.add(element);
         }
@@ -653,7 +651,7 @@ public class CollectionUtils {
      * @param <E>        - type of the collection.
      */
     @SafeVarargs
-    public static <E> void removeAll(Collection<E> collection, E... elements) {
+    public static <E> void removeAll(@Nonnull Collection<E> collection, @Nonnull E... elements) {
         for (final E element : elements) {
             collection.remove(element);
         }
@@ -666,7 +664,9 @@ public class CollectionUtils {
      * @param <E>     - type of the set.
      * @return the array.
      */
-    public static <E> E[] setToArray(Set<E> hashSet) {
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    public static <E> E[] setToArray(@Nonnull Set<E> hashSet) {
         return (E[]) hashSet.toArray();
     }
 
@@ -677,7 +677,8 @@ public class CollectionUtils {
      * @param <E>   - type of the array.
      * @return the list.
      */
-    public static <E> List<E> arrayToList(E[] array) {
+    @Nonnull
+    public static <E> List<E> arrayToList(@Nonnull E[] array) {
         return new ArrayList<>(Arrays.asList(array));
     }
 
@@ -688,7 +689,8 @@ public class CollectionUtils {
      * @param <E>   - type of the array.
      * @return the set.
      */
-    public static <E> Set<E> arrayToSet(E[] array) {
+    @Nonnull
+    public static <E> Set<E> arrayToSet(@Nonnull E[] array) {
         return new HashSet<>(Arrays.asList(array));
     }
 
@@ -698,6 +700,7 @@ public class CollectionUtils {
      * @param array - array to convert.
      * @return the list.
      */
+    @Nonnull
     public static List<Integer> intArrayToList(int[] array) {
         final List<Integer> list = new ArrayList<>();
         for (final int i : array) {

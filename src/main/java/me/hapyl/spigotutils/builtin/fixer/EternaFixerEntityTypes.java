@@ -15,7 +15,7 @@ public class EternaFixerEntityTypes implements EternaFixer {
 
     @Override
     public void fix(FileWriter fileWriter) throws Exception {
-        final RegistryBlocks<EntityTypes<?>> registry = BuiltInRegistries.g;
+        final RegistryBlocks<EntityTypes<?>> registry = BuiltInRegistries.f;
 
         final StringBuilder builder = new StringBuilder();
         final StringBuilder builderStatic = new StringBuilder("static {\n");
