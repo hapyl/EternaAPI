@@ -6,25 +6,28 @@ import io.netty.channel.Channel;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.*;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
-import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.Validate;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.network.NetworkManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.*;
-import net.minecraft.network.syncher.DataWatcher;
-import net.minecraft.network.syncher.DataWatcherObject;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
-import net.minecraft.server.network.ServerConnection;
-import net.minecraft.world.entity.projectile.EntityEgg;
+import net.minecraft.server.network.ServerConnectionListener;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.projectile.ThrownEgg;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
-import net.minecraft.world.scores.ScoreboardTeam;
+import net.minecraft.world.scores.PlayerTeam;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
@@ -54,13 +57,13 @@ import java.util.UUID;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_20_6)
+@TestedOn(version = Version.V1_21)
 public final class Reflect {
 
     private static final String mcVersion;
     private static final String getHandleMethodName = "getHandle";
     @AccessViaGetter("Reflect#getFakeEntity()")
-    private static EntityEgg fakeEntity;
+    private static ThrownEgg fakeEntity;
 
     static {
         final String name = Bukkit.getServer().getClass().getPackage().getName();
@@ -97,7 +100,11 @@ public final class Reflect {
     @Nullable
     public static Class<?> getCraftClass(@Nonnull String path) {
         try {
-            return Class.forName("org.bukkit.craftbukkit." + getVersion() + "." + path);
+            // Paper removed the version part of the craftbukkit,
+            // since Eterna no longer supports Spigot, the version part was
+            // removed. If ever want to add the Spigot support, just add
+            // another Class#forName I guess. -h
+            return Class.forName("org.bukkit.craftbukkit." + path);
         } catch (ClassNotFoundException e) {
             EternaLogger.exception(e);
             return null;
@@ -105,13 +112,13 @@ public final class Reflect {
     }
 
     /**
-     * Sends a {@link PacketPlayOutEntityTeleport} packet to player.
+     * Sends a {@link ClientboundTeleportEntityPacket} packet to player.
      *
      * @param entity - Entity to update location of.
      * @param player - Player to update location for.
      */
     public static void updateEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        sendPacket(player, new PacketPlayOutEntityTeleport(entity));
+        sendPacket(player, new ClientboundTeleportEntityPacket(entity));
     }
 
     /**
@@ -123,17 +130,17 @@ public final class Reflect {
      * @param location - Location.
      */
     public static void setEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Location location) {
-        entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        entity.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**
-     * Sends a {@link PacketPlayOutEntityDestroy} packet to player.
+     * Sends a {@link ClientboundRemoveEntitiesPacket} packet to player.
      *
      * @param entity - Entity to remove.
      * @param player - Player to remove this entity for.
      */
     public static void destroyEntity(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        sendPacket(player, new PacketPlayOutEntityDestroy(entity.getBukkitEntity().getEntityId()));
+        sendPacket(player, new ClientboundRemoveEntitiesPacket(entity.getId()));
     }
 
     /**
@@ -150,9 +157,9 @@ public final class Reflect {
      * @param <T>    - Type of the value.
      */
     public static <T> void setDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key, @Nullable T value) {
-        final DataWatcher dataWatcher = getDataWatcher(entity);
+        final SynchedEntityData dataWatcher = getDataWatcher(entity);
 
-        setDataWatcherValue0(dataWatcher, type.get().a(key), value);
+        setDataWatcherValue0(dataWatcher, type.get().createAccessor(key), value);
     }
 
     /**
@@ -165,8 +172,8 @@ public final class Reflect {
      * @return Value.
      */
     public static <T> T getDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key) {
-        final DataWatcher dataWatcher = getDataWatcher(entity);
-        return dataWatcher.a(type.get().a(key)); // get(EntityDataAccessor arg0)
+        final SynchedEntityData dataWatcher = getDataWatcher(entity);
+        return dataWatcher.get(type.get().createAccessor(key));
     }
 
     /**
@@ -192,9 +199,9 @@ public final class Reflect {
      * @param <T>         - Type of the value.
      */
     @Super
-    public static <T> void setDataWatcherValue0(@Nonnull DataWatcher dataWatcher, @Nonnull DataWatcherObject<T> type, T value) {
+    public static <T> void setDataWatcherValue0(@Nonnull SynchedEntityData dataWatcher, @Nonnull EntityDataAccessor<T> type, T value) {
         try {
-            dataWatcher.a(type, value); // set(EntityDataAccessor arg0, Object arg1)
+            dataWatcher.set(type, value);
         } catch (Exception e) {
             EternaLogger.exception(e);
         }
@@ -207,20 +214,20 @@ public final class Reflect {
      * @param watcher - DataWatcher.
      * @param player  - Player, who will see the update.
      */
-    public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcher watcher, @Nonnull Player player) {
-        sendPacket(player, new PacketPlayOutEntityMetadata(getEntityId(entity), watcher.c()));
+    public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull SynchedEntityData watcher, @Nonnull Player player) {
+        sendPacket(player, new ClientboundSetEntityDataPacket(getEntityId(entity), watcher.getNonDefaultValues()));
     }
 
     /**
      * Updates the metadata for the given entity for the given players.
      * <br>
-     * This will use the entities actual {@link DataWatcher}.
+     * This will use the entities actual {@link SynchedEntityData}.
      *
      * @param entity - Entity.
      * @param player - Player, who will see the change.
      */
     public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        sendPacket(player, new PacketPlayOutEntityMetadata(getEntityId(entity), getDataWatcher(entity).c()));
+        sendPacket(player, new ClientboundSetEntityDataPacket(getEntityId(entity), getDataWatcher(entity).getNonDefaultValues()));
     }
 
     /**
@@ -230,7 +237,7 @@ public final class Reflect {
      * @return entity's ID.
      */
     public static int getEntityId(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return entity.an(); // getId()
+        return entity.getId();
     }
 
     /**
@@ -516,9 +523,9 @@ public final class Reflect {
      * @return BlockPosition.
      */
     @Nonnull
-    public static BlockPosition getBlockPosition(@Nonnull Block block) {
+    public static BlockPos getBlockPosition(@Nonnull Block block) {
         final Location location = block.getLocation();
-        return new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        return new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     /**
@@ -549,7 +556,7 @@ public final class Reflect {
      * @param player - Who entity will be hidden for.
      */
     public static void hideEntity(@Nonnull Entity entity, @Nonnull Player player) {
-        sendPacket(player, new PacketPlayOutEntityDestroy(entity.getEntityId()));
+        sendPacket(player, new ClientboundRemoveEntitiesPacket(entity.getEntityId()));
     }
 
     /**
@@ -559,41 +566,41 @@ public final class Reflect {
      * @param player    - Player.
      */
     public static void createEntity(@Nonnull net.minecraft.world.entity.Entity netEntity, @Nonnull Player player) {
-        sendPacket(player, new PacketPlayOutSpawnEntity(netEntity, getEntityId(netEntity), getEntityBlockPosition(netEntity)));
+        sendPacket(player, new ClientboundAddEntityPacket(netEntity, netEntity.getId(), getEntityBlockPosition(netEntity)));
     }
 
     /**
-     * Gets entity's {@link DataWatcher}.
+     * Gets entity's {@link SynchedEntityData}.
      *
      * @param entity - Entity.
      * @return the data watcher.
      */
     @Nonnull
-    public static DataWatcher getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return Objects.requireNonNull(entity.ar(), "DataWatcher cannot be null."); // getEntityData()
+    public static SynchedEntityData getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return Objects.requireNonNull(entity.getEntityData(), "DataWatcher cannot be null."); // getEntityData()
     }
 
     /**
-     * Gets the non-default values from the {@link DataWatcher}.
+     * Gets the non-default values from the {@link SynchedEntityData}.
      *
      * @param dataWatcher - Data watcher.
      * @return the list of non-default values.
      */
     @Nonnull
-    public static List<DataWatcher.c<?>> getDataWatcherNonDefaultValues(@Nonnull DataWatcher dataWatcher) {
-        final List<DataWatcher.c<?>> values = dataWatcher.c();
+    public static List<SynchedEntityData.DataValue<?>> getDataWatcherNonDefaultValues(@Nonnull SynchedEntityData dataWatcher) {
+        final List<SynchedEntityData.DataValue<?>> values = dataWatcher.getNonDefaultValues();
 
         return values == null ? Lists.newArrayList() : values;
     }
 
     /**
-     * Gets the non-default values from the entity's {@link DataWatcher}.
+     * Gets the non-default values from the entity's {@link SynchedEntityData}.
      *
      * @param entity - Entity.
      * @return the list of non-default values.
      */
     @Nonnull
-    public static List<DataWatcher.c<?>> getDataWatcherNonDefaultValues(@Nonnull net.minecraft.world.entity.Entity entity) {
+    public static List<SynchedEntityData.DataValue<?>> getDataWatcherNonDefaultValues(@Nonnull net.minecraft.world.entity.Entity entity) {
         return getDataWatcherNonDefaultValues(getDataWatcher(entity));
     }
 
@@ -668,18 +675,18 @@ public final class Reflect {
             return;
         }
 
-        getPlayerConnection(player).b(packet);
+        getPlayerConnection(player).send(packet);
     }
 
     /**
-     * Gets a {@link PlayerConnection} for the given {@link Player}.
+     * Gets a {@link Connection} for the given {@link Player}.
      *
      * @param player - Player to get the connection for.
      * @return the player connection.
      */
     @Nonnull
-    public static PlayerConnection getPlayerConnection(@Nonnull Player player) {
-        return getMinecraftPlayer(player).c;
+    public static ServerGamePacketListenerImpl getPlayerConnection(@Nonnull Player player) {
+        return getMinecraftPlayer(player).connection;
     }
 
     /**
@@ -690,23 +697,23 @@ public final class Reflect {
      */
     @Nonnull
     public static Channel getNettyChannel(@Nonnull Player player) {
-        return getNetworkManager(player).n;
+        return getNetworkManager(player).channel;
     }
 
     /**
-     * Gets a {@link NetworkManager} for the given {@link Player}.
+     * Gets a {@link Connection} for the given {@link Player}.
      *
      * @param player - Player to get the manager for.
-     * @return the player manager.
+     * @return the player connection.
      */
     @Nonnull
-    public static NetworkManager getNetworkManager(@Nonnull Player player) {
-        final PlayerConnection playerConnection = getPlayerConnection(player);
+    public static Connection getNetworkManager(@Nonnull Player player) {
+        final ServerGamePacketListenerImpl playerConnection = getPlayerConnection(player);
 
         try {
-            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "e", true);
+            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "connection", true);
 
-            return (NetworkManager) field.get(playerConnection);
+            return (Connection) field.get(playerConnection);
         } catch (Exception e) {
             EternaLogger.exception(e);
         }
@@ -731,7 +738,7 @@ public final class Reflect {
      * @return CraftEntity.
      */
     public static Object getCraftEntity(Entity entity) {
-        return invokeMethod(lazyMethod(entity.getClass(), "getHandle"), entity);
+        return getHandle(entity, Object.class); // todo: Might not work casting to an object?
     }
 
     /**
@@ -752,8 +759,8 @@ public final class Reflect {
      * @return the game profile.
      */
     @Nonnull
-    public static GameProfile getGameProfile(@Nonnull EntityPlayer player) {
-        return player.fX(); // getGameProfile()
+    public static GameProfile getGameProfile(@Nonnull ServerPlayer player) {
+        return player.getGameProfile();
     }
 
     /**
@@ -879,8 +886,8 @@ public final class Reflect {
      * @param player - Bukkit player.
      * @return the NMS player.
      */
-    public static EntityPlayer getMinecraftPlayer(@Nonnull Player player) {
-        return (EntityPlayer) Reflect.invokeMethod(Reflect.lazyMethod(player.getClass(), "getHandle"), player);
+    public static ServerPlayer getMinecraftPlayer(@Nonnull Player player) {
+        return getHandle(player, ServerPlayer.class);
     }
 
     /**
@@ -889,8 +896,8 @@ public final class Reflect {
      * @param bukkitWorld - Bukkit world.
      * @return the NMS world.
      */
-    public static net.minecraft.world.level.World getMinecraftWorld(@Nonnull World bukkitWorld) {
-        return (net.minecraft.world.level.World) Reflect.invokeMethod(Reflect.lazyMethod(bukkitWorld, "getHandle"), bukkitWorld);
+    public static ServerLevel getMinecraftWorld(@Nonnull World bukkitWorld) {
+        return getHandle(bukkitWorld, ServerLevel.class);
     }
 
     /**
@@ -913,14 +920,9 @@ public final class Reflect {
      * @param scoreboard - Bukkit scoreboard.
      * @return NMS scoreboard.
      */
-    @Nullable
+    @Nonnull
     public static net.minecraft.world.scores.Scoreboard getNetScoreboard(@Nonnull Scoreboard scoreboard) {
-        try {
-            return (net.minecraft.world.scores.Scoreboard) MethodUtils.invokeMethod(scoreboard, "getHandle", null);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return getHandle(scoreboard, net.minecraft.world.scores.Scoreboard.class);
     }
 
     /**
@@ -931,14 +933,8 @@ public final class Reflect {
      * @return NMS scoreboard team.
      */
     @Nullable
-    public static ScoreboardTeam getNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
-        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
-
-        if (netScoreboard == null) {
-            throw new IllegalArgumentException("cannot retrieve team from null scoreboard!");
-        }
-
-        return netScoreboard.b(teamName); // getPlayerTeam
+    public static PlayerTeam getNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
+        return getNetScoreboard(scoreboard).getPlayerTeam(teamName);
     }
 
     /**
@@ -949,20 +945,25 @@ public final class Reflect {
      * @throws IllegalArgumentException if the team is somehow not a team.
      */
     @Nonnull
-    public static ScoreboardTeam getNetTeam(@Nonnull Team team) throws IllegalArgumentException {
+    public static PlayerTeam getNetTeam(@Nonnull Team team) throws IllegalArgumentException {
         try {
             final Object object = FieldUtils.readDeclaredField(team, "team", true);
 
-            if (!(object instanceof ScoreboardTeam nmsTeam)) {
-                throw new IllegalArgumentException("Team is not a team somehow??????????????");
-            }
-
-            return nmsTeam;
+            return castOrThrow(object, PlayerTeam.class);
         } catch (Exception e) {
             EternaLogger.exception(e);
         }
 
         throw new IllegalArgumentException("Could not parse getNetTeam() for some reason!");
+    }
+
+    @Nonnull
+    public static <T> T castOrThrow(@Nonnull Object object, @Nonnull Class<T> clazz) {
+        if (clazz.isInstance(object)) {
+            return clazz.cast(object);
+        }
+
+        throw new IllegalArgumentException("%s cannot be cast to %s".formatted(object.toString(), clazz.getSimpleName()));
     }
 
     /**
@@ -973,12 +974,12 @@ public final class Reflect {
      * @return the NMS team or null.
      */
     @Nullable
-    public static ScoreboardTeam getNetTeam(@Nonnull Scoreboard scoreboard, ScoreboardTeam team) {
+    public static net.minecraft.world.scores.Team getNetTeam(@Nonnull Scoreboard scoreboard, Team team) {
         if (team == null) {
             return null;
         }
 
-        return getNetTeam(scoreboard, team.b());
+        return getNetTeam(scoreboard, team.getName());
     }
 
     /**
@@ -988,14 +989,8 @@ public final class Reflect {
      * @param teamName   - Name of the team.
      * @return NMS scoreboard team.
      */
-    public static ScoreboardTeam createNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
-        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
-
-        if (netScoreboard == null) {
-            throw new IllegalArgumentException("cannot create team for null scoreboard!");
-        }
-
-        return netScoreboard.c(teamName); // addPlayerTeam
+    public static net.minecraft.world.scores.Team createNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
+        return getNetScoreboard(scoreboard).addPlayerTeam(teamName);
     }
 
     /**
@@ -1005,19 +1000,13 @@ public final class Reflect {
      * @param teamName   - Name of the team.
      */
     public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
-        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
-
-        if (netScoreboard == null) {
-            throw new IllegalArgumentException("cannot delete team from null scoreboard!");
-        }
-
-        final ScoreboardTeam team = getNetTeam(scoreboard, teamName);
+        final PlayerTeam team = getNetTeam(scoreboard, teamName);
 
         if (team == null) {
             return;
         }
 
-        netScoreboard.d(team); // removePlayerTeam
+        getNetScoreboard(scoreboard).removePlayerTeam(team);
     }
 
     /**
@@ -1026,14 +1015,8 @@ public final class Reflect {
      * @param scoreboard - Scoreboard.
      * @param netTeam    - Team.
      */
-    public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull ScoreboardTeam netTeam) {
-        final net.minecraft.world.scores.Scoreboard netScoreboard = getNetScoreboard(scoreboard);
-
-        if (netScoreboard == null) {
-            throw new IllegalArgumentException("either net scoreboard or net team is null");
-        }
-
-        netScoreboard.d(netTeam);
+    public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull PlayerTeam netTeam) {
+        getNetScoreboard(scoreboard).removePlayerTeam(netTeam);
     }
 
     /**
@@ -1043,7 +1026,7 @@ public final class Reflect {
      * @return the bukkit world or null.
      */
     @Nullable
-    public static World getBukkitWorld(WorldServer worldServer) {
+    public static World getBukkitWorld(ServerLevel worldServer) {
         return Bukkit.getWorld(worldServer.uuid);
     }
 
@@ -1085,26 +1068,17 @@ public final class Reflect {
 
     @Nonnull
     public static String getScoreboardEntityName(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return entity.cB();
-    }
-
-    @Nonnull
-    public static EntityEgg getFakeEntity() {
-        if (fakeEntity == null) {
-            fakeEntity = new EntityEgg(Reflect.getMinecraftWorld(BukkitUtils.defWorld()), 0, 0, 0);
-        }
-
-        return fakeEntity;
+        return entity.getScoreboardName();
     }
 
     /**
-     * Gets the {@link ServerConnection} for the server.
+     * Gets the {@link ServerConnectionListener} for the server.
      *
      * @return server connection.
      */
     @Nonnull
-    public static ServerConnection getServerConnection() {
-        return getMinecraftServer().ai();
+    public static ServerConnectionListener getServerConnection() {
+        return getMinecraftServer().getConnection();
     }
 
     /**
@@ -1138,7 +1112,7 @@ public final class Reflect {
     }
 
     /**
-     * Gets a new {@link BlockPosition} of entity's position.
+     * Gets a new {@link BlockPos} of entity's position.
      * <br>
      * May not be accurate.
      *
@@ -1146,18 +1120,19 @@ public final class Reflect {
      * @return a new block position of entity.
      */
     @Nonnull
-    public static BlockPosition getEntityBlockPosition(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return new BlockPosition((int) entity.L, (int) entity.M, (int) entity.N);
+    public static BlockPos getEntityBlockPosition(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return new BlockPos((int) entity.xo, (int) entity.yo, (int) entity.zo);
     }
 
     @Nonnull
     public static UUID getEntityUuid(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return entity.cz();
+        return entity.getUUID();
     }
 
     @Nonnull
+    @SuppressWarnings("resource")
     public static Location getEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
-        @DoNotUseAutoCloseable final net.minecraft.world.level.World world = entity.dO();
+        @DoNotUseAutoCloseable final net.minecraft.world.level.Level world = entity.level();
         final World bukkitWorld = getBukkitWorld(world.getMinecraftWorld());
         final double[] location = getEntityLocation0(entity);
 
@@ -1165,7 +1140,7 @@ public final class Reflect {
     }
 
     private static double[] getEntityLocation0(net.minecraft.world.entity.Entity entity) {
-        return new double[] { entity.L, entity.M, entity.N };
+        return new double[] { entity.xo, entity.yo, entity.zo };
     }
 
     private static Field getField0(Object instance, String name, boolean isDeclared) {

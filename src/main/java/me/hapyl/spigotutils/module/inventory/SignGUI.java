@@ -1,20 +1,19 @@
 package me.hapyl.spigotutils.module.inventory;
 
-import me.hapyl.spigotutils.module.annotate.AsyncNotSafe;
-import me.hapyl.spigotutils.module.annotate.Range;
-import me.hapyl.spigotutils.module.annotate.TestedOn;
-import me.hapyl.spigotutils.module.annotate.Version;
+import me.hapyl.spigotutils.module.annotate.*;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.util.Runnables;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.protocol.game.PacketPlayOutOpenSignEditor;
-import net.minecraft.world.item.EnumColor;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
-import net.minecraft.world.level.block.entity.TileEntitySign;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -26,11 +25,10 @@ import java.util.Map;
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedOn(version = Version.V1_20_6)
+@TestedOn(version = Version.V1_21)
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";
-    public static boolean IS_SPIGOT_SEND_SIGN_CHANGE_BROKEN = false;
 
     private static final Map<Player, SignGUI> saved = new HashMap<>();
 
@@ -204,46 +202,40 @@ public abstract class SignGUI {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
     private void createPacketAndSend() {
         player.sendBlockChange(location, type.material.createBlockData());
-
-        if (IS_SPIGOT_SEND_SIGN_CHANGE_BROKEN) {
-            createSignRaw();
-        }
-        else {
-            player.sendSignChange(location, this.lines);
-        }
+        player.sendSignChange(location, lines);
 
         // Open sign editor
-        Reflect.sendPacket(player, new PacketPlayOutOpenSignEditor(getBlockPosition(), true));
+        Reflect.sendPacket(player, new ClientboundOpenSignEditorPacket(getBlockPosition(), true));
 
         saved.put(player, this);
     }
 
-    private BlockPosition getBlockPosition() {
-        return new BlockPosition(
+    private BlockPos getBlockPosition() {
+        return new BlockPos(
                 location.getBlockX(),
                 location.getBlockY(),
                 location.getBlockZ()
         );
     }
 
-    // Spigot broke sendSignChange, using this ugly code for now
     private void createSignRaw() {
-        final TileEntitySign sign = new TileEntitySign(getBlockPosition(), Blocks.cE.o());
+        final SignBlockEntity sign = new SignBlockEntity(getBlockPosition(), Blocks.OAK_SIGN.defaultBlockState());
 
-        sign.a(new SignText(
-                new IChatBaseComponent[] {
-                        IChatBaseComponent.a(lines[0]),
-                        IChatBaseComponent.a(lines[1]),
-                        IChatBaseComponent.a(lines[2]),
-                        IChatBaseComponent.a(lines[3])
+        sign.setText(new SignText(
+                new Component[] {
+                        Component.literal(lines[0]),
+                        Component.literal(lines[1]),
+                        Component.literal(lines[2]),
+                        Component.literal(lines[3])
                 },
-                new IChatBaseComponent[] { CommonComponents.a, CommonComponents.a, CommonComponents.a, CommonComponents.a },
-                EnumColor.p, false
+                new Component[] { Component.empty(), Component.empty(), Component.empty(), Component.empty() },
+                DyeColor.BLACK, false
         ), true);
 
-        Reflect.sendPacket(player, sign.l());
+        Reflect.sendPacket(player, sign.getUpdatePacket());
     }
 
     public static Map<Player, SignGUI> getMap() {

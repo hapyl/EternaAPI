@@ -1,23 +1,25 @@
 package me.hapyl.spigotutils.module.reflect.nulls;
 
-import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
-import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
-public class NullPacketListener extends PlayerConnection {
+public class NullPacketListener extends ServerGamePacketListenerImpl {
 
-    public NullPacketListener(MinecraftServer minecraftserver, NetworkManager networkmanager, EntityPlayer entityplayer, CommonListenerCookie commonlistenercookie) {
+    public NullPacketListener(MinecraftServer minecraftserver, Connection networkmanager, ServerPlayer entityplayer, CommonListenerCookie commonlistenercookie) {
         super(minecraftserver, networkmanager, entityplayer, commonlistenercookie);
     }
 
+
     @Override
-    public void g() { // resumeFlushing
+    public final void resumeFlushing() {
     }
 
     @Override
-    public void b(Packet<?> packet) { // sendPacket
+    public final void sendPacket(Packet<?> packet) {
     }
+
 }

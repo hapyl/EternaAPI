@@ -4,57 +4,39 @@ import com.mojang.authlib.GameProfile;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.player.tablist.PingBars;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
-import me.hapyl.spigotutils.module.reflect.InnerMojangEnums;
-import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.nulls.NullConnection;
 import me.hapyl.spigotutils.module.reflect.nulls.NullPacketListener;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ClientInformation;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.level.WorldServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
-import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-// Wrapper because can't extend because using obf mappings
-public class EternaPlayer {
+public class EternaPlayer extends ServerPlayer {
 
     public final PacketFactory packetFactory;
-
-    protected final GameProfile profile;
-    protected final UUID uuid;
-    protected final EntityPlayer human;
-    protected final ClientInformation clientInformation;
-    protected final int entityId;
 
     private Location location;
 
     public EternaPlayer(@Nonnull Location location, @Nonnull String name) {
-        this.location = location;
-
-        this.uuid = UUID.randomUUID();
-        this.profile = new GameProfile(uuid, name);
-        this.clientInformation = ClientInformation.a();
-
-        this.human = new EntityPlayer(
+        super(
                 Reflect.getMinecraftServer(),
-                (WorldServer) Reflect.getMinecraftWorld(location.getWorld()),
-                profile,
-                clientInformation
+                Reflect.getMinecraftWorld(location.getWorld()),
+                new GameProfile(UUID.randomUUID(), name),
+                ClientInformation.createDefault()
         );
 
-        this.entityId = Reflect.getEntityId(human);
+        this.location = location;
         this.packetFactory = new PacketFactory();
 
         setConnection();
@@ -67,15 +49,10 @@ public class EternaPlayer {
      * @see PingBars
      */
     public void setPing(int ping) {
-        final ServerCommonPacketListenerImpl connection = human.c;
-
         try {
-            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "o", true); // i
-
-            field.setAccessible(true);
-            field.set(connection, ping);
+            FieldUtils.writeDeclaredField(this.connection, "connection", ping, true);
         } catch (Exception e) {
-            e.printStackTrace();
+            EternaLogger.exception(e);
         }
     }
 
@@ -90,22 +67,17 @@ public class EternaPlayer {
     }
 
     @Nonnull
-    public EntityPlayer getHuman() {
-        return human;
-    }
-
-    @Nonnull
     public GameProfile getProfile() {
-        return profile;
+        return getGameProfile();
     }
 
     @Nonnull
     public ClientInformation getClientInformation() {
-        return clientInformation;
+        return this.clientInformation();
     }
 
     public int getEntityId() {
-        return entityId;
+        return getId();
     }
 
     @Nonnull
@@ -115,64 +87,60 @@ public class EternaPlayer {
 
     public void setLocation(@Nonnull Location location) {
         this.location = location;
-        human.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+
+        absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     public void setYawPitch(float yaw, float pitch) {
-        human.a(location.getX(), location.getY(), location.getZ(), yaw, pitch);
+        absMoveTo(location.getX(), location.getY(), location.getZ(), yaw, pitch);
     }
 
-    @Nonnull
-    public Player getBukkitEntity() {
-        return human.getBukkitEntity();
-    }
-
-    public NPCPose getPose() {
-        return NPCPose.fromNMS(human.at());
+    public NPCPose getNPCPose() {
+        return NPCPose.fromNMS(getPose());
     }
 
     public void setPose(@Nonnull NPCPose pose) {
-        human.b(pose.getNMSValue());
+        setPose(pose.getNMSValue());
     }
 
     public void setDataWatcherByteValue(int key, byte value) {
-        Reflect.setDataWatcherByteValue(human, key, value);
+        Reflect.setDataWatcherByteValue(this, key, value);
     }
 
     public <D> void setDataWatcherValue(@Nonnull DataWatcherType<D> type, int key, @Nonnull D value) {
-        Reflect.setDataWatcherValue(human, type, key, value);
+        Reflect.setDataWatcherValue(this, type, key, value);
     }
 
     public byte getDataWatcherByteValue(int key) {
-        return Reflect.getDataWatcherValue(human, DataWatcherType.BYTE, key);
+        return Reflect.getDataWatcherValue(this, DataWatcherType.BYTE, key);
     }
 
     @Nonnull
-    public DataWatcher getDataWatcher() {
-        return Reflect.getDataWatcher(human);
+    public SynchedEntityData getDataWatcher() {
+        return Reflect.getDataWatcher(this);
     }
 
     public void updateMetadata(@Nonnull Collection<Player> players) {
         for (Player player : players) {
-            Reflect.updateMetadata(human, getDataWatcher(), player);
+            Reflect.updateMetadata(this, getDataWatcher(), player);
         }
     }
 
     public void updateMetadata(@Nonnull Player player) {
-        Reflect.updateMetadata(human, getDataWatcher(), player);
+        Reflect.updateMetadata(this, getDataWatcher(), player);
     }
 
     void setConnection() {
-        if (human.c != null) {
+        if (this.connection != null) {
             return;
         }
 
         try {
-            human.c = new NullPacketListener(
+            this.connection = new NullPacketListener(
                     Reflect.getMinecraftServer(),
                     new NullConnection(),
-                    human,
-                    new CommonListenerCookie(profile, 0, clientInformation, true)
+                    this,
+                    new CommonListenerCookie(getProfile(), 0, clientInformation(), true)
             );
         } catch (Exception e) {
             EternaLogger.exception(e);
@@ -181,7 +149,7 @@ public class EternaPlayer {
 
     public void hide(@Nonnull Player player) {
         final ClientboundPlayerInfoRemovePacket packetRemovePlayer = packetFactory.getPacketRemovePlayer();
-        final PacketPlayOutEntityDestroy packetEntityDestroy = packetFactory.getPacketEntityDestroy();
+        final ClientboundRemoveEntitiesPacket packetEntityDestroy = packetFactory.getPacketEntityDestroy();
 
         Reflect.sendPacket(player, packetRemovePlayer);
         Reflect.sendPacket(player, packetEntityDestroy);
@@ -189,7 +157,7 @@ public class EternaPlayer {
 
     public void show(@Nonnull Player player) {
         final ClientboundPlayerInfoUpdatePacket packetAddPlayer = packetFactory.getPacketAddPlayer();
-        final PacketPlayOutSpawnEntity packetEntitySpawn = packetFactory.getPacketEntitySpawn();
+        final ClientboundAddEntityPacket packetEntitySpawn = packetFactory.getPacketEntitySpawn();
 
         Reflect.sendPacket(player, packetAddPlayer);
         Reflect.sendPacket(player, packetEntitySpawn);
@@ -202,38 +170,38 @@ public class EternaPlayer {
     }
 
     public void updateLocation(@Nonnull Player player) {
-        Reflect.updateEntityLocation(human, player);
+        Reflect.updateEntityLocation(this, player);
     }
 
     public class PacketFactory {
         @Nonnull
-        public PacketPlayOutEntityTeleport getPacketTeleport() {
-            return new PacketPlayOutEntityTeleport(human);
+        public ClientboundTeleportEntityPacket getPacketTeleport() {
+            return new ClientboundTeleportEntityPacket(EternaPlayer.this);
         }
 
         @Nonnull
-        public PacketPlayOutEntityHeadRotation getPacketEntityHeadRotation(float yaw) {
-            return new PacketPlayOutEntityHeadRotation(human, (byte) ((yaw * 256) / 360));
+        public ClientboundRotateHeadPacket getPacketEntityHeadRotation(float yaw) {
+            return new ClientboundRotateHeadPacket(EternaPlayer.this, (byte) ((yaw * 256) / 360));
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketAddPlayer() {
-            return new ClientboundPlayerInfoUpdatePacket(InnerMojangEnums.ClientboundPlayerInfoUpdatePacket.ADD_PLAYER, human);
+            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, EternaPlayer.this);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketInitPlayer() {
-            return net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.a(List.of(human));
+            return net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(EternaPlayer.this));
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketUpdatePing() {
-            return new ClientboundPlayerInfoUpdatePacket(InnerMojangEnums.ClientboundPlayerInfoUpdatePacket.UPDATE_LATENCY, human);
+            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY, EternaPlayer.this);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketUpdatePlayer() {
-            return new ClientboundPlayerInfoUpdatePacket(InnerMojangEnums.ClientboundPlayerInfoUpdatePacket.UPDATE_DISPLAY_NAME, human);
+            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, EternaPlayer.this);
         }
 
         @Nonnull
@@ -242,13 +210,13 @@ public class EternaPlayer {
         }
 
         @Nonnull
-        public PacketPlayOutSpawnEntity getPacketEntitySpawn() {
-            return me.hapyl.spigotutils.module.reflect.PacketFactory.makePacketPlayOutSpawnEntity(human, location);
+        public ClientboundAddEntityPacket getPacketEntitySpawn() {
+            return me.hapyl.spigotutils.module.reflect.PacketFactory.makePacketPlayOutSpawnEntity(EternaPlayer.this, location);
         }
 
         @Nonnull
-        public PacketPlayOutEntityDestroy getPacketEntityDestroy() {
-            return new PacketPlayOutEntityDestroy(entityId);
+        public ClientboundRemoveEntitiesPacket getPacketEntityDestroy() {
+            return new ClientboundRemoveEntitiesPacket(getId());
         }
 
     }

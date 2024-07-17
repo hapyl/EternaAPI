@@ -3,12 +3,10 @@ package me.hapyl.spigotutils.module.hologram;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.reflect.packet.Packets;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -19,12 +17,12 @@ import java.util.Set;
 
 public class HologramArmorStand {
 
-    private final EntityArmorStand armorStand;
+    private final net.minecraft.world.entity.decoration.ArmorStand armorStand;
     private final ArmorStand bukkit;
     private Location location;
 
     protected HologramArmorStand(Location location, String name) {
-        this.armorStand = new EntityArmorStand(
+        this.armorStand = new net.minecraft.world.entity.decoration.ArmorStand(
                 Reflect.getMinecraftWorld(location.getWorld()),
                 location.getX(),
                 location.getY(),
@@ -33,15 +31,21 @@ public class HologramArmorStand {
         this.bukkit = (ArmorStand) armorStand.getBukkitEntity();
         this.location = location;
 
-        bukkit.teleport(bukkit.getLocation());
+        armorStand.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
-        bukkit.setInvisible(true);
-        bukkit.setSmall(true);
-        bukkit.setMarker(true);
-        bukkit.setCustomName(Chat.format(name));
-        bukkit.setCustomNameVisible(true);
+        armorStand.setInvisible(true);
+        armorStand.setSmall(true);
+        armorStand.setMarker(true);
+        armorStand.setCustomName(Chat.component(name));
+        armorStand.setCustomNameVisible(true);
 
-        // Create packets
+        //bukkit.teleport(bukkit.getLocation());
+        //
+        //bukkit.setInvisible(true);
+        //bukkit.setSmall(true);
+        //bukkit.setMarker(true);
+        //bukkit.setCustomName(Chat.format(name));
+        //bukkit.setCustomNameVisible(true);
     }
 
     public void show(Player player) {
@@ -50,22 +54,22 @@ public class HologramArmorStand {
     }
 
     public void update(Player player) {
-        Reflect.sendPacket(player, new PacketPlayOutEntityMetadata(
-                bukkit.getEntityId(),
+        Reflect.sendPacket(player, new ClientboundSetEntityDataPacket(
+                armorStand.getId(),
                 Reflect.getDataWatcherNonDefaultValues(armorStand)
         ));
     }
 
     public void hide(Player player) {
-        Reflect.sendPacket(player, new PacketPlayOutEntityDestroy(bukkit.getEntityId()));
+        Reflect.sendPacket(player, new ClientboundRemoveEntitiesPacket(bukkit.getEntityId()));
     }
 
     public void setLine(@Nullable String newText) {
-        bukkit.setCustomName(newText == null ? "" : Chat.format(newText));
+        armorStand.setCustomName(newText == null ? Component.empty() : Chat.component(newText));
     }
 
     public void updateLocation(@Nonnull Player player) {
-        Reflect.sendPacket(player, new PacketPlayOutEntityTeleport(armorStand));
+        Reflect.sendPacket(player, new ClientboundTeleportEntityPacket(armorStand));
     }
 
     public void updateLocation(Set<Player> players) {
@@ -80,7 +84,7 @@ public class HologramArmorStand {
 
     public void setLocation(Location location) {
         this.location = location;
-        this.armorStand.a(location.getX(), location.getY(), location.getZ());
+        this.armorStand.absMoveTo(location.getX(), location.getY(), location.getZ());
     }
 
     public ArmorStand bukkitEntity() {

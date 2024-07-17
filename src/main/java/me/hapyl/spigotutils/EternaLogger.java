@@ -14,6 +14,8 @@ public class EternaLogger {
     public static final String DEBUG_PREFIX = PREFIX + "&c&lDEBUG&4> &7&o";
     public static final String TEST_PREFIX = PREFIX + "&2&lTEST&2> &a";
 
+    public static final boolean BREAKPOINT = true;
+
     public static void broadcastMessageOP(String string) {
         Chat.broadcastOp(PREFIX + string);
     }

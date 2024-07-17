@@ -12,10 +12,10 @@ import me.hapyl.spigotutils.module.util.Nulls;
 import me.hapyl.spigotutils.module.util.Runnables;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.effect.MobEffect;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EnumItemSlot;
+import net.minecraft.world.level.Level;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -108,14 +108,14 @@ public class PlayerSkin {
 
     private void createPlayer(@Nonnull Player player) {
         final Location location = player.getLocation();
-        final EntityPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
-        final ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.a(List.of(mcPlayer)); // createPlayerInitializing()
+        final ServerPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
+        final ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(mcPlayer));
 
         sendGlobalPacket(packet);
 
         // Re-created for others
-        final PacketPlayOutEntityDestroy destroyPacket = new PacketPlayOutEntityDestroy(player.getEntityId());
-        final PacketPlayOutSpawnEntity spawnPacket = PacketFactory.makePacketPlayOutSpawnEntity(mcPlayer, location);
+        final ClientboundRemoveEntitiesPacket destroyPacket = new ClientboundRemoveEntitiesPacket(player.getEntityId());
+        final ClientboundAddEntityPacket spawnPacket = PacketFactory.makePacketPlayOutSpawnEntity(mcPlayer, location);
 
         Bukkit.getOnlinePlayers().forEach(online -> {
             if (online == player) {
@@ -131,25 +131,25 @@ public class PlayerSkin {
         final PlayerInventory inventory = player.getInventory();
         final int heldItemSlot = inventory.getHeldItemSlot();
 
-        final net.minecraft.world.level.World mcWorld = Reflect.getMinecraftWorld(playerWorld);
+        final Level mcWorld = Reflect.getMinecraftWorld(playerWorld);
 
-        final PacketPlayOutRespawn respawnPacket = new PacketPlayOutRespawn(
-                mcPlayer.b(mcWorld.getMinecraftWorld()), (byte) 0 // createCommonPlayerSpawnInfo
+        final ClientboundRespawnPacket respawnPacket = new ClientboundRespawnPacket(
+                mcPlayer.createCommonSpawnInfo(mcWorld.getMinecraftWorld()), (byte) 0
         );
 
         sendPacket(player, respawnPacket);
-        mcPlayer.z(); // onUpdateAbilities()
+        mcPlayer.onUpdateAbilities();
 
         // Load chunk
-        final PacketPlayOutGameStateChange packetLoadChunk = new PacketPlayOutGameStateChange(
-                PacketPlayOutGameStateChange.o, // LEVEL_CHUNKS_LOAD_START
+        final ClientboundGameEventPacket packetLoadChunk = new ClientboundGameEventPacket(
+                ClientboundGameEventPacket.LEVEL_CHUNKS_LOAD_START, // LEVEL_CHUNKS_LOAD_START
                 0.0f
         );
 
         sendPacket(player, packetLoadChunk);
 
         // Update player position
-        final PacketPlayOutPosition positionPacket = new PacketPlayOutPosition(
+        final ClientboundPlayerPositionPacket positionPacket = new ClientboundPlayerPositionPacket(
                 location.getX(),
                 location.getY(),
                 location.getZ(),
@@ -159,7 +159,7 @@ public class PlayerSkin {
         );
 
         // Update EXP
-        final PacketPlayOutExperience packetExp = new PacketPlayOutExperience(
+        final ClientboundSetExperiencePacket packetExp = new ClientboundSetExperiencePacket(
                 player.getExp(),
                 player.getTotalExperience(),
                 player.getLevel()
@@ -168,6 +168,8 @@ public class PlayerSkin {
         // Update 2nd layer
         final Entity minecraftEntity = Reflect.getMinecraftEntity(player);
 
+        mcPlayer.respawn();
+
         if (minecraftEntity != null) {
             Bukkit.getOnlinePlayers().forEach(online -> {
                 Reflect.updateMetadata(minecraftEntity, online);
@@ -175,10 +177,10 @@ public class PlayerSkin {
         }
 
         // Update effects
-        final Collection<MobEffect> activeEffects = mcPlayer.et(); // getActiveEffects()
+        final Collection<MobEffectInstance> activeEffects = mcPlayer.getActiveEffects();
 
         activeEffects.forEach(effect -> {
-            final PacketPlayOutEntityEffect packetEffect = new PacketPlayOutEntityEffect(player.getEntityId(), effect, false);
+            final ClientboundUpdateMobEffectPacket packetEffect = new ClientboundUpdateMobEffectPacket(player.getEntityId(), effect, false);
             sendPacket(player, packetEffect);
         });
 
@@ -192,7 +194,7 @@ public class PlayerSkin {
             player.updateInventory();
 
             // Update equipment
-            final PacketPlayOutEntityEquipment packetUpdateEquipment = new PacketPlayOutEntityEquipment(
+            final ClientboundSetEquipmentPacket packetUpdateEquipment = new ClientboundSetEquipmentPacket(
                     player.getEntityId(),
                     List.of(
                             getPair(player, EquipmentSlot.HAND),
@@ -214,19 +216,19 @@ public class PlayerSkin {
         }, 1);
     }
 
-    private EnumItemSlot getNmsItemSlot(EquipmentSlot slot) {
+    private net.minecraft.world.entity.EquipmentSlot getNmsItemSlot(EquipmentSlot slot) {
         return switch (slot) {
-            case HAND -> EnumItemSlot.a;
-            case OFF_HAND -> EnumItemSlot.b;
-            case FEET -> EnumItemSlot.c;
-            case LEGS -> EnumItemSlot.d;
-            case CHEST -> EnumItemSlot.e;
-            case HEAD -> EnumItemSlot.f;
-            case BODY -> EnumItemSlot.g;
+            case HAND -> net.minecraft.world.entity.EquipmentSlot.MAINHAND;
+            case OFF_HAND -> net.minecraft.world.entity.EquipmentSlot.OFFHAND;
+            case FEET -> net.minecraft.world.entity.EquipmentSlot.FEET;
+            case LEGS -> net.minecraft.world.entity.EquipmentSlot.LEGS;
+            case CHEST -> net.minecraft.world.entity.EquipmentSlot.CHEST;
+            case HEAD -> net.minecraft.world.entity.EquipmentSlot.HEAD;
+            case BODY -> net.minecraft.world.entity.EquipmentSlot.BODY;
         };
     }
 
-    private Pair<EnumItemSlot, net.minecraft.world.item.ItemStack> getPair(Player player, EquipmentSlot slot) {
+    private Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack> getPair(Player player, EquipmentSlot slot) {
         final ItemStack item = player.getInventory().getItem(slot);
 
         return new Pair<>(getNmsItemSlot(slot), Reflect.bukkitItemToNMS(item != null ? item : new ItemStack(Material.AIR)));

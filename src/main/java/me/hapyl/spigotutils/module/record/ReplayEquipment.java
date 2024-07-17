@@ -6,6 +6,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -260,6 +261,15 @@ public class ReplayEquipment implements EntityEquipment {
     @Override
     public Entity getHolder() {
         return null;
+    }
+
+    @Override
+    public float getDropChance(@NotNull EquipmentSlot slot) {
+        return 0;
+    }
+
+    @Override
+    public void setDropChance(@NotNull EquipmentSlot slot, float chance) {
     }
 
     private ItemStack itemOrNull(ItemStack item) {

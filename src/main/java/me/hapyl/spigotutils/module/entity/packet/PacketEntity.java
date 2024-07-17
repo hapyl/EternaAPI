@@ -4,9 +4,9 @@ import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.util.TeamHelper;
-import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.World;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
@@ -119,9 +119,9 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     }
 
     protected <D> void setDataWatcherValue(DataWatcherType<D> type, int key, D value) {
-        final DataWatcher dataWatcher = getDataWatcher();
+        final SynchedEntityData dataWatcher = getDataWatcher();
 
-        Reflect.setDataWatcherValue0(dataWatcher, type.get().a(key), value);
+        Reflect.setDataWatcherValue0(dataWatcher, type.get().createAccessor(key), value);
         updateMetadata();
     }
 
@@ -138,7 +138,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     }
 
     @Nonnull
-    protected DataWatcher getDataWatcher() {
+    protected SynchedEntityData getDataWatcher() {
         return Reflect.getDataWatcher(entity);
     }
 
@@ -147,7 +147,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     }
 
     @Nonnull
-    public static World getWorld(@Nonnull Location location) {
+    public static ServerLevel getWorld(@Nonnull Location location) {
         return Reflect.getMinecraftWorld(Objects.requireNonNull(location.getWorld(), "World must be loaded."));
     }
 

@@ -1,16 +1,14 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
-import net.minecraft.world.entity.ai.goal.PathfinderGoal;
-
 public class Goal {
 
-    protected PathfinderGoal goal;
+    protected net.minecraft.world.entity.ai.goal.Goal goal;
 
-    public Goal(PathfinderGoal goal) {
+    public Goal(net.minecraft.world.entity.ai.goal.Goal goal) {
         this.goal = goal;
     }
 
-    public PathfinderGoal getGoal() {
+    public net.minecraft.world.entity.ai.goal.Goal getGoal() {
         if (goal == null) {
             throw new NullPointerException("if using empty constructor, then set the goal you lummox");
         }

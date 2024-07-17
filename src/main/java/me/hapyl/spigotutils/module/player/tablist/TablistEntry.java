@@ -207,7 +207,7 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
     }
 
     protected void setTextureRaw(String value, String signature) {
-        final PropertyMap properties = profile.getProperties();
+        final PropertyMap properties = getProfile().getProperties();
 
         properties.removeAll("textures");
         properties.put("textures", new Property("textures", value, signature));

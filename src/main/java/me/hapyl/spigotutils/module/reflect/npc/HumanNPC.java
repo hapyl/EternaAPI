@@ -8,8 +8,6 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
@@ -29,18 +27,21 @@ import me.hapyl.spigotutils.module.quest.QuestObjectiveType;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
 import me.hapyl.spigotutils.module.reflect.JsonHelper;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.reflect.metadata.MetadataIndex;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
+import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.network.syncher.DataWatcher;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.EntityAreaEffectCloud;
-import net.minecraft.world.entity.EntityPose;
-import net.minecraft.world.entity.EnumItemSlot;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.AreaEffectCloud;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.ThrownEgg;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
@@ -54,11 +55,11 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
-import org.checkerframework.checker.nullness.qual.AssertNonNullIfNonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
@@ -69,7 +70,7 @@ import java.util.function.Function;
  * For complex NPCs use <a href="https://github.com/CitizensDev/CitizensAPI">CitizensAPI</a>!
  */
 @SuppressWarnings("unused")
-@TestedOn(version = Version.V1_20_4)
+@TestedOn(version = Version.V1_21)
 public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public static final String CLICK_NAME = "&e&lCLICK";
@@ -100,7 +101,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     private String cannotInteractMessage = "Not now.";
     private int lookAtCloseDist;
     private BukkitTask moveTask;
-    private EntityAreaEffectCloud sitEntity;
+    private AreaEffectCloud sitEntity;
     private RestPosition restPosition;
 
     private HumanNPC() {
@@ -161,13 +162,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public boolean isShaking() {
-        return Reflect.getDataWatcherValue(human.getHuman(), DataWatcherType.INT, 7) != 0;
+        return Reflect.getDataWatcherValue(human, DataWatcherType.INT, 7) != 0;
     }
 
     @Override
     public void setShaking(boolean shaking) {
         showingTo.forEach(player -> Reflect.setDataWatcherValue(
-                human.getHuman(),
+                human,
                 DataWatcherType.INT,
                 7,
                 shaking ? Integer.MAX_VALUE : 0
@@ -240,15 +241,18 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             final Location location = getLocation();
             final World world = getWorld();
 
-            sitEntity = new EntityAreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
-            sitEntity.a(0.0f);            // setRadius(float arg0)
-            sitEntity.a(Integer.MAX_VALUE); // setDuration(int arg0)
+            sitEntity = new AreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
+            sitEntity.setRadius(0.0f);
+            sitEntity.setDuration(Integer.MAX_VALUE);
 
-            ((net.minecraft.world.entity.Entity) sitEntity).p = ImmutableList.of(human.getHuman());
+            sitEntity.passengers = ImmutableList.of(human);
 
             showingTo.forEach(player -> {
                 Reflect.createEntity(sitEntity, player);
                 Reflect.updateMetadata(sitEntity, player);
+
+                EternaLogger.debug(sitEntity);
+                EternaLogger.debug(human);
             });
 
             updateSitting();
@@ -516,7 +520,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public NPCPose getPose() {
-        return human.getPose();
+        return human.getNPCPose();
     }
 
     @Override
@@ -558,7 +562,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         this.location.setDirection(location.clone().subtract(this.location).toVector());
         this.setHeadRotation(this.location.getYaw());
 
-        sendPacket(new PacketPlayOutEntity.PacketPlayOutEntityLook(
+        sendPacket(new ClientboundMoveEntityPacket.Rot(
                 this.getId(),
                 (byte) (this.location.getYaw() * 256 / 360),
                 (byte) (this.location.getPitch() * 256 / 360),
@@ -900,7 +904,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public DataWatcher getDataWatcher() {
+    public SynchedEntityData getDataWatcher() {
         return human.getDataWatcher();
     }
 
@@ -924,11 +928,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void playAnimation(NPCAnimation animation) {
         if (animation == NPCAnimation.TAKE_DAMAGE) {
-            sendPacket(new ClientboundHurtAnimationPacket(human.getHuman()));
+            sendPacket(new ClientboundHurtAnimationPacket(human));
             return;
         }
 
-        sendPacket(new PacketPlayOutAnimation(this.getHuman(), animation.getPos()));
+        sendPacket(new ClientboundAnimatePacket(this.human, animation.getPos()));
     }
 
     @Override
@@ -992,12 +996,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     @Nonnull
-    public EntityPlayer getHuman() {
-        return human.getHuman();
-    }
-
-    @Nonnull
-    public EternaPlayer getEternaPlayer() {
+    public EternaPlayer getHuman() {
         return human;
     }
 
@@ -1040,17 +1039,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         showingTo.forEach(player -> Reflect.sendPacket(player, packet));
     }
 
-    @SuppressWarnings("all")
-    @Nonnull
-    protected Int2ObjectMap<DataWatcher.Item<?>> getInt2ObjectMap() {
-        try {
-            return (Int2ObjectMap<DataWatcher.Item<?>>) FieldUtils.readField(getDataWatcher(), "e", true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Int2ObjectOpenHashMap();
-        }
-    }
-
     protected boolean canInteract(@Nonnull Player player) {
         final InteractionDelay delay = interactedAt.get(player);
 
@@ -1091,7 +1079,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             return;
         }
 
-        sendPacket(new PacketPlayOutMount(sitEntity));
+        sendPacket(new ClientboundSetPassengersPacket(sitEntity));
     }
 
     private String getPrefix() {
@@ -1121,14 +1109,14 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     private void swingArm(boolean b) {
-        sendPacket(new PacketPlayOutAnimation(this.human.getHuman(), b ? 0 : 3));
+        sendPacket(new ClientboundAnimatePacket(this.human, b ? 0 : 3));
     }
 
     private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player player) {
-        final List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
+        final List<Pair<EquipmentSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
         list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
 
-        final PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment(this.getId(), list);
+        final ClientboundSetEquipmentPacket packet = new ClientboundSetEquipmentPacket(this.getId(), list);
 
         Reflect.sendPacket(player, packet);
     }

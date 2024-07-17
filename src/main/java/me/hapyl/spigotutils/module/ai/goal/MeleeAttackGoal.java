@@ -1,8 +1,7 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
 import me.hapyl.spigotutils.module.ai.AI;
-import net.minecraft.world.entity.EntityCreature;
-import net.minecraft.world.entity.ai.goal.PathfinderGoalMeleeAttack;
+import net.minecraft.world.entity.PathfinderMob;
 
 public class MeleeAttackGoal extends Goal {
 
@@ -14,6 +13,6 @@ public class MeleeAttackGoal extends Goal {
      * @param followUnseen - Should follow target even if not seen.
      */
     public MeleeAttackGoal(AI ai, double speedModifier, boolean followUnseen) {
-        super(new PathfinderGoalMeleeAttack(ai.getMob(EntityCreature.class), speedModifier, followUnseen));
+        super(new net.minecraft.world.entity.ai.goal.MeleeAttackGoal(ai.getMob(PathfinderMob.class), speedModifier, followUnseen));
     }
 }

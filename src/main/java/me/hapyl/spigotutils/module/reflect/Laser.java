@@ -3,13 +3,13 @@ package me.hapyl.spigotutils.module.reflect;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.module.annotate.TestedOn;
 import me.hapyl.spigotutils.module.annotate.Version;
-import me.hapyl.spigotutils.module.entity.packet.NMSEntityType;
 import me.hapyl.spigotutils.module.reflect.packet.Packets;
 import me.hapyl.spigotutils.module.util.EternaEntity;
 import me.hapyl.spigotutils.module.util.TeamHelper;
-import net.minecraft.world.entity.EntityLiving;
-import net.minecraft.world.entity.animal.EntitySquid;
-import net.minecraft.world.entity.monster.EntityGuardian;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Squid;
+import net.minecraft.world.entity.monster.Guardian;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -21,15 +21,15 @@ import java.util.Set;
 /**
  * Creates a laser (Guardian beam) between start and end.
  */
-@TestedOn(version = Version.V1_20_4)
+@TestedOn(version = Version.V1_21)
 public class Laser implements EternaEntity {
 
     private final Location start;
     private final Location end;
     private final Set<Player> showingTo;
 
-    private EntityGuardian guardian;
-    private EntitySquid squid;
+    private Guardian guardian;
+    private Squid squid;
 
     public Laser(Location start, Location end) {
         this.start = start;
@@ -122,14 +122,14 @@ public class Laser implements EternaEntity {
             return;
         }
 
-        guardian = new EntityGuardian(NMSEntityType.GUARDIAN, Reflect.getMinecraftWorld(this.start.getWorld()));
+        guardian = new Guardian(EntityType.GUARDIAN, Reflect.getMinecraftWorld(this.start.getWorld()));
         Reflect.setEntityLocation(guardian, start);
 
-        squid = new EntitySquid(NMSEntityType.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
+        squid = new Squid(EntityType.SQUID, Reflect.getMinecraftWorld(this.end.getWorld()));
         Reflect.setEntityLocation(squid, end);
     }
 
-    private void removeCollision(EntityLiving entity, Player player) {
+    private void removeCollision(LivingEntity entity, Player player) {
         final Entity bukkitEntity = entity.getBukkitEntity();
 
         TeamHelper.FAKE_ENTITY.addToTeam(player.getScoreboard(), bukkitEntity);

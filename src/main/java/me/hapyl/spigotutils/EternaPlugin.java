@@ -49,6 +49,9 @@ public class EternaPlugin extends JavaPlugin {
     public void onEnable() {
         plugin = Eterna.plugin = this;
 
+        // Check if the server is running paper
+        validateRunningPaper();
+
         // Init protocol
         protocol = new EternaProtocol(this);
 
@@ -116,6 +119,19 @@ public class EternaPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         registry.onDisable();
+    }
+
+    private void validateRunningPaper() {
+        try {
+            Class.forName("io.papermc.paper.ServerBuildInfo");
+        } catch (Exception ignored) {
+            EternaLogger.severe("");
+            EternaLogger.severe(" This server is not running paper!");
+            EternaLogger.severe(" EternaAPI no longer works on Spigot, please update to Paper, all your plugins should still work!");
+            EternaLogger.severe("");
+
+            Bukkit.getPluginManager().disablePlugin(this);
+        }
     }
 
     /**

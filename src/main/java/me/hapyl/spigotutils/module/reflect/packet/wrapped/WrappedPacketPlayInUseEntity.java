@@ -1,26 +1,26 @@
 package me.hapyl.spigotutils.module.reflect.packet.wrapped;
 
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import net.minecraft.network.protocol.game.PacketPlayInUseEntity;
-import net.minecraft.world.EnumHand;
-import net.minecraft.world.phys.Vec3D;
+import net.minecraft.network.protocol.game.ServerboundInteractPacket;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 
-public class WrappedPacketPlayInUseEntity extends WrappedPacket<PacketPlayInUseEntity> {
+public class WrappedPacketPlayInUseEntity extends WrappedPacket<ServerboundInteractPacket> {
 
-    private static final Class<?> INTERACT_CLASS = Reflect.getClass("net.minecraft.network.protocol.game.PacketPlayInUseEntity$d");
-    private static final WrappedAction ATTACK_ACTION = makeAction(WrappedActionType.ATTACK, EnumHand.a, null);
+    private static final Class<?> INTERACT_CLASS = Reflect.getClass("net.minecraft.network.protocol.game.ServerboundInteractPacket$InteractionAction");
+    private static final WrappedAction ATTACK_ACTION = makeAction(WrappedActionType.ATTACK, InteractionHand.MAIN_HAND, null);
 
     private final int entityId;
     private final WrappedAction action;
 
-    public WrappedPacketPlayInUseEntity(PacketPlayInUseEntity packet) {
+    public WrappedPacketPlayInUseEntity(ServerboundInteractPacket packet) {
         super(packet);
 
-        entityId = super.readField("b", Integer.class);
+        entityId = super.readField("entityId", Integer.class);
         action = readAction();
     }
 
@@ -44,27 +44,27 @@ public class WrappedPacketPlayInUseEntity extends WrappedPacket<PacketPlayInUseE
     }
 
     private WrappedAction readAction() {
-        final Object action = super.readField("c", Object.class);
-        final Field enumHandField = Reflect.getDeclaredField(action, "a");
+        final Object action = super.readField("action", Object.class);
+        final Field enumHandField = Reflect.getDeclaredField(action, "hand");
 
         // if hand is null we assume it's ATTACK
         if (enumHandField == null) {
             return ATTACK_ACTION;
         }
 
-        final EnumHand enumHand = Reflect.getDeclaredFieldValue(action, "a", EnumHand.class);
+        final InteractionHand enumHand = Reflect.getDeclaredFieldValue(action, "hand", InteractionHand.class);
 
         if (INTERACT_CLASS.isInstance(action)) {
             return makeAction(WrappedActionType.INTERACT, enumHand, null);
         }
 
         // INTERACT_AT has a Vec3D with the clicked position
-        final Vec3D vec3D = Reflect.getDeclaredFieldValue(action, "b", Vec3D.class);
+        final Vec3 vec3D = Reflect.getDeclaredFieldValue(action, "location", Vec3.class);
 
         return makeAction(WrappedActionType.INTERACT_AT, enumHand, vec3D);
     }
 
-    private static WrappedAction makeAction(WrappedActionType type, EnumHand enumHand, Vec3D vec3D) {
+    private static WrappedAction makeAction(WrappedActionType type, InteractionHand enumHand, Vec3 vec3D) {
         return new WrappedAction() {
             private final WrappedHand hand = WrappedHand.of(enumHand);
             private final WrappedPosition vector = vec3D != null ? new WrappedPosition(vec3D) : null;
@@ -121,10 +121,10 @@ public class WrappedPacketPlayInUseEntity extends WrappedPacket<PacketPlayInUseE
         OFF_HAND;
 
         @Nonnull
-        public static WrappedHand of(@Nonnull EnumHand enumHand) {
+        public static WrappedHand of(@Nonnull InteractionHand enumHand) {
             return switch (enumHand) {
-                case a -> MAIN_HAND;
-                case b -> OFF_HAND;
+                case MAIN_HAND -> MAIN_HAND;
+                case OFF_HAND -> OFF_HAND;
             };
         }
     }
@@ -166,10 +166,10 @@ public class WrappedPacketPlayInUseEntity extends WrappedPacket<PacketPlayInUseE
         private final double y;
         private final double z;
 
-        public WrappedPosition(Vec3D vec3D) {
-            this.x = vec3D.a();
-            this.y = vec3D.b();
-            this.z = vec3D.c();
+        public WrappedPosition(Vec3 vec3D) {
+            this.x = vec3D.x();
+            this.y = vec3D.y();
+            this.z = vec3D.z();
         }
 
         public double getX() {
