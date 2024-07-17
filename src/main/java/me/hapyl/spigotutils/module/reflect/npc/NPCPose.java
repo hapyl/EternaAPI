@@ -1,43 +1,41 @@
 package me.hapyl.spigotutils.module.reflect.npc;
 
-import com.sun.jna.platform.win32.WinDef;
-import net.minecraft.world.entity.EntityPose;
+import net.minecraft.world.entity.Pose;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.nio.file.LinkOption;
 
 public enum NPCPose {
 
     /**
      * Standing.
      */
-    STANDING(EntityPose.a),
+    STANDING(Pose.STANDING),
 
     /**
      * Flying in creative.
      */
-    FALL_FLYING(EntityPose.b),
+    FALL_FLYING(Pose.FALL_FLYING),
 
     /**
      * Sleeping in the bed.
      */
-    SLEEPING(EntityPose.c),
+    SLEEPING(Pose.SLEEPING),
 
     /**
      * Swimming in a liquid.
      */
-    SWIMMING(EntityPose.d),
+    SWIMMING(Pose.SWIMMING),
 
     /**
      * Idk
      */
-    SPIN_ATTACK(EntityPose.e),
+    SPIN_ATTACK(Pose.SPIN_ATTACK),
 
     /**
      * Crunching (Sneaking)
      */
-    CROUCHING(EntityPose.f),
+    CROUCHING(Pose.CROUCHING),
 
     /**
      * Long Jumping.
@@ -45,7 +43,7 @@ public enum NPCPose {
      * This is only used as a 'fix' for {@link #STANDING} pose not working.
      */
     @Deprecated
-    LONG_JUMPING(EntityPose.g),
+    LONG_JUMPING(Pose.LONG_JUMPING),
 
     /**
      * Entity Dying.
@@ -53,23 +51,23 @@ public enum NPCPose {
      * This makes the NPC to have very small hitbox.
      */
     @Deprecated
-    DYING(EntityPose.h);
+    DYING(Pose.DYING);
 
-    private final EntityPose nms;
+    private final Pose nms;
 
-    NPCPose(EntityPose nms) {
+    NPCPose(Pose nms) {
         this.nms = nms;
     }
 
     @Nonnull
-    public EntityPose getNMSValue() {
+    public Pose getNMSValue() {
         return this.nms;
     }
 
     @Nullable
-    public static NPCPose fromNMS(@Nonnull EntityPose an) {
+    public static NPCPose fromNMS(@Nonnull Pose nms) {
         for (NPCPose value : values()) {
-            if (value.nms == an) {
+            if (value.nms == nms) {
                 return value;
             }
         }

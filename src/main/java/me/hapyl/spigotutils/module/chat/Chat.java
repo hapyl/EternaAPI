@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -614,4 +615,14 @@ public final class Chat {
         return builder.toString();
     }
 
+    /**
+     * Returns a formatted {@link Component}.
+     *
+     * @param newText - Text for format.
+     * @return a formatted component.
+     */
+    @Nonnull
+    public static Component component(@Nonnull String newText) {
+        return Component.literal(format(newText));
+    }
 }

@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.reflect.packet.wrapped;
 
 import me.hapyl.spigotutils.module.entity.packet.NMSEntityType;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
@@ -10,14 +10,14 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
-public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOutSpawnEntity> {
+public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<ClientboundAddEntityPacket> {
 
     private final EntityType entityType;
 
-    public WrappedPacketPlayOutSpawnEntity(PacketPlayOutSpawnEntity packet) {
+    public WrappedPacketPlayOutSpawnEntity(ClientboundAddEntityPacket packet) {
         super(packet);
 
-        this.entityType = NMSEntityType.fromNmsOr(packet.f(), EntityType.EGG);
+        this.entityType = NMSEntityType.fromNmsOr(packet.getType(), EntityType.EGG);
     }
 
     /**
@@ -26,7 +26,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      * @return the Id of the spawned entity.
      */
     public int getEntityId() {
-        return packet.b();
+        return packet.getId();
     }
 
     /**
@@ -36,7 +36,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      */
     @Nonnull
     public UUID getEntityUuid() {
-        return packet.e();
+        return packet.getUUID();
     }
 
     /**
@@ -57,7 +57,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      * @return the X coordinate of the spawned entity.
      */
     public double getX() {
-        return packet.g();
+        return packet.getX();
     }
 
     /**
@@ -66,7 +66,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      * @return the Y coordinate of the spawned entity.
      */
     public double getY() {
-        return packet.h();
+        return packet.getY();
     }
 
     /**
@@ -75,7 +75,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      * @return the Z coordinate of the spawned entity.
      */
     public double getZ() {
-        return packet.i();
+        return packet.getZ();
     }
 
     /**
@@ -96,7 +96,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      * @return the pitch of the spawned entity.
      */
     public float getPitch() {
-        return packet.m();
+        return packet.getXRot();
     }
 
     /**
@@ -105,7 +105,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      * @return the yaw of the spawned entity.
      */
     public float getYaw() {
-        return packet.n();
+        return packet.getYRot();
     }
 
     /**
@@ -119,7 +119,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      * @return the head rotation of the spawned entity.
      */
     public float getHeadRotation() {
-        return packet.o();
+        return packet.getYHeadRot();
     }
 
     /**
@@ -130,7 +130,7 @@ public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<PacketPlayOut
      */
     @Deprecated
     public int getData() {
-        return packet.p();
+        return packet.getData();
     }
 
 }

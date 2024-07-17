@@ -1,7 +1,6 @@
 package me.hapyl.spigotutils.builtin.command;
 
 import me.hapyl.spigotutils.*;
-import me.hapyl.spigotutils.builtin.fixer.EternaFixers;
 import me.hapyl.spigotutils.builtin.gui.QuestJournal;
 import me.hapyl.spigotutils.builtin.updater.UpdateResult;
 import me.hapyl.spigotutils.builtin.updater.Updater;
@@ -145,17 +144,6 @@ public final class EternaCommand extends SimpleAdminCommand {
             default -> {
                 Chat.sendMessage(sender, "&cUnknown argument. " + getUsage());
             }
-
-            case "fixer" -> {
-                final EternaFixers fixer = getArgument(args, 1).toEnum(EternaFixers.class);
-
-                if (fixer == null) {
-                    EternaLogger.sendMessage(sender, "&cInvalid fixer!");
-                    return;
-                }
-
-                fixer.tryFix();
-            }
         }
     }
 
@@ -164,10 +152,6 @@ public final class EternaCommand extends SimpleAdminCommand {
     protected List<String> tabComplete(CommandSender sender, String[] args) {
         if (matchArgs(args, "test")) {
             return completerSort(EternaRuntimeTest.listTests(), args, false);
-        }
-
-        if (matchArgs(args, "fixer")) {
-            return completerSort(Enums.getValuesNameAsList(EternaFixers.class), args, false);
         }
 
         return null;

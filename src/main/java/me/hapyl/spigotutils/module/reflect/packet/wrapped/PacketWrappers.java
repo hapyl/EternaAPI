@@ -15,26 +15,26 @@ import java.util.function.Function;
 public final class PacketWrappers {
 
     // In
-    public static final PacketWrapperIn<PacketPlayInUseEntity, WrappedPacketPlayInUseEntity> PACKET_PLAY_IN_USE_ENTITY;
+    public static final PacketWrapperIn<ServerboundInteractPacket, WrappedPacketPlayInUseEntity> PACKET_PLAY_IN_USE_ENTITY;
 
     // Out
-    public static final PacketWrapperOut<PacketPlayOutEntityMetadata, WrappedPacketPlayOutEntityMetadata> PACKET_PLAY_OUT_ENTITY_METADATA;
-    public static final PacketWrapperOut<PacketPlayOutSpawnEntity, WrappedPacketPlayOutSpawnEntity> PACKET_PLAY_OUT_SPAWN_ENTITY;
+    public static final PacketWrapperOut<ClientboundSetEntityDataPacket, WrappedPacketPlayOutEntityMetadata> PACKET_PLAY_OUT_ENTITY_METADATA;
+    public static final PacketWrapperOut<ClientboundAddEntityPacket, WrappedPacketPlayOutSpawnEntity> PACKET_PLAY_OUT_SPAWN_ENTITY;
 
     static {
         // In
-        PACKET_PLAY_IN_USE_ENTITY = ofIn(PacketPlayInUseEntity.class, WrappedPacketPlayInUseEntity::new);
+        PACKET_PLAY_IN_USE_ENTITY = ofIn(ServerboundInteractPacket.class, WrappedPacketPlayInUseEntity::new);
 
         // Out
-        PACKET_PLAY_OUT_ENTITY_METADATA = ofOut(PacketPlayOutEntityMetadata.class, WrappedPacketPlayOutEntityMetadata::new);
-        PACKET_PLAY_OUT_SPAWN_ENTITY = ofOut(PacketPlayOutSpawnEntity.class, WrappedPacketPlayOutSpawnEntity::new);
+        PACKET_PLAY_OUT_ENTITY_METADATA = ofOut(ClientboundSetEntityDataPacket.class, WrappedPacketPlayOutEntityMetadata::new);
+        PACKET_PLAY_OUT_SPAWN_ENTITY = ofOut(ClientboundAddEntityPacket.class, WrappedPacketPlayOutSpawnEntity::new);
     }
 
-    private static <P extends Packet<PacketListenerPlayIn>, W extends WrappedPacket<P>> PacketWrapperIn<P, W> ofIn(Class<P> clazz, Function<P, W> function) {
+    private static <P extends Packet<ServerGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperIn<P, W> ofIn(Class<P> clazz, Function<P, W> function) {
         return new PacketWrapperIn<>(clazz, function);
     }
 
-    private static <P extends Packet<PacketListenerPlayOut>, W extends WrappedPacket<P>> PacketWrapperOut<P, W> ofOut(Class<P> clazz, Function<P, W> function) {
+    private static <P extends Packet<ClientGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperOut<P, W> ofOut(Class<P> clazz, Function<P, W> function) {
         return new PacketWrapperOut<>(clazz, function);
     }
 

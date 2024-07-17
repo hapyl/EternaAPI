@@ -1,7 +1,7 @@
 package me.hapyl.spigotutils.module.inventory;
 
 import me.hapyl.spigotutils.module.event.protocol.PacketReceiveEvent;
-import net.minecraft.network.protocol.game.PacketPlayInUpdateSign;
+import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,7 +11,7 @@ public class SignListener implements Listener {
     @EventHandler()
     public void handlePacketReceiveEvent(PacketReceiveEvent ev) {
         final Player player = ev.getPlayer();
-        final PacketPlayInUpdateSign packet = ev.getPacket(PacketPlayInUpdateSign.class);
+        final ServerboundSignUpdatePacket packet = ev.getPacket(ServerboundSignUpdatePacket.class);
 
         if (packet == null) {
             return;
@@ -23,7 +23,7 @@ public class SignListener implements Listener {
             return;
         }
 
-        final String[] lines = packet.f();
+        final String[] lines = packet.getLines();
 
         signGUI.onResponse(new Response(player, lines));
         signGUI.clearSign();

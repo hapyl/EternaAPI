@@ -1,6 +1,7 @@
 package me.hapyl.spigotutils.module.reflect;
 
 import me.hapyl.spigotutils.Eterna;
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.entity.LimitedVisibility;
 import me.hapyl.spigotutils.module.reflect.npc.RestPosition;
 import me.hapyl.spigotutils.module.util.BukkitUtils;

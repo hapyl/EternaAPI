@@ -23,7 +23,7 @@ public class WrappedBundlePacket extends WrappedPacket<BundlePacket<?>> {
      */
     @Nonnull
     public List<Packet<?>> getBundledPackets() {
-        return Collections.unmodifiableList(Lists.newArrayList(packet.b()));
+        return Collections.unmodifiableList(Lists.newArrayList(packet.subPackets()));
     }
 
     /**

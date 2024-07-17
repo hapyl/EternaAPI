@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
  * be reset after player re-logins.
  */
 @EternaModule
-@TestedOn(version = Version.V1_20_4)
+@TestedOn(version = Version.V1_21)
 public class PlayerBorder extends Holder<Player> {
 
     private final WorldBorder border;
@@ -63,7 +63,7 @@ public class PlayerBorder extends Holder<Player> {
             case BORDER_GREEN -> {
                 final net.minecraft.world.level.border.WorldBorder netBorder = Reflect.getNetWorldBorder(border);
                 if (netBorder != null) {
-                    netBorder.a(size - 0.1d, size, Long.MAX_VALUE);
+                    netBorder.lerpSizeBetween(size - 0.1d, size, Long.MAX_VALUE);
                 }
             }
         }

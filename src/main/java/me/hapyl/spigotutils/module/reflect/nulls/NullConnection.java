@@ -1,57 +1,52 @@
 package me.hapyl.spigotutils.module.reflect.nulls;
 
 import me.hapyl.spigotutils.EternaLogger;
-import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.PacketSendListener;
-import net.minecraft.network.protocol.EnumProtocolDirection;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketFlow;
 import org.apache.commons.lang.reflect.FieldUtils;
 
-import javax.annotation.Nullable;
 import java.io.Serial;
-import java.lang.reflect.Field;
 import java.net.SocketAddress;
 
-public class NullConnection extends NetworkManager {
+public class NullConnection extends Connection {
 
     public NullConnection() {
-        super(EnumProtocolDirection.a);
-        n = new NullChannel(null); // channel
-        o = new SocketAddress() {  // address
+        super(PacketFlow.SERVERBOUND);
+        channel = new NullChannel(null);
+        address = new SocketAddress() {
             @Serial private static final long serialVersionUID = 8207338859896320185L;
         };
     }
 
     @Override
-    public void a(Packet<?> packet) { // sendPacket
+    public final void send(Packet<?> packet) {
     }
 
     @Override
-    public void a(Packet<?> packet, @Nullable PacketSendListener packetsendlistener) { // sendPacket
+    public final void send(Packet<?> packet, @org.jetbrains.annotations.Nullable PacketSendListener packetsendlistener) {
     }
 
     @Override
-    public void a(Packet<?> packet, @Nullable PacketSendListener packetsendlistener, boolean flag) { // sendPacket
+    public final void send(Packet<?> packet, @org.jetbrains.annotations.Nullable PacketSendListener packetsendlistener, boolean flag) {
     }
 
     @Override
-    public void c() { // flushChannel
+    public final void flushChannel() {
     }
 
     @Override
-    public boolean i() { // isConnected
+    public final boolean isConnected() {
         return true;
     }
 
     @Override
-    public void a(PacketListener packetlistener) { // setListener
+    public final void setListenerForServerboundHandshake(PacketListener packetlistener) { // setListener
         try {
-            final Field packetListenerField = FieldUtils.getDeclaredField(NetworkManager.class, "q", true);
-            FieldUtils.writeField(packetListenerField, this, packetlistener);
-
-            final Field disconnectListenerField = FieldUtils.getDeclaredField(NetworkManager.class, "p", true);
-            FieldUtils.writeField(disconnectListenerField, this, null);
+            FieldUtils.writeDeclaredField(this, "packetListener", packetlistener, true);
+            FieldUtils.writeDeclaredField(this, "disconnectListener", null, true);
         } catch (Exception e) {
             EternaLogger.exception(e);
         }

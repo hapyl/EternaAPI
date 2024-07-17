@@ -1,8 +1,8 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
 import me.hapyl.spigotutils.module.ai.AI;
-import net.minecraft.world.entity.EntityCreature;
-import net.minecraft.world.entity.ai.goal.PathfinderGoalRandomStrollLand;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 
 /**
  * Adds a goal to randomly stroll around.
@@ -17,7 +17,7 @@ public class RandomlyStrollGoal extends Goal {
      * @param interval      - Interval. In ticks?
      */
     public RandomlyStrollGoal(AI ai, double speedModifier, int interval) {
-        super(new PathfinderGoalRandomStrollLand(ai.getMob(EntityCreature.class), speedModifier, interval));
+        super(new RandomStrollGoal(ai.getMob(PathfinderMob.class), speedModifier, interval));
     }
 
     /**

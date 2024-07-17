@@ -4,16 +4,15 @@ import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.reflect.DataWatcherType;
-import me.hapyl.spigotutils.module.reflect.InnerMojangEnums;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.Ticking;
 import me.hapyl.spigotutils.module.util.Runnables;
-import net.minecraft.EnumChatFormat;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
-import net.minecraft.network.syncher.DataWatcher;
-import net.minecraft.world.scores.ScoreboardTeam;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.scores.PlayerTeam;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -22,6 +21,7 @@ import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.Syntax;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -281,12 +281,12 @@ public class Glowing implements Ticking, GlowingListener {
 
     @Nonnull
     protected Packet<?> createPacket(boolean flag) {
-        final DataWatcher dataWatcher = Reflect.getDataWatcher(Reflect.getMinecraftEntity(entity));
-        final Byte bitMask = dataWatcher.a(DataWatcherType.BYTE.get().a(0));
+        final SynchedEntityData dataWatcher = Reflect.getDataWatcher(Reflect.getMinecraftEntity(entity));
+        final Byte bitMask = dataWatcher.get(DataWatcherType.BYTE.get().createAccessor(0));
 
-        return new PacketPlayOutEntityMetadata(
+        return new ClientboundSetEntityDataPacket(
                 entity.getEntityId(),
-                List.of(new DataWatcher.c<>(
+                List.of(new SynchedEntityData.DataValue<>(
                         0,
                         DataWatcherType.BYTE.get(),
                         !flag ? (byte) (bitMask & ~GLOWING_BIT_MASK) : (byte) (bitMask | GLOWING_BIT_MASK)
@@ -309,7 +309,7 @@ public class Glowing implements Ticking, GlowingListener {
         }
 
         team.setColor(color);
-        Reflect.sendPacket(player, PacketPlayOutScoreboardTeam.a(Reflect.getNetTeam(team), false));
+        Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(Reflect.getNetTeam(team), false));
     }
 
     private void updateTeam() {
@@ -357,11 +357,11 @@ public class Glowing implements Ticking, GlowingListener {
     }
 
     private void addToTeam(Team team) {
-        final ScoreboardTeam nmsTeam = Reflect.getNetTeam(team);
+        final PlayerTeam nmsTeam = Reflect.getNetTeam(team);
 
         Reflect.sendPacket(
                 player,
-                PacketPlayOutScoreboardTeam.a(nmsTeam, getEntityName(), InnerMojangEnums.PacketPlayOutScoreboardTeam.ADD)
+                ClientboundSetPlayerTeamPacket.createPlayerPacket(nmsTeam, getEntityName(), ClientboundSetPlayerTeamPacket.Action.ADD)
         );
     }
 
@@ -466,30 +466,30 @@ public class Glowing implements Ticking, GlowingListener {
     }
 
     @Nonnull
-    public static EnumChatFormat chatColorToEnumChatFormat(@Nonnull ChatColor color) {
+    public static ChatFormatting chatColorToEnumChatFormat(@Nonnull ChatColor color) {
         return switch (color) {
-            case BOLD -> EnumChatFormat.r;
-            case GREEN -> EnumChatFormat.k;
-            case WHITE -> EnumChatFormat.p;
-            case RED -> EnumChatFormat.m;
-            case GRAY -> EnumChatFormat.h;
-            case DARK_RED -> EnumChatFormat.e;
-            case GOLD -> EnumChatFormat.g;
-            case YELLOW -> EnumChatFormat.o;
-            case AQUA -> EnumChatFormat.l;
-            case BLUE -> EnumChatFormat.j;
-            case DARK_AQUA -> EnumChatFormat.d;
-            case MAGIC -> EnumChatFormat.q;
-            case ITALIC -> EnumChatFormat.u;
-            case DARK_BLUE -> EnumChatFormat.b;
-            case DARK_GRAY -> EnumChatFormat.i;
-            case UNDERLINE -> EnumChatFormat.t;
-            case DARK_GREEN -> EnumChatFormat.c;
-            case DARK_PURPLE -> EnumChatFormat.f;
-            case LIGHT_PURPLE -> EnumChatFormat.n;
-            case STRIKETHROUGH -> EnumChatFormat.s;
-            case RESET -> EnumChatFormat.v;
-            default -> EnumChatFormat.a;
+            case BOLD -> ChatFormatting.BOLD;
+            case GREEN -> ChatFormatting.GREEN;
+            case WHITE -> ChatFormatting.WHITE;
+            case RED -> ChatFormatting.RED;
+            case GRAY -> ChatFormatting.GRAY;
+            case DARK_RED -> ChatFormatting.DARK_RED;
+            case GOLD -> ChatFormatting.GOLD;
+            case YELLOW -> ChatFormatting.YELLOW;
+            case AQUA -> ChatFormatting.AQUA;
+            case BLUE -> ChatFormatting.BLUE;
+            case DARK_AQUA -> ChatFormatting.DARK_AQUA;
+            case MAGIC -> ChatFormatting.OBFUSCATED;
+            case ITALIC -> ChatFormatting.ITALIC;
+            case DARK_BLUE -> ChatFormatting.DARK_BLUE;
+            case DARK_GRAY -> ChatFormatting.DARK_GRAY;
+            case UNDERLINE -> ChatFormatting.UNDERLINE;
+            case DARK_GREEN -> ChatFormatting.DARK_GREEN;
+            case DARK_PURPLE -> ChatFormatting.DARK_PURPLE;
+            case LIGHT_PURPLE -> ChatFormatting.LIGHT_PURPLE;
+            case STRIKETHROUGH -> ChatFormatting.STRIKETHROUGH;
+            case RESET -> ChatFormatting.RESET;
+            default -> ChatFormatting.BLACK;
         };
     }
 

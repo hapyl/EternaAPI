@@ -7,7 +7,7 @@ import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.packet.wrapped.PacketWrappers;
 import me.hapyl.spigotutils.module.reflect.packet.wrapped.WrappedPacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -54,7 +54,7 @@ public class GlowingProtocolMetadataListener implements Listener {
             }
         }
 
-        final PacketPlayOutEntityMetadata newPacket = new PacketPlayOutEntityMetadata(entityId, packedItems.getAsDataWatcherObjectList());
+        final ClientboundSetEntityDataPacket newPacket = new ClientboundSetEntityDataPacket(entityId, packedItems.getAsDataWatcherObjectList());
 
         // Minecraft is annoying with the metadata and will send a Metadata Packet to all
         // nearby players, we need to cancel the event and send our magic packet to the target.

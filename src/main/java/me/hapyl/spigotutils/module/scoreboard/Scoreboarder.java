@@ -7,7 +7,6 @@ import me.hapyl.spigotutils.module.reflect.Reflect;
 import net.md_5.bungee.api.ChatColor;
 import net.minecraft.network.chat.numbers.BlankFormat;
 import net.minecraft.network.chat.numbers.FixedFormat;
-import net.minecraft.world.scores.ScoreboardObjective;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
@@ -23,7 +22,7 @@ public class Scoreboarder {
 
     private final Scoreboard scoreboard;
     private final Objective objective;
-    private final ScoreboardObjective nmsObjective;
+    private final net.minecraft.world.scores.Objective nmsObjective;
     private final List<String> lines;
     private final Set<Player> players;
 
@@ -39,7 +38,7 @@ public class Scoreboarder {
         this.scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         this.objective = scoreboard.registerNewObjective(UUID.randomUUID().toString(), Criteria.DUMMY, title);
 
-        this.nmsObjective = Reflect.getHandle(this.objective, ScoreboardObjective.class);
+        this.nmsObjective = Reflect.getHandle(this.objective, net.minecraft.world.scores.Objective.class);
 
         this.setTitle(title);
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -56,7 +55,7 @@ public class Scoreboarder {
      * @param hideNumbers - Is hidden.
      */
     public void setHideNumbers(boolean hideNumbers) {
-        nmsObjective.b(hideNumbers ? BlankFormat.a : null);
+        nmsObjective.setNumberFormat(hideNumbers ? BlankFormat.INSTANCE : null);
     }
 
     /**

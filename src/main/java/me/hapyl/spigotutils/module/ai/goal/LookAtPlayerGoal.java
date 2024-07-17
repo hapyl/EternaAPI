@@ -1,8 +1,7 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
 import me.hapyl.spigotutils.module.ai.AI;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.ai.goal.PathfinderGoalLookAtPlayer;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Adds a goal to look at the player.
@@ -17,7 +16,7 @@ public class LookAtPlayerGoal extends Goal {
      * @param chance   - Chance to look at.
      */
     public LookAtPlayerGoal(AI ai, float distance, float chance) {
-        super(new PathfinderGoalLookAtPlayer(ai.getMob(), EntityPlayer.class, distance, chance));
+        super(new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(ai.getMob(), ServerPlayer.class, distance, chance));
     }
 
     /**

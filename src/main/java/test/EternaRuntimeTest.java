@@ -45,7 +45,7 @@ import me.hapyl.spigotutils.module.util.CollectionBuilder;
 import me.hapyl.spigotutils.module.util.Compute;
 import me.hapyl.spigotutils.module.util.WeightedCollection;
 import net.md_5.bungee.api.chat.*;
-import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -62,6 +62,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -417,6 +418,8 @@ public final class EternaRuntimeTest {
 
                 npc.show(player);
 
+                final var later = 30;
+
                 later(() -> {
                     info(player, "Teleported");
                     npc.teleport(player.getLocation());
@@ -438,13 +441,13 @@ public final class EternaRuntimeTest {
                                         later(() -> {
                                             npc.remove();
                                             assertTestPassed();
-                                        }, 60);
-                                    }, 60);
-                                }, 60);
-                            }, 60);
-                        }, 60);
-                    }, 60);
-                }, 60);
+                                        }, later);
+                                    }, later);
+                                }, later);
+                            }, later);
+                        }, later);
+                    }, later);
+                }, later);
 
                 return false;
             }
@@ -538,6 +541,22 @@ public final class EternaRuntimeTest {
                 gui.setCancelType(CancelType.NEITHER);
                 gui.openInventory();
                 return false;
+            }
+        });
+
+        addTest(new EternaTest("npcSit") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final HumanNPC npc = new HumanNPC(player.getLocation(), "sitting");
+
+                npc.showAll();
+                npc.setSitting(true);
+
+                later(() -> {
+                    npc.setSitting(false);
+                }, 40);
+
+                return true;
             }
         });
 
@@ -1107,8 +1126,8 @@ public final class EternaRuntimeTest {
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final World world = player.getWorld();
 
-                final EntityPlayer playerHandle = Reflect.getHandle(player, EntityPlayer.class);
-                final net.minecraft.world.level.World worldHandle = Reflect.getHandle(world, net.minecraft.world.level.World.class);
+                final ServerPlayer playerHandle = Reflect.getHandle(player, ServerPlayer.class);
+                final net.minecraft.world.level.Level worldHandle = Reflect.getHandle(world, net.minecraft.world.level.Level.class);
 
                 assertThrows(() -> {
                     Reflect.getHandle(player, Void.class);

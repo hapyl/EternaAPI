@@ -2,9 +2,8 @@ package me.hapyl.spigotutils.module.ai.goal;
 
 import me.hapyl.spigotutils.module.ai.AI;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import net.minecraft.world.entity.EntityCreature;
-import net.minecraft.world.entity.ai.goal.PathfinderGoalTempt;
-import net.minecraft.world.item.crafting.RecipeItemStack;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.item.crafting.Ingredient;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -22,8 +21,8 @@ public class TemptGoal extends Goal {
      * @param scaredByMovement - Whether the mob is scared by movement.
      */
     public TemptGoal(AI ai, ItemStack itemStack, double speedModifier, boolean scaredByMovement) {
-        super(new PathfinderGoalTempt(
-                ai.getMob(EntityCreature.class),
+        super(new net.minecraft.world.entity.ai.goal.TemptGoal(
+                ai.getMob(PathfinderMob.class),
                 speedModifier,
                 recipeFromItemStack(itemStack),
                 scaredByMovement
@@ -42,7 +41,7 @@ public class TemptGoal extends Goal {
         this(ai, new ItemStack(material), speedModifier, scaredByMovement);
     }
 
-    public static RecipeItemStack recipeFromItemStack(ItemStack stack) {
-        return RecipeItemStack.a(new net.minecraft.world.item.ItemStack[] { Reflect.bukkitItemToNMS(stack) });
+    public static Ingredient recipeFromItemStack(ItemStack stack) {
+        return Ingredient.of(Reflect.bukkitItemToNMS(stack));
     }
 }

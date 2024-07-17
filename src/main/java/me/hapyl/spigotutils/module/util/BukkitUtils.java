@@ -5,8 +5,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.hapyl.spigotutils.module.annotate.Range;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.util.MathHelper;
+import net.minecraft.core.BlockPos;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -564,13 +563,13 @@ public class BukkitUtils {
     }
 
     @Nonnull
-    public static BlockPosition toBlockPosition(@Nonnull Location location) {
+    public static BlockPos toBlockPosition(@Nonnull Location location) {
         return toBlockPosition(location.getX(), location.getY(), location.getZ());
     }
 
     @Nonnull
-    public static BlockPosition toBlockPosition(double x, double y, double z) {
-        return new BlockPosition(roundToNearestInteger(x), roundToNearestInteger(y), roundToNearestInteger(z));
+    public static BlockPos toBlockPosition(double x, double y, double z) {
+        return new BlockPos(roundToNearestInteger(x), roundToNearestInteger(y), roundToNearestInteger(z));
     }
 
     public static int roundToNearestInteger(double number) {

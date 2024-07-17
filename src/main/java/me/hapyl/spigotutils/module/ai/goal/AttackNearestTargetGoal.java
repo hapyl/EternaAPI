@@ -1,8 +1,7 @@
 package me.hapyl.spigotutils.module.ai.goal;
 
 import me.hapyl.spigotutils.module.ai.AI;
-import me.hapyl.spigotutils.module.annotate.Super;
-import net.minecraft.world.entity.ai.goal.target.PathfinderGoalNearestAttackableTarget;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
@@ -23,7 +22,7 @@ public class AttackNearestTargetGoal<T extends LivingEntity> extends Goal {
      * @param predicate - Predicate.
      */
     public AttackNearestTargetGoal(AI ai, EntityType entity, int interval, boolean mustSee, boolean mustReach, @Nullable Predicate<T> predicate) {
-        super(new PathfinderGoalNearestAttackableTarget<>(
+        super(new NearestAttackableTargetGoal<>(
                 ai.getMob(),
                 AvoidTargetGoal.entityLivingClassFromType(entity),
                 interval,
