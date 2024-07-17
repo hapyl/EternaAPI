@@ -1,4 +1,5 @@
-# EternaAPI >> An API for Spigot development.
+# EternaAPI >> An API for ~~Spigot~~ Paper development.
+### Starting from version 4.0.0, EternaAPI no longer supports Spigot, in favor of Paper.
 
 * Provides builders for ItemStacks, Scoreboards, Particles, Commands etc.
 * Allows per-player Glowing, WorldBorder, ~~Entity Visibility~~ etc.
