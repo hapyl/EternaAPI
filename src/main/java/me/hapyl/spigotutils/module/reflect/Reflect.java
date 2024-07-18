@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.reflect;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;
+import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.*;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
@@ -23,8 +24,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.projectile.ThrownEgg;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.scores.PlayerTeam;
@@ -62,8 +61,6 @@ public final class Reflect {
 
     private static final String mcVersion;
     private static final String getHandleMethodName = "getHandle";
-    @AccessViaGetter("Reflect#getFakeEntity()")
-    private static ThrownEgg fakeEntity;
 
     static {
         final String name = Bukkit.getServer().getClass().getPackage().getName();
@@ -100,10 +97,6 @@ public final class Reflect {
     @Nullable
     public static Class<?> getCraftClass(@Nonnull String path) {
         try {
-            // Paper removed the version part of the craftbukkit,
-            // since Eterna no longer supports Spigot, the version part was
-            // removed. If ever want to add the Spigot support, just add
-            // another Class#forName I guess. -h
             return Class.forName("org.bukkit.craftbukkit." + path);
         } catch (ClassNotFoundException e) {
             EternaLogger.exception(e);

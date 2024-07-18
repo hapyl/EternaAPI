@@ -8,12 +8,12 @@ import me.hapyl.spigotutils.module.command.CommandProcessor;
 import me.hapyl.spigotutils.module.hologram.HologramListener;
 import me.hapyl.spigotutils.module.hologram.HologramRunnable;
 import me.hapyl.spigotutils.module.inventory.ItemBuilderListener;
+import me.hapyl.spigotutils.module.inventory.SignListener;
 import me.hapyl.spigotutils.module.inventory.gui.GUIListener;
 import me.hapyl.spigotutils.module.inventory.item.CustomItemListener;
 import me.hapyl.spigotutils.module.locaiton.TriggerManager;
 import me.hapyl.spigotutils.module.parkour.ParkourListener;
 import me.hapyl.spigotutils.module.parkour.ParkourRunnable;
-import me.hapyl.spigotutils.protocol.EternaProtocol;
 import me.hapyl.spigotutils.module.quest.QuestListener;
 import me.hapyl.spigotutils.module.record.ReplayListener;
 import me.hapyl.spigotutils.module.reflect.NPCRunnable;
@@ -21,8 +21,8 @@ import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolEntitySpawnListen
 import me.hapyl.spigotutils.module.reflect.glow.GlowingProtocolMetadataListener;
 import me.hapyl.spigotutils.module.reflect.glow.GlowingRunnable;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPCListener;
-import me.hapyl.spigotutils.module.inventory.SignListener;
 import me.hapyl.spigotutils.module.util.Runnables;
+import me.hapyl.spigotutils.protocol.EternaProtocol;
 import me.hapyl.spigotutils.registry.EternaRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -50,10 +50,10 @@ public class EternaPlugin extends JavaPlugin {
         plugin = Eterna.plugin = this;
 
         // Check if the server is running paper
-        validateRunningPaper();
+        validateUsingPaper();
 
         // Init protocol
-        protocol = new EternaProtocol(this);
+        this.protocol = new EternaProtocol(this);
 
         // Init registry
         this.registry = new EternaRegistry(this);
@@ -121,19 +121,6 @@ public class EternaPlugin extends JavaPlugin {
         registry.onDisable();
     }
 
-    private void validateRunningPaper() {
-        try {
-            Class.forName("io.papermc.paper.ServerBuildInfo");
-        } catch (Exception ignored) {
-            EternaLogger.severe("");
-            EternaLogger.severe(" This server is not running paper!");
-            EternaLogger.severe(" EternaAPI no longer works on Spigot, please update to Paper, all your plugins should still work!");
-            EternaLogger.severe("");
-
-            Bukkit.getPluginManager().disablePlugin(this);
-        }
-    }
-
     /**
      * Gets the {@link EternaPlugin}.
      *
@@ -142,6 +129,20 @@ public class EternaPlugin extends JavaPlugin {
     @Nonnull
     public static EternaPlugin getPlugin() {
         return plugin;
+    }
+
+    private void validateUsingPaper() {
+        try {
+            Class.forName("io.papermc.paper.ServerBuildInfo"); // this paper class is in root folder, let's hope they won't move it :]
+        } catch (Exception ignored) {
+            EternaLogger.severe("");
+            EternaLogger.severe("** No Paper detected! Disabling...");
+            EternaLogger.severe("** EternaAPI does NOT work on Spigot, upgrade to Paper!");
+            EternaLogger.severe("** https://papermc.io/downloads/paper");
+            EternaLogger.severe("");
+
+            Bukkit.getPluginManager().disablePlugins();
+        }
     }
 
 }
