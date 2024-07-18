@@ -3,7 +3,7 @@
 # [!] Important 4.0.0
 
 ### Starting from version 4.0.0, EternaAPI no longer supports Spigot, in favor of Paper.
-### The sources will not match the actual jar, since it's remapped now. But sources are still included for javadocs.
+### The sources will not match the actual jar, since it's remapped now.
 
 ---
 
