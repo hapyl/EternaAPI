@@ -232,6 +232,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void setSitting(boolean sitting) {
+        if (true) {
+            EternaLogger.warn("NPC sitting is temporary disabled!");
+            return;
+        }
+
         if (sitEntity != null) {
             showingTo.forEach(player -> Reflect.destroyEntity(sitEntity, player));
             sitEntity = null;
@@ -250,9 +255,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             showingTo.forEach(player -> {
                 Reflect.createEntity(sitEntity, player);
                 Reflect.updateMetadata(sitEntity, player);
-
-                EternaLogger.debug(sitEntity);
-                EternaLogger.debug(human);
             });
 
             updateSitting();
