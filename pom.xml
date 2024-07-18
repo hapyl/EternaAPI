@@ -88,6 +88,9 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
+
+        <!-- Annoying github lowercase requirements are stupid I just want to copy/paste the name! -->
+        <finalName>${project.name}-${project.version}</finalName>
     </build>
 
     <!-- Repos -->
