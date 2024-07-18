@@ -3,7 +3,6 @@ package me.hapyl.spigotutils.module.hologram;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
@@ -28,24 +27,17 @@ public class HologramArmorStand {
                 location.getY(),
                 location.getZ()
         );
-        this.bukkit = (ArmorStand) armorStand.getBukkitEntity();
         this.location = location;
+
+        this.bukkit = (ArmorStand) armorStand.getBukkitEntity();
+        setLine(name);
 
         armorStand.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
         armorStand.setInvisible(true);
         armorStand.setSmall(true);
         armorStand.setMarker(true);
-        armorStand.setCustomName(Chat.component(name));
         armorStand.setCustomNameVisible(true);
-
-        //bukkit.teleport(bukkit.getLocation());
-        //
-        //bukkit.setInvisible(true);
-        //bukkit.setSmall(true);
-        //bukkit.setMarker(true);
-        //bukkit.setCustomName(Chat.format(name));
-        //bukkit.setCustomNameVisible(true);
     }
 
     public void show(Player player) {
@@ -61,11 +53,12 @@ public class HologramArmorStand {
     }
 
     public void hide(Player player) {
-        Reflect.sendPacket(player, new ClientboundRemoveEntitiesPacket(bukkit.getEntityId()));
+        Reflect.sendPacket(player, new ClientboundRemoveEntitiesPacket(armorStand.getId()));
     }
 
     public void setLine(@Nullable String newText) {
-        armorStand.setCustomName(newText == null ? Component.empty() : Chat.component(newText));
+        // Using bukkit entity to support the bukkit text colors
+        bukkit.setCustomName(newText != null ? Chat.format(newText) : "");
     }
 
     public void updateLocation(@Nonnull Player player) {
@@ -87,7 +80,4 @@ public class HologramArmorStand {
         this.armorStand.absMoveTo(location.getX(), location.getY(), location.getZ());
     }
 
-    public ArmorStand bukkitEntity() {
-        return bukkit;
-    }
 }

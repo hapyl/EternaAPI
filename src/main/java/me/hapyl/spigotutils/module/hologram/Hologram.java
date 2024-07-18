@@ -386,6 +386,7 @@ public class Hologram extends LimitedVisibility {
     public final void showVisibility(@Nonnull Player player) {
         for (HologramArmorStand packet : packets) {
             packet.show(player);
+            packet.updateLocation(player);
         }
     }
 
