@@ -1239,6 +1239,16 @@ public final class EternaRuntimeTest {
             }
         });
 
+        addTest(new EternaTest("cbClass") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final Class<?> clazz = Reflect.getCraftClass("entity.CraftPlayer");
+
+                player.sendMessage(clazz.toString());
+                return true;
+            }
+        });
+
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override
