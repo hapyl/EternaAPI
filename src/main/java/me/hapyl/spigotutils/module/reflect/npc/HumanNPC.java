@@ -252,8 +252,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
             chair.passengers = ImmutableList.of(human);
 
-            EternaLogger.debug(chair.position());
-
             showingTo.forEach(player -> {
                 Reflect.createEntity(chair, player);
                 Reflect.updateMetadata(chair, player);
