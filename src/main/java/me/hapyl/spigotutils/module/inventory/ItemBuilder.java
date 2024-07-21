@@ -2052,7 +2052,7 @@ public class ItemBuilder implements Cloneable {
     @SuppressWarnings("UnstableApiUsage")
     private static AttributeModifier makeHideFlagsAttributeModifier() {
         return new AttributeModifier(
-                new NamespacedKey("eternaap", UUID.randomUUID().toString()),
+                new NamespacedKey("eternaapi", UUID.randomUUID().toString()),
                 0,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.FEET
