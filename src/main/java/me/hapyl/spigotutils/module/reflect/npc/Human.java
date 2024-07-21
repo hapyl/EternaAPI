@@ -517,6 +517,15 @@ public interface Human {
     }
 
     /**
+     * Gets if this NPC name tag is dynamic.
+     * <br>
+     * Dynamic name tag will change its height based on NPCs state.
+     *
+     * @return true if this NPCs name tag is dynamic.
+     */
+    boolean isDynamicNameTag();
+
+    /**
      * Returns players that can see this NPC.
      *
      * @return players that can see this NPC.

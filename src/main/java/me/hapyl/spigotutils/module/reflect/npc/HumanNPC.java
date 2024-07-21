@@ -224,39 +224,26 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return chair != null;
     }
 
-    private void removeChair() {
-        if (chair == null) {
-            return;
-        }
-
-        showingTo.forEach(player -> Reflect.destroyEntity(chair, player));
-        chair = null;
-    }
-
     @Override
     public void setSitting(boolean toSit) {
         final boolean isNpcSitting = isSitting();
 
         // Sit
         if (toSit && !isNpcSitting) {
-            final World world = getWorld();
-            final Location location = getLocation();
+            if (chair == null) {
+                final World world = getWorld();
+                final Location location = getLocation();
 
-            // Offset location to make the NPC sit on the block it would stand on
-            location.subtract(0.0d, CHAIR_LOCATION_Y_OFFSET, 0.0d);
+                // Offset location to make the NPC sit on the block it would stand on
+                location.subtract(0.0d, CHAIR_LOCATION_Y_OFFSET, 0.0d);
 
-            chair = new AreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
-            chair.absMoveTo(location.getX(), location.getY(), location.getZ());
-            chair.setRadius(0.0f);
-            chair.setDuration(Integer.MAX_VALUE);
+                chair = new AreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
+                chair.absMoveTo(location.getX(), location.getY(), location.getZ());
+                chair.setRadius(0.0f);
+                chair.setDuration(Integer.MAX_VALUE);
 
-            chair.passengers = ImmutableList.of(human);
-
-            showingTo.forEach(player -> {
-                Reflect.createEntity(chair, player);
-                Reflect.updateMetadata(chair, player);
-                Reflect.updateEntityLocation(chair, player);
-            });
+                chair.passengers = ImmutableList.of(human);
+            }
 
             updateSitting();
         }
@@ -1035,9 +1022,27 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      * Syncs the text above the NPC's head.
      */
     public void syncText() {
-        if (this.aboveHead != null) {
-            this.aboveHead.teleport(this.location.clone().add(0.0d, 1.75d, 0.0d));
+        if (this.aboveHead == null) {
+            return;
         }
+
+        final Location location = getLocation();
+
+        location.add(0.0d, 1.75d, 0.0d);
+
+        // ;; DoNotInline
+        if (isDynamicNameTag()) {
+            if (isSitting()) {
+                location.subtract(0.0d, CHAIR_LOCATION_Y_OFFSET, 0.0d);
+            }
+        }
+
+        this.aboveHead.teleport(location);
+    }
+
+    @Override
+    public boolean isDynamicNameTag() {
+        return true;
     }
 
     @Override
@@ -1061,6 +1066,15 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
 
         return delay.isOver();
+    }
+
+    private void removeChair() {
+        if (chair == null) {
+            return;
+        }
+
+        showingTo.forEach(player -> Reflect.destroyEntity(chair, player));
+        chair = null;
     }
 
     private void refresh() {
@@ -1093,7 +1107,23 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             return;
         }
 
-        sendPacket(new ClientboundSetPassengersPacket(chair));
+        final ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(chair);
+
+        showingTo.forEach(player -> {
+            // Remove old chair even if it didn't exist
+            Reflect.destroyEntity(chair, player);
+
+            // Create chair entity
+            Reflect.createEntity(chair, player);
+            Reflect.updateMetadata(chair, player);
+            Reflect.updateEntityLocation(chair, player);
+
+            // Send passengers packet
+            Reflect.sendPacket(player, packet);
+        });
+
+        // Force update name tag
+        syncText();
     }
 
     private String getPrefix() {
