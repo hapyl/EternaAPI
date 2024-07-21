@@ -1,8 +1,10 @@
 package me.hapyl.spigotutils.module.hologram;
 
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
+import me.hapyl.spigotutils.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
@@ -18,7 +20,6 @@ public class HologramArmorStand {
 
     private final net.minecraft.world.entity.decoration.ArmorStand armorStand;
     private final ArmorStand bukkit;
-    private Location location;
 
     protected HologramArmorStand(Location location, String name) {
         this.armorStand = new net.minecraft.world.entity.decoration.ArmorStand(
@@ -27,12 +28,11 @@ public class HologramArmorStand {
                 location.getY(),
                 location.getZ()
         );
-        this.location = location;
 
         this.bukkit = (ArmorStand) armorStand.getBukkitEntity();
         setLine(name);
 
-        armorStand.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        armorStand.teleportTo(location.getX(), location.getY(), location.getZ());
 
         armorStand.setInvisible(true);
         armorStand.setSmall(true);
@@ -41,7 +41,7 @@ public class HologramArmorStand {
     }
 
     public void show(Player player) {
-        Reflect.sendPacket(player, PacketFactory.makePacketPlayOutSpawnEntity(armorStand, location));
+        Reflect.sendPacket(player, PacketFactory.makePacketPlayOutSpawnEntity(armorStand, Reflect.getLocation(armorStand)));
         update(player);
     }
 
@@ -71,13 +71,8 @@ public class HologramArmorStand {
         }
     }
 
-    public Location getLocation() {
-        return location;
-    }
-
     public void setLocation(Location location) {
-        this.location = location;
-        this.armorStand.absMoveTo(location.getX(), location.getY(), location.getZ());
+        this.armorStand.teleportTo(location.getX(), location.getY(), location.getZ());
     }
 
 }

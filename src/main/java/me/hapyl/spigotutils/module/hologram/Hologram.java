@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.hologram;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.spigotutils.Eterna;
+import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Super;
 import me.hapyl.spigotutils.module.util.BukkitUtils;

@@ -25,7 +25,9 @@ import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.commons.lang.reflect.MethodUtils;
@@ -1130,6 +1132,25 @@ public final class Reflect {
         final double[] location = getEntityLocation0(entity);
 
         return new Location(bukkitWorld, location[0], location[1], location[2]);
+    }
+
+    @Nonnull
+    public static Location locationFromPosition(@Nonnull World world, @Nonnull Vec3 position) {
+        return new Location(world, position.x, position.y, position.z);
+    }
+
+    @Nonnull
+    public static Location getLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return locationFromPosition(getBukkitWorld(entity.level()), entity.position());
+    }
+
+    @Nonnull
+    public static World getBukkitWorld(@Nonnull Level level) {
+        if (level instanceof ServerLevel serverLevel) {
+            return getBukkitWorld(serverLevel);
+        }
+
+        throw new IllegalArgumentException("Cannot get world from non-server level!");
     }
 
     private static double[] getEntityLocation0(net.minecraft.world.entity.Entity entity) {
