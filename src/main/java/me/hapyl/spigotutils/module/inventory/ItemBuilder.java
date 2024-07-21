@@ -994,19 +994,12 @@ public class ItemBuilder implements Cloneable {
     /**
      * Hides all the item flags.
      */
-    @SuppressWarnings("UnstableApiUsage")
     public ItemBuilder hideFlags() {
         return modifyMeta(meta -> {
             meta.addItemFlags(ItemFlag.values());
 
             // Hide 'When in Main Hand' thingy because fuck mojang that's why
-            meta.addAttributeModifier(Attribute.GENERIC_LUCK,
-                    new AttributeModifier(
-                            new NamespacedKey("eternaapi", "hide_flags"),
-                            0,
-                            AttributeModifier.Operation.ADD_NUMBER,
-                            EquipmentSlotGroup.FEET
-                    ));
+            meta.addAttributeModifier(Attribute.GENERIC_LUCK, makeHideFlagsAttributeModifier());
         });
     }
 
@@ -1661,8 +1654,6 @@ public class ItemBuilder implements Cloneable {
         }
     }
 
-    // *=* Static members *=* //
-
     /**
      * Creates builder of provided ItemStack.
      *
@@ -1672,6 +1663,8 @@ public class ItemBuilder implements Cloneable {
     public static ItemBuilder of(@Nonnull ItemStack itemStack) {
         return new ItemBuilder(itemStack);
     }
+
+    // *=* Static members *=* //
 
     /**
      * Creates builder of provided material.
@@ -2054,6 +2047,16 @@ public class ItemBuilder implements Cloneable {
         final ItemMeta meta = item.getItemMeta();
         Nulls.runIfNotNull(meta, m -> m.setLore(Collections.singletonList(lore)));
         item.setItemMeta(meta);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private static AttributeModifier makeHideFlagsAttributeModifier() {
+        return new AttributeModifier(
+                new NamespacedKey("eternaap", UUID.randomUUID().toString()),
+                0,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlotGroup.FEET
+        );
     }
 
     private static boolean isManualSplit(char[] chars, int index) {
