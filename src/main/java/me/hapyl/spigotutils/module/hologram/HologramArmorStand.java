@@ -1,10 +1,8 @@
 package me.hapyl.spigotutils.module.hologram;
 
-import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.PacketFactory;
 import me.hapyl.spigotutils.module.reflect.Reflect;
-import me.hapyl.spigotutils.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
@@ -41,7 +39,7 @@ public class HologramArmorStand {
     }
 
     public void show(Player player) {
-        Reflect.sendPacket(player, PacketFactory.makePacketPlayOutSpawnEntity(armorStand, Reflect.getLocation(armorStand)));
+        Reflect.sendPacket(player, PacketFactory.makePacketPlayOutSpawnEntity(armorStand, Reflect.getEntityLocation(armorStand)));
         update(player);
     }
 

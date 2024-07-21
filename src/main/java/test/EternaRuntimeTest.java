@@ -1249,6 +1249,19 @@ public final class EternaRuntimeTest {
             }
         });
 
+        addTest(new EternaTest("ibHideFlags") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final ItemStack item = new ItemBuilder(Material.IRON_PICKAXE)
+                        .hideFlags()
+                        .build();
+
+                player.getInventory().addItem(item);
+
+                return true;
+            }
+        });
+
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override

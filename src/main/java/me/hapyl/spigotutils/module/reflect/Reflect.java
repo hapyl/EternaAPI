@@ -3,7 +3,6 @@ package me.hapyl.spigotutils.module.reflect;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;
-import me.hapyl.spigotutils.Eterna;
 import me.hapyl.spigotutils.EternaLogger;
 import me.hapyl.spigotutils.module.annotate.*;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
@@ -1119,28 +1118,37 @@ public final class Reflect {
         return new BlockPos((int) entity.xo, (int) entity.yo, (int) entity.zo);
     }
 
+    /**
+     * Gets the given {@link net.minecraft.world.entity.Entity} {@link UUID}.
+     *
+     * @param entity - Entity.
+     * @return the given entity's UUID.
+     */
     @Nonnull
     public static UUID getEntityUuid(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getUUID();
     }
 
-    @Nonnull
-    @SuppressWarnings("resource")
-    public static Location getEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
-        @DoNotUseAutoCloseable final net.minecraft.world.level.Level world = entity.level();
-        final World bukkitWorld = getBukkitWorld(world.getMinecraftWorld());
-        final double[] location = getEntityLocation0(entity);
-
-        return new Location(bukkitWorld, location[0], location[1], location[2]);
-    }
-
+    /**
+     * Converts NMS {@link net.minecraft.world.entity.Entity} position into {@link Location}.
+     *
+     * @param world    - Location world.
+     * @param position - Position.
+     * @return location.
+     */
     @Nonnull
     public static Location locationFromPosition(@Nonnull World world, @Nonnull Vec3 position) {
         return new Location(world, position.x, position.y, position.z);
     }
 
+    /**
+     * Gets {@link net.minecraft.world.entity.Entity} position as {@link Location}.
+     *
+     * @param entity - Entity to get location for.
+     * @return entity's location.
+     */
     @Nonnull
-    public static Location getLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
+    public static Location getEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
         return locationFromPosition(getBukkitWorld(entity.level()), entity.position());
     }
 
@@ -1151,10 +1159,6 @@ public final class Reflect {
         }
 
         throw new IllegalArgumentException("Cannot get world from non-server level!");
-    }
-
-    private static double[] getEntityLocation0(net.minecraft.world.entity.Entity entity) {
-        return new double[] { entity.xo, entity.yo, entity.zo };
     }
 
     private static Field getField0(Object instance, String name, boolean isDeclared) {
