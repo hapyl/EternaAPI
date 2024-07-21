@@ -21,6 +21,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -993,8 +994,20 @@ public class ItemBuilder implements Cloneable {
     /**
      * Hides all the item flags.
      */
+    @SuppressWarnings("UnstableApiUsage")
     public ItemBuilder hideFlags() {
-        return modifyMeta(meta -> meta.addItemFlags(ItemFlag.values()));
+        return modifyMeta(meta -> {
+            meta.addItemFlags(ItemFlag.values());
+
+            // Hide 'When in Main Hand' thingy because fuck mojang that's why
+            meta.addAttributeModifier(Attribute.GENERIC_LUCK,
+                    new AttributeModifier(
+                            new NamespacedKey("eternaapi", "hide_flags"),
+                            0,
+                            AttributeModifier.Operation.ADD_NUMBER,
+                            EquipmentSlotGroup.FEET
+                    ));
+        });
     }
 
     /**
