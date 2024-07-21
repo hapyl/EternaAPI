@@ -30,20 +30,13 @@ import me.hapyl.spigotutils.module.reflect.Reflect;
 import me.hapyl.spigotutils.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.spigotutils.module.reflect.npc.entry.StringEntry;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
-import me.hapyl.spigotutils.module.util.Runnables;
 import me.hapyl.spigotutils.module.util.TeamHelper;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.AreaEffectCloud;
-import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.projectile.Arrow;
-import net.minecraft.world.entity.projectile.ThrownEgg;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -59,7 +52,6 @@ import org.bukkit.util.Vector;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
@@ -78,6 +70,8 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     private static final String nameToUuidRequest = "https://api.mojang.com/users/profiles/minecraft/%s";
     private static final String uuidToProfileRequest = "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false";
+
+    private static final double CHAIR_LOCATION_Y_OFFSET = 0.39d;
 
     protected final Set<Player> showingTo = Sets.newHashSet();
 
@@ -101,7 +95,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     private String cannotInteractMessage = "Not now.";
     private int lookAtCloseDist;
     private BukkitTask moveTask;
-    private AreaEffectCloud sitEntity;
+    private AreaEffectCloud chair;
     private RestPosition restPosition;
 
     private HumanNPC() {
@@ -227,37 +221,53 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public boolean isSitting() {
-        return sitEntity != null;
+        return chair != null;
     }
 
-    @Override
-    public void setSitting(boolean sitting) {
-        if (true) {
-            EternaLogger.warn("NPC sitting is temporary disabled!");
+    private void removeChair() {
+        if (chair == null) {
             return;
         }
 
-        if (sitEntity != null) {
-            showingTo.forEach(player -> Reflect.destroyEntity(sitEntity, player));
-            sitEntity = null;
-        }
+        showingTo.forEach(player -> Reflect.destroyEntity(chair, player));
+        chair = null;
+    }
 
-        if (sitting) {
-            final Location location = getLocation();
+    @Override
+    public void setSitting(boolean toSit) {
+        final boolean isNpcSitting = isSitting();
+
+        // Sit
+        if (toSit && !isNpcSitting) {
             final World world = getWorld();
+            final Location location = getLocation();
 
-            sitEntity = new AreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
-            sitEntity.setRadius(0.0f);
-            sitEntity.setDuration(Integer.MAX_VALUE);
+            // Offset location to make the NPC sit on the block it would stand on
+            location.subtract(0.0d, CHAIR_LOCATION_Y_OFFSET, 0.0d);
 
-            sitEntity.passengers = ImmutableList.of(human);
+            chair = new AreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
+            chair.absMoveTo(location.getX(), location.getY(), location.getZ());
+            chair.setRadius(0.0f);
+            chair.setDuration(Integer.MAX_VALUE);
+
+            chair.passengers = ImmutableList.of(human);
+
+            EternaLogger.debug(chair.position());
 
             showingTo.forEach(player -> {
-                Reflect.createEntity(sitEntity, player);
-                Reflect.updateMetadata(sitEntity, player);
+                Reflect.createEntity(chair, player);
+                Reflect.updateMetadata(chair, player);
+                Reflect.updateEntityLocation(chair, player);
             });
 
             updateSitting();
+        }
+        // Stand up
+        else if (!toSit && isNpcSitting) {
+            removeChair();
+
+            // Fix chair offset
+            setLocation(getLocation());
         }
     }
 
@@ -954,8 +964,8 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     public final void remove0() {
         this.alive = false;
 
-        if (this.sitEntity != null) {
-            showingTo.forEach(player -> Reflect.destroyEntity(this.sitEntity, player));
+        if (this.chair != null) {
+            showingTo.forEach(player -> Reflect.destroyEntity(this.chair, player));
         }
 
         this.hide();
@@ -979,6 +989,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     public void hide0(@Nonnull Player player) {
         aboveHead.hide(player);
         human.hide(player);
+
+        if (chair != null) {
+            Reflect.destroyEntity(chair, player);
+        }
 
         onDespawn(player);
     }
@@ -1077,11 +1091,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     private void updateSitting() {
-        if (sitEntity == null) {
+        if (chair == null) {
             return;
         }
 
-        sendPacket(new ClientboundSetPassengersPacket(sitEntity));
+        sendPacket(new ClientboundSetPassengersPacket(chair));
     }
 
     private String getPrefix() {

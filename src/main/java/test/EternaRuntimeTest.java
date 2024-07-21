@@ -545,18 +545,33 @@ public final class EternaRuntimeTest {
         });
 
         addTest(new EternaTest("npcSit") {
+
+            static HumanNPC npc;
+
             @Override
             public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
-                final HumanNPC npc = new HumanNPC(player.getLocation(), "sitting");
+                if (npc == null) {
+                    npc = new HumanNPC(player.getLocation(), "sitting");
+                    npc.showAll();
 
-                npc.showAll();
-                npc.setSitting(true);
+                    info(player, "Spawned!");
+                    return false;
+                }
+                else if (args.get(0).toString().equalsIgnoreCase("remove")) {
+                    npc.remove();
+                    npc = null;
+                    return false;
+                }
 
-                later(() -> {
-                    npc.setSitting(false);
-                }, 40);
+                npc.setSitting(!npc.isSitting());
+                info(player, "NPC is now " + (npc.isSitting() ? "SITTING" : "STANDING"));
 
-                return true;
+                return false;
+            }
+
+            @Override
+            protected boolean doShowFeedback() {
+                return false;
             }
         });
 
@@ -1237,6 +1252,7 @@ public final class EternaRuntimeTest {
                 assertFail("Missing first argument (value), must be either: 'apply' or 'reset'.");
                 return false;
             }
+
         });
 
         addTest(new EternaTest("cbClass") {
@@ -1312,7 +1328,10 @@ public final class EternaRuntimeTest {
 
             final String testName = currentTest.toString();
 
-            EternaLogger.test("&eTesting '%s'...".formatted(testName));
+            if (currentTest.doShowFeedback()) {
+                EternaLogger.test("&eTesting '%s'...".formatted(testName));
+            }
+
             final boolean auto = currentTest.test(tester, args);
 
             // Test 2 requires manual pass
@@ -1340,16 +1359,22 @@ public final class EternaRuntimeTest {
             EternaRuntimeTest.test.wait = false;
         }
 
-        EternaLogger.test("&aTest '%s' passed!".formatted(test));
+        if (test.doShowFeedback()) {
+            EternaLogger.test("&aTest '%s' passed!".formatted(test));
+        }
     }
 
     static void handleTestFail(EternaTest test, Exception ex) {
-        EternaLogger.test("&4Test '%s' failed! &c%s".formatted(test, ex.getMessage()));
-        ex.printStackTrace();
+        if (test.doShowFeedback()) {
+            EternaLogger.test("&4Test '%s' failed! &c%s".formatted(test, ex.getMessage()));
+            ex.printStackTrace();
+        }
     }
 
     static void handleTestSkipped(EternaTest test, String message) {
-        EternaLogger.test("&8Test '%s' skipped! %s".formatted(test, message));
+        if (test.doShowFeedback()) {
+            EternaLogger.test("&8Test '%s' skipped! %s".formatted(test, message));
+        }
     }
 
     static void addTest(EternaTest test) {

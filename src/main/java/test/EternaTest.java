@@ -25,6 +25,10 @@ public abstract class EternaTest {
         return name;
     }
 
+    protected boolean doShowFeedback() {
+        return true;
+    }
+
     // *=* Helpers *=* //
 
     protected void info(@Nonnull Player player, @Nonnull String info) {
