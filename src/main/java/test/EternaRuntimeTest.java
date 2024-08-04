@@ -11,6 +11,7 @@ import me.hapyl.spigotutils.module.ai.goal.MeleeAttackGoal;
 import me.hapyl.spigotutils.module.block.display.BlockStudioParser;
 import me.hapyl.spigotutils.module.block.display.DisplayData;
 import me.hapyl.spigotutils.module.block.display.DisplayEntity;
+import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.chat.messagebuilder.Format;
 import me.hapyl.spigotutils.module.chat.messagebuilder.Keybind;
 import me.hapyl.spigotutils.module.chat.messagebuilder.MessageBuilder;
@@ -40,10 +41,7 @@ import me.hapyl.spigotutils.module.reflect.npc.ClickType;
 import me.hapyl.spigotutils.module.reflect.npc.HumanNPC;
 import me.hapyl.spigotutils.module.reflect.npc.NPCPose;
 import me.hapyl.spigotutils.module.scoreboard.Scoreboarder;
-import me.hapyl.spigotutils.module.util.ArgumentList;
-import me.hapyl.spigotutils.module.util.CollectionBuilder;
-import me.hapyl.spigotutils.module.util.Compute;
-import me.hapyl.spigotutils.module.util.WeightedCollection;
+import me.hapyl.spigotutils.module.util.*;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
@@ -1274,6 +1272,16 @@ public final class EternaRuntimeTest {
 
                 player.getInventory().addItem(item);
 
+                return true;
+            }
+        });
+
+        addTest(new EternaTest("bformat") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final String format = BFormat.format("%s $$ {} :?", "$");
+
+                Chat.sendMessage(player, format);
                 return true;
             }
         });

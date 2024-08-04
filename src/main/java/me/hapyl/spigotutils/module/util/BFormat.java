@@ -1,7 +1,11 @@
 package me.hapyl.spigotutils.module.util;
 
+import me.hapyl.spigotutils.EternaLogger;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A formatter for strings, 'B' stands for 'bracket'.
@@ -82,7 +86,10 @@ public class BFormat {
         }
 
         for (Object obj : format) {
-            this.string = this.string.replaceFirst("\\" + OPEN_CHAR + ".*?" + CLOSE_CHAR, formatter.format(obj));
+            this.string = this.string.replaceFirst(
+                    "\\" + OPEN_CHAR + ".*?" + CLOSE_CHAR,
+                    Matcher.quoteReplacement(formatter.format(obj))
+            );
         }
 
         return this.string;
