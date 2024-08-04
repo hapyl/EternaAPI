@@ -194,11 +194,10 @@ public class CollectionUtils {
             }
 
             builder.append(wrap.keyToValue(entry.getKey(), entry.getValue()));
-
             i++;
         }
 
-        return builder.toString();
+        return builder.append(wrap.end()).toString();
     }
 
     /**

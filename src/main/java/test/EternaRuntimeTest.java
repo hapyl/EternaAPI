@@ -1286,6 +1286,21 @@ public final class EternaRuntimeTest {
             }
         });
 
+        addTest(new EternaTest("mapWrap") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                Map<String, Integer> map = Map.of(
+                        "hello", 1,
+                        "world", 2,
+                        "foo", 3,
+                        "bar", 4
+                );
+
+                info(player, CollectionUtils.wrapToString(map, MapWrap.ofDefault()));
+                return true;
+            }
+        });
+
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override

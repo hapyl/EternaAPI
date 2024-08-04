@@ -1,7 +1,12 @@
 package me.hapyl.spigotutils.module.util;
 
+import me.hapyl.spigotutils.module.annotate.FactoryMethod;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
- * Represents a wrapper for an array.
+ * Represents a wrapper for a collection.
  */
 public interface Wrap {
 
@@ -11,7 +16,7 @@ public interface Wrap {
     Wrap DEFAULT = of("[", ", ", "]");
 
     /**
-     * The start of the array.
+     * The start of the collection.
      */
     String start();
 
@@ -21,14 +26,13 @@ public interface Wrap {
     String between();
 
     /**
-     * The end of the array.
+     * The end of the collection.
      */
     String end();
 
-    /**
-     * Static method to create a new Wrap.
-     */
-    static Wrap of(String start, String between, String end) {
+    @Nonnull
+    @FactoryMethod(Wrap.class)
+    static Wrap of(@Nullable String start, @Nullable String between, @Nullable String end) {
         return new Wrap() {
             @Override
             public String start() {
