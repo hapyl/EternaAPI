@@ -1,14 +1,14 @@
 # EternaAPI >> An API for ~~Spigot~~ Paper development.
 
-# [!] Important 4.0.0
+# /!\ Important /!\
 
 ### Starting from version 4.0.0, EternaAPI no longer supports Spigot, in favor of Paper.
-### The sources will not match the actual jar, since it's remapped now.
+### Some sources will not match, since the API uses the remapped version of Spigot.
 
 ---
 
 * Provides builders for ItemStacks, Scoreboards, Particles, Commands etc.
-* Allows per-player Glowing, WorldBorder, ~~Entity Visibility~~ etc.
+* Allows per-player ((simple)) NPCs, Glowing, WorldBorder, etc.
 * Customizable Parkour, Quests system.
 * A lot of utilities.
 
@@ -40,6 +40,15 @@ public void onEnable() {
 </dependency>
 ```
 
+---
+## How to Build
+
+Starting from 4.0.0, the API requires a little weird building method:
+
+- For Maven deploy/install, use `mv clean install/deploy` or `mvn clean source:jar install/deploy`
+- For the plugin itself, use IntelliJ artifacts; or you **MUST** you the original file form Maven build. `(original-EternaAPI-VERSION-SNAPSHOT.jar)`
+
+---
 ## About
 [Wiki](https://github.com/hapyl/EternaAPI/wiki)
 
