@@ -1,13 +1,17 @@
 package me.hapyl.spigotutils.module.util;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import me.hapyl.spigotutils.EternaPlugin;
 import me.hapyl.spigotutils.module.annotate.Range;
+import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.reflect.Reflect;
 import net.minecraft.core.BlockPos;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
@@ -20,10 +24,7 @@ import org.bukkit.util.Vector;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.DecimalFormat;
-import java.util.Collection;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Some utils for things that I do regularly.
@@ -562,18 +563,61 @@ public class BukkitUtils {
         }
     }
 
+    /**
+     * Convert bukkit {@link Location} into NMS {@link BlockPos}.
+     *
+     * @param location - Bukkit location.
+     * @return NMS BlockPos.
+     */
     @Nonnull
     public static BlockPos toBlockPosition(@Nonnull Location location) {
         return toBlockPosition(location.getX(), location.getY(), location.getZ());
     }
 
+    /**
+     * Convert coordinates into NMS {@link BlockPos}.
+     *
+     * @param x - X.
+     * @param y - Y.
+     * @param z - Z.
+     * @return NMS BlockPos.
+     */
     @Nonnull
     public static BlockPos toBlockPosition(double x, double y, double z) {
         return new BlockPos(roundToNearestInteger(x), roundToNearestInteger(y), roundToNearestInteger(z));
     }
 
+    /**
+     * Rounds a {@link Double} to the nearest {@link Integer}.
+     *
+     * @param number - Number to round.
+     * @return a rounded integer.
+     */
     public static int roundToNearestInteger(double number) {
         final int roundedNumber = (int) number;
         return number < (double) roundedNumber ? roundedNumber - 1 : roundedNumber;
+    }
+
+    /**
+     * Colorizes the array of {@link Object} into a {@link List} of {@link String}.
+     *
+     * @param objects - Objects to colorize.
+     * @return a colorized list of strings.
+     * @see org.bukkit.inventory.meta.ItemMeta#setLore(List)
+     */
+    @Nonnull
+    public static List<String> colorStringArrayToList(@Nonnull Object[] objects) {
+        final List<String> strings = Lists.newArrayList();
+
+        for (Object obj : objects) {
+            strings.add(Chat.format(obj));
+        }
+
+        return strings;
+    }
+
+    @Nonnull
+    public static NamespacedKey createKey(@Nonnull Object object) {
+        return new NamespacedKey(EternaPlugin.getPlugin(), object.toString());
     }
 }

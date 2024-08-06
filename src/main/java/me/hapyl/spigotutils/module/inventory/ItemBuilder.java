@@ -12,11 +12,14 @@ import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.math.Numbers;
 import me.hapyl.spigotutils.module.nbt.NBT;
 import me.hapyl.spigotutils.module.nbt.NBTType;
+import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.Nulls;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.block.banner.Pattern;
+import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -25,6 +28,9 @@ import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
+import org.bukkit.inventory.meta.components.ToolComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -40,13 +46,12 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
  */
+@SuppressWarnings("UnstableApiUsage")
 public class ItemBuilder implements Cloneable {
 
     /**
@@ -73,6 +78,7 @@ public class ItemBuilder implements Cloneable {
     public static final ChatColor DEFAULT_NAME_COLOR = ChatColor.GREEN;
 
     private static final char MANUAL_SPLIT_CHAR = '_';
+
     private static final String PLUGIN_PATH = "ItemBuilderId";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
 
@@ -958,10 +964,27 @@ public class ItemBuilder implements Cloneable {
      * @param slot      - Slot of the attribute.
      */
     public ItemBuilder addAttribute(@Nonnull Attribute attribute, double amount, @Nonnull AttributeModifier.Operation operation, @Nullable EquipmentSlot slot) {
+        return addAttribute(attribute, amount, operation, equipmentSlotGroupFromSlot(slot));
+    }
+
+    /**
+     * Adds an attribute to the item.
+     *
+     * @param attribute - Attribute to add.
+     * @param amount    - Amount of the attribute.
+     * @param operation - Operation of the attribute.
+     * @param slot      - Slot of the attribute.
+     */
+    public ItemBuilder addAttribute(@Nonnull Attribute attribute, double amount, @Nonnull AttributeModifier.Operation operation, @Nullable EquipmentSlotGroup slot) {
         return modifyMeta(meta -> {
             meta.addAttributeModifier(
                     attribute,
-                    new AttributeModifier(UUID.randomUUID(), attribute.toString(), amount, operation, slot)
+                    new AttributeModifier(
+                            BukkitUtils.createKey(UUID.randomUUID()),
+                            amount,
+                            operation,
+                            slot != null ? slot : EquipmentSlotGroup.ANY
+                    )
             );
         });
     }
@@ -1588,6 +1611,81 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
+     * Sets the maximum stack size of this item. Must be between 1-99 (inclusive).
+     *
+     * @param maximumStackSize - Maximum stack size of this item.
+     */
+    public ItemBuilder setMaximumStackSize(int maximumStackSize) {
+        return modifyMeta(meta -> meta.setMaxStackSize(maximumStackSize));
+    }
+
+    /**
+     * Modifies the {@link FoodComponent} for this item.
+     *
+     * @param modifier - Modifier.
+     * @see FoodComponent
+     * @see FoodComponent.FoodEffect
+     */
+    public ItemBuilder setFood(@Nonnull ComponentModifier<FoodComponent> modifier) {
+        return modifyComponent(modifier, ItemMeta::getFood, ItemMeta::setFood);
+    }
+
+    /**
+     * Modifies the {@link ToolComponent} for this item.
+     *
+     * @param modifier - Modifier.
+     * @see ToolComponent
+     * @see ToolComponent.ToolRule
+     */
+    public ItemBuilder setTool(@Nonnull ComponentModifier<ToolComponent> modifier) {
+        return modifyComponent(modifier, ItemMeta::getTool, ItemMeta::setTool);
+    }
+
+    /**
+     * Modifies the {@link JukeboxPlayableComponent} for this item.
+     *
+     * @param modifier - Modifier.
+     * @see JukeboxPlayableComponent
+     */
+    public ItemBuilder setJukebox(@Nonnull ComponentModifier<JukeboxPlayableComponent> modifier) {
+        return modifyComponent(modifier, ItemMeta::getJukeboxPlayable, ItemMeta::setJukeboxPlayable);
+    }
+
+    /**
+     * Clears all the banner {@link Pattern}s.
+     */
+    public ItemBuilder clearBannerPatterns() {
+        return modifyMeta(BannerMeta.class, meta -> {
+            for (int i = 0; i < meta.numberOfPatterns(); i++) {
+                meta.removePattern(i);
+            }
+        });
+    }
+
+    /**
+     * Adds a banner {@link Pattern}.
+     *
+     * @param type  - Pattern type.
+     * @param color - Pattern color.
+     */
+    public ItemBuilder addBannerPattern(@Nonnull PatternType type, @Nonnull DyeColor color) {
+        return modifyMeta(BannerMeta.class, Material.WHITE_BANNER, meta -> {
+            meta.addPattern(new Pattern(color, type));
+        });
+    }
+
+    /**
+     * Sets the banner {@link Pattern}s.
+     *
+     * @param patterns - Patterns to set.
+     */
+    public ItemBuilder setBannerPattern(@Nonnull Pattern... patterns) {
+        return modifyMeta(BannerMeta.class, Material.WHITE_BANNER, meta -> {
+            meta.setPatterns(Arrays.asList(patterns));
+        });
+    }
+
+    /**
      * Modifies the {@link ItemMeta} and applies it to the item.
      *
      * @param consumer - Consumer.
@@ -1652,6 +1750,34 @@ public class ItemBuilder implements Cloneable {
         } catch (Exception e) {
             throw new Error(e);
         }
+    }
+
+    private <E> ItemBuilder modifyComponent(ComponentModifier<E> modifier, Function<ItemMeta, E> get, BiConsumer<ItemMeta, E> set) {
+        modifyMeta(meta -> {
+            final E component = get.apply(meta);
+
+            modifier.modify(component);
+            set.accept(meta, component);
+        });
+
+        return this;
+    }
+
+    @Nonnull
+    public static EquipmentSlotGroup equipmentSlotGroupFromSlot(@Nullable EquipmentSlot slot) {
+        if (slot == null) {
+            return EquipmentSlotGroup.ANY;
+        }
+
+        return switch (slot) {
+            case HAND -> EquipmentSlotGroup.MAINHAND;
+            case OFF_HAND -> EquipmentSlotGroup.OFFHAND;
+            case FEET -> EquipmentSlotGroup.FEET;
+            case CHEST -> EquipmentSlotGroup.CHEST;
+            case HEAD -> EquipmentSlotGroup.HEAD;
+            case LEGS -> EquipmentSlotGroup.LEGS;
+            case BODY -> EquipmentSlotGroup.BODY;
+        };
     }
 
     /**
@@ -2116,6 +2242,12 @@ public class ItemBuilder implements Cloneable {
         }
 
         return list;
+    }
+
+    public interface ComponentModifier<E> {
+
+        void modify(E e);
+
     }
 
 }

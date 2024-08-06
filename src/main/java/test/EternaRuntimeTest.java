@@ -56,6 +56,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.ToolComponent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
@@ -1297,6 +1301,40 @@ public final class EternaRuntimeTest {
                 );
 
                 info(player, CollectionUtils.wrapToString(map, MapWrap.ofDefault()));
+                return true;
+            }
+        });
+
+        addTest(new EternaTest("itemComponents") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final ItemBuilder foodItem = new ItemBuilder(Material.DIAMOND_SWORD)
+                        .setName("FOOD")
+                        .setFood(food -> {
+                            food.setCanAlwaysEat(true);
+                            food.setEatSeconds(6.9f);
+                            food.setSaturation(100);
+                            food.setNutrition(100);
+                            food.setUsingConvertsTo(new ItemStack(Material.BEDROCK));
+
+                            final FoodComponent.FoodEffect effect = food.addEffect(
+                                    new PotionEffect(PotionEffectType.SLOWNESS, 60, 6),
+                                    1.0f
+                            );
+                        });
+
+                final ItemBuilder toolItem = new ItemBuilder(Material.IRON_INGOT)
+                        .setName("TOOL")
+                        .setTool(tool -> {
+                            tool.setDamagePerBlock(1);
+                            tool.setDefaultMiningSpeed(1.5f);
+
+                            tool.addRule(Material.GLASS, 5f, true);
+                        });
+
+                player.getInventory().addItem(foodItem.build());
+                player.getInventory().addItem(toolItem.build());
+
                 return true;
             }
         });
