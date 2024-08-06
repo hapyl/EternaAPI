@@ -3,6 +3,7 @@ package me.hapyl.spigotutils.module.inventory;
 import me.hapyl.spigotutils.module.chat.Chat;
 import me.hapyl.spigotutils.module.util.BukkitUtils;
 import me.hapyl.spigotutils.module.util.CollectionUtils;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -20,6 +21,10 @@ import java.util.function.Consumer;
  * Yet the {@link ItemBuilder} is obviously more powerful.
  */
 public class SuperItem extends ItemStack {
+
+    public SuperItem(@Nonnull Material material) {
+        super(material);
+    }
 
     public SuperItem withName(@Nullable String name) {
         return modifyMeta(meta -> {

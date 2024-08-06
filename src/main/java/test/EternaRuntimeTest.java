@@ -1339,6 +1339,30 @@ public final class EternaRuntimeTest {
             }
         });
 
+        addTest(new EternaTest("colorConverter") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final net.md_5.bungee.api.ChatColor color = ColorConverter.DYE_COLOR.toChatColor(DyeColor.GREEN);
+
+                info(player, color + "THIS IS THE COLOR");
+
+                convertAllAndInfo(player, ColorConverter.JAVA_COLOR, new java.awt.Color(123, 123, 123));
+                convertAllAndInfo(player, ColorConverter.BUNGEE_CHAT_COLOR, net.md_5.bungee.api.ChatColor.RED);
+                convertAllAndInfo(player, ColorConverter.CHAT_COLOR, ChatColor.BLUE);
+                convertAllAndInfo(player, ColorConverter.BUKKIT_COLOR, Color.fromRGB(69, 69, 69));
+                convertAllAndInfo(player, ColorConverter.DYE_COLOR, DyeColor.GREEN);
+                return true;
+            }
+
+            private <E> void convertAllAndInfo(Player player, ColorConverter.Converter<E> converter, E e) {
+                info(player, "----[ %s ] ----".formatted(e.toString()));
+                info(player, "javaColor=" + String.valueOf(converter.toJavaColor(e)));
+                info(player, "bungeeChatColor=" + String.valueOf(converter.toChatColor(e)));
+                info(player, "chatColor=" + String.valueOf(converter.toBukkitColor(e)));
+                info(player, "");
+            }
+        });
+
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override
