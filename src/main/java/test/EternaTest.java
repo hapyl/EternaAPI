@@ -1,9 +1,9 @@
 package test;
 
-import me.hapyl.spigotutils.EternaLogger;
-import me.hapyl.spigotutils.module.chat.Chat;
-import me.hapyl.spigotutils.module.util.ArgumentList;
-import me.hapyl.spigotutils.module.util.Runnables;
+import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.util.ArgumentList;
+import me.hapyl.eterna.module.util.Runnables;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
