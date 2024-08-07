@@ -3,7 +3,7 @@
 # /!\ Important /!\
 
 ### Starting from version 4.0.0, EternaAPI no longer supports Spigot, in favor of Paper.
-### Starting from version 4.2.0, the package has changed from 'spigotutils' >> 'eterna', a simple 'Replace in Files' will fix the imports.
+### Starting from version 4.2.0, the package has changed from 'spigotutils' >> 'eterna', a simple 'Replace in Files' and clean build will fix the imports.
 ### Some sources will not match, since the API uses the remapped version of Spigot.
 
 ---
