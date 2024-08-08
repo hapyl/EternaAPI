@@ -950,7 +950,7 @@ public class ItemBuilder implements Cloneable {
      */
     public ItemBuilder setSkullOwner(@Nonnull String owner, @Nullable Sound sound) {
         return modifyMeta(SkullMeta.class, meta -> {
-            meta.setOwnerProfile(Bukkit.createPlayerProfile(owner));
+            meta.setPlayerProfile(Bukkit.createProfile(null, owner));
             meta.setNoteBlockSound(sound != null ? sound.getKey() : null);
         });
     }
