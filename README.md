@@ -53,6 +53,7 @@ Eterna. <br>
 But in the future, everything might migrate to per-plugin registries.*
 
 ## Maven
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.hapyl/eternaapi?style=flat)
 
 * Add the dependency to your `pom.xml`:
 
@@ -64,7 +65,7 @@ But in the future, everything might migrate to per-plugin registries.*
 </dependency>
 ```
 
-For the latest version, see [Central](https://central.sonatype.com/artifact/io.github.hapyl/eternaapi/overview)
+For the latest version, see [Maven Central](https://central.sonatype.com/artifact/io.github.hapyl/eternaapi/overview)
 
 ---
 
