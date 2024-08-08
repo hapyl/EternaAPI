@@ -6,7 +6,7 @@
 
     <groupId>io.github.hapyl</groupId>
     <artifactId>eternaapi</artifactId>
-    <version>4.2.1</version>
+    <version>4.2.2</version>
     <packaging>jar</packaging>
 
     <name>EternaAPI</name>
@@ -28,7 +28,7 @@
     <developers>
         <developer>
             <name>hapyl</name>
-            <email>deojoff@gmail.com</email>
+            <url>https://github.com/users/hapyl</url>
         </developer>
     </developers>
 
@@ -37,7 +37,6 @@
         <developerConnection>scm:git:ssh://github.com:hapyl/EternaAPI.git</developerConnection>
         <url>http://github.com/hapyl/EternaAPI/tree/master</url>
     </scm>
-
 
     <distributionManagement>
         <snapshotRepository>
@@ -107,7 +106,7 @@
                 </executions>
             </plugin>
 
-            <!-- source -->
+            <!-- Attach Sources -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -122,7 +121,7 @@
                 </executions>
             </plugin>
 
-            <!-- javadoc -->
+            <!-- Attach Javadocs -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -141,7 +140,7 @@
                 </executions>
             </plugin>
 
-            <!-- gpg -->
+            <!-- Sign Artifacts -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -164,6 +163,7 @@
                 </executions>
             </plugin>
 
+            <!-- Publish -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
