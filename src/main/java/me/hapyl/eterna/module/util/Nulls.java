@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * Helpful null check class.
@@ -138,4 +139,25 @@ public class Nulls {
     public static <T> T getOrDefault(@Nullable T t, @Nonnull T def) {
         return t != null ? t : def;
     }
+
+    /**
+     * Gets an object from the given <code>T</code>, or <code>def</code> if:
+     * <br>
+     * <li><code>T</code> is <code>null</code></li>
+     * <li>Return value of the function is <code>null</code></li>
+     *
+     * @param t   - T.
+     * @param fn  - Function.
+     * @param def - Default value.
+     * @return an object or def.
+     */
+    public static <T, R> R getOrDefault(@Nullable T t, @Nonnull Function<T, R> fn, @Nonnull R def) {
+        if (t == null) {
+            return def;
+        }
+
+        final R r = fn.apply(t);
+        return r != null ? r : def;
+    }
+
 }

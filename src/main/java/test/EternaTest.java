@@ -31,7 +31,7 @@ public abstract class EternaTest {
 
     // *=* Helpers *=* //
 
-    protected void info(@Nonnull Player player, @Nonnull String info) {
+    protected void info(@Nonnull Player player, @Nonnull Object info) {
         Chat.sendMessage(player, EternaLogger.TEST_PREFIX + "&7&o" + info);
     }
 

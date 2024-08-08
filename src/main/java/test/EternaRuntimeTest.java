@@ -8,6 +8,7 @@ import me.hapyl.eterna.module.ai.AI;
 import me.hapyl.eterna.module.ai.MobAI;
 import me.hapyl.eterna.module.ai.goal.FloatGoal;
 import me.hapyl.eterna.module.ai.goal.MeleeAttackGoal;
+import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.block.display.BlockStudioParser;
 import me.hapyl.eterna.module.block.display.DisplayData;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
@@ -57,6 +58,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -1359,6 +1362,36 @@ public final class EternaRuntimeTest {
                 info(player, "bungeeChatColor=" + String.valueOf(converter.toChatColor(e)));
                 info(player, "chatColor=" + String.valueOf(converter.toBukkitColor(e)));
                 info(player, "");
+            }
+        });
+
+        addTest(new EternaTest("getKey") {
+
+            Keyed dummyKeyed = new Keyed() {
+                @Override
+                //@Nonnull
+                public NamespacedKey getKey() {
+                    return null;
+                }
+            };
+
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final NamespacedKey boldKey = BukkitUtils.getKey(TrimPattern.BOLT);
+                final NamespacedKey amethystKey = BukkitUtils.getKey(TrimMaterial.AMETHYST);
+                final NamespacedKey kebabKey = BukkitUtils.getKey(Art.KEBAB);
+
+                final NamespacedKey dummyKey = BukkitUtils.getKey(dummyKeyed);
+                final NamespacedKey nullKey = BukkitUtils.getKey(null);
+
+                assertTrue(boldKey != null);
+                assertTrue(amethystKey != null);
+                assertTrue(kebabKey != null);
+
+                assertEquals(dummyKey, BukkitUtils.DUMMY_KEY);
+                assertTrue(BukkitUtils.isDummyKey(nullKey));
+
+                return true;
             }
         });
 

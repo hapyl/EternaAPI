@@ -4,22 +4,26 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import me.hapyl.eterna.EternaPlugin;
+import me.hapyl.eterna.module.annotate.PaperWorkaround;
 import me.hapyl.eterna.module.annotate.Range;
+import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.core.BlockPos;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
+import org.checkerframework.checker.units.qual.N;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +31,13 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 /**
- * Some utils for things that I do regularly.
+ * Useful utility class for anything specifically unrelated.
+ * <br>
+ *
+ * @see CollectionUtils
+ * @see Enums
+ * @see Nulls
+ * @see Numbers
  */
 public class BukkitUtils {
 
@@ -35,10 +45,16 @@ public class BukkitUtils {
      * Minecraft's gravity constant.
      */
     public static final double GRAVITY = 0.08d;
+
     /**
      * The default decimal format.
      */
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.0");
+
+    /**
+     * A dummy {@link NamespacedKey}.
+     */
+    public static final NamespacedKey DUMMY_KEY = NamespacedKey.minecraft("dummy");
 
     /**
      * Returns array item on provided index if exists, def otherwise.
@@ -48,7 +64,7 @@ public class BukkitUtils {
      * @param def   - Default item to return, if index >= array.length.
      * @return Returns array item on provided index if exists, def otherwise.
      */
-    public <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
+    public static <T> T arrayItemOr(@Nonnull T[] array, int index, T def) {
         if (index >= array.length) {
             return def;
         }
@@ -62,7 +78,7 @@ public class BukkitUtils {
      * @param index - Index.
      * @return Returns array item on provided index if exists, null otherwise.
      */
-    public <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
+    public static <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
         return arrayItemOr(array, index, null);
     }
 
@@ -71,6 +87,7 @@ public class BukkitUtils {
      *
      * @return the online players as an array
      */
+    @Nonnull
     public static Player[] onlinePlayersAsArray() {
         return Bukkit.getOnlinePlayers().toArray(new Player[] {});
     }
@@ -616,8 +633,56 @@ public class BukkitUtils {
         return strings;
     }
 
+    /**
+     * Creates a {@link NamespacedKey} from the given object.
+     * <br>
+     * This delegates the key to {@link EternaPlugin}.
+     *
+     * @param object - Object.
+     * @return a namespaced key.
+     */
     @Nonnull
     public static NamespacedKey createKey(@Nonnull Object object) {
-        return new NamespacedKey(EternaPlugin.getPlugin(), object.toString());
+        return createKey(EternaPlugin.getPlugin(), object);
     }
+
+    /**
+     * Creates a {@link NamespacedKey} from the given object.
+     *
+     * @param plugin - Owning plugin.
+     * @param object - Object.
+     * @return a namespaced key.
+     */
+    @Nonnull
+    public static NamespacedKey createKey(@Nonnull JavaPlugin plugin, @Nonnull Object object) {
+        return new NamespacedKey(plugin, String.valueOf(object));
+    }
+
+    /**
+     * Gets a {@link NamespacedKey} from the given {@link Keyed}.
+     * <br>
+     * Since apparently some keyed objects can exist without a key,
+     * Paper <code>@Deprecated</code> and marked them <code>forRemoval</code>.
+     * <br>
+     * This helper method will 'remove' the annoying error.
+     *
+     * @param keyed - Keyed.
+     * @return a key if keyed, {@link BukkitUtils#DUMMY_KEY} otherwise.
+     */
+    @Nonnull
+    @PaperWorkaround
+    public static <T extends Keyed> NamespacedKey getKey(@Nullable T keyed) {
+        return Nulls.getOrDefault(keyed, Keyed::getKey, DUMMY_KEY);
+    }
+
+    /**
+     * Returns true if the given {@link NamespacedKey} is a {@link BukkitUtils#DUMMY_KEY}, false otherwise.
+     *
+     * @param key - Key.
+     * @return true if the given key is a dummy key, false otherwise.
+     */
+    public static boolean isDummyKey(@Nullable NamespacedKey key) {
+        return DUMMY_KEY.equals(key);
+    }
+
 }

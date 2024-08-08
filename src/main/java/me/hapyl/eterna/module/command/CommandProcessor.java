@@ -2,12 +2,15 @@ package me.hapyl.eterna.module.command;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
+import me.hapyl.eterna.module.util.Compute;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -26,10 +29,10 @@ public class CommandProcessor {
 
     /**
      * Creates a CommandProcessor with plugin owner of EternaAPI.
-     * This is not recommended to avoid IllegalArgumentException from {@link CommandProcessor#registerCommand0(SimpleCommand[])}
      */
+    @Deprecated(forRemoval = true, since = "4.2.1")
     public CommandProcessor() {
-        this(EternaPlugin.getPlugin());
+        throw new IllegalArgumentException("Don't delegate commands to Eterna!");
     }
 
     /**
@@ -38,7 +41,7 @@ public class CommandProcessor {
      *
      * @param plugin - Plugin to register command for.
      */
-    public CommandProcessor(JavaPlugin plugin) {
+    public CommandProcessor(@Nonnull JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -48,7 +51,7 @@ public class CommandProcessor {
      * @param simpleCommand - Command to register.
      * @throws IllegalArgumentException - If command is already registered for this plugin.
      */
-    public void registerCommand(SimpleCommand simpleCommand) {
+    public void registerCommand(@Nonnull SimpleCommand simpleCommand) {
         this.registerCommand0(new SimpleCommand[] { simpleCommand });
     }
 
@@ -58,7 +61,7 @@ public class CommandProcessor {
      * @param commands - Array of commands to register.
      * @throws IllegalArgumentException - If command is already registered for this plugin.
      */
-    public void registerCommands(SimpleCommand... commands) {
+    public void registerCommands(@Nonnull SimpleCommand... commands) {
         this.registerCommand0(commands);
     }
 
@@ -68,25 +71,18 @@ public class CommandProcessor {
                 throw new IllegalArgumentException("There must be at least one command!");
             }
 
-            final SimpleCommandMap simpleMap = getCommandMap();
+            final CommandMap commandMap = Bukkit.getCommandMap();
 
             for (final SimpleCommand simpleCommand : commands) {
                 final Command command = simpleCommand.createCommand();
 
                 // Register Command
-                simpleMap.register(plugin.getName(), command);
-                COMMANDS_BY_PLUGIN.compute(plugin, (pl, list) -> {
-                    if (list == null) {
-                        list = Lists.newArrayList();
-                    }
-
-                    list.add(simpleCommand);
-                    return list;
-                });
+                commandMap.register(plugin.getName(), command);
+                COMMANDS_BY_PLUGIN.compute(plugin, Compute.listAdd(simpleCommand));
             }
 
-        } catch (Exception error) {
-            error.printStackTrace();
+        } catch (Exception exception) {
+            EternaLogger.exception(exception);
         }
     }
 
@@ -94,12 +90,12 @@ public class CommandProcessor {
      * Gets the command map for this server.
      *
      * @return command map for this server.
-     * @throws IllegalAccessException if failed to retrieve the command map.
+     * @deprecated use {@link Bukkit#getCommandMap()}
      */
-    @TestedOn(version = Version.V1_21)
-    public static SimpleCommandMap getCommandMap() throws IllegalAccessException {
-        final PluginManager manager = Bukkit.getServer().getPluginManager();
-        return (SimpleCommandMap) FieldUtils.getDeclaredField(manager.getClass(), "commandMap", true).get(manager);
+    @Nonnull
+    @Deprecated
+    public static CommandMap getCommandMap() {
+        return Bukkit.getCommandMap();
     }
 
     /**
