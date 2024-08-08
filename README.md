@@ -53,7 +53,7 @@ Eterna. <br>
 But in the future, everything might migrate to per-plugin registries.*
 
 ## Maven
-![Maven Central Version](https://img.shields.io/maven-central/v/io.github.hapyl/eternaapi?style=flat&link=https%3A%2F%2Fcentral.sonatype.com%2Fartifact%2Fio.github.hapyl%2Feternaapi%2Foverview)
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.hapyl/eternaapi?link=https%3A%2F%2Fcentral.sonatype.com%2Fartifact%2Fio.github.hapyl%2Feternaapi%2Foverview)
 
 * Add the dependency to your `pom.xml`:
 
