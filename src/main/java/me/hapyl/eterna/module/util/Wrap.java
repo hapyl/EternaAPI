@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.annotate.FactoryMethod;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,16 +19,19 @@ public interface Wrap {
     /**
      * The start of the collection.
      */
+    @Nonnull
     String start();
 
     /**
      * The between of elements.
      */
+    @Nonnull
     String between();
 
     /**
      * The end of the collection.
      */
+    @Nonnull
     String end();
 
     @Nonnull
@@ -35,17 +39,17 @@ public interface Wrap {
     static Wrap of(@Nullable String start, @Nullable String between, @Nullable String end) {
         return new Wrap() {
             @Override
-            public String start() {
+            public @NotNull String start() {
                 return start == null ? "" : start;
             }
 
             @Override
-            public String between() {
+            public @NotNull String between() {
                 return between == null ? "" : between;
             }
 
             @Override
-            public String end() {
+            public @NotNull String end() {
                 return end == null ? "" : end;
             }
         };

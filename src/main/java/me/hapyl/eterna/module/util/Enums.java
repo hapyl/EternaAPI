@@ -62,11 +62,18 @@ public final class Enums {
     @Nonnull
     public static <T extends Enum<T>> String[] getValuesNames(Class<T> enumClass) {
         final Enum<T>[] values = getValues(enumClass);
+
         if (values == null || values.length == 0) {
             return new String[0];
         }
 
-        return CollectionUtils.migrate(values, new String[values.length], Enum::name);
+        final String[] strings = new String[values.length];
+
+        for (int i = 0; i < values.length; i++) {
+            strings[i] = values[i].name();
+        }
+
+        return strings;
     }
 
     @Nonnull

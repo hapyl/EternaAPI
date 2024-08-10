@@ -2,6 +2,7 @@ package test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.ai.AI;
@@ -1397,6 +1398,37 @@ public final class EternaRuntimeTest {
 
                 assertEquals(dummyKey, BukkitUtils.DUMMY_KEY);
                 assertTrue(BukkitUtils.isDummyKey(nullKey));
+
+                return true;
+            }
+        });
+
+        addTest(new EternaTest("collectionUtils") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final List<String> list = List.of("hello", "world", "goobye", "sunday");
+
+                final String le0 = CollectionUtils.get(list, 0);
+                final String le3 = CollectionUtils.get(list, 3);
+                final String le99 = CollectionUtils.get(list, 99);
+                final String le_1 = CollectionUtils.getOrDefault(list, -1, "yep");
+
+                assertEquals(le0, list.get(0));
+                assertEquals(le3, list.get(3));
+                assertNull(le99);
+                assertEquals(le_1, "yep");
+
+                final Set<Integer> set = Sets.newLinkedHashSet(List.of(0, 1, 2, 3, 4, 5, 6));
+
+                final Integer se2 = CollectionUtils.get(set, 2);
+                final Integer se5 = CollectionUtils.get(set, 5);
+                final Integer se_1 = CollectionUtils.get(set, -1);
+                final Integer se_69 = CollectionUtils.getOrDefault(set, -1, 69);
+
+                assertEquals(se2, 2);
+                assertEquals(se5, 5);
+                assertNull(se_1);
+                assertEquals(se_69, 69);
 
                 return true;
             }

@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.annotate.FactoryMethod;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.function.BiFunction;
@@ -47,17 +48,17 @@ public interface MapWrap<K, V> extends Wrap {
             }
 
             @Override
-            public String start() {
+            public @NotNull String start() {
                 return start;
             }
 
             @Override
-            public String between() {
+            public @NotNull String between() {
                 return between;
             }
 
             @Override
-            public String end() {
+            public @NotNull String end() {
                 return end;
             }
         };
