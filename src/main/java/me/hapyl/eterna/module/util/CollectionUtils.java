@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.math.Numbers;
+import org.bukkit.inventory.ItemFlag;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -749,4 +750,24 @@ public class CollectionUtils {
         return null;
     }
 
+    /**
+     * Returns <code>true</code> if the given array contains the given element.
+     *
+     * @param array   - Array to check.
+     * @param element - Element to check.
+     * @return true if the given array contains the given element.
+     */
+    public static <T> boolean contains(@Nullable T[] array, @Nonnull T element) {
+        if (array == null) {
+            return false;
+        }
+
+        for (T t : array) {
+            if (t.equals(element)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

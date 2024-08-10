@@ -8,7 +8,6 @@ import me.hapyl.eterna.module.ai.AI;
 import me.hapyl.eterna.module.ai.MobAI;
 import me.hapyl.eterna.module.ai.goal.FloatGoal;
 import me.hapyl.eterna.module.ai.goal.MeleeAttackGoal;
-import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.block.display.BlockStudioParser;
 import me.hapyl.eterna.module.block.display.DisplayData;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
@@ -46,6 +45,8 @@ import me.hapyl.eterna.module.util.*;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -54,6 +55,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlotGroup;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -1269,15 +1272,19 @@ public final class EternaRuntimeTest {
             }
         });
 
-        addTest(new EternaTest("ibHideFlags") {
+        addTest(new EternaTest("hideFlags") {
             @Override
             public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
                 final ItemStack item = new ItemBuilder(Material.IRON_PICKAXE)
                         .hideFlags()
                         .build();
 
-                player.getInventory().addItem(item);
+                final ItemStack item2 = new ItemBuilder(Material.LEATHER_CHESTPLATE)
+                        .hideFlag(ItemFlag.HIDE_ATTRIBUTES)
+                        .build();
 
+                player.getInventory().addItem(item);
+                player.getInventory().addItem(item2);
                 return true;
             }
         });

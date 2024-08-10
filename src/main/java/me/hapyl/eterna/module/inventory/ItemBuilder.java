@@ -13,6 +13,7 @@ import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.util.CollectionUtils;
 import me.hapyl.eterna.module.util.Nulls;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
@@ -995,7 +996,11 @@ public class ItemBuilder implements Cloneable {
      * @param flags - Flags to hide.
      */
     public ItemBuilder hideFlag(@Nonnull @Range(min = 1) ItemFlag... flags) {
-        return modifyMeta(meta -> meta.addItemFlags(flags));
+        for (ItemFlag flag : flags) {
+            hideFlag0(flag);
+        }
+
+        return this;
     }
 
     /**
@@ -1018,10 +1023,34 @@ public class ItemBuilder implements Cloneable {
      * Hides all the item flags.
      */
     public ItemBuilder hideFlags() {
-        return modifyMeta(meta -> {
-            meta.addItemFlags(ItemFlag.values());
+        return hideFlag(ItemFlag.values());
+    }
 
-            // Hide 'When in Main Hand' thingy because fuck mojang that's why
+    /**
+     * Hides default attribute from tools.
+     * <br>
+     * <br>
+     * Because mojang reworked ItemStacks, and to hide attributes it requires
+     * the item to have attributes modifiers, it means we cannot hide default
+     * attributes for tools, armor, etc. without adding a modifier.
+     * <p>
+     * Spigot has a workaround by adding a dummy modifier, just like you can
+     * do in vanilla, but Paper is annoying and refuses to keep the workaround
+     * or giving the ability to add empty modifiers.
+     * <p>
+     * This is why we need to check for default attributes and add a wacky
+     * dummy attribute modifier.
+     */
+    public ItemBuilder hideDefaultAttributesIfApplicable() {
+        if (!isItemHasDefaultAttributes(getType())) {
+            return this;
+        }
+
+        return modifyMeta(meta -> {
+            // Make sure the flag is actually applied
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+
+            // Add dummy modifier
             meta.addAttributeModifier(Attribute.GENERIC_LUCK, makeHideFlagsAttributeModifier());
         });
     }
@@ -1752,6 +1781,14 @@ public class ItemBuilder implements Cloneable {
         }
     }
 
+    private void hideFlag0(ItemFlag flag) {
+        modifyMeta(meta -> meta.addItemFlags(flag));
+
+        if (flag == ItemFlag.HIDE_ATTRIBUTES) {
+            hideDefaultAttributesIfApplicable();
+        }
+    }
+
     private <E> ItemBuilder modifyComponent(ComponentModifier<E> modifier, Function<ItemMeta, E> get, BiConsumer<ItemMeta, E> set) {
         modifyMeta(meta -> {
             final E component = get.apply(meta);
@@ -1761,6 +1798,36 @@ public class ItemBuilder implements Cloneable {
         });
 
         return this;
+    }
+
+    /**
+     * Returns true if {@link Material} has default attributes without any modifiers.
+     * <br>
+     * Eg: Tools, Armor, etc.
+     *
+     * @param material - Material.
+     * @return true if material has default attributes without any modifiers, false otherwise.
+     */
+    public static boolean isItemHasDefaultAttributes(@Nonnull Material material) {
+        return switch (material) {
+            case WOODEN_SHOVEL, WOODEN_PICKAXE, WOODEN_AXE, WOODEN_HOE, WOODEN_SWORD -> true;
+            case STONE_SHOVEL, STONE_PICKAXE, STONE_AXE, STONE_HOE, STONE_SWORD -> true;
+            case IRON_SHOVEL, IRON_PICKAXE, IRON_AXE, IRON_HOE, IRON_SWORD -> true;
+            case GOLDEN_SHOVEL, GOLDEN_PICKAXE, GOLDEN_AXE, GOLDEN_HOE, GOLDEN_SWORD -> true;
+            case DIAMOND_SHOVEL, DIAMOND_PICKAXE, DIAMOND_AXE, DIAMOND_HOE, DIAMOND_SWORD -> true;
+            case NETHERITE_SHOVEL, NETHERITE_PICKAXE, NETHERITE_AXE, NETHERITE_HOE, NETHERITE_SWORD -> true;
+            case TRIDENT -> true;
+            case MACE -> true;
+            case LEATHER_HELMET, LEATHER_CHESTPLATE, LEATHER_LEGGINGS, LEATHER_BOOTS -> true;
+            case IRON_HELMET, IRON_CHESTPLATE, IRON_LEGGINGS, IRON_BOOTS -> true;
+            case GOLDEN_HELMET, GOLDEN_CHESTPLATE, GOLDEN_LEGGINGS, GOLDEN_BOOTS -> true;
+            case DIAMOND_HELMET, DIAMOND_CHESTPLATE, DIAMOND_LEGGINGS, DIAMOND_BOOTS -> true;
+            case NETHERITE_HELMET, NETHERITE_CHESTPLATE, NETHERITE_LEGGINGS, NETHERITE_BOOTS -> true;
+            case TURTLE_HELMET -> true;
+            case LEATHER_HORSE_ARMOR, IRON_HORSE_ARMOR, GOLDEN_HORSE_ARMOR, DIAMOND_HORSE_ARMOR -> true;
+            case WOLF_ARMOR -> true;
+            default -> false;
+        };
     }
 
     @Nonnull
@@ -2178,7 +2245,7 @@ public class ItemBuilder implements Cloneable {
     @SuppressWarnings("UnstableApiUsage")
     private static AttributeModifier makeHideFlagsAttributeModifier() {
         return new AttributeModifier(
-                new NamespacedKey("eternaapi", UUID.randomUUID().toString()),
+                BukkitUtils.createKey("hide_attributes"),
                 0,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.FEET
