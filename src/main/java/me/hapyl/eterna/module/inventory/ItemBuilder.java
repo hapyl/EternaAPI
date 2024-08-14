@@ -13,7 +13,6 @@ import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.util.CollectionUtils;
 import me.hapyl.eterna.module.util.Nulls;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
@@ -47,7 +46,10 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
@@ -82,9 +84,8 @@ public class ItemBuilder implements Cloneable {
 
     private static final String PLUGIN_PATH = "ItemBuilderId";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
-
     protected static Map<String, ItemFunctionList> registeredFunctions = Maps.newHashMap();
-
+    private static AttributeModifier HIDE_ATTRIBUTES_MODIFIER;
     protected ItemStack item;
 
     private String id;
@@ -635,7 +636,6 @@ public class ItemBuilder implements Cloneable {
         return setLore(lore, NEW_LINE_SEPARATOR);
     }
 
-
     /**
      * Adds lore to the item if the condition is met.
      *
@@ -1046,12 +1046,23 @@ public class ItemBuilder implements Cloneable {
             return this;
         }
 
+        // Store here to not accidentally change it and break the system
+        final Attribute dummyAttribute = Attribute.GENERIC_LUCK;
+
         return modifyMeta(meta -> {
             // Make sure the flag is actually applied
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
             // Add dummy modifier
-            meta.addAttributeModifier(Attribute.GENERIC_LUCK, makeHideFlagsAttributeModifier());
+            final AttributeModifier modifier = getHideFlagsAttributeModifier();
+            final Collection<AttributeModifier> modifiers = meta.getAttributeModifiers(dummyAttribute);
+
+            // Don't re-add modifier since it throws an error
+            if (modifiers != null && modifiers.contains(modifier)) {
+                return;
+            }
+
+            meta.addAttributeModifier(dummyAttribute, modifier);
         });
     }
 
@@ -1847,6 +1858,8 @@ public class ItemBuilder implements Cloneable {
         };
     }
 
+    // *=* Static members *=* //
+
     /**
      * Creates builder of provided ItemStack.
      *
@@ -1856,8 +1869,6 @@ public class ItemBuilder implements Cloneable {
     public static ItemBuilder of(@Nonnull ItemStack itemStack) {
         return new ItemBuilder(itemStack);
     }
-
-    // *=* Static members *=* //
 
     /**
      * Creates builder of provided material.
@@ -2243,13 +2254,18 @@ public class ItemBuilder implements Cloneable {
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    private static AttributeModifier makeHideFlagsAttributeModifier() {
-        return new AttributeModifier(
-                BukkitUtils.createKey("hide_attributes"),
-                0,
-                AttributeModifier.Operation.ADD_NUMBER,
-                EquipmentSlotGroup.FEET
-        );
+    @Nonnull
+    public static AttributeModifier getHideFlagsAttributeModifier() {
+        if (HIDE_ATTRIBUTES_MODIFIER == null) {
+            HIDE_ATTRIBUTES_MODIFIER = new AttributeModifier(
+                    BukkitUtils.createKey("hide_attributes"),
+                    0,
+                    AttributeModifier.Operation.ADD_NUMBER,
+                    EquipmentSlotGroup.FEET
+            );
+        }
+
+        return HIDE_ATTRIBUTES_MODIFIER;
     }
 
     private static boolean isManualSplit(char[] chars, int index) {
