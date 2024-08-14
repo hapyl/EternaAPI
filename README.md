@@ -67,6 +67,8 @@ But in the future, everything might migrate to per-plugin registries.*
 
 For the latest version, see [Maven Central](https://central.sonatype.com/artifact/io.github.hapyl/eternaapi/overview)
 
+*Latest release and maven version may vary.*
+
 ---
 
 # 🔗 Links
