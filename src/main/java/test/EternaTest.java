@@ -1,5 +1,6 @@
 package test;
 
+import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.util.ArgumentList;
@@ -7,6 +8,7 @@ import me.hapyl.eterna.module.util.Runnables;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class EternaTest {
 
@@ -53,15 +55,27 @@ public abstract class EternaTest {
         throw new EternaTestException(this, reason);
     }
 
-    protected void assertEquals(@Nonnull Object a, Object b) {
+    protected void assertEquals(@Nonnull Object a, @Nullable Object b) {
         if (!a.equals(b)) {
             throw new EternaTestException(this, "Objects are not the same! (Expected '%s', got '%s'!)".formatted(b, a));
         }
     }
 
-    protected void assertNotEquals(Object a, Object b) {
-        if (a != null && a.equals(b)) {
+    protected void assertNotEquals(@Nonnull Object a, @Nullable Object b) {
+        if (a.equals(b)) {
             throw new EternaTestException(this, "Object '%s' and '%s' are the same!".formatted(a, b));
+        }
+    }
+
+    protected void assertNull(@Nullable Object a) {
+        if (a != null) {
+            throw new EternaTestException(this, "Object '%s' must be null!".formatted(a));
+        }
+    }
+
+    protected void assertNotNull(@Nullable Object a) {
+        if (a == null) {
+            throw new EternaTestException(this, "Object must be null!");
         }
     }
 

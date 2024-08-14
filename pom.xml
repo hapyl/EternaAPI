@@ -6,7 +6,7 @@
 
     <groupId>io.github.hapyl</groupId>
     <artifactId>eternaapi</artifactId>
-    <version>4.2.2</version>
+    <version>4.3.1</version>
     <packaging>jar</packaging>
 
     <name>EternaAPI</name>
@@ -153,7 +153,6 @@
                             <goal>sign</goal>
                         </goals>
                         <configuration>
-                            <keyname>${gpg.keyname}</keyname>
                             <gpgArguments>
                                 <arg>--pinentry-mode</arg>
                                 <arg>loopback</arg>

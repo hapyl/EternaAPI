@@ -5,7 +5,7 @@ import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.reflect.Ticking;
+import me.hapyl.eterna.module.util.Ticking;
 import me.hapyl.eterna.module.util.Runnables;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.Packet;

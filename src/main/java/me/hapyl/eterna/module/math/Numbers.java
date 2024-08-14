@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.math;
 
+import me.hapyl.eterna.module.annotate.SoftDeprecated;
 import me.hapyl.eterna.module.util.Validate;
 
 /**
@@ -15,6 +16,7 @@ public class Numbers {
      * @param max - maximum value.
      * @return clamped value.
      */
+    @SoftDeprecated("Math#clamp")
     public static int clamp(int var, int min, int max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -27,6 +29,7 @@ public class Numbers {
      * @param max - maximum value.
      * @return clamped value.
      */
+    @SoftDeprecated("Math#clamp")
     public static long clamp(long var, long min, long max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -39,6 +42,7 @@ public class Numbers {
      * @param max - maximum value.
      * @return clamped value.
      */
+    @SoftDeprecated("Math#clamp")
     public static float clamp(float var, float min, float max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -51,6 +55,7 @@ public class Numbers {
      * @param max - maximum value.
      * @return clamped value.
      */
+    @SoftDeprecated("Math#clamp")
     public static double clamp(double var, double min, double max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -63,6 +68,7 @@ public class Numbers {
      * @param max - maximum value.
      * @return clamped value.
      */
+    @SoftDeprecated("Math#clamp")
     public static byte clamp(byte var, byte min, byte max) {
         return (byte) Math.min(Math.max(var, min), max);
     }
@@ -75,6 +81,7 @@ public class Numbers {
      * @param max - maximum value.
      * @return clamped value.
      */
+    @SoftDeprecated("Math#clamp")
     public static short clamp(short var, short min, short max) {
         return (short) Math.min(Math.max(var, min), max);
     }

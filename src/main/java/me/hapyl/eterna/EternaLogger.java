@@ -49,7 +49,7 @@ public class EternaLogger {
     }
 
     public static void debug(Object message) {
-        final String formatted = message.toString();
+        final String formatted = String.valueOf(message);
 
         info(DEBUG_PREFIX + formatted);
         Chat.broadcastOp(DEBUG_PREFIX + formatted);
