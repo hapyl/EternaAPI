@@ -9,9 +9,7 @@ import me.hapyl.eterna.module.ai.AI;
 import me.hapyl.eterna.module.ai.MobAI;
 import me.hapyl.eterna.module.ai.goal.FloatGoal;
 import me.hapyl.eterna.module.ai.goal.MeleeAttackGoal;
-import me.hapyl.eterna.module.block.display.BlockStudioParser;
-import me.hapyl.eterna.module.block.display.DisplayData;
-import me.hapyl.eterna.module.block.display.DisplayEntity;
+import me.hapyl.eterna.module.block.display.*;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.messagebuilder.Format;
 import me.hapyl.eterna.module.chat.messagebuilder.Keybind;
@@ -46,8 +44,6 @@ import me.hapyl.eterna.module.util.*;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -56,7 +52,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -79,6 +74,7 @@ import java.util.*;
 public final class EternaRuntimeTest {
 
     private static final Map<String, EternaTest> allTests;
+
     static EternaRuntimeTest test;
 
     static {
@@ -1046,11 +1042,11 @@ public final class EternaRuntimeTest {
 
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final DisplayData model = BlockStudioParser.parse(data);
+                final DisplayData model = BDEngine.parse(data);
                 final DisplayEntity entity = model.spawn(player.getLocation());
 
                 assertThrows(() -> {
-                    BlockStudioParser.parse(failData);
+                    BDEngine.parse(failData);
                 }, "Parser did not throw for invalid data!");
 
                 later(() -> {
@@ -1109,10 +1105,10 @@ public final class EternaRuntimeTest {
                 builder.append("&cSMART YAPPING!!!");
                 builder.eventShowTextBlock("""
                         This is the first line.
-                                            
+                        
                         &c;;This is a red text that will be wrapped after a given number of chars.
-                                            
-                                            
+                        
+                        
                         Another line!
                         """);
 
@@ -1431,6 +1427,26 @@ public final class EternaRuntimeTest {
                 assertEquals(se_69, 69);
 
                 return true;
+            }
+        });
+
+        addTest(new EternaTest("displayStudioInterpolation") {
+
+            final DisplayData data = BDEngine.parse(
+                    "/summon block_display ~-0.5 ~-0.5 ~-0.5 {Passengers:[{id:\"minecraft:block_display\",block_state:{Name:\"minecraft:chain\",Properties:{axis:\"x\"}},transformation:[0f,-1f,0f,0.5f,1f,0f,0f,0f,0f,0f,1f,-0.5f,0f,0f,0f,1f]},{id:\"minecraft:block_display\",block_state:{Name:\"minecraft:chain\",Properties:{axis:\"x\"}},transformation:[0f,-1f,0f,0.5f,1f,0f,0f,1f,0f,0f,1f,-0.5f,0f,0f,0f,1f]},{id:\"minecraft:item_display\",item:{id:\"minecraft:stone_sword\",Count:1},item_display:\"none\",transformation:[0.7071f,0.7071f,0f,0f,-0.7071f,0.7071f,0f,2.25f,0f,0f,1f,0f,0f,0f,0f,1f]},{id:\"minecraft:item_display\",item:{id:\"minecraft:stone_sword\",Count:1},item_display:\"none\",transformation:[0f,0f,-1f,0f,-0.7071f,0.7071f,0f,2.25f,0.7071f,0.7071f,0f,0f,0f,0f,0f,1f]}]}"
+            );
+
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                data.spawnInterpolated(
+                        player.getLocation(),
+                        player.getLocation().add(0, 5, 0),
+                        self -> {
+                            self.setTeleportDuration(5);
+                        }
+                );
+
+                return false;
             }
         });
 
