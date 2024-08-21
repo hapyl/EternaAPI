@@ -98,9 +98,9 @@ public class Tuple<A, B> {
     }
 
     @Nonnull
-    @FactoryMethod(net.minecraft.util.Tuple.class)
-    public static <A, B> net.minecraft.util.Tuple<A, B> of(@Nonnull A a, @Nonnull B b) {
-        return new net.minecraft.util.Tuple<>(a, b);
+    @FactoryMethod(Tuple.class)
+    public static <A, B> Tuple<A, B> of(@Nonnull A a, @Nonnull B b) {
+        return new Tuple<>(a, b);
     }
 
 }
