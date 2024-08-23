@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.math;
 
-import me.hapyl.eterna.module.annotate.SoftDeprecated;
 import me.hapyl.eterna.module.util.Validate;
 
 /**
@@ -15,8 +14,9 @@ public class Numbers {
      * @param min - minimum value.
      * @param max - maximum value.
      * @return clamped value.
+     * @deprecated {@link Math#clamp(long, int, int)}
      */
-    @SoftDeprecated("Math#clamp")
+    @Deprecated
     public static int clamp(int var, int min, int max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -28,8 +28,9 @@ public class Numbers {
      * @param min - minimum value.
      * @param max - maximum value.
      * @return clamped value.
+     * @deprecated {@link Math#clamp(long, long, long)}
      */
-    @SoftDeprecated("Math#clamp")
+    @Deprecated
     public static long clamp(long var, long min, long max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -41,8 +42,9 @@ public class Numbers {
      * @param min - minimum value.
      * @param max - maximum value.
      * @return clamped value.
+     * @deprecated {@link Math#clamp(float, float, float)}
      */
-    @SoftDeprecated("Math#clamp")
+    @Deprecated
     public static float clamp(float var, float min, float max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -54,8 +56,9 @@ public class Numbers {
      * @param min - minimum value.
      * @param max - maximum value.
      * @return clamped value.
+     * @deprecated {@link Math#clamp(double, double, double)}
      */
-    @SoftDeprecated("Math#clamp")
+    @Deprecated
     public static double clamp(double var, double min, double max) {
         return Math.min(Math.max(var, min), max);
     }
@@ -67,8 +70,9 @@ public class Numbers {
      * @param min - minimum value.
      * @param max - maximum value.
      * @return clamped value.
+     * @deprecated {@link Math#clamp(long, int, int)}
      */
-    @SoftDeprecated("Math#clamp")
+    @Deprecated
     public static byte clamp(byte var, byte min, byte max) {
         return (byte) Math.min(Math.max(var, min), max);
     }
@@ -79,9 +83,9 @@ public class Numbers {
      * @param var - variable to clamp.
      * @param min - minimum value.
      * @param max - maximum value.
-     * @return clamped value.
+     * @deprecated {@link Math#clamp(long, int, int)}
      */
-    @SoftDeprecated("Math#clamp")
+    @Deprecated
     public static short clamp(short var, short min, short max) {
         return (short) Math.min(Math.max(var, min), max);
     }
@@ -93,7 +97,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static int clamp01(int var) {
-        return Numbers.clamp(var, 0, 1);
+        return Math.clamp(var, 0, 1);
     }
 
     /**
@@ -103,7 +107,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static long clamp01(long var) {
-        return Numbers.clamp(var, 0, 1);
+        return Math.clamp(var, 0, 1);
     }
 
     /**
@@ -113,7 +117,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static float clamp01(float var) {
-        return Numbers.clamp(var, 0, 1);
+        return Math.clamp(var, 0, 1);
     }
 
     /**
@@ -123,7 +127,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static double clamp01(double var) {
-        return Numbers.clamp(var, 0, 1);
+        return Math.clamp(var, 0, 1);
     }
 
     /**
@@ -133,7 +137,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static byte clamp01(byte var) {
-        return Numbers.clamp(var, (byte) 0, (byte) 1);
+        return (byte) Math.clamp(var, (byte) 0, (byte) 1);
     }
 
     /**
@@ -143,7 +147,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static short clamp01(short var) {
-        return Numbers.clamp(var, (short) 0, (short) 1);
+        return (short) Math.clamp(var, (short) 0, (short) 1);
     }
 
     /**
@@ -153,7 +157,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static int clamp1neg1(int var) {
-        return Numbers.clamp(var, -1, 1);
+        return Math.clamp(var, -1, 1);
     }
 
     /**
@@ -163,7 +167,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static long clamp1neg1(long var) {
-        return Numbers.clamp(var, -1, 1);
+        return Math.clamp(var, -1, 1);
     }
 
     /**
@@ -173,7 +177,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static float clamp1neg1(float var) {
-        return Numbers.clamp(var, -1, 1);
+        return Math.clamp(var, -1, 1);
     }
 
     /**
@@ -183,7 +187,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static double clamp1neg1(double var) {
-        return Numbers.clamp(var, -1, 1);
+        return Math.clamp(var, -1, 1);
     }
 
     /**
@@ -193,7 +197,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static byte clamp1neg1(byte var) {
-        return Numbers.clamp(var, (byte) -1, (byte) 1);
+        return (byte) Math.clamp(var, (byte) -1, (byte) 1);
     }
 
     /**
@@ -203,7 +207,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static short clamp1neg1(short var) {
-        return Numbers.clamp(var, (short) -1, (short) 1);
+        return (short) Math.clamp(var, (short) -1, (short) 1);
     }
 
     /**
@@ -213,7 +217,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static int clampInt(int var) {
-        return clamp(var, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        return Math.clamp(var, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
     /**
@@ -223,7 +227,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static long clampLong(long var) {
-        return clamp(var, Long.MIN_VALUE, Long.MAX_VALUE);
+        return Math.clamp(var, Long.MIN_VALUE, Long.MAX_VALUE);
     }
 
     /**
@@ -233,7 +237,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static float clampFloat(float var) {
-        return clamp(var, Float.MIN_VALUE, Float.MAX_VALUE);
+        return Math.clamp(var, Float.MIN_VALUE, Float.MAX_VALUE);
     }
 
     /**
@@ -243,7 +247,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static double clampDouble(double var) {
-        return clamp(var, Double.MIN_VALUE, Double.MAX_VALUE);
+        return Math.clamp(var, Double.MIN_VALUE, Double.MAX_VALUE);
     }
 
     /**
@@ -253,7 +257,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static byte clampByte(byte var) {
-        return clamp(var, Byte.MIN_VALUE, Byte.MAX_VALUE);
+        return (byte) Math.clamp(var, Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
 
     /**
@@ -263,7 +267,7 @@ public class Numbers {
      * @return clamped value.
      */
     public static short clampShort(short var) {
-        return clamp(var, Short.MIN_VALUE, Short.MAX_VALUE);
+        return (short) Math.clamp(var, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
     /**
