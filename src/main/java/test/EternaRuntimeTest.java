@@ -27,6 +27,7 @@ import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerSkin;
+import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
 import me.hapyl.eterna.module.player.tablist.*;
 import me.hapyl.eterna.module.record.Record;
@@ -1447,6 +1448,19 @@ public final class EternaRuntimeTest {
                 );
 
                 return false;
+            }
+        });
+
+        addTest(new EternaTest("soundQueue") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final SoundQueue soundQueue = new SoundQueue()
+                        .append(Sound.ENTITY_GENERIC_EXPLODE, 2.0f, 2)
+                        .appendSameSound(Sound.ENCHANT_THORNS_HIT, 1.0f, 1, 5, 7)
+                        .appendSameSound(Sound.BLOCK_LAVA_POP, 2, 0.5f, 0.75f, 1.0f);
+
+                soundQueue.play(player);
+                return true;
             }
         });
 
