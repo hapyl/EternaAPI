@@ -4,17 +4,17 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.PaperWorkaround;
 import me.hapyl.eterna.module.annotate.Range;
-import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.reflect.Reflect;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.core.BlockPos;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -23,7 +23,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
-import org.checkerframework.checker.units.qual.N;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,6 +54,31 @@ public class BukkitUtils {
      * A dummy {@link NamespacedKey}.
      */
     public static final NamespacedKey DUMMY_KEY = NamespacedKey.minecraft("dummy");
+
+    /**
+     * A <code>Y</code> compensation constant for {@link #anchorLocation(Location)}.
+     */
+    public static final double ANCHOR_COMPENSATION = 0.61d;
+
+    /**
+     * An immutable {@link Map} of compensation {@link Tag}.
+     */
+    public static final Map<Tag<Material>, Double> ANCHOR_COMPENSATION_MAP = Map.of(
+            Tag.SLABS, 0.5d,
+            Tag.WOOL_CARPETS, 0.075d // This does NOT include moss carpet because fuck you
+    );
+
+    /**
+     * An immutable {@link Map} of soft-solid {@link Block} {@link Tag}s, such as carpets, sings, etc.
+     */
+    public static final Set<Tag<Material>> SOFT_SOLID_TAGS = Set.of(
+            Tag.WOOL_CARPETS, Tag.ALL_SIGNS
+    );
+
+    /**
+     * A {@link Random} instance used by this class.
+     */
+    public static final Random RANDOM = new Random();
 
     /**
      * Returns array item on provided index if exists, def otherwise.
@@ -186,7 +210,9 @@ public class BukkitUtils {
      */
     @Nonnull
     public static String roundTick(int tick, @Nonnull String suffix) {
-        return tick % 20 == 0 ? ((tick / 20) + suffix) : BukkitUtils.decimalFormat(tick / 20.0d);
+        return tick % 20 == 0
+                ? ((tick / 20) + suffix)
+                : BukkitUtils.decimalFormat(tick / 20.0d) + suffix;
     }
 
     /**
@@ -683,6 +709,156 @@ public class BukkitUtils {
      */
     public static boolean isDummyKey(@Nullable NamespacedKey key) {
         return DUMMY_KEY.equals(key);
+    }
+
+    /**
+     * Finds a random {@link Location} around the given location.
+     * <br>
+     * This anchors the location.
+     *
+     * @param around - Location to find around.
+     * @param max    - Max distance in each direction.
+     * @return A new location.
+     */
+    @Nonnull
+    public static Location findRandomLocationAround(@Nonnull Location around, double max) {
+        final Location location = new Location(
+                around.getWorld(),
+                around.getBlockX(),
+                around.getBlockY(),
+                around.getBlockZ(),
+                around.getYaw(),
+                around.getPitch()
+        );
+
+        return anchorLocation(location.add(RANDOM.nextDouble(-max, max), 0, RANDOM.nextDouble(-max, max)));
+    }
+
+    /**
+     * <b>Attempts</b> to anchor the location, so it's directly on a block.
+     *
+     * @param originalLocation - Location.
+     * @return A new anchored location.
+     */
+    @Nonnull
+    public static Location anchorLocation(@Nonnull Location originalLocation) {
+        final Location location = new Location(
+                originalLocation.getWorld(),
+                originalLocation.getX(),
+                originalLocation.getBlockY() + 0.5d,
+                originalLocation.getZ(),
+                originalLocation.getYaw(),
+                originalLocation.getPitch()
+        );
+
+        final World world = location.getWorld();
+
+        // in case in a half-block or a carpet
+        location.add(0, ANCHOR_COMPENSATION, 0);
+
+        // Up
+        while (true) {
+            final Block block = location.getBlock();
+
+            if (location.getY() >= world.getMaxHeight() || !block.getType().isSolid()) {
+                break;
+            }
+
+            location.add(0, 1, 0);
+        }
+
+        // Down
+        while (true) {
+            final Block block = location.getBlock();
+            final Block blockAbove = block.getRelative(BlockFace.UP);
+            final Block blockBelow = block.getRelative(BlockFace.DOWN);
+
+            if (location.getY() <= world.getMinHeight()) {
+                return originalLocation; // fail-safe to NOT fall out of the world
+            }
+
+            if (isBlockAirOrSoftSolid(blockAbove) && isBlockAirOrSoftSolid(block) && isBlockSolid(blockBelow)) {
+                break;
+            }
+
+            location.subtract(0, 1, 0);
+        }
+
+        // Compensate
+        location.subtract(0, ANCHOR_COMPENSATION - 0.5d, 0);
+
+        // Compensate based on a block below
+        final Material blockType = location.getBlock().getType();
+        final Material blockBelowType = location.getBlock().getRelative(BlockFace.DOWN).getType();
+
+        ANCHOR_COMPENSATION_MAP.forEach((tag, value) -> {
+            // If IN a block, compensate UP
+            if (tag.isTagged(blockType)) {
+                location.add(0, value, 0);
+            }
+
+            // If ABOVE a block, compensate DOWN
+            else if (tag.isTagged(blockBelowType)) {
+                location.subtract(0, value, 0);
+            }
+        });
+
+        return location;
+    }
+
+    /**
+     * Returns true if the given {@link Block} is {@link Material#AIR}, {@link Material#isOccluding()} or soft-solid.
+     *
+     * @param block - Block to check.
+     * @return true if the given block is air or soft-solid.
+     * @see #SOFT_SOLID_TAGS
+     */
+    public static boolean isBlockAirOrSoftSolid(@Nonnull Block block) {
+        final Material type = block.getType();
+
+        if (type.isAir() || !type.isOccluding()) {
+            return true;
+        }
+
+        for (Tag<Material> tag : SOFT_SOLID_TAGS) {
+            if (tag.isTagged(type)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if the given {@link Block} is solid.
+     *
+     * @param block - Block to check.
+     * @return true if the given block is solid.
+     * @implNote The implementation considers {@link Material#BARRIER} as <b>not</b> solid.
+     */
+    public static boolean isBlockSolid(@Nonnull Block block) {
+        final Material type = block.getType();
+
+        return switch (type) {
+            case BARRIER -> false;
+            default -> type.isSolid();
+        };
+    }
+
+    /**
+     * Returns a checkmark based on the condition.
+     * <ul>
+     *     <li>If the condition is <code>true</code>, a <code>GREEN</code> ✔ is returned.
+     *     <li>If the condition is <code>false</code>, a <code>RED</code> ❌ is returned.
+     *     <li>If the condition is <code>null</code>, a blank string is returned.
+     * </ul>
+     *
+     * @param condition - Boolean condition.
+     * @return a checkmark, an X or a blank string.
+     */
+    @Nonnull
+    public static String checkmark(@Nullable Boolean condition) {
+        return condition == null ? "" : condition ? (NamedTextColor.GREEN + "✔") : (NamedTextColor.RED + "❌");
     }
 
 }

@@ -13,8 +13,8 @@ import java.util.Objects;
  */
 public class Tuple<A, B> {
 
-    private final A a;
-    private final B b;
+    protected final A a;
+    protected final B b;
 
     /**
      * A bi-object immutable data structure.
