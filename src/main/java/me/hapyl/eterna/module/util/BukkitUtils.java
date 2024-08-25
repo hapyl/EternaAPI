@@ -858,7 +858,7 @@ public class BukkitUtils {
      */
     @Nonnull
     public static String checkmark(@Nullable Boolean condition) {
-        return condition == null ? "" : condition ? (NamedTextColor.GREEN + "✔") : (NamedTextColor.RED + "❌");
+        return condition == null ? "" : condition ? (ChatColor.GREEN + "✔") : (ChatColor.RED + "❌");
     }
 
 }

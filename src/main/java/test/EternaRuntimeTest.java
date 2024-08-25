@@ -1366,6 +1366,7 @@ public final class EternaRuntimeTest {
                 info(player, "javaColor=" + String.valueOf(converter.toJavaColor(e)));
                 info(player, "bungeeChatColor=" + String.valueOf(converter.toChatColor(e)));
                 info(player, "chatColor=" + String.valueOf(converter.toBukkitColor(e)));
+                info(player, "textColor=" + String.valueOf(converter.toTextColor(e)));
                 info(player, "");
             }
         });
