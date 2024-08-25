@@ -1,9 +1,12 @@
 package me.hapyl.eterna.module.util;
 
+import net.kyori.adventure.text.format.TextColor;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.DyeColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.awt.*;
 
 /**
  * Allows converting different colors.
@@ -35,6 +38,12 @@ public interface ColorConverter {
             return org.bukkit.Color.fromRGB(from.getRed(), from.getGreen(), from.getBlue());
         }
 
+        @NotNull
+        @Override
+        public net.kyori.adventure.text.format.TextColor toTextColor(@NotNull Color from) {
+            return net.kyori.adventure.text.format.TextColor.color(from.getRed(), from.getGreen(), from.getBlue());
+        }
+
     };
 
     /**
@@ -60,6 +69,13 @@ public interface ColorConverter {
 
             return org.bukkit.Color.fromRGB(javaColor.getRed(), javaColor.getGreen(), javaColor.getBlue());
         }
+
+        @Override
+        public @NotNull TextColor toTextColor(@NotNull ChatColor from) {
+            final java.awt.Color javaColor = toJavaColor(from);
+
+            return net.kyori.adventure.text.format.TextColor.color(javaColor.getRed(), javaColor.getGreen(), javaColor.getBlue());
+        }
     };
 
     /**
@@ -84,6 +100,14 @@ public interface ColorConverter {
             final java.awt.Color javaColor = toJavaColor(from);
 
             return org.bukkit.Color.fromRGB(javaColor.getRed(), javaColor.getGreen(), javaColor.getBlue());
+        }
+
+        @NotNull
+        @Override
+        public net.kyori.adventure.text.format.TextColor toTextColor(@NotNull org.bukkit.ChatColor from) {
+            final java.awt.Color javaColor = toJavaColor(from);
+
+            return net.kyori.adventure.text.format.TextColor.color(javaColor.getRed(), javaColor.getGreen(), javaColor.getBlue());
         }
     };
 
@@ -124,6 +148,12 @@ public interface ColorConverter {
         public org.bukkit.Color toBukkitColor(@NotNull org.bukkit.Color from) {
             return from;
         }
+
+        @NotNull
+        @Override
+        public net.kyori.adventure.text.format.TextColor toTextColor(@NotNull org.bukkit.Color from) {
+            return net.kyori.adventure.text.format.TextColor.color(from.getRed(), from.getGreen(), from.getBlue());
+        }
     };
 
     /**
@@ -148,6 +178,14 @@ public interface ColorConverter {
         @Override
         public org.bukkit.Color toBukkitColor(@NotNull org.bukkit.DyeColor from) {
             return from.getColor();
+        }
+
+        @NotNull
+        @Override
+        public net.kyori.adventure.text.format.TextColor toTextColor(@NotNull DyeColor from) {
+            final org.bukkit.Color bukkitColor = from.getColor();
+
+            return net.kyori.adventure.text.format.TextColor.color(bukkitColor.getRed(), bukkitColor.getGreen(), bukkitColor.getBlue());
         }
     };
 
@@ -179,6 +217,15 @@ public interface ColorConverter {
          */
         @Nonnull
         org.bukkit.Color toBukkitColor(@Nonnull F from);
+
+        /**
+         * Converts a given color to {@link net.kyori.adventure.text.format.TextColor}
+         *
+         * @param from - Color to convert.
+         * @return an adventure text color.
+         */
+        @Nonnull
+        net.kyori.adventure.text.format.TextColor toTextColor(@Nonnull F from);
 
     }
 
