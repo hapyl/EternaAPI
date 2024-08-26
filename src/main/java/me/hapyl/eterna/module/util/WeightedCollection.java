@@ -1,7 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.annotate.Range;
 
 import javax.annotation.Nonnull;
@@ -11,121 +9,127 @@ import java.util.*;
 /**
  * A weighted collection.
  */
-public class WeightedCollection<E> implements Iterable<E> {
+public class WeightedCollection<T> implements Iterable<T> {
 
-    private final TreeMap<Integer, List<E>> elements;
-    private final Random random;
+    protected final List<WeightedElement> elements;
+    protected final Random random;
+
+    protected int totalWeight;
 
     public WeightedCollection() {
-        this.elements = new TreeMap<>();
+        this.elements = new ArrayList<>();
         this.random = new Random();
     }
 
     /**
-     * Add an element to the collection.
+     * Adds the given element to this {@link WeightedCollection} with the given weight.
      *
-     * @param e      - Element to add.
+     * @param t      - Element to add.
      * @param weight - Weight of the element.
-     *               The probability of selecting an element is proportional to its weight.
-     * @throws IllegalArgumentException if weight is negative
+     * @throws IllegalArgumentException If weight is negative.
      */
-    public void add(@Nonnull E e, @Range int weight) {
+    public void add(@Nonnull T t, @Range int weight) {
         if (weight < 0) {
-            throw new IllegalArgumentException("weight cannot be negative");
+            throw new IllegalArgumentException("Weight cannot be negative!");
         }
 
-        elements.computeIfAbsent(weight, fn -> Lists.newArrayList()).add(e);
+        elements.add(new WeightedElement(t, weight));
+        totalWeight += weight;
     }
 
     /**
-     * Adds all elements to the collection.
+     * Removes the given element from this {@link WeightedCollection}.
      *
-     * @param weight - Weight of the element.
-     *               The probability of selecting an element is proportional to its weight.
-     * @param first  - First element to add.
-     * @param rest   - Rest of the elements
+     * @param t - Element to remove.
+     * @return true if the element was removed and total weight decremented, false otherwise.
      */
-    @SafeVarargs
-    public final void addAll(@Range int weight, @Nonnull E first, @Nonnull E... rest) {
-        add(first, weight);
+    public boolean remove(@Nonnull T t) {
+        return elements.removeIf(item -> {
+            if (item.t.equals(t)) {
+                totalWeight -= item.weight;
+                return true;
+            }
 
-        for (E e : rest) {
-            add(e, weight);
+            return false;
+        });
+    }
+
+    /**
+     * Adds the given elements from the given {@link Collection} to this {@link WeightedCollection} with the given weight.
+     *
+     * @param weight     - Weight of all elements.
+     * @param collection - Collection.
+     */
+    public void addAll(@Range int weight, @Nonnull Collection<T> collection) {
+        for (T t : collection) {
+            this.add(t, weight);
         }
     }
 
     /**
-     * Gets a random element from this collection based on the weight.
+     * Gets a random element from this {@link WeightedCollection}, or <code>null</code> if the {@link WeightedCollection} {@link #isEmpty()}.
      *
-     * @return a random element from this collection based on the weight.
-     * @throws NullPointerException if the collection is empty.
-     */
-    @Nonnull
-    public E get() {
-        final E e = getOrNull();
-
-        if (e != null) {
-            return e;
-        }
-
-        throw new NullPointerException("collection is empty");
-    }
-
-    /**
-     * Gets a random element from this collection based on the weight; or def if the collection is empty.
-     *
-     * @param def - Default element.
-     * @return a random element from this collection based on the weight; or def if the collection is empty.
-     */
-    @Nonnull
-    public E getOrDefault(@Nonnull E def) {
-        final E e = getOrNull();
-
-        return e != null ? e : def;
-    }
-
-    /**
-     * Gets a random element from this collection based on the weight; or null if the collection is empty.
-     *
-     * @return a random element from this collection based on the weight; or null if the collection is empty.
+     * @return a random element or null if there are no elements.
      */
     @Nullable
-    public E getOrNull() {
-        int totalWeight = elements.lastKey();
-        int randomWeight = random.nextInt(totalWeight) + 1;
+    public T getRandomElement() {
+        final double randomWeight = random.nextDouble(totalWeight);
+        double cumulativeWeight = 0;
 
-        for (Map.Entry<Integer, List<E>> entry : elements.entrySet()) {
-            int weight = entry.getKey();
-            if (randomWeight <= weight) {
-                List<E> elements = entry.getValue();
-                return elements.get(random.nextInt(elements.size()));
+        for (WeightedElement element : elements) {
+            cumulativeWeight += element.weight;
+
+            if (randomWeight < cumulativeWeight) {
+                return element.t;
             }
-            randomWeight -= weight;
         }
 
         return null;
     }
 
     /**
-     * Gets a copy of all values associated with the given weight; or empty list if none.
+     * Gets a random element from this {@link WeightedElement}, or default element if the {@link WeightedCollection} {@link #isEmpty()}.
      *
-     * @param weight - Weight.
-     * @return a copy of all values associated with the given weight; or empty list if none.
+     * @param def - Default element.
+     * @return a random element or default if there are no elements.
      */
     @Nonnull
-    public List<E> getByWeight(@Range int weight) {
-        return Lists.newArrayList(elements.getOrDefault(weight, Lists.newArrayList()));
+    public T getRandomElementOrDefault(@Nonnull T def) {
+        final T t = getRandomElement();
+
+        return t != null ? t : def;
     }
 
     /**
-     * Returns true if this collection contains the given element; false otherwise.
+     * Gets a {@link List} of all elements from this {@link WeightedCollection} matching the given weight.
+     * <br>
+     * This {@link List} is <b>not</b> backed up by this {@link WeightedCollection}.
      *
-     * @param e - Element.
-     * @return true if this collection contains the given element; false otherwise.
+     * @param weight - Weight to match.
+     * @return a list of all elements from this collection matching the given weight.
      */
-    public boolean contains(@Nonnull E e) {
-        for (E e1 : this) {
-            if (e1.equals(e)) {
+    @Nonnull
+    public List<T> getElementsByWeight(@Range int weight) {
+        final List<T> elements = new ArrayList<>();
+
+        for (WeightedElement element : this.elements) {
+            if (element.weight == weight) {
+                elements.add(element.t);
+            }
+        }
+
+        return elements;
+    }
+
+    /**
+     * Returns true if the given element is in this {@link WeightedCollection}, false otherwise.
+     *
+     * @param t - Element to check.
+     * @return true if the given element is in this collection, false otherwise.
+     */
+    public boolean contains(@Nonnull T t) {
+        for (WeightedElement element : elements) {
+            if (element.t.equals(t)) {
                 return true;
             }
         }
@@ -134,13 +138,19 @@ public class WeightedCollection<E> implements Iterable<E> {
     }
 
     /**
-     * Returns true if there is at least one element with the given weight; false otherwise.
+     * Returns true if at least one element in this {@link WeightedCollection} has the given weight.
      *
-     * @param weight - Weight.
-     * @return true if there is at least one element with the given weight; false otherwise.
+     * @param weight - Weight to check.
+     * @return true if at least one element in this collection has the given weight.
      */
     public boolean containsWeight(int weight) {
-        return elements.containsKey(weight);
+        for (WeightedElement element : elements) {
+            if (element.weight == weight) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -148,24 +158,151 @@ public class WeightedCollection<E> implements Iterable<E> {
      */
     @Nonnull
     @Override
-    public Iterator<E> iterator() {
-        final Set<Map.Entry<Integer, List<E>>> entries = Sets.newHashSet(elements.entrySet());
-        final Set<E> iterator = new HashSet<>();
-
-        for (Map.Entry<Integer, List<E>> entry : entries) {
-            iterator.addAll(entry.getValue());
-        }
-
-        entries.clear();
-        return iterator.iterator();
+    public Iterator<T> iterator() {
+        return getElements().iterator();
     }
 
+    /**
+     * Gets a copy of all the elements in this {@link WeightedCollection}.
+     *
+     * @return a copy of all elements in this collection.
+     */
+    @Nonnull
+    public List<T> getElements() {
+        final List<T> elements = new ArrayList<>();
+
+        for (WeightedElement element : this.elements) {
+            elements.add(element.t);
+        }
+
+        return elements;
+    }
+
+    /**
+     * Gets a copy of {@link WeightedElement}.
+     *
+     * @return a copy of weighted elements.
+     */
+    @Nonnull
+    public List<WeightedElement> getWeightedElements() {
+        return new ArrayList<>(this.elements);
+    }
+
+    /**
+     * Gets the size of this {@link WeightedCollection}.
+     *
+     * @return the size of this collection.
+     */
     public int size() {
         return elements.size();
     }
 
+    /**
+     * Returns true if this {@link WeightedCollection} is empty, false otherwise.
+     *
+     * @return true if this collection is empty, false otherwise.
+     */
+    public boolean isEmpty() {
+        return elements.isEmpty();
+    }
+
+    /**
+     * Gets the drop chance for the given element, or <code>-1</code> if the element is not in this {@link WeightedCollection}.
+     *
+     * @param t - Element to get the drop chance for.
+     * @return the drop chance for the given element, or -1 if the element is not in this collection.
+     */
+    public double getDropChance(@Nonnull T t) {
+        final WeightedElement element = getElement(t);
+
+        return element != null ? element.getDropChance() : -1;
+    }
+
+    /**
+     * Gets the weight for the given element, or <code>-1</code> if the element is not in this {@link WeightedCollection}.
+     *
+     * @param t - Element to get the weight for.
+     * @return the weight for the given element, or -1 if the element is not in this collection.
+     */
+    public int getWeight(@Nonnull T t) {
+        final WeightedElement element = getElement(t);
+
+        return element != null ? element.getWeight() : -1;
+    }
+
+    /**
+     * Gets a string representation of the object.
+     */
     @Override
     public String toString() {
-        return elements.toString();
+        final StringBuilder builder = new StringBuilder("{totalWeight=" + totalWeight + ", elements=[");
+
+        for (int i = 0; i < elements.size(); i++) {
+            if (i != 0) {
+                builder.append(", ");
+            }
+
+            final WeightedElement element = elements.get(i);
+
+            builder.append(element.t).append(":").append(element.weight);
+        }
+
+        return builder.append("]}").toString();
     }
+
+    @Nullable
+    protected WeightedElement getElement(T t) {
+        for (WeightedElement element : elements) {
+            if (element.t.equals(t)) {
+                return element;
+            }
+        }
+
+        return null;
+    }
+
+    public final class WeightedElement {
+        private final T t;
+        private final int weight;
+
+        private WeightedElement(@Nonnull T t, int weight) {
+            this.t = t;
+            this.weight = weight;
+        }
+
+        /**
+         * Gets the weight of this element.
+         *
+         * @return the weight of this element.
+         */
+        public int getWeight() {
+            return weight;
+        }
+
+        /**
+         * Gets the drop chance of this element.
+         *
+         * @return the drop chance of this element.
+         */
+        public double getDropChance() {
+            return (double) weight / totalWeight;
+        }
+
+        /**
+         * Gets a string representation of the object.
+         * <pre>{@code
+         * @Override
+         * public String toString() {
+         *     return "%s: %.2s%%".formatted(t.toString(), getDropChance() * 100);
+         * }
+         * }</pre>
+         *
+         * @return a string representation of this object.
+         */
+        @Override
+        public String toString() {
+            return "%s: %.2f%%".formatted(t.toString(), getDropChance() * 100);
+        }
+    }
+
 }

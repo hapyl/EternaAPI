@@ -42,6 +42,7 @@ import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
+import net.kyori.adventure.text.format.TextColor;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
@@ -1017,7 +1018,7 @@ public final class EternaRuntimeTest {
                 Map<String, Integer> mapped = new HashMap<>();
 
                 for (int i = 0; i < 1000; i++) {
-                    final String s = cls.get();
+                    final String s = cls.getRandomElement();
 
                     mapped.compute(s, (_s, _i) -> _i == null ? 1 : _i + 1);
                 }
@@ -1030,6 +1031,11 @@ public final class EternaRuntimeTest {
                 assertTrue(rarest < notSoCommon, "mostCommon >= notSoCommon");
 
                 info(player, mapped.toString());
+                info(player, cls.toString());
+
+                for (WeightedCollection<String>.WeightedElement element : cls.getWeightedElements()) {
+                    info(player, element.toString());
+                }
 
                 assertTestPassed();
                 return false;
