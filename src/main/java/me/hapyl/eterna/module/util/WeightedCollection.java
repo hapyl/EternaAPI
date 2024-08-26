@@ -67,12 +67,42 @@ public class WeightedCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Gets a random element from this {@link WeightedCollection}, or <code>null</code> if the {@link WeightedCollection} {@link #isEmpty()}.
+     * Gets a random element from this {@link WeightedCollection} or throws an {@link IllegalStateException} if the {@link WeightedCollection} {@link #isEmpty()}.
      *
-     * @return a random element or null if there are no elements.
+     * @return a random element or throws an exception if the collection is empty.
+     * @throws IllegalStateException If the {@link WeightedCollection} is empty.
+     */
+    @Nonnull
+    public T getRandomElement() {
+        final T t = getRandomElementOrNull();
+
+        if (t != null) {
+            return t;
+        }
+
+        throw new IllegalStateException("Cannot get a random element from an empty collection!");
+    }
+
+    /**
+     * Gets a random element from this {@link WeightedElement}, or default element if the {@link WeightedCollection} {@link #isEmpty()}.
+     *
+     * @param def - Default element.
+     * @return a random element or default if there are no elements.
+     */
+    @Nonnull
+    public T getRandomElementOrDefault(@Nonnull T def) {
+        final T t = getRandomElementOrNull();
+
+        return t != null ? t : def;
+    }
+
+    /**
+     * Gets a random element from this {@link WeightedCollection} or <code>null</code> if the {@link WeightedCollection} {@link #isEmpty()}.
+     *
+     * @return a random element or null if the collection is empty.
      */
     @Nullable
-    public T getRandomElement() {
+    public T getRandomElementOrNull() {
         final double randomWeight = random.nextDouble(totalWeight);
         double cumulativeWeight = 0;
 
@@ -85,19 +115,6 @@ public class WeightedCollection<T> implements Iterable<T> {
         }
 
         return null;
-    }
-
-    /**
-     * Gets a random element from this {@link WeightedElement}, or default element if the {@link WeightedCollection} {@link #isEmpty()}.
-     *
-     * @param def - Default element.
-     * @return a random element or default if there are no elements.
-     */
-    @Nonnull
-    public T getRandomElementOrDefault(@Nonnull T def) {
-        final T t = getRandomElement();
-
-        return t != null ? t : def;
     }
 
     /**
