@@ -1,9 +1,11 @@
 package me.hapyl.eterna.module.block.display;
 
+import com.google.gson.JsonObject;
 import me.hapyl.eterna.module.entity.Entities;
 import org.bukkit.Location;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
@@ -11,21 +13,21 @@ import javax.annotation.Nonnull;
 /**
  * Represents an item display data object.
  */
-public final class ItemDisplayDataObject extends DisplayDataObject<ItemStack> {
+public final class ItemDisplayDataObject extends DisplayDataObject<ItemDisplay> {
 
+    private final ItemStack itemStack;
     private final ItemDisplay.ItemDisplayTransform transform;
 
-    public ItemDisplayDataObject(@Nonnull ItemStack itemStack, @Nonnull Matrix4f matrix4f, @Nonnull ItemDisplay.ItemDisplayTransform transform) {
-        super(itemStack, matrix4f);
+    public ItemDisplayDataObject(@Nonnull JsonObject json, @Nonnull ItemStack itemStack, @Nonnull ItemDisplay.ItemDisplayTransform transform) {
+        super(ItemDisplay.class, json);
+
+        this.itemStack = itemStack;
         this.transform = transform;
     }
 
     @Override
-    public ItemDisplay create(@Nonnull Location location) {
-        return Entities.ITEM_DISPLAY.spawn(location, self -> {
-            self.setItemDisplayTransform(transform);
-            self.setItemStack(object);
-            self.setTransformationMatrix(matrix4f);
-        });
+    protected void onCreate(@NotNull ItemDisplay display) {
+        display.setItemStack(itemStack);
+        display.setItemDisplayTransform(transform);
     }
 }

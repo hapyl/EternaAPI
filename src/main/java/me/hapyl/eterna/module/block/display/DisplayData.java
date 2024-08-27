@@ -90,7 +90,7 @@ public class DisplayData {
         }
 
         for (DisplayDataObject<?> object : objects) {
-            displayEntity.append(object.create(location), consumer);
+            displayEntity.append(object.create(location, consumer));
         }
 
         return displayEntity;
