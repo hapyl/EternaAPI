@@ -724,6 +724,41 @@ public class CollectionUtils {
         return copy;
     }
 
+    /**
+     * Iterates over the given {@link Iterable}, performs the action specified by the given {@link BiConsumer} on each element.
+     * <br>
+     * Note that calling {@link Iterator#remove()} on an immutable {@link Iterable} will cause a {@link UnsupportedOperationException}!
+     * <pre>{@code
+     * Player player = ...
+     * List<String> list = Lists.newArrayList(
+     *         "Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do"
+     * );
+     *
+     * CollectionUtils.iterate(list, (iterator, item) -> {
+     *     if (item.equalsIgnoreCase("sit")) {
+     *         iterator.remove();
+     *         player.sendMessage("Removed " + item + "!");
+     *         return;
+     *     }
+     *
+     *     player.sendMessage("Current item: " + item);
+     * });
+     *
+     * info(player, list);
+     * }</pre>
+     *
+     * @param iterable - Iterable.
+     * @param consumer - Consumer
+     */
+    public static <E> void iterate(@Nonnull Iterable<E> iterable, @Nonnull BiConsumer<Iterator<E>, E> consumer) {
+        final Iterator<E> iterator = iterable.iterator();
+
+        while (iterator.hasNext()) {
+            final E next = iterator.next();
+            consumer.accept(iterator, next);
+        }
+    }
+
     private static <E, S> E getFromIndexed(int index, S s, Function<S, Integer> fnSize, BiFunction<S, Integer, E> fnGet) {
         final Integer size = fnSize.apply(s);
 
