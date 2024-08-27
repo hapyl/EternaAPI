@@ -3,10 +3,10 @@ package me.hapyl.eterna.module.block.display;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
-import org.bukkit.inventory.ItemStack;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
@@ -42,6 +42,7 @@ public enum DisplayType {
     },
 
     ITEM("item_display") {
+
         @Override
         @Nonnull
         public DisplayDataObject<?> parse(@Nonnull JsonObject object) {
@@ -60,14 +61,28 @@ public enum DisplayType {
             }
 
             if (itemDisplayTransform == null) {
-                throw new IllegalArgumentException("%s is invalid item display, valida values: %s".formatted(
+                throw new IllegalArgumentException("%s is invalid item display, valid values: %s".formatted(
                         itemDisplay,
                         ItemDisplay.ItemDisplayTransform.values()
                 ));
             }
 
+            final ItemBuilder builder = new ItemBuilder(material);
+
+            // Player head support
+            if (material == Material.PLAYER_HEAD) {
+                final String texture64 = item
+                        .get("components").getAsJsonObject()
+                        .get("minecraft:profile").getAsJsonObject()
+                        .get("properties").getAsJsonArray()
+                        .get(0).getAsJsonObject()
+                        .get("value").getAsString();
+
+                builder.setHeadTextureBase64(texture64);
+            }
+
             return new ItemDisplayDataObject(
-                    new ItemStack(material),
+                    builder.toItemStack(),
                     parseMatrix(object),
                     itemDisplayTransform
             );
