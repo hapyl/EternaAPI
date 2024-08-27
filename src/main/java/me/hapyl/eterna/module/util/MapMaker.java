@@ -1,5 +1,7 @@
 package me.hapyl.eterna.module.util;
 
+import com.google.common.collect.Maps;
+
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +40,16 @@ public final class MapMaker<K, V, M extends Map<K, V>> {
     @Nonnull
     public Map<K, V> makeMap() {
         return map;
+    }
+
+    /**
+     * Gets an immutable {@link Map}.
+     *
+     * @return an immutable map.
+     */
+    @Nonnull
+    public Map<K, V> makeImmutableMap() {
+        return Map.copyOf(map);
     }
 
     /**
