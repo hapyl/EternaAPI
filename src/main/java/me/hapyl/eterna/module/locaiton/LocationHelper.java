@@ -17,75 +17,80 @@ public final class LocationHelper {
     }
 
     /**
-     * Returns location behind center.
+     * Gets a {@link Location} behind the given {@link Location} with the given offset.
      *
-     * @param location - Center.
-     * @param offset   - Offset. 1.0 is exactly one block behind.
-     * @return location behind center.
+     * @param origin - The origin.
+     * @param offset - Offset in blocks.
+     * @return The location behind the origin with the given offset.
      */
-    public static Location getBehind(Location location, double offset) {
-        return offsetLocation(location, -validateOffset(offset));
+    @Nonnull
+    public static Location getBehind(@Nonnull Location origin, double offset) {
+        return offsetLocation(origin, -validateOffset(offset));
     }
 
     /**
-     * Returns location in front of center.
+     * Gets a {@link Location} in front of the given {@link Location} with the given offset.
      *
-     * @param location - Center.
-     * @param offset   - Offset. 1.0 is exactly one block in front.
-     * @return location in front of center.
+     * @param origin - The origin.
+     * @param offset - Offset in blocks.
+     * @return The location in front of the origin with the given offset.
      */
-    public static Location getInFront(Location location, double offset) {
-        return offsetLocation(location, validateOffset(offset));
+    @Nonnull
+    public static Location getInFront(@Nonnull Location origin, double offset) {
+        return offsetLocation(origin, validateOffset(offset));
     }
 
     /**
-     * Returns vector with offset to the left of the center.
+     * Gets a {@link Vector} that points to the left of the given {@link Location}.
      *
-     * @param location - Center.
-     * @return vector with offset to the left of the center.
+     * @param origin - The origin.
+     * @return a vector that points to the left of the origin.
      */
-    public static Vector getVectorToTheLeft(Location location) {
-        return normalizeVector(location).setY(0.0d).rotateAroundY(Math.PI / 2);
+    @Nonnull
+    public static Vector getVectorToTheLeft(@Nonnull Location origin) {
+        return normalizeVector(origin).setY(0.0d).rotateAroundY(Math.PI / 2);
     }
 
     /**
-     * Returns vector with offset to the right of the center.
+     * Gets a {@link Vector} that points to the right of the given {@link Location}.
      *
-     * @param location - Center.
-     * @return vector with offset to the right of the center.
+     * @param origin - Origin.
+     * @return a vector that points to the left of the origin.
      */
-    public static Vector getVectorToTheRight(Location location) {
-        return normalizeVector(location).setY(0.0d).rotateAroundY(-Math.PI / 2);
+    public static Vector getVectorToTheRight(@Nonnull Location origin) {
+        return normalizeVector(origin).setY(0.0d).rotateAroundY(-Math.PI / 2);
     }
 
     /**
-     * Returns location with offset to the left of the center.
+     * Gets a {@link Location} to the left of the given {@link Location}.
      *
-     * @param location - Center.
-     * @param offset   - Offset.
-     * @return location with offset to the left of the center.
+     * @param origin - Origin.
+     * @param offset - Offset in blocks.
+     * @return a location to the left of the origin.
      */
-    public static Location getToTheLeft(Location location, double offset) {
-        return location.clone().add(getVectorToTheLeft(location).multiply(validateOffset(offset)));
+    @Nonnull
+    public static Location getToTheLeft(@Nonnull Location origin, double offset) {
+        return origin.clone().add(getVectorToTheLeft(origin).multiply(validateOffset(offset)));
     }
 
     /**
-     * Returns location with offset to the right of the center.
+     * Gets a {@link Location} to the right of the given {@link Location}.
      *
-     * @param location - Center.
-     * @param offset   - Offset.
-     * @return location with offset to the right of the center.
+     * @param origin - Origin.
+     * @param offset - Offset in blocks.
+     * @return a location to the right of the origin.
      */
-    public static Location getToTheRight(Location location, double offset) {
-        return location.clone().add(getVectorToTheRight(location).multiply(validateOffset(offset)));
+    @Nonnull
+    public static Location getToTheRight(@Nonnull Location origin, double offset) {
+        return origin.clone().add(getVectorToTheRight(origin).multiply(validateOffset(offset)));
     }
 
     /**
-     * Returns true if both locations are within the same block.
+     * Returns {@code true} if both locations are within the same block; false otherwise.
      *
      * @param location1 - First location.
      * @param location2 - Second location.
-     * @return true if both locations are within the same block.
+     * @return true if both locations are within the same block; false otherwise.
      */
     public static boolean blockLocationEquals(@Nonnull Location location1, @Nonnull Location location2) {
         final World world = location1.getWorld();
@@ -106,11 +111,11 @@ public final class LocationHelper {
     }
 
     /**
-     * Calculates a new location with a linear interpolation.
+     * Linearly interpolates between two {@link Location} based on the give interpolation factor.
      *
      * @param from - Start location.
      * @param to   - End location.
-     * @param mu   - The "strength" of the interpolations.
+     * @param mu   - The interpolation factor.
      * @return a new interpolated location.
      */
     @Nonnull
@@ -123,13 +128,12 @@ public final class LocationHelper {
     }
 
     /**
-     * Calculates a new location with a cosine interpolation.
-     * <br>
-     * Cosine interpolation is slower but much smoother than the linear interpolation.
+     * Performs cosine interpolation between two {@link Location} based on the given interpolation factor.
+     * The interpolation smooths the transition between the two locations, creating an easing effect.
      *
      * @param from - Start location.
      * @param to   - End location.
-     * @param mu   - The "strength" of the interpolations.
+     * @param mu   - The interpolation factor.
      * @return a new interpolated location.
      */
     @Nonnull
@@ -140,11 +144,11 @@ public final class LocationHelper {
     }
 
     /**
-     * Lerps the number between <code>min</code> and <code>max</code> with the given <code>mu</code>.
+     * Linearly interpolates between two values based on the given interpolation factor.
      *
      * @param min - Min.
      * @param max - Max.
-     * @param mu  - Strength.
+     * @param mu  - The interpolation factor.
      * @return an interpolated number.
      */
     public static double lerp(double min, double max, double mu) {
@@ -152,9 +156,17 @@ public final class LocationHelper {
     }
 
     /**
-     * Modifies the {@link Location}, then calls {@link Consumer#accept(Object)} with the modified location before restoring the location.
-     * <br>
-     * This does mutate the location, but restores it back instantly.
+     * Temporarily adds the given {@code x}, {@code y}, {@code z} values to the provided {@link Location},
+     * performs the action specified by the given {@link Consumer}, and restores the location to its original
+     * coordinates.
+     * <pre>{@code
+     * Location location = ...;
+     *
+     * LocationHelper.modify(location, 1, 2, 3, then -> {
+     *     then.getWorld().spawnParticle(Particle.FLAME, then, 1);
+     * });
+     * }</pre>
+     * Both {@code location} and {@code then} variables are identical within the consumer same.
      *
      * @param location - Location.
      * @param x        - X.
@@ -162,16 +174,24 @@ public final class LocationHelper {
      * @param z        - Z.
      * @param consumer - Consumer
      */
-    public static void modify(@Nonnull Location location, double x, double y, double z, @Nonnull Consumer<Location> consumer) {
+    public static void offset(@Nonnull Location location, final double x, final double y, final double z, @Nonnull Consumer<Location> consumer) {
         location.add(x, y, z);
         consumer.accept(location);
         location.subtract(x, y, z);
     }
 
     /**
-     * Modifies the {@link Location}, then calls {@link Consumer#accept(Object)} with the modified location before restoring the location.
-     * <br>
-     * This does mutate the location, but restores it back instantly.
+     * Temporarily adds the given {@code x}, {@code y}, {@code z} values to the provided {@link Location},
+     * performs the action specified by the given {@link Function}, restores the location to its original
+     * coordinates, and returns the value from the given {@link Function}.
+     * <pre>{@code
+     * Location location = ...;
+     *
+     * final LivingEntity piggy = LocationHelper.modify(location, 1, 2, 3, then -> {
+     *     return Entities.PIG.spawn(location);
+     * });
+     * }</pre>
+     * Both {@code location} and {@code then} variables are identical within the consumer same.
      *
      * @param location - Location.
      * @param x        - X.
@@ -180,12 +200,36 @@ public final class LocationHelper {
      * @param fn       - Function.
      */
     @Nonnull
-    public static <T> T modify(@Nonnull Location location, double x, double y, double z, @Nonnull Function<Location, T> fn) {
+    public static <T> T offset(@Nonnull Location location, final double x, final double y, final double z, @Nonnull Function<Location, T> fn) {
         location.add(x, y, z);
         final T t = fn.apply(location);
         location.subtract(x, y, z);
 
         return t;
+    }
+
+    /**
+     * Temporarily adds the given {@code x}, {@code y}, {@code z} values to the provided {@link Location},
+     * performs the action specified by the given {@link Consumer}, and restores the location to its original
+     * coordinates.
+     * <pre>{@code
+     * Location location = ...;
+     *
+     * LocationHelper.offset(location, 1, 2, 3, () -> {
+     *     location.getWorld().spawnParticle(Particle.FLAME, location, 1);
+     * });
+     * }</pre>
+     *
+     * @param location - Location.
+     * @param x        - X.
+     * @param y        - Y.
+     * @param z        - Z.
+     * @param action   - Action to perform after addition and before subtraction.
+     */
+    public static void offset(@Nonnull Location location, final double x, final double y, final double z, @Nonnull Runnable action) {
+        location.add(x, y, z);
+        action.run();
+        location.subtract(x, y, z);
     }
 
     /**
@@ -210,7 +254,7 @@ public final class LocationHelper {
     }
 
     private static Vector normalizeVector(Location location) {
-        return location.getDirection().clone().normalize();
+        return location.getDirection().normalize(); // I'm 69% sure that cloning the vector is not necessary
     }
 
     private static double validateOffset(double offset) {

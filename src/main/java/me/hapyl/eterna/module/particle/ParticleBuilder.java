@@ -169,7 +169,8 @@ public class ParticleBuilder {
      *
      * @param particle - Particle.
      */
-    public static ParticleBuilder normal(@Nonnull Particle particle) {
+    @Nonnull
+    public static ParticleBuilder particle(@Nonnull Particle particle) {
         return new ParticleBuilder(particle);
     }
 
@@ -179,6 +180,7 @@ public class ParticleBuilder {
      * @param color - Color of a particle.
      * @param size  - Size.
      */
+    @Nonnull
     public static ParticleBuilder redstoneDust(@Nonnull Color color, int size) {
         return new RedstoneParticleBuilder(color, size);
     }
@@ -189,6 +191,7 @@ public class ParticleBuilder {
      * @param material - Block to display the break particle of.
      * @throws IllegalArgumentException if the given material is not a block.
      */
+    @Nonnull
     public static ParticleBuilder blockBreak(@Nonnull Material material) {
         return new BlockBreakParticleBuilder(material);
     }
@@ -199,6 +202,7 @@ public class ParticleBuilder {
      * @param material - Block to display the dust particle of.
      * @throws IllegalArgumentException if the given material is not a block.
      */
+    @Nonnull
     public static ParticleBuilder blockDust(@Nonnull Material material) {
         return new BlockDustParticleBuilder(material);
     }
@@ -210,6 +214,7 @@ public class ParticleBuilder {
      * @param ambient - Is ambient?
      *                Ambient particles are half-transparent.
      */
+    @Nonnull
     public static ParticleBuilder mobSpell(@Nonnull Color color, boolean ambient) {
         return new MobSpellParticleBuilder(color, ambient);
     }
@@ -219,6 +224,7 @@ public class ParticleBuilder {
      *
      * @param stack - Item to display the break of.
      */
+    @Nonnull
     public static ParticleBuilder itemBreak(@Nonnull ItemStack stack) {
         return new ItemBreakParticleBuilder(stack);
     }
@@ -230,6 +236,7 @@ public class ParticleBuilder {
      * @param toColor   - Color to transition to.
      * @param size      - Size of the particle.
      */
+    @Nonnull
     public static ParticleBuilder dustTransition(@Nonnull Color fromColor, @Nonnull Color toColor, float size) {
         return new DustTransitionParticleBuilder(fromColor, toColor, size);
     }
@@ -241,6 +248,7 @@ public class ParticleBuilder {
      * @param to          - Destination.
      * @param arrivalTime - Arrival time in ticks.
      */
+    @Nonnull
     public static ParticleBuilder vibration(@Nonnull Location from, @Nonnull Location to, int arrivalTime) {
         return VibrationParticleBuilder.of(from, to, arrivalTime);
     }
@@ -252,6 +260,7 @@ public class ParticleBuilder {
      * @param to          - Destination.
      * @param arrivalTime - Arrival time in ticks.
      */
+    @Nonnull
     public static ParticleBuilder vibration(@Nonnull Location from, @Nonnull Entity to, int arrivalTime) {
         return VibrationParticleBuilder.of(from, to, arrivalTime);
     }
@@ -262,6 +271,7 @@ public class ParticleBuilder {
      * @param material - Block to display the dust particle of.
      * @throws IllegalArgumentException if the given material is not a block.
      */
+    @Nonnull
     public static ParticleBuilder blockMarker(@Nonnull Material material) {
         return new BlockMarkerParticleBuilder(material);
     }

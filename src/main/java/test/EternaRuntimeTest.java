@@ -9,7 +9,9 @@ import me.hapyl.eterna.module.ai.AI;
 import me.hapyl.eterna.module.ai.MobAI;
 import me.hapyl.eterna.module.ai.goal.FloatGoal;
 import me.hapyl.eterna.module.ai.goal.MeleeAttackGoal;
-import me.hapyl.eterna.module.block.display.*;
+import me.hapyl.eterna.module.block.display.BDEngine;
+import me.hapyl.eterna.module.block.display.DisplayData;
+import me.hapyl.eterna.module.block.display.DisplayEntity;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.messagebuilder.Format;
 import me.hapyl.eterna.module.chat.messagebuilder.Keybind;
@@ -26,6 +28,7 @@ import me.hapyl.eterna.module.math.geometry.WorldParticle;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
+import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
@@ -42,7 +45,6 @@ import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
-import net.kyori.adventure.text.format.TextColor;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
@@ -1471,6 +1473,49 @@ public final class EternaRuntimeTest {
             }
         });
 
+        addTest(new EternaTest("locationHelper") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final Location location = player.getLocation();
+
+                LocationHelper.offset(location, 1, 2, 3, then -> {
+                    PlayerLib.spawnParticle(location, Particle.FLAME, 1);
+                });
+
+                LocationHelper.offset(location, 3, 2, 1, then -> {
+                    return Entities.PIG.spawn(location);
+                });
+
+                LocationHelper.offset(location, 1, 3, 2, () -> {
+                    PlayerLib.spawnParticle(location, Particle.HAPPY_VILLAGER, 1);
+                });
+
+                return true;
+            }
+        });
+
+        addTest(new EternaTest("iterators") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                List<String> list = Lists.newArrayList(
+                        "Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do"
+                );
+
+                CollectionUtils.iterate(list, (iterator, item) -> {
+                    if (item.equalsIgnoreCase("sit")) {
+                        iterator.remove();
+                        info(player, "Removed 'sit'");
+                        return;
+                    }
+
+                    info(player, "> " + item);
+                });
+
+                info(player, list);
+                return true;
+            }
+        });
+
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override
@@ -1559,7 +1604,7 @@ public final class EternaRuntimeTest {
 
     static void handleTestFail(EternaTest test, Exception ex) {
         if (test.doShowFeedback()) {
-            EternaLogger.test("&4Test '%s' failed! &c%s".formatted(test, ex.getMessage()));
+            EternaLogger.test("&4Test '%s' failed! &c%s:%s".formatted(test, ex.getClass().getSimpleName(), ex.getMessage()));
             ex.printStackTrace();
         }
     }
