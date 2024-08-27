@@ -1,12 +1,21 @@
 package me.hapyl.eterna.module.block.display;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.util.Validate;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
-import org.bukkit.inventory.ItemStack;
+import org.checkerframework.checker.index.qual.SearchIndexBottom;
+import org.intellij.lang.annotations.Subst;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
@@ -19,8 +28,8 @@ public enum DisplayType {
     BLOCK("block_display") {
         @Override
         @Nonnull
-        public BlockDisplayDataObject parse(@Nonnull JsonObject object) {
-            final JsonObject blockState = object.getAsJsonObject("block_state");
+        protected BlockDisplayDataObject parse(@Nonnull JsonObject json) {
+            final JsonObject blockState = json.getAsJsonObject("block_state");
             final String blockName = blockState.get("Name").getAsString().replace("minecraft:", "");
             final JsonObject properties = blockState.getAsJsonObject("Properties");
 
@@ -31,12 +40,14 @@ public enum DisplayType {
             }
 
             return new BlockDisplayDataObject(
-                    properties == null ? material.createBlockData() : material.createBlockData(properties.toString()
+                    json,
+                    properties == null
+                            ? material.createBlockData()
+                            : material.createBlockData(properties.toString()
                             .replace("{", "[")
                             .replace("}", "]")
                             .replace(":", "=")
-                            .replace("\"", "")),
-                    parseMatrix(object)
+                            .replace("\"", ""))
             );
         }
     },
@@ -44,10 +55,10 @@ public enum DisplayType {
     ITEM("item_display") {
         @Override
         @Nonnull
-        public DisplayDataObject<?> parse(@Nonnull JsonObject object) {
-            final JsonObject item = object.getAsJsonObject("item");
+        protected DisplayDataObject<?> parse(@Nonnull JsonObject json) {
+            final JsonObject item = json.getAsJsonObject("item");
             final String itemName = item.get("id").getAsString().replace("minecraft:", "");
-            final String itemDisplay = object.get("item_display").getAsString();
+            final String itemDisplay = json.get("item_display").getAsString();
 
             final Material material = Validate.getEnumValue(Material.class, itemName);
             final ItemDisplay.ItemDisplayTransform itemDisplayTransform = Validate.getEnumValue(
@@ -60,16 +71,54 @@ public enum DisplayType {
             }
 
             if (itemDisplayTransform == null) {
-                throw new IllegalArgumentException("%s is invalid item display, valida values: %s".formatted(
+                throw new IllegalArgumentException("%s is invalid item display, valid values: %s".formatted(
                         itemDisplay,
                         ItemDisplay.ItemDisplayTransform.values()
                 ));
             }
 
-            return new ItemDisplayDataObject(
-                    new ItemStack(material),
-                    parseMatrix(object),
-                    itemDisplayTransform
+            final ItemBuilder builder = new ItemBuilder(material);
+
+            // Player head support
+            if (material == Material.PLAYER_HEAD) {
+                final String texture64 = item
+                        .get("components").getAsJsonObject()
+                        .get("minecraft:profile").getAsJsonObject()
+                        .get("properties").getAsJsonArray()
+                        .get(0).getAsJsonObject()
+                        .get("value").getAsString();
+
+                builder.setHeadTextureBase64(texture64);
+            }
+
+            return new ItemDisplayDataObject(json, builder.toItemStack(), itemDisplayTransform);
+        }
+    },
+
+    TEXT_DISPLAY("text_display") {
+        @Override
+        @Nonnull
+        @SuppressWarnings("all")
+        protected DisplayDataObject<?> parse(@NotNull JsonObject json) {
+            final JsonObject textObject = new Gson().fromJson(json.get("text").getAsString(), JsonArray.class).get(0).getAsJsonObject();
+
+            final String text = textObject.get("text").getAsString();
+            final String color = textObject.get("color").getAsString();
+            final boolean isBold = textObject.get("bold").getAsBoolean();
+            final boolean isItalic = textObject.get("italic").getAsBoolean();
+            final boolean isUnderlined = textObject.get("underlined").getAsBoolean();
+            final boolean isStrikethrough = textObject.get("strikethrough").getAsBoolean();
+            final String font = textObject.get("font").getAsString();
+
+            return new TextDisplayDataObject(
+                    json,
+                    Component.text(text)
+                            .color(TextColor.fromHexString(color))
+                            .decoration(TextDecoration.BOLD, isBold)
+                            .decoration(TextDecoration.ITALIC, isItalic)
+                            .decoration(TextDecoration.UNDERLINED, isUnderlined)
+                            .decoration(TextDecoration.STRIKETHROUGH, isStrikethrough)
+                            .font(Key.key(font))
             );
         }
     };
@@ -81,27 +130,17 @@ public enum DisplayType {
     }
 
     @Nonnull
-    public DisplayDataObject<?> parse(@Nonnull JsonObject object) {
-        throw new IllegalStateException("must override");
+    protected DisplayDataObject<?> parse(@Nonnull JsonObject json) {
+        throw new IllegalStateException(name() + " didn't override parse() for some reason 🤪");
     }
 
-    protected Matrix4f parseMatrix(JsonObject object) {
-        final JsonArray transformation = object.getAsJsonArray("transformation");
-        final float[] matrix4f = new float[16];
-
-        int i = 0;
-        for (JsonElement matrixElement : transformation) {
-            matrix4f[i++] = matrixElement.getAsFloat();
-        }
-
-        return new Matrix4f(
-                matrix4f[0], matrix4f[4], matrix4f[8], matrix4f[12],
-                matrix4f[1], matrix4f[5], matrix4f[9], matrix4f[13],
-                matrix4f[2], matrix4f[6], matrix4f[10], matrix4f[14],
-                matrix4f[3], matrix4f[7], matrix4f[11], matrix4f[15]
-        );
-    }
-
+    /**
+     * Gets a {@link DisplayType} by the given id.
+     *
+     * @param id - Id.
+     * @return the display type.
+     * @throws IllegalArgumentException if the id is invalid.
+     */
     @Nonnull
     public static DisplayType byId(@Nonnull String id) {
         for (DisplayType value : values()) {
@@ -110,6 +149,6 @@ public enum DisplayType {
             }
         }
 
-        throw new IllegalArgumentException("invalid id: " + id);
+        throw new IllegalArgumentException("Invalid id: " + id);
     }
 }

@@ -35,7 +35,6 @@ public class DisplayEntity implements Iterable<Display>, IDisplay {
      * @param location - Location to teleport to.
      */
     public void teleport(@Nonnull Location location) {
-        head.teleport(location);
         children.forEach(display -> display.teleport(location));
     }
 
@@ -43,8 +42,6 @@ public class DisplayEntity implements Iterable<Display>, IDisplay {
      * Removes the entity, including the head and children.
      */
     public void remove() {
-        head.remove();
-
         children.forEach(Display::remove);
         children.clear();
     }
@@ -218,15 +215,10 @@ public class DisplayEntity implements Iterable<Display>, IDisplay {
     /**
      * Adds a display as a child.
      *
-     * @param display  - Display to add.
-     * @param consumer - Consumer if needed.
+     * @param display - Display to add.
      */
-    protected void append(@Nonnull Display display, @Nullable Consumer<Display> consumer) {
+    protected void append(@Nonnull Display display) {
         head.addPassenger(display);
         children.add(display);
-
-        if (consumer != null) {
-            consumer.accept(display);
-        }
     }
 }

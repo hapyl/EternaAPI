@@ -1,8 +1,7 @@
 package me.hapyl.eterna.module.inventory;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import com.google.common.collect.*;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.ForceLowercase;
@@ -14,7 +13,6 @@ import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Nulls;
-import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -38,18 +36,17 @@ import org.bukkit.map.MapView;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.net.URL;
+import java.net.URI;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
@@ -82,10 +79,14 @@ public class ItemBuilder implements Cloneable {
 
     private static final char MANUAL_SPLIT_CHAR = '_';
 
+    private static final java.util.regex.Pattern BASE64_DECODE_PATTERN = java.util.regex.Pattern.compile("\"url\":\"(http[^\"]+)\"");
     private static final String PLUGIN_PATH = "ItemBuilderId";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
+
     protected static Map<String, ItemFunctionList> registeredFunctions = Maps.newHashMap();
+
     private static AttributeModifier HIDE_ATTRIBUTES_MODIFIER;
+
     protected ItemStack item;
 
     private String id;
@@ -731,6 +732,29 @@ public class ItemBuilder implements Cloneable {
      *
      * @param textBlock  - Text block.
      * @param linePrefix - Prefix to put before each line.
+     */
+    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nonnull String linePrefix) {
+        return addTextBlockLore(textBlock, linePrefix, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
+    }
+
+    /**
+     * Adds text block as smart lore to the item.
+     * Each line will be treated as a paragraph.
+     * <p>
+     * {@link #NEW_LINE_SEPARATOR} can be used as a custom separator.
+     * <p>
+     * Prefix can be added by using <code>;;</code> before the actual string, ex:
+     * <pre>
+     *     &c;;Hello World__Goodbye World
+     * </pre>
+     * will be formatted as:
+     * <pre>
+     *     &cHello World
+     *     &cGoodbye World
+     * </pre>
+     *
+     * @param textBlock  - Text block.
+     * @param linePrefix - Prefix to put before each line.
      * @param charLimit  - Char wrap limit.
      */
     public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nonnull String linePrefix, int charLimit) {
@@ -919,14 +943,14 @@ public class ItemBuilder implements Cloneable {
      * <code>87fbe93a9c518883186a2aefbd2b7df18ba05a8a7dd1a756ef6565d3e5807a0c</code>
      */
     public ItemBuilder setHeadTextureUrl(@Nonnull String url) {
-        final PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+        final PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
         final PlayerTextures textures = profile.getTextures();
 
         try {
-            textures.setSkin(new URL(URL_TEXTURE_LINK + url));
+            textures.setSkin(new URI(URL_TEXTURE_LINK + url).toURL());
             profile.setTextures(textures);
 
-            modifyMeta(SkullMeta.class, meta -> meta.setOwnerProfile(profile));
+            modifyMeta(SkullMeta.class, meta -> meta.setPlayerProfile(profile));
         } catch (Exception e) {
             EternaLogger.exception(e);
         }
@@ -1382,29 +1406,14 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
-     * Sets an actual base64 value as textures.
+     * Sets the texture of this head from a base64 encoded string.
      * <p>
      * If copying from <a href="https://minecraft-heads.com/custom-heads">Minecraft-Heads</a>, use <code>Other -> Value</code> value,
      * which should look something like this:
      * <code>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODdmYmU5M2E5YzUxODg4MzE4NmEyYWVmYmQyYjdkZjE4YmEwNWE4YTdkZDFhNzU2ZWY2NTY1ZDNlNTgwN2EwYyJ9fX0=</code>
-     *
-     * @deprecated Dropping support for base64, also not fixing the console spam.
      */
-    @Deprecated
-    public ItemBuilder setHeadTexture(@Nonnull String base64) {
-        final GameProfile profile = new GameProfile(UUID.randomUUID(), "");
-        profile.getProperties().put("textures", new Property("textures", base64));
-
-        modifyMeta(meta -> {
-            try {
-                final Field field = FieldUtils.getDeclaredField(meta.getClass(), "profile", true);
-                field.set(meta, profile);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        });
-
-        return this;
+    public ItemBuilder setHeadTextureBase64(@Nonnull String base64) {
+        return setHeadTextureUrl(decodeBase64(base64));
     }
 
     /**
@@ -1917,7 +1926,7 @@ public class ItemBuilder implements Cloneable {
      */
     @Deprecated(forRemoval = true)
     public static ItemBuilder playerHead(@Nonnull String texture) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(texture);
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTextureBase64(texture);
     }
 
     /**
@@ -2266,6 +2275,27 @@ public class ItemBuilder implements Cloneable {
         }
 
         return HIDE_ATTRIBUTES_MODIFIER;
+    }
+
+    /**
+     * Decodes the base64 texture into a {@link #URL_TEXTURE_LINK} link.
+     *
+     * @param texture64 - Base64.
+     * @return the decoded link without {@link #URL_TEXTURE_LINK}.
+     * @throws IllegalArgumentException - If the base64 is invalid.
+     */
+    @Nonnull
+    public static String decodeBase64(@Nonnull String texture64) {
+        final String decodedTexture = new String(Base64.getDecoder().decode(texture64));
+        final Matcher matcher = BASE64_DECODE_PATTERN.matcher(decodedTexture);
+
+        if (matcher.find()) {
+            final String texture = matcher.group(1);
+
+            return texture.replace(URL_TEXTURE_LINK, "");
+        }
+
+        throw new IllegalArgumentException("Invalid texture!");
     }
 
     private static boolean isManualSplit(char[] chars, int index) {
