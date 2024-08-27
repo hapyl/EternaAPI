@@ -339,6 +339,26 @@ public final class EternaRuntimeTest {
 
                 inventory.addItem(testItem.clone().removeLore().build());
 
+                // Test text block
+                final ItemBuilder textBlock = new ItemBuilder(Material.GHAST_TEAR);
+                textBlock.addTextBlockLore("""
+                        TEXT BLOCK LORE
+                        """);
+
+                textBlock.addTextBlockLore("""
+                        TEXT BLOCK LORE
+                        """, "CUSTOM PREFIX + ");
+
+                textBlock.addTextBlockLore("TEXT BLOCK LORE", 5);
+
+                textBlock.addTextBlockLore("""
+                        TEXT BLOCK LORE WITH AAAAAAAA
+                        """, "CUSTOM PREFIX + C", 10);
+
+                inventory.addItem(textBlock.toItemStack());
+                inventory.addItem(new ItemBuilder(Material.PLAYER_HEAD)
+                        .setHeadTextureUrl("2a084f78cbd787481eaee173002ac6c081916142b9d9ccc2c3c232cb79c75595")
+                        .toItemStack());
                 return true;
             }
         });

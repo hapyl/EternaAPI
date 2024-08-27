@@ -732,6 +732,29 @@ public class ItemBuilder implements Cloneable {
      *
      * @param textBlock  - Text block.
      * @param linePrefix - Prefix to put before each line.
+     */
+    public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nonnull String linePrefix) {
+        return addTextBlockLore(textBlock, linePrefix, DEFAULT_SMART_SPLIT_CHAR_LIMIT);
+    }
+
+    /**
+     * Adds text block as smart lore to the item.
+     * Each line will be treated as a paragraph.
+     * <p>
+     * {@link #NEW_LINE_SEPARATOR} can be used as a custom separator.
+     * <p>
+     * Prefix can be added by using <code>;;</code> before the actual string, ex:
+     * <pre>
+     *     &c;;Hello World__Goodbye World
+     * </pre>
+     * will be formatted as:
+     * <pre>
+     *     &cHello World
+     *     &cGoodbye World
+     * </pre>
+     *
+     * @param textBlock  - Text block.
+     * @param linePrefix - Prefix to put before each line.
      * @param charLimit  - Char wrap limit.
      */
     public ItemBuilder addTextBlockLore(@Nonnull String textBlock, @Nonnull String linePrefix, int charLimit) {
