@@ -1548,6 +1548,31 @@ public final class EternaRuntimeTest {
             }
         });
 
+        addTest(new EternaTest("mapMaker") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final MapMaker<Integer, String, LinkedHashMap<Integer, String>> mapMaker = MapMaker.<Integer, String>ofLinkedHashMap()
+                        .put(1, "hello")
+                        .put(2, "world");
+
+                final Map<Integer, String> map = mapMaker.makeMap();
+                final LinkedHashMap<Integer, String> genericMap = mapMaker.makeGenericMap();
+                final Map<Integer, String> immutableMap = mapMaker.makeImmutableMap();
+
+                info(player, map);
+
+                genericMap.remove(1);
+                info(player, genericMap);
+
+                assertThrows(() -> {
+                    immutableMap.remove(1);
+                });
+
+                info(player, immutableMap);
+                return true;
+            }
+        });
+
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override

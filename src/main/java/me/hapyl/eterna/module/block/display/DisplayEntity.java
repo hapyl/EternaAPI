@@ -4,8 +4,6 @@ import com.google.common.collect.Lists;
 import io.papermc.paper.entity.TeleportFlag;
 import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
 import net.kyori.adventure.text.Component;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.PistonMoveReaction;
@@ -22,15 +20,12 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 /**
  * Represents a display entity.
@@ -1034,6 +1029,45 @@ public class DisplayEntity implements Iterable<Display>, Display {
     @Override
     public PersistentDataContainer getPersistentDataContainer() {
         return head.getPersistentDataContainer();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        final DisplayEntity other = (DisplayEntity) object;
+
+        if (children.size() != other.children.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < children.size(); i++) {
+            final Display thisChild = children.get(i);
+            final Display otherChild = other.children.get(i);
+
+            if (!Objects.equals(thisChild, otherChild)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1;
+
+        for (Display child : children) {
+            hash = 31 * hash + (child != null ? child.hashCode() : 0);
+        }
+
+        return hash;
     }
 
     protected void append(@Nonnull Display display) {
