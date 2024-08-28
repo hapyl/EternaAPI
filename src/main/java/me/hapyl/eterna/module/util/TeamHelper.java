@@ -6,6 +6,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 
 /**
  * This helper works with team to apply collision or name tag visibility.
@@ -22,11 +23,11 @@ public enum TeamHelper {
     NPC("npc", team -> team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER));
 
     private final String name;
-    private final Action<Team> action;
+    private final Consumer<Team> action;
 
     public static final String PARENT = "eternaApi.";
 
-    TeamHelper(String name, Action<Team> action) {
+    TeamHelper(String name, Consumer<Team> action) {
         this.name = PARENT + name;
         this.action = action;
     }
@@ -49,8 +50,9 @@ public enum TeamHelper {
         Team team = score.getTeam(name);
         if (team == null) {
             team = score.registerNewTeam(name);
+
             if (action != null) {
-                action.use(team);
+                action.accept(team);
             }
         }
         return team;

@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.block.display;
 import com.google.common.collect.Lists;
 import io.papermc.paper.entity.TeleportFlag;
 import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
+import me.hapyl.eterna.module.block.display.animation.DisplayEntityAnimation;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
@@ -17,6 +18,7 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -40,6 +42,27 @@ public class DisplayEntity implements Iterable<Display>, Display {
         this.head = head;
         this.children = Lists.newArrayList();
         this.children.add(head);
+    }
+
+    /**
+     * Creates a new {@link DisplayEntityAnimation} instance using the default {@link JavaPlugin}.
+     *
+     * @return A new {@link DisplayEntityAnimation} instance.
+     */
+    @Nonnull
+    public DisplayEntityAnimation newAnimation() {
+        return new DisplayEntityAnimation(this);
+    }
+
+    /**
+     * Creates a new {@link DisplayEntityAnimation} instance with the specified {@link JavaPlugin}.
+     *
+     * @param plugin - The {@link JavaPlugin} to be used for the animation.
+     * @return A new {@link DisplayEntityAnimation} instance.
+     */
+    @Nonnull
+    public DisplayEntityAnimation newAnimation(@Nonnull JavaPlugin plugin) {
+        return new DisplayEntityAnimation(this, plugin);
     }
 
     public boolean teleport(@Nonnull Location location) {

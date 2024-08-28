@@ -12,6 +12,7 @@ import me.hapyl.eterna.module.ai.goal.MeleeAttackGoal;
 import me.hapyl.eterna.module.block.display.BDEngine;
 import me.hapyl.eterna.module.block.display.DisplayData;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
+import me.hapyl.eterna.module.block.display.animation.AnimationFrame;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.messagebuilder.Format;
 import me.hapyl.eterna.module.chat.messagebuilder.Keybind;
@@ -45,6 +46,7 @@ import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
+import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
@@ -1570,6 +1572,99 @@ public final class EternaRuntimeTest {
 
                 info(player, immutableMap);
                 return true;
+            }
+        });
+
+        addTest(new EternaTest("cache") {
+
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                Cache<String> listCacheString = Cache.ofList(1_000);
+
+                listCacheString.add("hello");
+                listCacheString.add("world");
+                listCacheString.add("my");
+                listCacheString.add("name");
+                listCacheString.add("is");
+                listCacheString.add("EternaAPI");
+                listCacheString.add("lymme");
+                listCacheString.add("gynn");
+                listCacheString.add("fiyl");
+
+                final Cache<Object> setCacheInt = Cache.ofSet(1_000);
+
+                setCacheInt.add(1);
+                setCacheInt.add(1);
+                setCacheInt.add(1);
+                setCacheInt.add(1);
+
+                // check set
+                assertTrue(setCacheInt.size() == 1);
+
+                info(player, "setCacheInt=" + setCacheInt);
+
+                final String firstY = listCacheString.match(s -> s.contains("y"));
+                final List<String> allY = listCacheString.matchAll(s -> s.contains("y"));
+
+                info(player, "listCacheString=" + listCacheString);
+                info(player, "firsrY=" + firstY);
+                info(player, "allY=" + allY);
+
+                later(() -> {
+                    assertTrue(listCacheString.isEmpty());
+                    assertTrue(setCacheInt.isEmpty());
+                    assertTestPassed();
+                }, 21);
+
+                return false;
+            }
+        });
+
+        addTest(new EternaTest("displayAnimation") {
+
+            private final DisplayData data = BDEngine.parse(
+                    "/summon block_display ~-0.5 ~-0.5 ~-0.5 {Passengers:[{id:\"minecraft:block_display\",block_state:{Name:\"minecraft:andesite\",Properties:{}},transformation:[1f,0f,0f,0f,0f,1f,0f,0f,0f,0f,1f,0f,0f,0f,0f,1f]},{id:\"minecraft:block_display\",block_state:{Name:\"minecraft:bamboo_block\",Properties:{axis:\"x\"}},transformation:[1f,0f,0f,-0.5625f,0f,1f,0f,1f,0f,0f,1f,0f,0f,0f,0f,1f]}]}"
+            );
+
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final Location original = player.getLocation();
+                final DisplayEntity entity = data.spawnInterpolated(original);
+
+                entity.newAnimation()
+                        .addFrame(new AnimationFrame(Math.PI * 2, Math.PI / 8) {
+                            @Override
+                            public void tick(@NotNull DisplayEntity entity, double theta) {
+                                final double y = Math.cos(theta) * 0.25;
+
+                                entity.teleport(entity.getLocation().add(0, y, 0));
+                            }
+                        })
+                        .addFrame(new AnimationFrame(Math.PI, Math.PI / 4) {
+                            @Override
+                            public void tick(@NotNull DisplayEntity entity, double theta) {
+                                final double x = Math.sin(theta) * 1.5;
+                                final double z = Math.cos(theta) * 1.5;
+
+                                entity.teleport(entity.getLocation().add(x, 0, z));
+                            }
+                        })
+                        .addFrame(AnimationFrame.builder()
+                                .threshold(3)
+                                .increment(Math.PI / 2)
+                                .tick((frame, slf, theta) -> {
+                                    slf.teleport(slf.getLocation().add(0, 1, 0));
+                                })
+                        ).addFrame(new AnimationFrame() {
+                            @Override
+                            public void tick(@NotNull DisplayEntity entity, double theta) {
+                                entity.teleport(original);
+                                assertTestPassed();
+                            }
+                        })
+                        .start();
+
+                return false;
             }
         });
 
