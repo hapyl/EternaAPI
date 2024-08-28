@@ -1,4 +1,4 @@
-package me.hapyl.eterna.module.util;
+package me.hapyl.eterna.module.util.collection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

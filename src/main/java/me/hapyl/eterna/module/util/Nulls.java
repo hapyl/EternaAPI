@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -16,9 +17,9 @@ public class Nulls {
      * @param action - Action to run.
      * @param <E>    - Type of object.
      */
-    public static <E> void runIfNotNull(@Nullable E obj, Action<E> action) {
+    public static <E> void runIfNotNull(@Nullable E obj, @Nonnull Consumer<E> action) {
         if (obj != null) {
-            action.use(obj);
+            action.accept(obj);
         }
     }
 

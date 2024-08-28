@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * Concurrent map that allows to get key by its value.
@@ -75,11 +76,11 @@ public class LinkedKeyValMap<K, V> extends ConcurrentHashMap<K, V> {
      * @param k      - The key.
      * @param action - The action.
      */
-    public void useValueAndRemove(@Nonnull K k, @Nonnull Action<V> action) {
+    public void useValueAndRemove(@Nonnull K k, @Nonnull Consumer<V> action) {
         final V v = get(k);
 
         if (v != null) {
-            action.use(v);
+            action.accept(v);
         }
 
         remove(k);
@@ -91,11 +92,11 @@ public class LinkedKeyValMap<K, V> extends ConcurrentHashMap<K, V> {
      * @param v      - The value.
      * @param action - The action.
      */
-    public void useKeyAndRemove(@Nonnull V v, @Nonnull Action<K> action) {
+    public void useKeyAndRemove(@Nonnull V v, @Nonnull Consumer<K> action) {
         final K k = getKey(v);
 
         if (k != null) {
-            action.use(k);
+            action.accept(k);
             remove(k);
         }
     }

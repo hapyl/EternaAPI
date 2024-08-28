@@ -45,7 +45,7 @@ import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
-import me.hapyl.eterna.module.util.Cache;
+import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;

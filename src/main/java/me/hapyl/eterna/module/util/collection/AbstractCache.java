@@ -1,6 +1,7 @@
-package me.hapyl.eterna.module.util;
+package me.hapyl.eterna.module.util.collection;
 
 import com.google.common.collect.Lists;
+import me.hapyl.eterna.module.util.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
