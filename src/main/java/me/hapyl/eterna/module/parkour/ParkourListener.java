@@ -1,8 +1,8 @@
 package me.hapyl.eterna.module.parkour;
 
 import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.builtin.InternalCooldown;
 import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.util.cd.InternalCooldownStorage;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
@@ -73,11 +73,11 @@ public class ParkourListener implements Listener {
             ev.setUseInteractedBlock(Event.Result.DENY);
             ev.setCancelled(true);
 
-            if (InternalCooldownStorage.PARKOUR_START.isOnCooldown(player)) {
+            if (InternalCooldown.PARKOUR_START.isOnCooldown(player)) {
                 return;
             }
 
-            InternalCooldownStorage.PARKOUR_START.start(player);
+            InternalCooldown.PARKOUR_START.start(player);
 
             // Start
             if (parkour.getStart().compare(clickedBlockLocation)) {
@@ -117,11 +117,11 @@ public class ParkourListener implements Listener {
                 ev.setCancelled(true);
             }
 
-            if (data == null || InternalCooldownStorage.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
+            if (data == null || InternalCooldown.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
                 return;
             }
 
-            InternalCooldownStorage.PARKOUR_CHECKPOINT.start(player);
+            InternalCooldown.PARKOUR_CHECKPOINT.start(player);
             final Position nextCheckpoint = data.getNextCheckpoint();
 
             if (nextCheckpoint != null) {

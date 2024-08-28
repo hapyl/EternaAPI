@@ -45,6 +45,7 @@ import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
+import me.hapyl.eterna.module.util.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
@@ -1570,6 +1571,51 @@ public final class EternaRuntimeTest {
 
                 info(player, immutableMap);
                 return true;
+            }
+        });
+
+        addTest(new EternaTest("cache") {
+
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                Cache<String> listCacheString = Cache.ofList(1_000);
+
+                listCacheString.add("hello");
+                listCacheString.add("world");
+                listCacheString.add("my");
+                listCacheString.add("name");
+                listCacheString.add("is");
+                listCacheString.add("EternaAPI");
+                listCacheString.add("lymme");
+                listCacheString.add("gynn");
+                listCacheString.add("fiyl");
+
+                final Cache<Object> setCacheInt = Cache.ofSet(1_000);
+
+                setCacheInt.add(1);
+                setCacheInt.add(1);
+                setCacheInt.add(1);
+                setCacheInt.add(1);
+
+                // check set
+                assertTrue(setCacheInt.size() == 1);
+
+                info(player, "setCacheInt=" + setCacheInt);
+
+                final String firstY = listCacheString.match(s -> s.contains("y"));
+                final List<String> allY = listCacheString.matchAll(s -> s.contains("y"));
+
+                info(player, "listCacheString=" + listCacheString);
+                info(player, "firsrY=" + firstY);
+                info(player, "allY=" + allY);
+
+                later(() -> {
+                    assertTrue(listCacheString.isEmpty());
+                    assertTrue(setCacheInt.isEmpty());
+                    assertTestPassed();
+                }, 21);
+
+                return false;
             }
         });
 
