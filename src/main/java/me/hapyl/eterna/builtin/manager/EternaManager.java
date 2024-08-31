@@ -2,8 +2,8 @@ package me.hapyl.eterna.builtin.manager;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
-import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,6 +18,11 @@ public class EternaManager<K, V> {
     EternaManager(@Nonnull EternaPlugin eterna) {
         this.eterna = eterna;
         this.managing = Maps.newHashMap();
+
+        // Register the listener if applicable
+        if (this instanceof Listener listener) {
+            Bukkit.getPluginManager().registerEvents(listener, eterna);
+        }
     }
 
     public void register(@Nonnull K k, @Nonnull V v) {

@@ -1,4 +1,4 @@
-package me.hapyl.eterna.registry;
+package me.hapyl.eterna.module.registry;
 
 import me.hapyl.eterna.module.util.Validate;
 
@@ -49,7 +49,7 @@ public class Key {
      * Gets the actual {@link String} of this {@link Key}.
      *
      * @return the string of this key.
-     * @deprecated This is considered as a 'lazy' was of getting the key, prefer {@link #getKey()}.
+     * @deprecated This is considered as a 'lazy' way of getting the key, prefer {@link #getKey()}.
      */
     @Override
     @Deprecated

@@ -2,6 +2,7 @@ package me.hapyl.eterna;
 
 import me.hapyl.eterna.builtin.command.EternaCommand;
 import me.hapyl.eterna.builtin.command.NoteBlockStudioCommand;
+import me.hapyl.eterna.builtin.command.SelectDialogOptionCommand;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.command.CommandProcessor;
 import me.hapyl.eterna.module.hologram.HologramListener;
@@ -92,6 +93,7 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         final CommandProcessor commandProcessor = new CommandProcessor(this);
         commandProcessor.registerCommand(new EternaCommand("eterna"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
+        commandProcessor.registerCommand(new SelectDialogOptionCommand("selectdialogoption"));
 
         // Create songs folder
         try {

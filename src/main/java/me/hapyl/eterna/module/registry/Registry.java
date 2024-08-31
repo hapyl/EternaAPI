@@ -1,6 +1,4 @@
-package me.hapyl.eterna.registry;
-
-import com.google.common.collect.Lists;
+package me.hapyl.eterna.module.registry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

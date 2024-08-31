@@ -1,4 +1,4 @@
-package me.hapyl.eterna.registry;
+package me.hapyl.eterna.module.registry;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.util.Validate;

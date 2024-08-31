@@ -1,4 +1,4 @@
-package me.hapyl.eterna.registry;
+package me.hapyl.eterna.module.registry;
 
 import java.util.function.Function;
 

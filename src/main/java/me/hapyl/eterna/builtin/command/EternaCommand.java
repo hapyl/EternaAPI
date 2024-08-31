@@ -6,7 +6,6 @@ import me.hapyl.eterna.builtin.updater.UpdateResult;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.command.SimpleAdminCommand;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import test.EternaRuntimeTest;
@@ -29,7 +28,7 @@ public final class EternaCommand extends SimpleAdminCommand {
         // eterna (quest) --player_only
         // eterna reload (config, addons)
         // eterna test (testName)
-        // eterna testall
+        // eterna testall todo
 
         if (args.length == 0) {
             sendInvalidUsageMessage(sender);

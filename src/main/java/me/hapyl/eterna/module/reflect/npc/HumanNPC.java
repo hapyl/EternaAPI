@@ -30,6 +30,7 @@ import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.npc.entry.NPCEntry;
 import me.hapyl.eterna.module.reflect.npc.entry.StringEntry;
 import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.util.Placeholder;
 import me.hapyl.eterna.module.util.TeamHelper;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
@@ -325,15 +326,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         this.chatPrefix = chatPrefix;
     }
 
-    public void sendNpcMessage(Player player, String msg) {
-        // Placeholders
-        if (msg.contains("{") && msg.contains("}")) {
-            msg = placeHold(msg, player);
-        }
+    public void sendNpcMessage(@Nonnull Player player, @Nonnull String message) {
+        message = Placeholder.format(message, player, this);
 
-        final String finalMessage = CHAT_FORMAT.replace("{NAME}", this.getPrefix()).replace("{MESSAGE}", msg);
+        final String finalMessage = CHAT_FORMAT.replace("{NAME}", this.getPrefix()).replace("{MESSAGE}", message);
         Chat.sendMessage(player, finalMessage);
-
     }
 
     @Override
@@ -350,7 +347,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public HumanNPC addDialogLine(String string) {
-        return this.addDialogLine(string, Numbers.clamp(string.length(), 20, 100));
+        return this.addDialogLine(string, Math.clamp(string.length(), 20, 100));
     }
 
     @Override
@@ -1128,19 +1125,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     private String getPrefix() {
         return this.chatPrefix;
-    }
-
-    private String placeHold(String entry, Player player) {
-        final String[] splits = entry.split(" ");
-        final StringBuilder builder = new StringBuilder();
-        for (String split : splits) {
-            split = split.replace(Placeholders.PLAYER.get(), player.getName())
-                    .replace(Placeholders.NAME.get(), this.getName())
-                    .replace(Placeholders.LOCATION.get(), BukkitUtils.locationToString(this.getLocation()));
-            builder.append(split);
-            builder.append(" ");
-        }
-        return builder.toString().trim();
     }
 
     private void move0(double x, double y, double z) {

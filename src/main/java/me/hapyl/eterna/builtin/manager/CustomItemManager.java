@@ -2,8 +2,7 @@ package me.hapyl.eterna.builtin.manager;
 
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.inventory.item.CustomItem;
-import me.hapyl.eterna.registry.Key;
-import me.hapyl.eterna.registry.Keyed;
+import me.hapyl.eterna.module.registry.Key;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
