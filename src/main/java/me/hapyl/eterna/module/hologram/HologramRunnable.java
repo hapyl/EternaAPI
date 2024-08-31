@@ -9,7 +9,7 @@ public class HologramRunnable implements Runnable {
     @Override
     public void run() {
         // Check for visibility
-        Eterna.getRegistry().hologramRegistry.getHolograms().forEach(hologram -> {
+        Eterna.getManagers().hologram.getHolograms().forEach(hologram -> {
             for (Player player : hologram.getShowingTo()) {
                 LimitedVisibility.check(player, hologram);
             }

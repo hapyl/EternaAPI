@@ -24,7 +24,7 @@ public class TakeDamageFrom extends QuestObjective {
 
         if (objects.length == 2) {
             if (objects[1] instanceof LivingEntity && ((LivingEntity) objects[1]).getType() == this.type) {
-                return Validate.getDouble(objects[0]);
+                return 0;
             }
         }
         return -1.0d;

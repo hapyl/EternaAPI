@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 /**
  * Allows displaying particles.
  * <br>
- * Mainly used for "special" particles, such as {@link Particle#BLOCK_DUST} or {@link Particle#SPELL_MOB}.
+ * Mainly used for "special" particles, such as {@link Particle#DUST} or {@link Particle#ENTITY_EFFECT}.
  *
- * @see #normal(Particle)
+ * @see #particle(Particle)
  * @see #redstoneDust(Color, int)
  * @see #blockBreak(Material)
  * @see #blockDust(Material)
@@ -244,25 +244,23 @@ public class ParticleBuilder {
     /**
      * Creates a {@link VibrationParticleBuilder}.
      *
-     * @param from        - Origin.
      * @param to          - Destination.
      * @param arrivalTime - Arrival time in ticks.
      */
     @Nonnull
-    public static ParticleBuilder vibration(@Nonnull Location from, @Nonnull Location to, int arrivalTime) {
-        return VibrationParticleBuilder.of(from, to, arrivalTime);
+    public static ParticleBuilder vibration(@Nonnull Location to, int arrivalTime) {
+        return VibrationParticleBuilder.of(to, arrivalTime);
     }
 
     /**
      * Creates a {@link VibrationParticleBuilder}.
      *
-     * @param from        - Origin.
      * @param to          - Destination.
      * @param arrivalTime - Arrival time in ticks.
      */
     @Nonnull
-    public static ParticleBuilder vibration(@Nonnull Location from, @Nonnull Entity to, int arrivalTime) {
-        return VibrationParticleBuilder.of(from, to, arrivalTime);
+    public static ParticleBuilder vibration(@Nonnull Entity to, int arrivalTime) {
+        return VibrationParticleBuilder.of(to, arrivalTime);
     }
 
     /**

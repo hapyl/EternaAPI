@@ -2,6 +2,9 @@ package me.hapyl.eterna.module.util;
 
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Used to check an object type in {@link Validate#getType(Object)}
  */
@@ -50,11 +53,11 @@ public enum ObjectType {
 
     private final Class<?>[] samples;
 
-    ObjectType(Class<?>... samples) {
+    ObjectType(@Nonnull Class<?>... samples) {
         this.samples = samples;
     }
 
-    public boolean testSample(Class<?> other) {
+    public boolean testSample(@Nullable Class<?> other) {
         if (other == null && this == NULL) {
             return true;
         }
@@ -66,15 +69,18 @@ public enum ObjectType {
         return false;
     }
 
-    public static ObjectType testSample(Object obj) {
+    @Nonnull
+    public static ObjectType testSamples(@Nullable Object obj) {
         if (obj == null) {
             return NULL;
         }
+
         for (final ObjectType value : values()) {
             if (value.testSample(obj.getClass())) {
                 return value;
             }
         }
+
         return NULL;
     }
 

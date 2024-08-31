@@ -5,8 +5,8 @@ import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.util.Ticking;
 import me.hapyl.eterna.module.util.Runnables;
+import me.hapyl.eterna.module.util.Ticking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -69,7 +69,7 @@ public class Glowing implements Ticking, GlowingListener {
         this.status = false;
         this.setColor(color);
 
-        getManager().addGlowing(this);
+        Eterna.getManagers().glowing.register(this);
     }
 
     @Override
@@ -224,19 +224,6 @@ public class Glowing implements Ticking, GlowingListener {
         forceStop(true);
     }
 
-    private void forceStop(boolean callOnStop) {
-        status = false; // no check for status because it's force
-
-        getManager().removeGlowing(this);
-
-        sendPacket(false);
-        createTeam(false);
-
-        if (callOnStop) {
-            this.onGlowingStop();
-        }
-    }
-
     /**
      * Calls a force glowing packet update.
      */
@@ -311,6 +298,19 @@ public class Glowing implements Ticking, GlowingListener {
         Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(Reflect.getNetTeam(team), false));
     }
 
+    private void forceStop(boolean callOnStop) {
+        status = false; // no check for status because it's force
+
+        Eterna.getManagers().glowing.unregister(this);
+
+        sendPacket(false);
+        createTeam(false);
+
+        if (callOnStop) {
+            this.onGlowingStop();
+        }
+    }
+
     private void updateTeam() {
         if (realTeam == null) {
             return;
@@ -366,6 +366,25 @@ public class Glowing implements Ticking, GlowingListener {
 
     private String getEntityName() {
         return this.entity instanceof Player ? this.entity.getName() : this.entity.getUniqueId().toString();
+    }
+
+    /**
+     * Stops the glowing for the given player of the given entity.
+     *
+     * @param player - Player.
+     * @param entity - Entity.
+     */
+    public static void stopGlowing(@Nonnull Player player, @Nonnull Entity entity) {
+        Eterna.getManagers().glowing.stopGlowing(player, entity);
+    }
+
+    /**
+     * Stops all the glowing for the given entity.
+     *
+     * @param entity - Entity.
+     */
+    public static void stopGlowing(@Nonnull Entity entity) {
+        Eterna.getManagers().glowing.stopGlowing(entity);
     }
 
     /**
@@ -433,35 +452,6 @@ public class Glowing implements Ticking, GlowingListener {
         for (Player viewer : viewers) {
             glow(viewer, entity, color, Integer.MAX_VALUE);
         }
-    }
-
-    /**
-     * Stops the glowing for the given player of the given entity.
-     *
-     * @param player - Player.
-     * @param entity - Entity.
-     */
-    public static void stopGlowing(@Nonnull Player player, @Nonnull Entity entity) {
-        getManager().stopGlowing(player, entity);
-    }
-
-    /**
-     * Stops all the glowing for the given entity.
-     *
-     * @param entity - Entity.
-     */
-    public static void stopGlowing(@Nonnull Entity entity) {
-        getManager().stopGlowing(entity);
-    }
-
-    /**
-     * Gets the {@link GlowingRegistry}.
-     *
-     * @return the glowing manager.
-     */
-    @Nonnull
-    public static GlowingRegistry getManager() {
-        return Eterna.getRegistry().glowingRegistry;
     }
 
     @Nonnull

@@ -4,19 +4,18 @@ import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
 /**
  * Creates a rope between two locations.
  */
-public class Rope implements IdHolder, Spawnable<Rope> {
+public class Rope implements Spawnable<Rope> {
 
     private final Location start;
     private final Location end;
     private final LivingEntity[] entities;
-
-    private int id;
 
     public Rope(Location start, Location end) {
         Validate.notNull(start);
@@ -26,14 +25,13 @@ public class Rope implements IdHolder, Spawnable<Rope> {
         this.start = start;
         this.end = end;
         this.entities = new LivingEntity[2];
-        this.id = -1;
     }
 
     /**
      * Creates the rope if not already created.
      */
     @Override
-    public Rope spawn() {
+    public @NotNull Rope spawn() {
         if (isSpawned()) {
             return this;
         }
@@ -43,7 +41,7 @@ public class Rope implements IdHolder, Spawnable<Rope> {
 
         entities[0].setLeashHolder(entities[1]);
 
-        Eterna.getRegistry().ropeRegistry.registerValue(this);
+        Eterna.getManagers().rope.register(this);
 
         return this;
     }
@@ -57,8 +55,6 @@ public class Rope implements IdHolder, Spawnable<Rope> {
             entity.setLeashHolder(null);
             entity.remove();
         }
-
-        id = -2;
     }
 
     @Override
@@ -67,16 +63,6 @@ public class Rope implements IdHolder, Spawnable<Rope> {
         final LivingEntity otherEntity = entities[1];
 
         return (entity != null && otherEntity != null) && (!entity.isDead() && !otherEntity.isDead());
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(int id) {
-        this.id = id;
     }
 
     @Nonnull

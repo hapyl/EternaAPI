@@ -24,7 +24,7 @@ public class DealDamageTo extends QuestObjective {
     @Override
     public double testQuestCompletion(Object... objects) {
         if (objects.length == 2) {
-            final double damage = Validate.getDouble(objects[0]);
+            final double damage = 0;
             if (!(objects[1] instanceof Entity)) {
                 return -1.0d;
             }

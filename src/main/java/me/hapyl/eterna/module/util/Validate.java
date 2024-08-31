@@ -1,9 +1,7 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.annotate.Range;
-import me.hapyl.eterna.module.chat.Chat;
 import org.bukkit.Material;
-import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -11,514 +9,186 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Validator or checker class.
+ * Validator utility class.
+ * <br>
+ * This utility class throws error if the validation is failed (unless otherwise stated).
  */
-public class Validate {
+public final class Validate {
 
-    public static final int DEFAULT_INT = 0;
-    public static final long DEFAULT_LONG = 0L;
-    public static final double DEFAULT_DOUBLE = 0.0d;
-    public static final float DEFAULT_FLOAT = 0.0f;
-    public static final short DEFAULT_SHORT = (short) 0;
-    public static final byte DEFAULT_BYTE = (byte) 0;
-    public static final String DEFAULT_STRING = "";
-
-    /**
-     * Returns integer value of the object or {@link Validate#DEFAULT_INT}.
-     *
-     * @param obj - Object to convert.
-     * @return integer value of the object or {@link Validate#DEFAULT_INT}.
-     */
-    public static int getInt(@Nullable Object obj) {
-        if (obj == null) {
-            return DEFAULT_INT;
-        }
-        else if (obj instanceof Number number) {
-            return number.intValue();
-        }
-        else {
-            try {
-                return Integer.parseInt(getString(obj));
-            } catch (NumberFormatException ignored0) {
-                return DEFAULT_INT;
-            }
-        }
+    private Validate() {
     }
 
     /**
-     * Returns true if object is an integer, false otherwise.
-     *
-     * @param obj - Object to check.
-     * @return true if object is an integer, false otherwise.
-     */
-    public static boolean isInt(@Nullable Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        else if (obj instanceof Integer) {
-            return true;
-        }
-        else {
-            try {
-                Integer.parseInt(getString(obj));
-            } catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns long value of the object or {@link Validate#DEFAULT_LONG}.
-     *
-     * @param obj - Object to convert.
-     * @return long value of the object or {@link Validate#DEFAULT_LONG}.
-     */
-    public static long getLong(@Nullable Object obj) {
-        if (obj == null) {
-            return DEFAULT_LONG;
-        }
-        else if (obj instanceof Number number) {
-            return number.longValue();
-        }
-        else {
-            try {
-                return Long.parseLong(getString(obj));
-            } catch (NumberFormatException ignored0) {
-                return DEFAULT_LONG;
-            }
-        }
-    }
-
-    /**
-     * Returns true if object is long, false otherwise.
-     *
-     * @param obj - Object to check.
-     * @return true if object is long, false otherwise.
-     */
-    public static boolean isLong(@Nullable Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        else if (obj instanceof Long) {
-            return true;
-        }
-        else {
-            try {
-                Long.parseLong(getString(obj));
-            } catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns double value of the object or {@link Validate#DEFAULT_DOUBLE}.
-     *
-     * @param obj - Object to convert.
-     * @return double value of the object or {@link Validate#DEFAULT_DOUBLE}.
-     */
-    public static double getDouble(@Nullable Object obj) {
-        if (obj == null) {
-            return DEFAULT_DOUBLE;
-        }
-        else if (obj instanceof Number number) {
-            return number.doubleValue();
-        }
-        else {
-            try {
-                return Double.parseDouble(getString(obj));
-            } catch (NumberFormatException ignored0) {
-                return DEFAULT_DOUBLE;
-            }
-        }
-    }
-
-    /**
-     * Returns true if object is double, false otherwise.
-     *
-     * @param obj - Object to check.
-     * @return true if object is double, false otherwise.
-     */
-    public static boolean isDouble(@Nullable Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        else if (obj instanceof Double) {
-            return true;
-        }
-        else {
-            try {
-                Double.parseDouble(getString(obj));
-            } catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns short value of the object or {@link Validate#DEFAULT_SHORT}.
-     *
-     * @param obj - Object to convert.
-     * @return short value of the object or {@link Validate#DEFAULT_SHORT}.
-     */
-    public static short getShort(@Nullable Object obj) {
-        if (obj == null) {
-            return DEFAULT_SHORT;
-        }
-        if (obj instanceof Number number) {
-            return number.shortValue();
-        }
-        else {
-            try {
-                return Short.parseShort(getString(obj));
-            } catch (NumberFormatException ignored0) {
-                return DEFAULT_SHORT;
-            }
-        }
-    }
-
-    /**
-     * Returns true if object is short, false otherwise.
-     *
-     * @param obj - Object to check.
-     * @return true if object is short, false otherwise.
-     */
-    public static boolean isShort(@Nullable Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        else if (obj instanceof Short) {
-            return true;
-        }
-        else {
-            try {
-                Short.parseShort(getString(obj));
-            } catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns byte value of the object or {@link Validate#DEFAULT_BYTE}.
-     *
-     * @param obj - Object to convert.
-     * @return byte of the object or {@link Validate#DEFAULT_BYTE}.
-     */
-    public static byte getByte(@Nullable Object obj) {
-        if (obj == null) {
-            return DEFAULT_BYTE;
-        }
-        else if (obj instanceof Number number) {
-            return number.byteValue();
-        }
-        else {
-            try {
-                return Byte.parseByte(getString(obj));
-            } catch (NumberFormatException ignored0) {
-                return DEFAULT_BYTE;
-            }
-        }
-    }
-
-    /**
-     * Returns true if object is byte, false otherwise.
-     *
-     * @param obj - Object to check.
-     * @return true if object is byte, false otherwise.
-     */
-    public static boolean isByte(@Nullable Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        else if (obj instanceof Byte) {
-            return true;
-        }
-        else {
-            try {
-                Byte.parseByte(getString(obj));
-            } catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns float value of the object or {@link Validate#DEFAULT_FLOAT}.
-     *
-     * @param obj - Object to convert.
-     * @return float value of the object or {@link Validate#DEFAULT_FLOAT}.
-     */
-    public static float getFloat(@Nullable Object obj) {
-        if (obj == null) {
-            return DEFAULT_FLOAT;
-        }
-        else if (obj instanceof Number number) {
-            return number.floatValue();
-        }
-        else {
-            try {
-                return Float.parseFloat(getString(obj));
-            } catch (NumberFormatException ignored0) {
-                return DEFAULT_FLOAT;
-            }
-        }
-    }
-
-    /**
-     * Returns true if object is float, false otherwise.
-     *
-     * @param obj - Object to check.
-     * @return true if object is float, false otherwise.
-     */
-    public static boolean isFloat(@Nullable Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        else if (obj instanceof Float) {
-            return true;
-        }
-        else {
-            try {
-                Float.parseFloat(getString(obj));
-            } catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns string value of the object or {@link Validate#DEFAULT_STRING} if object is null.
-     *
-     * @param obj - Object to check.
-     * @return string value of the object or {@link Validate#DEFAULT_STRING} if object is null.
+     * Gets a {@link String} representation of the given {@link Object}.
+     * <br>
+     * This method is different to {@link String#valueOf(Object)} since it returns an empty string, rather than {@code "null"}
      */
     @Nonnull
     public static String getString(@Nullable Object obj) {
-        if (obj == null) {
-            return DEFAULT_STRING;
-        }
-        else if (obj instanceof String) {
-            return obj.toString();
-        }
-        else {
-            return String.valueOf(obj);
-        }
+        return obj != null ? String.valueOf(obj) : "";
     }
 
     /**
-     * Throws NullPointerException if ItemStack or Material is null.
+     * Validates that the given {@link ItemStack} is not null.
+     * <br>
+     * Null {@link ItemStack} causes server crashes, or at least they used to.
      *
-     * @param stack - ItemStack.
-     * @throws NullPointerException if ItemStack or Material is null.
+     * @param itemStack - {@link ItemStack}.
      */
-    public static void notNullItemStack(@Nullable ItemStack stack) {
-        notNull(stack, "Null ItemStack will cause TRAP server crashes, use Material.AIR!");
-        notNull(stack.getType(), "Null ItemStack will cause TRAP server crashes, use Material.AIR!");
+    public static void notNullItemStack(@Nullable ItemStack itemStack) {
+        notNull(itemStack, "Null ItemStack will cause TRAP server crashes, use Material.AIR!");
+        notNull(itemStack.getType(), "Null ItemStack will cause TRAP server crashes, use Material.AIR!");
     }
 
     /**
-     * Returns ItemStack(AIR) if stack is null, stack otherwise.
+     * Returns either the given {@link ItemStack} if it's not null, an empty {@link ItemStack} otherwise.
      *
-     * @param stack - ItemStack.
-     * @return ItemStack(AIR) if stack is null, stack otherwise.
+     * @param itemStack - Item stack to check.
+     * @return either the give {@link ItemStack} if it's not null, an empty {@link ItemStack} otherwise.
      */
-    public static ItemStack requireNotNull(@Nullable ItemStack stack) {
-        if (stack == null) {
-            return new ItemStack(Material.AIR);
-        }
-        return stack;
+    @Nonnull
+    public static ItemStack requireNotNull(@Nullable ItemStack itemStack) {
+        return itemStack != null ? itemStack : new ItemStack(Material.AIR);
     }
 
     /**
-     * Returns true if an object is null, false otherwise.
+     * Returns true if the given {@link Object} is null, false otherwise.
      *
-     * @param obj - Object to check.
-     * @return true if an object is null, false otherwise.
+     * @param object - Object to check.
+     * @return true if the given {@link Object} is null, false otherwise.
      */
-    public static boolean isNull(@Nullable Object obj) {
-        return obj == null;
+    public static boolean isNull(@Nullable Object object) {
+        return object == null;
     }
 
     /**
-     * Validates obj to not be null.
+     * Validates that the given {@link Object} is not null, throws {@link NullPointerException} otherwise.
      *
-     * @param obj - Object to check.
-     * @param abc - Message of the exception.
-     * @throws NullPointerException if obj is null.
+     * @param object  - Object to check.
+     * @param message - {@link NullPointerException} message.
      */
-    public static void notNull(@Nullable Object obj, @Nonnull String abc) {
-        if (obj == null) {
-            throw new NullPointerException(abc);
+    public static void notNull(@Nullable Object object, @Nonnull String message) {
+        if (object == null) {
+            throw new NullPointerException(message);
         }
     }
 
     /**
-     * Validates obj to not be null.
+     * Validates that the given {@link Object} is not null, throws {@link NullPointerException} otherwise.
      *
-     * @param obj - Object to check.
-     * @throws NullPointerException if obj is null.
+     * @param object - Object to check.
      */
-    public static void notNull(@Nullable Object obj) {
-        notNull(obj, "object must not be null");
+    public static void notNull(@Nullable Object object) {
+        notNull(object, "Object must not be null!");
     }
 
     /**
-     * Validates obj to not be null.
+     * Returns either the given {@link Object} if it's not null, {@code def} otherwise.
      *
-     * @param obj    - Object to check.
-     * @param sender - Receiver of the message.
-     * @param msg    - Message to send to receiver.
+     * @param value - Value to check.
+     * @param def   - Default value.
+     * @return either the given {@link Object} is it's not null, {@code def} otherwise.
      */
-    public static void notNull(Object obj, CommandSender sender, String msg) {
-        if (obj == null) {
-            Chat.sendMessage(sender, "&4ERROR. &c" + msg);
-        }
+    @Nonnull
+    public static <T> T nonNull(@Nullable T value, @Nonnull T def) {
+        return value != null ? value : def;
     }
 
     /**
-     * Returns default parameter if value is null.
-     *
-     * @param value  - Object to check.
-     * @param ifNull - Default value.
-     * @return default parameter if value is null.
-     */
-    public static <T> T ifNull(T value, T ifNull) {
-        return value == null ? ifNull : value;
-    }
-
-    /**
-     * Throws IllegalArgumentException if value is null, return value otherwise.
-     *
-     * @param value - Value.
-     * @return value is it is not null.
-     * @throws IllegalArgumentException if the value is null, returns value otherwise.
-     */
-    public static <T> T requireNotNull(T value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Argument must not be null!");
-        }
-        return value;
-    }
-
-    /**
-     * Returns default parameter if value is null.
-     *
-     * @param value  - Object to check.
-     * @param ifNull - Default value.
-     * @return default parameter if value is null.
-     */
-    public static <T> T nonNull(T value, T ifNull) {
-        if (value == null) {
-            return ifNull;
-        }
-        return value;
-    }
-
-    /**
-     * Validate that expression if true.
+     * Validates that the given boolean expression is {@code true},
+     * throws {@link IllegalArgumentException} with the given message otherwise.
      *
      * @param expression - Expression to check.
-     * @param message    - Message of the exception if expression is false.
-     * @throws IllegalArgumentException if expression is false.
+     * @param message    - {@link IllegalArgumentException} message.
      */
-    public static void isTrue(boolean expression, String message) {
+    public static void isTrue(boolean expression, @Nonnull String message) {
         if (!expression) {
             throw new IllegalArgumentException(message);
         }
     }
 
     /**
-     * Validate that expression if true.
+     * Validates that the given boolean expression is {@code true},
+     * throws {@link IllegalArgumentException} with the given message otherwise.
      *
      * @param expression - Expression to check.
-     * @throws IllegalArgumentException if expression is false.
      */
     public static void isTrue(boolean expression) {
-        isTrue(expression, expression + " must be true");
+        isTrue(expression, "The expression must be true!");
     }
 
     /**
-     * Validates that is at least one of the expressions is true.
-     *
-     * @param booleans - Array of expressions.
-     * @return true if at least one of the expressions is true.
-     */
-    public static boolean eitherOf(boolean... booleans) {
-        for (final boolean aBoolean : booleans) {
-            if (aBoolean) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Validate that all expressions are false.
-     *
-     * @param booleans - Array of expressions.
-     * @return true if all expressions are false.
-     */
-    public static boolean neitherTrue(boolean... booleans) {
-        for (final boolean aBoolean : booleans) {
-            if (aBoolean) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Validate that expression is false.
+     * Validates that the given boolean expression is {@code false},
+     * throws  {@link IllegalArgumentException} with the given message otherwise.
      *
      * @param expression - Expression to check.
-     * @param message    - Message of the exception if expression is true.
-     * @throws IllegalArgumentException if expression is true.
+     * @param message    - {@link IllegalArgumentException} message.
      */
-    public static void isFalse(boolean expression, String message) {
+    public static void isFalse(boolean expression, @Nonnull String message) {
         if (expression) {
             throw new IllegalArgumentException(message);
         }
     }
 
     /**
-     * Validates that string contains at least one of the objects.
+     * Validates that the given boolean expression is {@code false},
+     * throws  {@link IllegalArgumentException} with the given message otherwise.
      *
-     * @param str     - String.
-     * @param objects - Objects.
-     * @return true is string contains at least one of the objects, false otherwise.
+     * @param expression - Expression to check.
      */
-    public static boolean stringContainsOneOf(String str, Object... objects) {
-        if (objects.length == 0) {
-            return false;
-        }
-        for (final Object object : objects) {
-            if (str.contains(String.valueOf(object))) {
-                return true;
-            }
-        }
-        return true;
+    public static void isFalse(boolean expression) {
+        isFalse(expression, "The expression must be false!");
     }
 
     /**
-     * Validate that string contains all the objects.
+     * Returns one of two values based on the evaluation of the given boolean expression.
      *
-     * @param str     - String.
-     * @param objects - Objects.
-     * @return true if string contains all the objects, false otherwise.
+     * @param expression - The boolean expression to evaluate.
+     * @param ifTrue     - The value to return if the expression is {@code true}.
+     * @param ifFalse    - The value to return if the expression is {@code false}.
+     * @return {@code ifTrue} if the expression is {@code true}, otherwise {@code ifFalse}.
      */
-    public static boolean stringContainsAll(String str, Object... objects) {
-        if (objects.length == 0) {
-            return false;
+    public static <T> T ifTrue(boolean expression, @Nonnull T ifTrue, @Nonnull T ifFalse) {
+        return expression ? ifTrue : ifFalse;
+    }
+
+
+    /**
+     * Returns one of two values based on the negation of the given boolean expression.
+     *
+     * @param expression - The boolean expression to evaluate.
+     * @param ifFalse    - The value to return if the expression is {@code false}.
+     * @param ifTrue     - The value to return if the expression is {@code true}.
+     * @return {@code ifFalse} if the expression is {@code false}, otherwise {@code ifTrue}.
+     */
+    public static <T> T ifFalse(boolean expression, @Nonnull T ifFalse, @Nonnull T ifTrue) {
+        return !expression ? ifFalse : ifTrue;
+    }
+
+    /**
+     * Returns true if at least one of the given booleans if {@code true}, {@code false} otherwise.
+     *
+     * @param booleans - Booleans to check.
+     * @return true if at least one of the given booleans if {@code true}, {@code false} otherwise.
+     */
+    public static boolean eitherOf(@Nonnull boolean... booleans) {
+        for (final boolean aBoolean : booleans) {
+            if (aBoolean) {
+                return true;
+            }
         }
-        for (final Object object : objects) {
-            if (!str.contains(String.valueOf(object))) {
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if all the given booleans are {@code false}, {@code false} otherwise.
+     *
+     * @param booleans - Booleans to check.
+     * @return {@code true} if all the given booleans are {@code false}, {@code false} otherwise.
+     */
+    public static boolean neitherTrue(@Nonnull boolean... booleans) {
+        for (final boolean aBoolean : booleans) {
+            if (aBoolean) {
                 return false;
             }
         }
@@ -526,170 +196,124 @@ public class Validate {
     }
 
     /**
-     * Validates that expression is false.
+     * Returns true if the given {@link String} contains one of the given {@link Object}.
+     * <br>
+     * The objects are converted to a string using {@link String#valueOf(Object)} before comparing it.
      *
-     * @param expression - Expression to check.
+     * @param string  - String to check.
+     * @param objects - Objects to check.
+     * @return true if the given {@link String} contains one of the given {@link Object}.
      */
-    public static void isFalse(boolean expression) {
-        isFalse(expression, expression + " must be false");
-    }
-
-    /**
-     * Returns either of values based on expression.
-     *
-     * @param expression - Expressions to check.
-     * @param ifTrue     - Value to return if expression is true.
-     * @param ifFalse    - Value to return if expression is false.
-     * @return either of values based on expression.
-     */
-    public static <T> T ifTrue(boolean expression, T ifTrue, T ifFalse) {
-        return expression ? ifTrue : ifFalse;
-    }
-
-    /**
-     * Returns either of values based on expression.
-     *
-     * @param expression - Expressions to check.
-     * @param ifFalse    - Value to return if expression is false.
-     * @param ifTrue     - Value to return if expression is true.
-     * @return either of values based on expression.
-     */
-    public static <T> T ifFalse(boolean expression, T ifFalse, T ifTrue) {
-        return !expression ? ifFalse : ifTrue;
-    }
-
-    /**
-     * Returns enum if exists, null otherwise.
-     *
-     * @param enumClass - Class of the enum.
-     * @param name      - Name of the enum.
-     * @return enum if exists, null otherwise.
-     */
-    @Nullable
-    public static <T extends Enum<T>> T getEnumValue(Class<T> enumClass, Object name) {
-        return getEnumValue(enumClass, name, null);
-    }
-
-    /**
-     * Returns enum if exists, def otherwise.
-     *
-     * @param enumClass - Class of the enum.
-     * @param name      - Name of the enum.
-     * @param def       - Default value, if enum does not exist.
-     * @return enum if exists, def otherwise.
-     */
-    public static <T extends Enum<T>> T getEnumValue(Class<T> enumClass, Object name, @Nullable T def) {
-        notNull(enumClass);
-        notNull(name);
-        try {
-            return Enum.valueOf(enumClass, String.valueOf(name).toUpperCase());
-        } catch (IllegalArgumentException ignored0) {
-            return def;
+    public static boolean stringContainsOneOf(@Nonnull String string, @Nonnull Object... objects) {
+        if (objects.length == 0) {
+            return false;
         }
+        for (final Object object : objects) {
+            if (string.contains(String.valueOf(object))) {
+                return true;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns {@link ObjectType} of the object.
+     * Returns true if the given {@link String} contains all the given {@link Object}.
+     * <br>
+     * The objects are converted to a string using {@link String#valueOf(Object)} before comparing it.
      *
-     * @param obj - Object.
-     * @return {@link ObjectType} of the object.
+     * @param string  - String to check.
+     * @param objects - Objects to check.
+     * @return true if the given {@link String} contains all the given {@link Object}.
      */
-    public static ObjectType getType(Object obj) {
-        return ObjectType.testSample(obj);
+    public static boolean stringContainsAll(@Nonnull String string, @Nonnull Object... objects) {
+        if (objects.length == 0) {
+            return false;
+        }
+        for (final Object object : objects) {
+            if (!string.contains(String.valueOf(object))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns ItemStack name if exists, {@link Validate#DEFAULT_STRING} otherwise.
+     * Gets the {@link ObjectType} of the given {@link Object}.
      *
-     * @param stack - ItemStack.
-     * @return ItemStack name if exists, {@link Validate#DEFAULT_STRING} otherwise.
+     * @param object - Object to get the type of.
+     * @return the {@link ObjectType} of the given {@link Object}.
      */
     @Nonnull
-    public static String getItemName(ItemStack stack) {
-        if (stack.getItemMeta() == null) {
-            return DEFAULT_STRING;
+    public static ObjectType getType(@Nullable Object object) {
+        return ObjectType.testSamples(object);
+    }
+
+    /**
+     * Gets the given {@link ItemStack} display name, or an empty string is it doesn't have a name.
+     *
+     * @param itemStack - {@link ItemStack} to get the display name for.
+     * @return the given {@link ItemStack} display name, or an empty string is it doesn't have a name.
+     */
+    @Nonnull
+    public static String getItemName(@Nonnull ItemStack itemStack) {
+        if (itemStack.getItemMeta() == null) {
+            return "";
         }
-        final ItemMeta meta = stack.getItemMeta();
+
+        final ItemMeta meta = itemStack.getItemMeta();
+
         if (!meta.hasDisplayName()) {
-            return DEFAULT_STRING;
+            return "";
         }
+
         return meta.getDisplayName();
     }
 
     /**
-     * Returns true if ItemStack has custom name, false otherwise.
+     * Returns {@code true} if the given {@link ItemStack} has a display name, {@code false} otherwise.
      *
-     * @param stack - ItemStack.
-     * @return true if ItemStack has custom name, false otherwise.
+     * @param itemStack - {@link ItemStack} to check.
+     * @return {@code true} if the given {@link ItemStack} has a display name, {@code false} otherwise.
      */
-    public static boolean hasItemName(org.bukkit.inventory.ItemStack stack) {
-        return !getItemName(stack).equals(DEFAULT_STRING);
+    public static boolean hasItemName(@Nonnull ItemStack itemStack) {
+        return !getItemName(itemStack).isEmpty();
     }
 
     /**
-     * Validates that array has minimum length.
+     * Checks that the given array length matches the given length.
      *
-     * @param array  - Array.
-     * @param length - Minimum length of the array.
-     * @throws NullPointerException           if array is null.
-     * @throws ArrayIndexOutOfBoundsException if array length < length.
+     * @param array  - Array to check.
+     * @param length - Length.
      */
-    public static void checkLength(Object[] array, int length) {
-        checkLength(array, length, array == null ? 0 : array.length);
+    public static void checkLength(@Nonnull Object[] array, int length) {
+        isTrue(array.length == length, "Array length must be %s, not %s".formatted(length, array.length));
     }
 
     /**
-     * Validates that array length is between provided arguments.
+     * Checks that the given array length is between min (exclusive) and max (exclusive).
      *
-     * @param array - Array.
-     * @param min   - Minimum length of the array.
-     * @param max   - Maximum length of the array.
-     * @throws NullPointerException           if array is null.
-     * @throws ArrayIndexOutOfBoundsException if array length < min.
-     * @throws ArrayIndexOutOfBoundsException if array length > max.
+     * @param array - Array to check.
+     * @param min   - Minimum length. (exclusive)
+     * @param max   - Maximum length. (exclusive)
      */
-    public static void checkLength(Object[] array, int min, int max) {
-        notNull(array, "array cannot be null");
+    public static void checkLength(@Nonnull Object[] array, int min, int max) {
+        notNull(array, "Array cannot be null!");
         isTrue(array.length < min, "array.length < %s!".formatted(min));
         isTrue(array.length > max, "array.length > %s!".formatted(max));
     }
 
     /**
-     * Validates that array has item on provided index.
+     * Checks if the given array contains an item at the given item.
+     * <br>
+     * This method returns {@code false} if the index is out of bounds.
      *
-     * @param array - Array.
-     * @param index - Index.
+     * @param array - Array to check.
+     * @param index - Index to check the item on.
      * @param item  - Item to check.
-     * @return true if array has item on provided slot.
+     * @return true if the given array contains the item on the given index.
      */
-    public static <T> boolean checkArray(T[] array, int index, T item) {
+    public static <T> boolean checkArray(@Nonnull T[] array, int index, @Nonnull T item) {
         return array.length != 0 && index < array.length && array[index] != null && array[index].equals(item);
-    }
-
-    /**
-     * Validates that array has string on provided index.
-     * The string comparing is <b>not</b> case-sensitive.
-     *
-     * @param array  - Array.
-     * @param index  - Index.
-     * @param values - Strings to check.
-     */
-    public static boolean checkArrayString(String[] array, int index, @Range(min = 1) String... values) {
-        if (array.length == 0 || index < 0 || index >= array.length || array[index] == null || values.length == 0) {
-            return false;
-        }
-        final String sample = array[index];
-        if (values.length == 1) {
-            return values[0].equalsIgnoreCase(sample);
-        }
-        else {
-            for (String value : values) {
-                if (value.equalsIgnoreCase(sample)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
 }

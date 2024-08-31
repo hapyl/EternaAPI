@@ -12,7 +12,7 @@ public final class HologramListener implements Listener {
     public void handlePlayerJoinEvent(PlayerJoinEvent ev) {
         final Player player = ev.getPlayer();
 
-        for (Hologram hologram : Eterna.getRegistry().hologramRegistry.getHolograms()) {
+        for (Hologram hologram : Eterna.getManagers().hologram.getHolograms()) {
             if (!(hologram instanceof GlobalHologram) || hologram.isShowingTo(player) || !hologram.isCreated()) {
                 continue;
             }

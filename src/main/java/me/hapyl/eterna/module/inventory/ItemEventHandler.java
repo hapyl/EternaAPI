@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.inventory;
 
-import me.hapyl.eterna.module.inventory.item.Event;
+import me.hapyl.eterna.module.annotate.Event;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;

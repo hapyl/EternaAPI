@@ -4,7 +4,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import javax.annotation.Nonnull;
 
-public class EternaConfig {
+public final class EternaConfig {
 
     private final EternaPlugin plugin;
     private final FileConfiguration configuration;

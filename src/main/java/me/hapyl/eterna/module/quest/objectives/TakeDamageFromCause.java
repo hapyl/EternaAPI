@@ -25,7 +25,7 @@ public class TakeDamageFromCause extends QuestObjective {
 
         if (objects.length == 2) {
             return (objects[1] instanceof EntityDamageEvent.DamageCause cause &&
-                    this.cause == cause) ? Validate.getDouble(objects[0]) : -1.0d;
+                    this.cause == cause) ? 0 : -1.0d;
         }
         return -1.0d;
     }

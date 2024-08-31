@@ -46,7 +46,7 @@ public class GiveItemsToNpc extends QuestObjective {
     @Override
     public double testQuestCompletion(Object... objects) {
         if (objects.length == 3) {
-            final int amount = Validate.getInt(objects[1]);
+            final int amount = 0;
             if (objects[0].equals(material) && amount > 0 && objects[2].equals(this.npc)) {
                 return amount;
             }

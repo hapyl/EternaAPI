@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.util;
 
 import com.google.common.collect.Lists;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
@@ -90,8 +91,12 @@ public final class Enums {
      * @return an enum constant by name.
      */
     @Nonnull
-    public static <T extends Enum<T>> T byName(Class<T> enumClass, String name, @Nonnull T def) {
-        return Validate.getEnumValue(enumClass, name, def);
+    public static <T extends Enum<T>> T byName(@Nonnull Class<T> enumClass, @Nonnull String name, @Nonnull T def) {
+        try {
+            return Enum.valueOf(enumClass, name.toUpperCase());
+        } catch (IllegalArgumentException ignored0) {
+            return def;
+        }
     }
 
     /**
@@ -102,8 +107,12 @@ public final class Enums {
      * @return an enum constant by name or null if invalid.
      */
     @Nullable
-    public static <T extends Enum<T>> T byName(Class<T> enumClass, String name) {
-        return Validate.getEnumValue(enumClass, name, null);
+    public static <T extends Enum<T>> T byName(@Nonnull Class<T> enumClass, @Nonnull String name) {
+        try {
+            return Enum.valueOf(enumClass, name.toUpperCase());
+        } catch (IllegalArgumentException ignored0) {
+            return null;
+        }
     }
 
     /**

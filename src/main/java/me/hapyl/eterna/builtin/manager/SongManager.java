@@ -1,10 +1,10 @@
-package me.hapyl.eterna.module.player.song;
+package me.hapyl.eterna.builtin.manager;
 
-import me.hapyl.eterna.module.math.Numbers;
+import me.hapyl.eterna.EternaPlugin;
+import me.hapyl.eterna.module.player.song.Parser;
+import me.hapyl.eterna.module.player.song.Song;
 import me.hapyl.eterna.module.util.CollectionUtils;
 import me.hapyl.eterna.module.util.NonnullConsumer;
-import me.hapyl.eterna.registry.Registry;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
@@ -13,13 +13,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongRegistry extends Registry<String, Song> {
+public final class SongManager extends EternaManager<String, Song> {
 
-    private final int ITEMS_PER_PAGE = 30;
+    private final int itemsPerPage = 30;
     private boolean lock;
 
-    public SongRegistry(JavaPlugin plugin) {
-        super(plugin);
+    SongManager(@Nonnull EternaPlugin eterna) {
+        super(eterna);
 
         reload(NonnullConsumer.empty());
     }
@@ -43,12 +43,13 @@ public class SongRegistry extends Registry<String, Song> {
      */
     public void reload(@Nonnull NonnullConsumer<Integer> andThen) {
         lock = true;
-        registry.clear();
+        managing.clear();
 
+        // Make sure to load async
         new BukkitRunnable() {
             @Override
             public void run() {
-                final File directory = new File(getPlugin().getDataFolder() + "/songs");
+                final File directory = new File(eterna.getDataFolder() + "/songs");
 
                 if (!directory.exists()) {
                     directory.mkdirs();
@@ -58,15 +59,15 @@ public class SongRegistry extends Registry<String, Song> {
 
                 if (songs == null || songs.length == 0) {
                     lock = false;
-                    logger.info("No songs founds, skipping.");
+                    eterna.getLogger().info("No songs founds, skipping.");
                     return;
                 }
 
-                logger.info("Found %s songs, parsing...".formatted(songs.length));
+                eterna.getLogger().info("Found %s songs, parsing...".formatted(songs.length));
 
                 for (File file : songs) {
                     if (!file.getName().endsWith(".nbs")) {
-                        logger.warning("%s is in '/songs' folder but isn't a 'nbs' file, skipping.".formatted(file.getName()));
+                        eterna.getLogger().warning("%s is in '/songs' folder but isn't a 'nbs' file, skipping.".formatted(file.getName()));
                         continue;
                     }
 
@@ -79,12 +80,11 @@ public class SongRegistry extends Registry<String, Song> {
 
                 }
 
-                logger.info("Successfully parsed %s songs.".formatted(registry.size()));
-
-                andThen.accept(registry.size());
+                eterna.getLogger().info("Successfully parsed %s songs.".formatted(managing.size()));
+                andThen.accept(managing.size());
                 lock = false;
             }
-        }.runTaskAsynchronously(getPlugin());
+        }.runTaskAsynchronously(eterna);
     }
 
     /**
@@ -102,13 +102,13 @@ public class SongRegistry extends Registry<String, Song> {
         }
 
         name = name.trim();
-        Song song = byKey(name);
+        Song song = managing.get(name);
 
         // If not exact match, try checking for similar names
         if (song == null) {
-            for (String otherName : registry.keySet()) {
+            for (String otherName : managing.keySet()) {
                 if (otherName.toLowerCase().contains(name.toLowerCase())) {
-                    return byKey(otherName);
+                    return managing.get(otherName);
                 }
             }
         }
@@ -121,17 +121,18 @@ public class SongRegistry extends Registry<String, Song> {
      *
      * @return copy of song names.
      */
+    @Nonnull
     public List<String> listNames() {
-        return new ArrayList<>(registry.keySet());
+        return new ArrayList<>(managing.keySet());
     }
 
     @Nullable
     public Song randomSong() {
-        if (registry.isEmpty()) {
+        if (managing.isEmpty()) {
             return null;
         }
 
-        return CollectionUtils.randomElement(registry.values(), null);
+        return CollectionUtils.randomElement(managing.values(), null);
     }
 
     /**
@@ -153,8 +154,8 @@ public class SongRegistry extends Registry<String, Song> {
      * @return a sublist of song names based on a page.
      */
     public List<String> listNames(int page) {
-        page = Numbers.clamp(page, 0, maxPage());
-        return listNames(page * ITEMS_PER_PAGE - ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+        page = Math.clamp(page, 0, maxPage());
+        return listNames(page * itemsPerPage - itemsPerPage, page * itemsPerPage);
     }
 
     /**
@@ -163,7 +164,7 @@ public class SongRegistry extends Registry<String, Song> {
      * @return true if there are any songs; false otherwise.
      */
     public boolean anySongs() {
-        return !registry.isEmpty();
+        return !managing.isEmpty();
     }
 
     /**
@@ -172,10 +173,10 @@ public class SongRegistry extends Registry<String, Song> {
      * @return max page.
      */
     public int maxPage() {
-        return registry.size() / ITEMS_PER_PAGE + 1;
+        return managing.size() / itemsPerPage + 1;
     }
 
     public boolean isEmpty() {
-        return registry.isEmpty();
+        return managing.isEmpty();
     }
 }

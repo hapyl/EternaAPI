@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.reflect.glow;
 
 import com.google.common.collect.Maps;
+import me.hapyl.eterna.module.util.Ticking;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 /**
  * Stored entity glowing data.
  */
-public class GlowingData {
+public class GlowingData implements Ticking {
 
     private final Player player;
     private final Map<Entity, Glowing> data;
@@ -29,17 +30,6 @@ public class GlowingData {
     @Nullable
     public Glowing getGlowing(@Nonnull Entity entity) {
         return data.get(entity);
-    }
-
-    public void tickAll() {
-        data.forEach((entity, glowing) -> {
-            if (!glowing.getPlayer().isOnline() || glowing.getEntity().isDead()) {
-                data.remove(entity);
-                glowing.stop();
-            }
-
-            glowing.tick();
-        });
     }
 
     @Nullable
@@ -65,13 +55,26 @@ public class GlowingData {
         data.put(entity, glowing);
     }
 
-    public void remove(@Nonnull Entity entity) {
-        data.remove(entity);
+    @Nullable
+    public Glowing remove(@Nonnull Entity entity) {
+        return data.remove(entity);
     }
 
     public boolean isGlowing(@Nonnull Entity entity) {
         final Glowing glowing = data.get(entity);
 
         return glowing != null && glowing.isGlowing();
+    }
+
+    @Override
+    public void tick() {
+        data.forEach((entity, glowing) -> {
+            if (!glowing.getPlayer().isOnline() || glowing.getEntity().isDead()) {
+                data.remove(entity);
+                glowing.stop();
+            }
+
+            glowing.tick();
+        });
     }
 }

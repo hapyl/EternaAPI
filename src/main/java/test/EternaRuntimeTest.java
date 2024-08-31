@@ -1233,12 +1233,12 @@ public final class EternaRuntimeTest {
 
                                         later(() -> {
                                             info(player, "vibrationBlock");
-                                            ParticleBuilder.vibration(location, LocationHelper.addAsNew(location, 0, 5, 0), 20)
+                                            ParticleBuilder.vibration(LocationHelper.addAsNew(location, 0, 5, 0), 20)
                                                     .display(location);
 
                                             later(() -> {
                                                 info(player, "virationEntity");
-                                                ParticleBuilder.vibration(location, player, 20).display(location);
+                                                ParticleBuilder.vibration(player, 20).display(location);
 
                                                 later(() -> {
                                                     info(player, "blockMarker");
@@ -1665,6 +1665,42 @@ public final class EternaRuntimeTest {
                         .start();
 
                 return false;
+            }
+        });
+
+        addTest(new EternaTest("typeConverter") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final int int1 = TypeConverter.from(1).toInt();
+                final long long2 = TypeConverter.from(2L).toLong();
+                final double double3 = TypeConverter.from(3.0d).toDouble();
+                final String string = TypeConverter.from(new Object() {
+                    @Override
+                    public String toString() {
+                        return "objstr";
+                    }
+                }).toString();
+                final Material anEnum = TypeConverter.from("GHAST_SPAWN_EGG").toEnum(Material.class);
+
+                assertTrue(int1 == 1);
+                assertTrue(long2 == 2L);
+                assertTrue(double3 == 3.0d);
+                assertEquals(string, "objstr");
+                assertTrue(anEnum != null);
+                assertTrue(anEnum == Material.GHAST_SPAWN_EGG);
+
+                // bool
+                final boolean trueBool = TypeConverter.from("true").toBoolean();
+                final boolean TRueBool = TypeConverter.from("TRue").toBoolean();
+                final boolean falseBool = TypeConverter.from("false").toBoolean();
+                final boolean flsBool = TypeConverter.from("fls").toBoolean();
+
+                assertTrue(trueBool == true);
+                assertTrue(trueBool == true);
+                assertTrue(falseBool == false);
+                assertTrue(flsBool == false);
+
+                return true;
             }
         });
 

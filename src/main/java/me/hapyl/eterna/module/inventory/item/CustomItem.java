@@ -1,10 +1,14 @@
 package me.hapyl.eterna.module.inventory.item;
 
 import com.google.common.collect.Lists;
+import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.module.annotate.Event;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.nbt.NBT;
+import me.hapyl.eterna.registry.Key;
+import me.hapyl.eterna.registry.Keyed;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -15,23 +19,31 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class CustomItem {
+public abstract class CustomItem implements Keyed {
 
-    private final String id;
+    private final Key key;
     private final Material material;
 
     private String customName;
     private List<String> lore;
 
-    public CustomItem(String id, Material material) {
-        this.id = id;
+    public CustomItem(@Nonnull Key key, @Nonnull Material material) {
+        this.key = key;
         this.material = material;
         this.customName = "";
         this.lore = Lists.newArrayList();
+    }
+
+    @Override
+    @Nonnull
+    public final Key getKey() {
+        return this.key;
     }
 
     public void setCustomName(String customName) {
@@ -74,20 +86,16 @@ public abstract class CustomItem {
     public void onPickup(Player player, ItemStack item, EntityPickupItemEvent event) {
     }
 
-    public String getId() {
-        return id;
-    }
-
     public Material getType() {
         return material;
     }
 
     public final void register() {
-        CustomItemRegistry.getInstance().register(this.getId(), this);
+        Eterna.getManagers().customItem.register(key, this);
     }
 
     public final void unregister() {
-        CustomItemRegistry.getInstance().unregister(this.getId());
+        Eterna.getManagers().customItem.unregister(key);
     }
 
     /**
@@ -96,13 +104,10 @@ public abstract class CustomItem {
     public final ItemStack toItemStack() {
         final ItemStack stack = new ItemStack(this.material);
         final ItemMeta meta = stack.getItemMeta();
-        if (meta == null) {
-            throw new NullPointerException("item meta is null?");
-        }
+
         // Apply Id
-        NBT.setString(meta, "Id", this.id);
-        NBT.setString(meta, "UniqueId", UUID.randomUUID().toString());
-        NBT.setValue(meta, "TimeStamp", NBTType.LONG, System.currentTimeMillis());
+        new Data(this.key, UUID.randomUUID(), System.currentTimeMillis())
+                .apply(stack);
 
         // Apply Meta
         meta.setDisplayName(Chat.format(this.customName));
@@ -118,6 +123,33 @@ public abstract class CustomItem {
             lore.add(Chat.format(s));
         }
         return lore;
+    }
+
+    public record Data(@Nonnull Key key, @Nonnull UUID uuid, long timeStamp) {
+
+        public void apply(@Nonnull ItemStack item) {
+            final ItemMeta meta = item.getItemMeta();
+
+            NBT.setString(meta, "key", this.key.getKey());
+            NBT.setString(meta, "uuid", this.uuid.toString());
+            NBT.setValue(meta, "time_stamp", NBTType.LONG, this.timeStamp);
+        }
+
+        @Nullable
+        public static Data of(@Nonnull ItemStack item) {
+            final ItemMeta meta = item.getItemMeta();
+
+            try {
+                final Key key = Key.ofString(NBT.getString(meta, "key"));
+                final UUID uuid = UUID.fromString(NBT.getString(meta, "uuid"));
+                final Long timeStamp = NBT.getValue(meta, "time_stamp", NBTType.LONG);
+
+                return new Data(key, uuid, timeStamp != null ? timeStamp : 0L);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
     }
 
 }

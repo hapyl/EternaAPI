@@ -11,6 +11,6 @@ public class TakeDamage extends QuestObjective {
 
     @Override
     public double testQuestCompletion(Object... objects) {
-        return Validate.getDouble(objects[0]);
+        return 0;
     }
 }

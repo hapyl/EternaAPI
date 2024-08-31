@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.player.synthesizer;
 
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.inventory.item.Event;
+import me.hapyl.eterna.module.annotate.Event;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.math.nn.IntInt;
 import org.bukkit.Location;

@@ -6,6 +6,7 @@ import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.entity.LimitedVisibility;
+import me.hapyl.eterna.module.util.Disposable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -16,7 +17,7 @@ import java.util.*;
 /**
  * This class allows creating packet-holograms
  */
-public class Hologram extends LimitedVisibility {
+public class Hologram extends LimitedVisibility implements Disposable {
 
     /**
      * Vertical offset of the holograms.
@@ -39,7 +40,8 @@ public class Hologram extends LimitedVisibility {
         this.showingTo = Sets.newConcurrentHashSet();
 
         setVisibility(25);
-        Eterna.getRegistry().hologramRegistry.register(this);
+
+        Eterna.getManagers().hologram.register(this, true);
     }
 
     /**
@@ -182,9 +184,9 @@ public class Hologram extends LimitedVisibility {
      * Completely destroys this hologram.
      */
     public void destroy() {
-        this.removeStands();
+        dispose();
 
-        Eterna.getRegistry().hologramRegistry.unregister(this);
+        Eterna.getManagers().hologram.unregister(this);
     }
 
     /**
@@ -274,7 +276,7 @@ public class Hologram extends LimitedVisibility {
         // Create
         else {
             final HashSet<Player> players = Sets.newHashSet(showingTo);
-            removeStands();
+            dispose();
 
             for (int i = 0; i < lines.size(); i++) {
                 createStand(location.add(0, HOLOGRAM_OFFSET, 0), fit.get(i));
@@ -387,7 +389,8 @@ public class Hologram extends LimitedVisibility {
         }
     }
 
-    protected void removeStands() {
+    @Override
+    public void dispose() {
         showingTo.forEach(this::hide);
         packets.clear();
     }

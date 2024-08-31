@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class Parkour implements Startable<Player>, Finishable<Player> {
+public class Parkour {
 
     private static final Location DEFAULT_QUIT_LOCATION;
 
@@ -50,14 +50,12 @@ public class Parkour implements Startable<Player>, Finishable<Player> {
         this(name, new Position(Position.Type.START_OR_FINISH, start), new Position(Position.Type.START_OR_FINISH, finish));
     }
 
-    @Override
-    public void start(Player player) {
-        Eterna.getRegistry().parkourRegistry.startParkour(player, this);
+    public void start(@Nonnull Player player) {
+        Eterna.getManagers().parkour.start(player, this);
     }
 
-    @Override
-    public void finish(Player player) {
-        Eterna.getRegistry().parkourRegistry.finishParkour(player);
+    public void finish(@Nonnull Player player) {
+        Eterna.getManagers().parkour.finish(player);
     }
 
     /**

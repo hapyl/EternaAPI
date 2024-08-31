@@ -2,7 +2,7 @@ package me.hapyl.eterna;
 
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.protocol.EternaProtocol;
-import me.hapyl.eterna.registry.EternaRegistry;
+import me.hapyl.eterna.builtin.manager.EternaManagers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -19,13 +19,13 @@ public final class Eterna {
     static EternaPlugin plugin;
 
     /**
-     * Gets the {@link EternaRegistry} singleton for the plugin.
+     * Gets the {@link EternaManagers} singleton for the plugin.
      *
      * @return the registry.
      */
     @Nonnull
-    public static EternaRegistry getRegistry() {
-        return plugin.registry;
+    public static EternaManagers getManagers() {
+        return plugin.managers;
     }
 
     /**

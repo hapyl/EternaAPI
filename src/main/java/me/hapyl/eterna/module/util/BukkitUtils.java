@@ -520,7 +520,7 @@ public class BukkitUtils {
      */
     @Nonnull
     public static World defWorld() {
-        return Bukkit.getWorlds().get(0);
+        return Bukkit.getWorlds().getFirst();
     }
 
     /**

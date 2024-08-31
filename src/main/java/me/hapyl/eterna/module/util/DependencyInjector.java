@@ -8,7 +8,7 @@ public class DependencyInjector<T extends JavaPlugin> {
 
     private final T plugin;
 
-    public DependencyInjector(T plugin) {
+    public DependencyInjector(@Nonnull T plugin) {
         this.plugin = plugin;
     }
 

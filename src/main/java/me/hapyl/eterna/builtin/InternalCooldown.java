@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 /**
  * An internal {@link Material} cooldown.
  */
-public class InternalCooldown {
+public final class InternalCooldown {
 
     public static final InternalCooldown PARKOUR_START = new InternalCooldown(Material.STONE, 30);
     public static final InternalCooldown PARKOUR_CHECKPOINT = new InternalCooldown(Material.ANDESITE, 15);

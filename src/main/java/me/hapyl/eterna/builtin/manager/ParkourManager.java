@@ -1,10 +1,10 @@
-package me.hapyl.eterna.module.parkour;
+package me.hapyl.eterna.builtin.manager;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.player.EffectType;
+import me.hapyl.eterna.module.parkour.*;
 import me.hapyl.eterna.module.player.PlayerLib;
-import me.hapyl.eterna.registry.Registry;
+import me.hapyl.eterna.module.util.Disposable;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,23 +14,23 @@ import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Map;
 
-public class ParkourRegistry extends Registry<Position, Parkour> {
+public final class ParkourManager extends EternaManager<Position, Parkour> implements Disposable {
 
-    public final ParkourItemStorage parkourItemStorage = new ParkourItemStorage(this);
-
+    private final ParkourItemStorage parkourItemStorage;
     private final Map<Player, Data> parkourData;
 
-    public ParkourRegistry(EternaPlugin plugin) {
-        super(plugin);
+    ParkourManager(@Nonnull EternaPlugin eterna) {
+        super(eterna);
+
+        this.parkourItemStorage = new ParkourItemStorage(this);
         this.parkourData = Maps.newHashMap();
     }
 
-    public void startParkour(Player player, Parkour parkour) {
+    public void start(@Nonnull Player player, @Nonnull Parkour parkour) {
         // Already doing parkour
-        if (isParkouring(player)) {
+        if (isInParkour(player)) {
             final Data data = getData(player);
             if (data == null) {
                 return;
@@ -60,16 +60,16 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
 
             parkourItemStorage.giveItems(player);
 
-            PlayerLib.addEffect(player, EffectType.INVISIBILITY, Integer.MAX_VALUE, 1);
+            PlayerLib.addEffect(player, PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1);
             parkourData.put(player, newData);
 
             parkour.getFormatter().sendParkourStarted(player, parkour);
         }
-
     }
 
-    public void finishParkour(Player player) {
+    public void finish(@Nonnull Player player) {
         final Data data = getData(player);
+
         if (data == null) {
             return;
         }
@@ -90,8 +90,9 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
         parkour.getFormatter().sendParkourFinished(data);
     }
 
-    public void failParkour(Player player, FailType type) {
+    public void fail(@Nonnull Player player, @Nonnull FailType type) {
         final Data data = getData(player);
+
         if (data == null) {
             return;
         }
@@ -106,13 +107,14 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
         parkourData.remove(player);
         data.getPlayerInfo().restore();
 
-        PlayerLib.removeEffect(player, EffectType.INVISIBILITY);
+        PlayerLib.removeEffect(player, PotionEffectType.INVISIBILITY);
 
         parkour.getFormatter().sendParkourFailed(data, type);
     }
 
-    public void teleportToCheckpoint(Player player) {
+    public void checkpoint(@Nonnull Player player) {
         final Data data = getData(player);
+
         if (data == null) {
             return;
         }
@@ -135,31 +137,23 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
         }
     }
 
-    public void resetParkour(Player player) {
+    public void reset(@Nonnull Player player) {
         final Data data = getData(player);
+
         if (data == null) {
             return;
         }
 
-        startParkour(player, data.getParkour());
+        start(player, data.getParkour());
         player.teleport(
                 data.getParkour().getStart().toLocationCentered(),
                 PlayerTeleportEvent.TeleportCause.UNKNOWN /* unknown to not fail parkour because of teleport */
         );
     }
 
-
-
-    private boolean handleStart(Data data) {
-        if (data.getParkour() instanceof ParkourHandler handler) {
-            return handler.onStart(data.get(), data) == ParkourHandler.Response.CANCEL;
-        }
-
-        return false;
-    }
-
-    public void quitParkour(Player player) {
+    public void quit(@Nonnull Player player) {
         final Data data = getData(player);
+
         if (data == null) {
             return;
         }
@@ -174,32 +168,19 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
         parkour.getFormatter().sendQuit(data);
     }
 
-    public Collection<Parkour> getRegisteredParkours() {
-        return registry.values();
+    public void register(@Nonnull Parkour parkour) {
+        managing.put(parkour.getStart(), parkour);
+        reload();
     }
 
-    public void registerParkour(Parkour parkour) {
-        registry.put(parkour.getStart(), parkour);
-        reloadParkours();
-    }
-
-    public void unregisterParkour(Parkour parkour) {
-        registry.remove(parkour.getStart());
-        reloadParkours();
-    }
-
-    public Parkour registry(Position target) {
-        for (Position position : registry.keySet()) {
-            if (position.compare(target)) {
-                return registry.get(position);
-            }
-        }
-        return null;
+    public void unregister(@Nonnull Parkour parkour) {
+        managing.remove(parkour.getStart());
+        reload();
     }
 
     @Nullable
     public Parkour byStartOrFinish(@Nonnull Location target) {
-        for (Parkour parkour : registry.values()) {
+        for (Parkour parkour : managing.values()) {
             if (parkour.getStart().compare(target) || parkour.getFinish().compare(target)) {
                 return parkour;
             }
@@ -209,7 +190,7 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
 
     @Nullable
     public Parkour byCheckpoint(@Nonnull Location location) {
-        for (Parkour parkour : registry.values()) {
+        for (Parkour parkour : managing.values()) {
             for (Position checkpoint : parkour.getCheckpoints()) {
                 if (checkpoint.compare(location)) {
                     return parkour;
@@ -227,8 +208,8 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
         return parkour != null ? parkour : byCheckpoint(location);
     }
 
-    public boolean isCheckpointOfAnyParkour(Location location) {
-        for (Parkour value : registry.values()) {
+    public boolean isCheckpointOfAnyParkour(@Nonnull Location location) {
+        for (Parkour value : managing.values()) {
             if (value.isCheckpoint(location)) {
                 return true;
             }
@@ -236,44 +217,40 @@ public class ParkourRegistry extends Registry<Position, Parkour> {
         return false;
     }
 
-    @Nullable
-    public Parkour registry(Location target) {
-        for (Position position : registry.keySet()) {
-            if (position.compare(target)) {
-                return registry.get(position);
-            }
-        }
-        return null;
+    public void reload() {
+        unload();
+        load();
     }
 
-    public void reloadParkours() {
-        unloadParkours();
-        loadParkours();
+    public void load() {
+        managing.forEach((location, parkour) -> {
+            parkour.spawnWorldEntities();
+        });
     }
 
-    public void loadParkours() {
-        registry.forEach((loc, park) -> park.spawnWorldEntities());
+    public void unload() {
+        managing.forEach((location, parkour) -> {
+            parkour.removeWorldEntities();
+        });
     }
 
-    public void unloadParkours() {
-        registry.forEach((loc, park) -> park.removeWorldEntities());
-    }
-
-    public boolean isParkouring(Player player) {
+    public boolean isInParkour(@Nonnull Player player) {
         return getData(player) != null;
     }
 
-    public void restoreAllData() {
-        getRegisteredParkours().forEach(Parkour::removeWorldEntities);
+    @Nullable
+    public Data getData(@Nonnull Player player) {
+        return parkourData.get(player);
+    }
+
+    @Override
+    public void dispose() {
+        managing.values().forEach(Parkour::removeWorldEntities);
         parkourData.values().forEach(data -> data.getPlayerInfo().restore());
     }
 
+    @Nonnull
     public Map<Player, Data> getParkourData() {
         return parkourData;
-    }
-
-    @Nullable
-    public Data getData(Player player) {
-        return parkourData.get(player);
     }
 }

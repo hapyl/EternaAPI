@@ -12,7 +12,7 @@ public class DealDamage extends QuestObjective {
     @Override
     public double testQuestCompletion(Object... objects) {
         if (objects.length == 1) {
-            return Validate.getDouble(objects[0]);
+            return 0;
         }
         return -1.0d;
     }

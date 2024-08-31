@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.scoreboard;
 
-import me.hapyl.eterna.module.EternaModule;
 import me.hapyl.eterna.module.annotate.Range;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.Reflect;
@@ -16,7 +15,6 @@ import java.util.*;
 /**
  * This class allows creating per-player scoreboards.
  */
-@EternaModule
 public class Scoreboarder {
 
     private final Scoreboard scoreboard;

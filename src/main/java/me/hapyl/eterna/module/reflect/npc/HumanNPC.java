@@ -150,7 +150,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
 
         setVisibility(40);
-        Eterna.getRegistry().npcRegistry.register(this);
+        Eterna.getManagers().npc.register(this);
         this.alive = true;
     }
 
@@ -458,7 +458,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public boolean exists() {
-        return Eterna.getRegistry().npcRegistry.isRegistered(getId());
+        return Eterna.getManagers().npc.isManaging(getId());
     }
 
     @Override
@@ -940,7 +940,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void remove() {
         remove0();
-        Eterna.getRegistry().npcRegistry.unregister(getId());
+        Eterna.getManagers().npc.unregister(getId());
     }
 
     /**
@@ -1205,16 +1205,16 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     public static boolean isNPC(int entityId) {
-        return Eterna.getRegistry().npcRegistry.isRegistered(entityId);
+        return Eterna.getManagers().npc.isManaging(entityId);
     }
 
     @Nullable
     public static HumanNPC getById(int id) {
-        return Eterna.getRegistry().npcRegistry.byKey(id);
+        return Eterna.getManagers().npc.get(id);
     }
 
     public static void hideAllNames(Scoreboard score) {
-        for (final HumanNPC value : Eterna.getRegistry().npcRegistry.getRegistered().values()) {
+        for (final HumanNPC value : Eterna.getManagers().npc.getRegistered().values()) {
             value.hideTabListName();
         }
     }

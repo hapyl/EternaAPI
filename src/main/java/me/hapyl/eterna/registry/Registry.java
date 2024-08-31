@@ -1,175 +1,148 @@
 package me.hapyl.eterna.registry;
 
-import com.google.common.collect.Maps;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.google.common.collect.Lists;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.logging.Logger;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-public abstract class Registry<K, V> implements IRegistry<K, V> {
-
-    protected final Logger logger;
-    protected final Map<K, V> registry = Maps.newLinkedHashMap();
-
-    private final JavaPlugin owningPlugin;
+/**
+ * A generic registry interface that holds elements of type {@code T} that extend {@link Keyed}.
+ * Allows for registering, retrieving, and unregistering elements by their {@link Key}.
+ *
+ * @param <T> - The type of elements stored in the registry, which must extend {@link Keyed}.
+ */
+public interface Registry<T extends Keyed> {
 
     /**
-     * Creates instance of registry.
+     * Gets the element by its {@link Key} or {@code null} if not registered.
      *
-     * @param plugin - Eterna Main.
+     * @param key - The {@link Key} of the element to retrieve.
+     * @return the element associated with the key, or {@code null} if not registered.
      */
-    public Registry(@Nonnull JavaPlugin plugin) {
-        this.owningPlugin = plugin;
-        this.logger = plugin.getLogger();
-    }
-
-    @Override
-    @Nonnull
-    public final JavaPlugin getPlugin() {
-        return owningPlugin;
-    }
-
-    @Override
-    public void register(@Nonnull K k, @Nullable V v) {
-        if (registry.containsKey(k)) {
-            return;
-        }
-
-        registry.put(k, v);
-    }
-
-    @Override
-    public boolean unregister(@Nonnull K k, @Nonnull V v) {
-        final V v1 = registry.get(k);
-
-        if (v1 == null || !v1.equals(v)) {
-            return false;
-        }
-
-        return unregister(k);
-    }
-
-    @Override
-    public boolean unregister(@Nonnull K k) {
-        return registry.remove(k) != null;
-    }
-
-    @Override
-    @Nonnull
-    public final Map<K, V> getRegistryCopy() {
-        return Maps.newHashMap(this.registry);
-    }
-
-    @Override
-    public void forEach(@Nonnull BiConsumer<K, V> consumer) {
-        registry.forEach((k, v) -> {
-            if (k == null || v == null) {
-                return;
-            }
-
-            consumer.accept(k, v);
-        });
-    }
-
-    /**
-     * Accepts consumer on all non-null keys.
-     *
-     * @param consumer - Consumer.
-     */
-    public final void forEachKeys(Consumer<K> consumer) {
-        registry.keySet().forEach(k -> {
-            if (k == null) {
-                return;
-            }
-
-            consumer.accept(k);
-        });
-    }
-
-    /**
-     * Accepts consumer on all non-null values.
-     *
-     * @param consumer - Consumer.
-     */
-    public final void forEachValues(Consumer<V> consumer) {
-        registry.values().forEach(v -> {
-            if (v == null) {
-                return;
-            }
-
-            consumer.accept(v);
-        });
-    }
-
-    @Override
-    public boolean isRegistered(@Nonnull K k) {
-        return registry.containsKey(k);
-    }
-
-    @Override
-    public boolean isRegistered(@Nonnull K k, @Nonnull V v) {
-        return v.equals(registry.get(k));
-    }
-
-    @Override
     @Nullable
-    public final V byKey(@Nonnull K k) {
-        return registry.get(k);
-    }
+    T get(@Nonnull Key key);
 
-    @Override
+    /**
+     * Gets the element by its {@link Key} derived from a string ID or returns {@code null} if not registered or the {@link String} is invalid.
+     *
+     * @param string - The string ID to convert to a {@link Key}.
+     * @return the element associated with the key, or {@code null} if not registered.
+     */
     @Nullable
-    public final K byValue(@Nonnull V v) {
-        for (K k : registry.keySet()) {
-            final V v1 = registry.get(k);
-            if (v1 == null) {
-                continue;
-            }
+    default T get(@Nonnull String string) {
+        final Key key = Key.ofStringOrNull(string);
 
-            if (v1.equals(v)) {
-                return k;
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public int size() {
-        return registry.size();
+        return key != null ? get(key) : null;
     }
 
     /**
-     * Returns keys of the original hash map.
+     * Gets an {@link Optional} containing the element associated with the given {@link Key}.
      *
-     * @return keys of the original hash map.
-     */
-    protected final Set<K> getKeys() {
-        return registry.keySet();
-    }
-
-    /**
-     * Returns values of the original hash map.
-     *
-     * @return values of the original hash map.
-     */
-    protected final Collection<V> getValues() {
-        return registry.values();
-    }
-
-    /**
-     * Returns an original hash map of this registry.
-     *
-     * @return original hash map of this registry.
+     * @param key - The {@link Key} of the element to retrieve.
+     * @return an {@link Optional} containing the element if found, or an empty {@link Optional}.
      */
     @Nonnull
-    protected final Map<K, V> getRegistry() {
-        return registry;
+    default Optional<T> getOptional(@Nonnull Key key) {
+        return Optional.ofNullable(get(key));
     }
+
+    /**
+     * Registers the given item in the registry.
+     *
+     * @param t - The item to register.
+     * @return the registered item.
+     */
+    T register(@Nonnull T t);
+
+    /**
+     * Registers an item using the given string ID as a key and a {@link KeyFunction} to create the item.
+     * <br>
+     * Usage example:
+     * <pre>{@code
+     * KeyedItem keyedItem = register("keyed_item", KeyedItem::new);
+     *
+     * // Considering the KeyedItem is structured as:
+     * class KeyedItem implements Keyed {
+     *
+     *     private final Key key;
+     *
+     *     public KeyedItem(@Nonnull Key key) {
+     *         this.key = key;
+     *     }
+     *
+     *     @Nonnull
+     *     @Override
+     *     public final Key getKey() {
+     *         return this.key;
+     *     }
+     *
+     * }
+     * }</pre>
+     *
+     * @param key - The string ID to convert to a {@link Key} and register the item under.
+     * @param fn  - A {@link KeyFunction} to create the item to register.
+     * @return the registered item.
+     */
+    @Nonnull
+    default <E extends T> E register(@Nonnull String key, @Nonnull KeyFunction<E> fn) {
+        final E t = fn.apply(Key.ofString(key));
+
+        register(t);
+        return t;
+    }
+
+    /**
+     * Unregisters the given item from the registry. (optional operation)
+     *
+     * @param t - The item to unregister.
+     * @return {@code true} if the item was successfully unregistered, {@code false} otherwise.
+     */
+    boolean unregister(@Nonnull T t);
+
+    default boolean isRegistered(@Nonnull Key key) {
+        return get(key) != null;
+    }
+
+    default boolean isRegistered(@Nonnull T t) {
+        return isRegistered(t.getKey());
+    }
+
+    /**
+     * Returns {@code true} if this {@link Registry} is empty, meaning nothing is registered, {@code false} otherwise.
+     *
+     * @return {@code true} if this {@link Registry} is empty, meaning nothing is registered, {@code false} otherwise.
+     */
+    boolean isEmpty();
+
+    /**
+     * Gets a copy of all registered elements.
+     *
+     * @return a list containing all registered elements.
+     */
+    @Nonnull
+    List<T> values();
+
+    /**
+     * Retrieves a list of all registered {@link Key} objects.
+     *
+     * @return a list of all registered {@link Key} objects.
+     */
+    @Nonnull
+    default List<Key> keys() {
+        return values().stream().map(Keyed::getKey).collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves a list of string representations of all registered {@link Key}s.
+     *
+     * @return a list of string representations of all registered {@link Key}s.
+     */
+    @Nonnull
+    default List<String> keysAsString() {
+        return values().stream().map(Keyed::getKeyAsString).collect(Collectors.toList());
+    }
+
 }

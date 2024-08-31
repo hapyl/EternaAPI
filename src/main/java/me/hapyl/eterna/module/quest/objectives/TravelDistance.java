@@ -23,7 +23,7 @@ public class TravelDistance extends QuestObjective {
     public double testQuestCompletion(Object... objects) {
         // type , dist
         if (objects[0].equals(type)) {
-            return Validate.getDouble(objects[1]);
+            return 0;
         }
         return -1.0d;
     }
