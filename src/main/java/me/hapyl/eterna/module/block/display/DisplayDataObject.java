@@ -3,18 +3,13 @@ package me.hapyl.eterna.module.block.display;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.entity.Entities;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Represents a base display data object.
@@ -39,6 +34,17 @@ public abstract class DisplayDataObject<T extends Display> {
             // Apply consumer before transformation
             if (consumer != null) {
                 consumer.accept(self);
+            }
+
+            // Tag if tagged
+            final JsonArray tags = json.getAsJsonArray("Tags");
+
+            if (tags != null) {
+                tags.forEach(element -> {
+                    final String tag = element.getAsString();
+
+                    self.addScoreboardTag(tag);
+                });
             }
 
             // Apply transformation
