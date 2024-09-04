@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.player.song;
 
+import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.util.Holder;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -22,9 +23,17 @@ import java.util.Set;
  */
 public class SongPlayer extends Holder<JavaPlugin> {
 
+    public static final SongPlayer DEFAULT_PLAYER;
+
+    static {
+        DEFAULT_PLAYER = new SongPlayer(EternaPlugin.getPlugin());
+    }
+
     private final SongQueue queue;
     private final String prefix = "&b&lNBS> &7";
+
     protected Song currentSong;
+
     private boolean playing;
     private boolean pause;
     private boolean repeat;
@@ -247,15 +256,6 @@ public class SongPlayer extends Holder<JavaPlugin> {
         return this.currentSong == null ? 1 : this.currentSong.getLength();
     }
 
-    /**
-     * Returns listeners for this song. Or all online players is global.
-     *
-     * @return listeners for this song. Or all online players is global.
-     */
-    private Collection<? extends Player> getListeners() {
-        return this.listeners == null ? Bukkit.getOnlinePlayers() : this.listeners;
-    }
-
     // shortcuts
     public void sendMessage(CommandSender player, String msg, Object... dot) {
         Chat.sendMessage(player, (prefix + msg).formatted(dot));
@@ -269,5 +269,14 @@ public class SongPlayer extends Holder<JavaPlugin> {
         for (final Player player : getListeners()) {
             Chat.sendMessage(player, (prefix + msg).formatted(dot));
         }
+    }
+
+    /**
+     * Returns listeners for this song. Or all online players is global.
+     *
+     * @return listeners for this song. Or all online players is global.
+     */
+    private Collection<? extends Player> getListeners() {
+        return this.listeners == null ? Bukkit.getOnlinePlayers() : this.listeners;
     }
 }

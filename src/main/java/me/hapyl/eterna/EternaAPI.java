@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.util.Runnables;
 import me.hapyl.eterna.module.util.Validate;
-import me.hapyl.eterna.registry.PluginLibrary;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -35,7 +34,6 @@ public final class EternaAPI {
     private static final Map<String, EternaAPI> byName = Maps.newLinkedHashMap();
 
     private final JavaPlugin plugin;
-    private final PluginLibrary library;
     private final String minVersion;
 
     /**
@@ -75,8 +73,6 @@ public final class EternaAPI {
             checkVersionAndDisable(minVersion);
         }
 
-        this.library = new PluginLibrary(plugin);
-
         byName.put(plugin.getName().toLowerCase(Locale.ROOT), this);
     }
 
@@ -93,17 +89,6 @@ public final class EternaAPI {
     @Nonnull
     public JavaPlugin getPlugin() {
         return plugin;
-    }
-
-    /**
-     * Returns a library for this API.
-     * Library stores important data such as registries, etc.
-     *
-     * @return library for this API.
-     */
-    @Nonnull
-    public PluginLibrary getLibrary() {
-        return library;
     }
 
     /**

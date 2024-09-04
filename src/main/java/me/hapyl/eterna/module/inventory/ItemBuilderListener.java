@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.inventory;
 
+import me.hapyl.eterna.module.registry.Key;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -119,14 +120,12 @@ public class ItemBuilderListener implements Listener {
     }
 
     private void fetchFunctionList(ItemStack item, Consumer<ItemFunctionList> consumer) {
-        final String id = ItemBuilder.getItemID(item);
-        final ItemFunctionList function = ItemBuilder.getFunctionListById(id);
+        final Key key = ItemBuilder.getItemKey(item);
+        final ItemFunctionList functions = ItemBuilder.getFunctionListByKey(key);
 
-        if (function == null) {
-            return;
+        if (functions != null) {
+            consumer.accept(functions);
         }
-
-        consumer.accept(function);
     }
 
 }

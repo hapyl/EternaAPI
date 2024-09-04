@@ -3,6 +3,7 @@ package test;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.ai.AI;
@@ -17,10 +18,12 @@ import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.messagebuilder.Format;
 import me.hapyl.eterna.module.chat.messagebuilder.Keybind;
 import me.hapyl.eterna.module.chat.messagebuilder.MessageBuilder;
+import me.hapyl.eterna.module.config.Config;
 import me.hapyl.eterna.module.entity.Entities;
 import me.hapyl.eterna.module.entity.Rope;
 import me.hapyl.eterna.module.hologram.DisplayHologram;
 import me.hapyl.eterna.module.hologram.Hologram;
+import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.inventory.*;
 import me.hapyl.eterna.module.inventory.gui.*;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
@@ -31,6 +34,12 @@ import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
+import me.hapyl.eterna.module.player.dialog.DialogOptionEntry;
+import me.hapyl.eterna.module.player.dialog.NPCDialog;
+import me.hapyl.eterna.module.player.quest.*;
+import me.hapyl.eterna.module.player.quest.objective.BreakBlockQuestObjective;
+import me.hapyl.eterna.module.player.quest.objective.GiveItemToNpcQuestObjective;
+import me.hapyl.eterna.module.player.quest.objective.TalkToNpcQuestObjective;
 import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
 import me.hapyl.eterna.module.player.tablist.*;
@@ -44,12 +53,15 @@ import me.hapyl.eterna.module.reflect.glow.Glowing;
 import me.hapyl.eterna.module.reflect.npc.ClickType;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
+import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -259,7 +271,7 @@ public final class EternaRuntimeTest {
 
         addTest(new EternaTest("itemBuilder") {
 
-            static final ItemBuilder testItem = new ItemBuilder(Material.STONE, "itembuildertest_0")
+            static final ItemBuilder testItem = new ItemBuilder(Material.STONE, Key.ofString("itembuildertest_0"))
                     .setName("&aTest Item")
                     .addClickEvent(pl -> pl.sendMessage("YOU CLICKED!!!"))
                     .withCooldown(60, player -> !player.isSneaking(), "NO SNEAKING!!!")
@@ -283,7 +295,7 @@ public final class EternaRuntimeTest {
                 cloned.setName("CLONED BUT WITH A DIFFERENT NAME AND TYPE");
                 cloned.setType(Material.BLUE_WOOL);
 
-                cloned.setId("itembuildertest_1");
+                cloned.setKey(Key.ofString("itembuildertest_1"));
                 cloned.addFunction(p -> {
                     p.sendMessage("CLONED EXLUSIVE");
                 }).accept(Action.LEFT_CLICK_AIR).setCdSec(1);
@@ -293,7 +305,7 @@ public final class EternaRuntimeTest {
 
                 final ItemBuilder clonedClone = cloned.clone();
                 clonedClone.setName("CLONED CLONE");
-                clonedClone.setId("itembuildertest_2");
+                clonedClone.setKey(Key.ofString("itembuildertest_2"));
                 clonedClone.clearFunctions();
                 clonedClone.addFunction(p -> {
                     p.sendMessage("Clicked with clone clone.");
@@ -301,7 +313,7 @@ public final class EternaRuntimeTest {
 
                 inventory.addItem(clonedClone.build());
 
-                inventory.addItem(new ItemBuilder(Material.DIAMOND_BLOCK, "itembuildertest_3")
+                inventory.addItem(new ItemBuilder(Material.DIAMOND_BLOCK, Key.ofString("itembuildertest_3"))
                         .setEventHandler(new ItemEventHandler() {
                             @Override
                             public void onClick(@Nonnull Player player, @Nonnull PlayerInteractEvent ev) {
@@ -444,8 +456,14 @@ public final class EternaRuntimeTest {
                     public void onTeleport(@Nonnull Player player, @Nonnull Location location) {
                         //step(player, "Teleported");
                     }
-                }.setInteractionDelayTick(20);
+                }.setInteractionDelay(20);
 
+                npc.setAboveHead(p -> {
+                    return StringArray.of("&athird line above head", "second line above head", "first line above head");
+                });
+                npc.setBelowHead(p -> {
+                    return StringArray.of("first line below head", "&csecond line below head", "third line below head");
+                });
                 npc.show(player);
 
                 final var later = 30;
@@ -1233,12 +1251,12 @@ public final class EternaRuntimeTest {
 
                                         later(() -> {
                                             info(player, "vibrationBlock");
-                                            ParticleBuilder.vibration(location, LocationHelper.addAsNew(location, 0, 5, 0), 20)
+                                            ParticleBuilder.vibration(LocationHelper.addAsNew(location, 0, 5, 0), 20)
                                                     .display(location);
 
                                             later(() -> {
                                                 info(player, "virationEntity");
-                                                ParticleBuilder.vibration(location, player, 20).display(location);
+                                                ParticleBuilder.vibration(player, 20).display(location);
 
                                                 later(() -> {
                                                     info(player, "blockMarker");
@@ -1663,6 +1681,187 @@ public final class EternaRuntimeTest {
                             }
                         })
                         .start();
+
+                return false;
+            }
+        });
+
+        addTest(new EternaTest("typeConverter") {
+            @Override
+            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
+                final int int1 = TypeConverter.from(1).toInt();
+                final long long2 = TypeConverter.from(2L).toLong();
+                final double double3 = TypeConverter.from(3.0d).toDouble();
+                final String string = TypeConverter.from(new Object() {
+                    @Override
+                    public String toString() {
+                        return "objstr";
+                    }
+                }).toString();
+                final Material anEnum = TypeConverter.from("GHAST_SPAWN_EGG").toEnum(Material.class);
+
+                assertTrue(int1 == 1);
+                assertTrue(long2 == 2L);
+                assertTrue(double3 == 3.0d);
+                assertEquals(string, "objstr");
+                assertTrue(anEnum != null);
+                assertTrue(anEnum == Material.GHAST_SPAWN_EGG);
+
+                // bool
+                final boolean trueBool = TypeConverter.from("true").toBoolean();
+                final boolean TRueBool = TypeConverter.from("TRue").toBoolean();
+                final boolean falseBool = TypeConverter.from("false").toBoolean();
+                final boolean flsBool = TypeConverter.from("fls").toBoolean();
+
+                assertTrue(trueBool == true);
+                assertTrue(trueBool == true);
+                assertTrue(falseBool == false);
+                assertTrue(flsBool == false);
+
+                return true;
+            }
+        });
+
+        addTest(new EternaTest("quest") {
+
+            private QuestHandler registry;
+            private HumanNPC npc;
+
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                if (registry == null) {
+                    final Config config = new Config(EternaPlugin.getPlugin(), "quest_data");
+
+                    registry = new QuestHandler(EternaPlugin.getPlugin()) {
+                        @Override
+                        public void saveQuests(@Nonnull Player player, @Nonnull Set<QuestData> questDataSet) {
+                            final String uuid = player.getUniqueId().toString();
+                            final YamlConfiguration yaml = config.getConfig();
+
+                            for (QuestData data : questDataSet) {
+                                final Quest quest = data.getQuest();
+                                final int currentStage = data.getCurrentStage();
+                                final double progress = data.getCurrentStageProgress();
+
+                                yaml.set("%s.%s.stage".formatted(uuid, quest.getKeyAsString()), currentStage);
+                                yaml.set("%s.%s.progress".formatted(uuid, quest.getKeyAsString()), progress);
+                            }
+
+                            config.save();
+                        }
+
+                        @Nonnull
+                        @Override
+                        public Set<QuestData> loadQuests(@Nonnull Player player) {
+                            final String uuid = player.getUniqueId().toString();
+
+                            final YamlConfiguration yaml = config.getConfig();
+                            final ConfigurationSection section = yaml.getConfigurationSection(uuid);
+                            final Set<QuestData> questDataSet = new HashSet<>();
+
+                            if (section == null) {
+                                return questDataSet;
+                            }
+
+                            for (String questKey : section.getValues(false).keySet()) {
+                                final Quest quest = registry.get(questKey);
+                                final int stage = yaml.getInt("%s.%s.stage".formatted(uuid, questKey));
+                                final double progress = yaml.getDouble("%s.%s.progress".formatted(uuid, questKey));
+
+                                // Dont' load completed quests
+                                if (hasCompleted(player, quest)) {
+                                    continue;
+                                }
+
+                                questDataSet.add(QuestData.load(this, player, quest, stage, progress));
+                            }
+
+                            return questDataSet;
+                        }
+
+                        @Override
+                        public boolean hasCompleted(@Nonnull Player player, @Nonnull Quest quest) {
+                            return config.getBoolean("%s.%s.has_completed".formatted(
+                                    player.getUniqueId().toString(),
+                                    quest.getKeyAsString()
+                            ), false);
+                        }
+
+                        @Override
+                        public void completeQuest(@Nonnull Player player, @Nonnull Quest quest) {
+                            config.set("%s.%s.has_completed".formatted(player.getUniqueId().toString(), quest.getKeyAsString()), true);
+                            config.save();
+                        }
+                    };
+
+                    npc = new HumanNPC(player.getLocation(), "Test Npc", "hapyl");
+                    npc.show(player);
+
+                    final QuestChain questChain = new QuestChain(Key.ofString("the_eye"));
+
+                    final Quest quest1 = new Quest(EternaPlugin.getPlugin(), Key.ofString("eterna_test_quest1"));
+                    quest1.setName("Hello World!");
+                    quest1.setDescription("Someone wants to talk to you...");
+                    quest1.addObjective(new TalkToNpcQuestObjective(new NPCDialog(npc)
+                            .addEntry(
+                                    "Hello there!",
+                                    "This is a test dialog!",
+                                    "Select the first option to finish dialog.",
+                                    "Select the second option to leave the dialog."
+                            )
+                            .addEntry(new DialogOptionEntry()
+                                    .setOption(1, DialogOptionEntry
+                                            .builder()
+                                            .prompt("First option")
+                                    )
+                                    .setOption(2, DialogOptionEntry.goodbye("Second option"))
+                            ).addEntry("Okay then, go mine some diamong ore!")
+                    ));
+
+                    final Quest quest2 = new Quest(EternaPlugin.getPlugin(), Key.ofString("eterna_test_quest2"));
+                    quest2.setName("Get to Mining!");
+                    quest2.setDescription("As they said, it's time to go mining!");
+                    quest2.addObjective(new BreakBlockQuestObjective(Material.DIAMOND_ORE, 6));
+
+                    final Quest quest3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("eterna_test_quest3"));
+                    quest3.setName("Diamonds!");
+                    quest3.setDescription("Now that you have mined the ore, it's time to show the diamonds.");
+                    quest3.addObjective(new GiveItemToNpcQuestObjective(npc, Material.DIAMOND, 2));
+                    quest3.addObjective(new TalkToNpcQuestObjective(new NPCDialog(npc)
+                            .addEntry(
+                                    "You're done? That was fast!",
+                                    "Thanks for the diamons."
+                            )));
+
+                    questChain.addQuests(quest1, quest2, quest3);
+                    registry.register(questChain);
+
+                    questChain.startNextQuest(player); // for testing, impl should not do this
+                }
+                else {
+                    final String argument = args.getString(0);
+
+                    switch (argument.toLowerCase()) {
+                        case "npc" -> {
+                            npc.show(player);
+                        }
+                        default -> {
+                            final QuestDataList questData = Eterna.getManagers().quest.get(player);
+
+                            if (questData != null) {
+                                questData.forEach(data -> {
+                                    EternaLogger.debug(data.toString());
+
+                                    final QuestObjective objective = data.getCurrentObjective();
+                                    if (objective != null) {
+                                        EternaLogger.debug("Current Objective: " + objective.toString());
+                                        EternaLogger.debug("Progress: %s/%s".formatted(data.getCurrentStageProgress(), objective.getGoal()));
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
 
                 return false;
             }

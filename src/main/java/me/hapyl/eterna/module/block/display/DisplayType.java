@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
+import me.hapyl.eterna.module.util.Enums;
 import me.hapyl.eterna.module.util.Validate;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -33,7 +34,7 @@ public enum DisplayType {
             final String blockName = blockState.get("Name").getAsString().replace("minecraft:", "");
             final JsonObject properties = blockState.getAsJsonObject("Properties");
 
-            final Material material = Validate.getEnumValue(Material.class, blockName);
+            final Material material = Enums.byName(Material.class, blockName);
 
             if (material == null || !material.isBlock()) {
                 throw new IllegalArgumentException("Material must be a block, not %s! (%s)".formatted(blockName, material));
@@ -60,8 +61,8 @@ public enum DisplayType {
             final String itemName = item.get("id").getAsString().replace("minecraft:", "");
             final String itemDisplay = json.get("item_display").getAsString();
 
-            final Material material = Validate.getEnumValue(Material.class, itemName);
-            final ItemDisplay.ItemDisplayTransform itemDisplayTransform = Validate.getEnumValue(
+            final Material material = Enums.byName(Material.class, itemName);
+            final ItemDisplay.ItemDisplayTransform itemDisplayTransform = Enums.byName(
                     ItemDisplay.ItemDisplayTransform.class,
                     itemDisplay
             );

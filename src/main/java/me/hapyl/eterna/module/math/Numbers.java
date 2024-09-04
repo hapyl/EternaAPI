@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.math;
 
-import me.hapyl.eterna.module.util.Validate;
+import javax.annotation.Nullable;
 
 /**
  * Simple util class for numbers.
@@ -271,129 +271,364 @@ public class Numbers {
     }
 
     /**
-     * Returns if object is integer.
+     * Returns {@code true} if the given {@link Object} is an {@link Integer}, {@code false} otherwise.
      *
-     * @param obj - object to check.
-     * @return true if an object is integer.
+     * @param object - Object to check.
+     * @return {@code true} if the given {@link Object} is an {@link Integer}, {@code false} otherwise.
      */
-    public static boolean isInt(Object obj) {
-        return Validate.isInt(obj);
+    public static boolean isInt(@Nullable Object object) {
+        if (object == null) {
+            return false;
+        }
+        else if (object instanceof Integer) {
+            return true;
+        }
+        else {
+            try {
+                Integer.parseInt(object.toString());
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns if an object is long.
+     * Returns {@code true} if the given {@link Object} is a {@link Long}, {@code false} otherwise.
      *
-     * @param obj - object to check.
-     * @return true if an object is long.
+     * @param object - Object to check.
+     * @return {@code true} if the given {@link Object} is a {@link Long}, {@code false} otherwise.
      */
-    public static boolean isLong(Object obj) {
-        return Validate.isLong(obj);
+    public static boolean isLong(@Nullable Object object) {
+        if (object == null) {
+            return false;
+        }
+        else if (object instanceof Long) {
+            return true;
+        }
+        else {
+            try {
+                Long.parseLong(object.toString());
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns if an object is float.
+     * Returns {@code true} if the given {@link Object} is a {@link Float}, {@code false} otherwise.
      *
-     * @param obj - object to check.
-     * @return true if an object is float.
+     * @param object - Object to check.
+     * @return {@code true} if the given {@link Object} is a {@link Float}, {@code false} otherwise.
      */
-    public static boolean isFloat(Object obj) {
-        return Validate.isFloat(obj);
+    public static boolean isFloat(@Nullable Object object) {
+        if (object == null) {
+            return false;
+        }
+        else if (object instanceof Float) {
+            return true;
+        }
+        else {
+            try {
+                Float.parseFloat(object.toString());
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns if an object is double.
+     * Returns {@code true} if the given {@link Object} is a {@link Double}, {@code false} otherwise.
      *
-     * @param obj - object to check.
-     * @return true if an object is double.
+     * @param object - Object to check.
+     * @return {@code true} if the given {@link Object} is a {@link Double}, {@code false} otherwise.
      */
-    public static boolean isDouble(Object obj) {
-        return Validate.isDouble(obj);
+    public static boolean isDouble(@Nullable Object object) {
+        if (object == null) {
+            return false;
+        }
+        else if (object instanceof Double) {
+            return true;
+        }
+        else {
+            try {
+                Double.parseDouble(object.toString());
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns true if the object is a byte; false otherwise.
+     * Returns {@code true} if the given {@link Object} is a {@link Byte}, {@code false} otherwise.
      *
-     * @param obj - Object to check.
-     * @return true if the object is a byte; false otherwise.
+     * @param object - Object to check.
+     * @return {@code true} if the given {@link Object} is a {@link Byte}, {@code false} otherwise.
      */
-    public static boolean isByte(Object obj) {
-        return Validate.isByte(obj);
+    public static boolean isByte(@Nullable Object object) {
+        if (object == null) {
+            return false;
+        }
+        else if (object instanceof Byte) {
+            return true;
+        }
+        else {
+            try {
+                Byte.parseByte(object.toString());
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns true if the object is a short; false otherwise.
+     * Returns {@code true} if the given {@link Object} is a {@link Short}, {@code false} otherwise.
      *
-     * @param obj - Object to check.
-     * @return true if the object is short, false otherwise.
+     * @param object - Object to check.
+     * @return {@code true} if the given {@link Object} is a {@link Short}, {@code false} otherwise.
      */
-    public static boolean isShort(Object obj) {
-        return Validate.isShort(obj);
+    public static boolean isShort(@Nullable Object object) {
+        if (object == null) {
+            return false;
+        }
+        else if (object instanceof Short) {
+            return true;
+        }
+        else {
+            try {
+                Short.parseShort(object.toString());
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Returns the integer from object or default value.
+     * Attempts to convert the given {@link Object} to an {@link Integer}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Integer}, returns the specified default value.
      *
-     * @param obj - object to get integer from.
-     * @param def - default value.
-     * @return integer or default value.
+     * @param object - The {@link Object} to convert to an integer.
+     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
+     * @return the {@link Integer} value of the object, or the default value if conversion is not possible.
      */
-    public static int getInt(Object obj, int def) {
-        return isInt(obj) ? Validate.getInt(obj) : def;
+    public static int getInt(@Nullable Object object, int def) {
+        if (object == null) {
+            return def;
+        }
+
+        else if (object instanceof Number number) {
+            return number.intValue();
+        }
+        else {
+            try {
+                return Integer.parseInt(object.toString());
+            } catch (NumberFormatException ignored0) {
+                return def;
+            }
+        }
     }
 
     /**
-     * Returns the long from object or default value.
+     * Attempts to convert the given {@link Object} to an {@link Integer}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Integer}, returns {@code 0}.
      *
-     * @param obj - object to get long from.
-     * @param def - default value.
-     * @return long or default value.
+     * @param object - The {@link Object} to convert to an integer.
+     * @return the {@link Integer} value of the object, or {@code 0} if conversion is not possible.
      */
-    public static long getLong(Object obj, long def) {
-        return isLong(obj) ? Validate.getLong(obj) : def;
+    public static int getInt(@Nullable Object object) {
+        return getInt(object, 0);
     }
 
     /**
-     * Returns the float from object or default value.
+     * Attempts to convert the given {@link Object} to a {@link Long}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Long}, returns the specified default value.
      *
-     * @param obj - object to parse from.
-     * @param def - default value.
-     * @return float or default value.
+     * @param object - The {@link Object} to convert to an integer.
+     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
+     * @return the {@link Long} value of the object, or the default value if conversion is not possible.
      */
-    public static float getFloat(Object obj, float def) {
-        return isFloat(obj) ? Validate.getFloat(obj) : def;
+    public static long getLong(@Nullable Object object, long def) {
+        if (object == null) {
+            return def;
+        }
+        else if (object instanceof Number number) {
+            return number.longValue();
+        }
+        else {
+            try {
+                return Long.parseLong(object.toString());
+            } catch (NumberFormatException ignored0) {
+                return def;
+            }
+        }
     }
 
     /**
-     * Returns the double from object or default value.
+     * Attempts to convert the given {@link Object} to a {@link Long}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Long}, returns {@code 0}.
      *
-     * @param obj - object to get double from.
-     * @param def - default value.
-     * @return double or default value.
+     * @param object - The {@link Object} to convert to an integer.
+     * @return the {@link Long} value of the object, or {@code 0} if conversion is not possible.
      */
-    public static double getDouble(Object obj, double def) {
-        return isDouble(obj) ? Validate.getDouble(obj) : def;
+    public static long getLong(@Nullable Object object) {
+        return getLong(object, 0L);
     }
 
     /**
-     * Gets the byte value from the object.
+     * Attempts to convert the given {@link Object} to a {@link Float}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Float}, returns the specified default value.
      *
-     * @param obj - Object to get the value from.
-     * @param def - Default value if failed.
-     * @return the byte value of the object or def.
+     * @param object - The {@link Object} to convert to an integer.
+     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
+     * @return the {@link Float} value of the object, or the default value if conversion is not possible.
      */
-    public static byte getByte(Object obj, byte def) {
-        return isByte(obj) ? Validate.getByte(obj) : def;
+    public static float getFloat(@Nullable Object object, float def) {
+        if (object == null) {
+            return def;
+        }
+        else if (object instanceof Number number) {
+            return number.floatValue();
+        }
+        else {
+            try {
+                return Float.parseFloat(object.toString());
+            } catch (NumberFormatException ignored0) {
+                return def;
+            }
+        }
     }
 
     /**
-     * Gets the short value from the object.
+     * Attempts to convert the given {@link Object} to a {@link Float}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Float}, returns {@code 0.0f}.
      *
-     * @param obj - Object to get the value from.
-     * @param def - Default value if failed.
-     * @return the short value of the object or def.
+     * @param object - The {@link Object} to convert to an integer.
+     * @return the {@link Float} value of the object, or {@code 0.0f} if conversion is not possible.
      */
-    public static short getShort(Object obj, short def) {
-        return isShort(obj) ? Validate.getShort(obj) : def;
+    public static float getFloat(@Nullable Object object) {
+        return getFloat(object, 0.0f);
+    }
+
+    /**
+     * Attempts to convert the given {@link Object} to a {@link Float}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Float}, returns the specified default value.
+     *
+     * @param object - The {@link Object} to convert to an integer.
+     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
+     * @return the {@link Float} value of the object, or the default value if conversion is not possible.
+     */
+    public static double getDouble(@Nullable Object object, double def) {
+        if (object == null) {
+            return def;
+        }
+        else if (object instanceof Number number) {
+            return number.doubleValue();
+        }
+        else {
+            try {
+                return Double.parseDouble(object.toString());
+            } catch (NumberFormatException ignored0) {
+                return def;
+            }
+        }
+    }
+
+    /**
+     * Attempts to convert the given {@link Object} to a {@link Double}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Double}, returns {@code 0.0d}.
+     *
+     * @param object - The {@link Object} to convert to an integer.
+     * @return the {@link Double} value of the object, or {@code 0.0d} if conversion is not possible.
+     */
+    public static double getDouble(@Nullable Object object) {
+        return getDouble(object, 0.0d);
+    }
+
+    /**
+     * Attempts to convert the given {@link Object} to a {@link Byte}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Byte}, returns the specified default value.
+     *
+     * @param object - The {@link Object} to convert to an integer.
+     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
+     * @return the {@link Byte} value of the object, or the default value if conversion is not possible.
+     */
+    public static byte getByte(@Nullable Object object, byte def) {
+        if (object == null) {
+            return def;
+        }
+        else if (object instanceof Number number) {
+            return number.byteValue();
+        }
+        else {
+            try {
+                return Byte.parseByte(object.toString());
+            } catch (NumberFormatException ignored0) {
+                return def;
+            }
+        }
+    }
+
+    /**
+     * Attempts to convert the given {@link Object} to a {@link Byte}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Byte}, returns {@code (byte)0x0}.
+     *
+     * @param object - The {@link Object} to convert to an integer.
+     * @return the {@link Byte} value of the object, or {@code (byte)0x0} if conversion is not possible.
+     */
+    public static byte getByte(@Nullable Object object) {
+        return getByte(object, (byte) 0x0);
+    }
+
+    /**
+     * Attempts to convert the given {@link Object} to a {@link Short}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Short}, returns the specified default value.
+     *
+     * @param object - The {@link Object} to convert to an integer.
+     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
+     * @return the {@link Short} value of the object, or the default value if conversion is not possible.
+     */
+    public static short getShort(@Nullable Object object, short def) {
+        if (object == null) {
+            return def;
+        }
+        if (object instanceof Number number) {
+            return number.shortValue();
+        }
+        else {
+            try {
+                return Short.parseShort(object.toString());
+            } catch (NumberFormatException ignored0) {
+                return def;
+            }
+        }
+    }
+
+    /**
+     * Attempts to convert the given {@link Object} to a {@link Short}.
+     * If the object is {@code null}, or if it cannot be
+     * converted to an {@link Short}, returns {@code (short)0}.
+     *
+     * @param object - The {@link Object} to convert to an integer.
+     * @return the {@link Short} value of the object, or {@code (short)0} if conversion is not possible.
+     */
+    public static short getShort(@Nullable Object object) {
+        return getShort(object, (short) 0);
     }
 
 }

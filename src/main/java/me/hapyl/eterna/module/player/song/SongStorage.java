@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.player.song;
 
 
+import me.hapyl.eterna.builtin.manager.SongManager;
+
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Locale;
@@ -8,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @deprecated {@link SongRegistry}
+ * @deprecated {@link SongManager}
  */
 @Deprecated(forRemoval = true)
 public class SongStorage {

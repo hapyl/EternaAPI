@@ -4,13 +4,13 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.google.common.collect.*;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.annotate.ForceLowercase;
-import me.hapyl.eterna.module.annotate.Range;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
+import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Nulls;
 import org.bukkit.*;
@@ -37,6 +37,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.profile.PlayerTextures;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,7 +53,7 @@ import java.util.regex.Matcher;
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
  */
 @SuppressWarnings("UnstableApiUsage")
-public class ItemBuilder implements Cloneable {
+public class ItemBuilder implements Cloneable, Keyed {
 
     /**
      * The default smart split char limit.
@@ -80,16 +81,16 @@ public class ItemBuilder implements Cloneable {
     private static final char MANUAL_SPLIT_CHAR = '_';
 
     private static final java.util.regex.Pattern BASE64_DECODE_PATTERN = java.util.regex.Pattern.compile("\"url\":\"(http[^\"]+)\"");
-    private static final String PLUGIN_PATH = "ItemBuilderId";
+    private static final String PLUGIN_PATH = "item_key";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
 
-    protected static Map<String, ItemFunctionList> registeredFunctions = Maps.newHashMap();
+    protected static Map<Key, ItemFunctionList> registeredFunctions = Maps.newHashMap();
 
     private static AttributeModifier HIDE_ATTRIBUTES_MODIFIER;
 
     protected ItemStack item;
 
-    private String id;
+    @Nonnull private Key key;
     private ItemFunctionList functions;
 
     /**
@@ -107,29 +108,29 @@ public class ItemBuilder implements Cloneable {
      * @param stack - ItemStack of the builder. Data is cloned.
      */
     public ItemBuilder(@Nonnull ItemStack stack) {
-        this(stack.clone(), null);
+        this(stack.clone(), Key.empty());
     }
 
     /**
      * Create a new ItemBuilder with the given Material and ID for events.
      *
      * @param material - Material of the builder.
-     * @param id       - ID of the builder.
+     * @param key      - Key of the builder.
      */
-    public ItemBuilder(@Nonnull Material material, @Nullable @ForceLowercase String id) {
-        this(new ItemStack(material), id);
+    public ItemBuilder(@Nonnull Material material, @Nonnull Key key) {
+        this(new ItemStack(material), key);
     }
 
     /**
      * Create a new ItemBuilder from ItemStack with ID for events.
      *
      * @param stack - ItemStack of the builder. Data is cloned.
-     * @param id    - ID of the builder.
+     * @param key   - Key of the builder.
      */
     @Super
-    public ItemBuilder(@Nonnull ItemStack stack, @Nullable @ForceLowercase String id) {
+    public ItemBuilder(@Nonnull ItemStack stack, @Nonnull Key key) {
         this.item = stack;
-        this.id = id;
+        this.key = key;
     }
 
     /**
@@ -352,7 +353,7 @@ public class ItemBuilder implements Cloneable {
      * @param actions  - Allowed click types.
      * @throws IndexOutOfBoundsException if there are no actions.
      */
-    public ItemBuilder addClickEvent(@Nonnull Consumer<Player> runnable, @Range(min = 1, throwsError = true) @Nonnull Action... actions) {
+    public ItemBuilder addClickEvent(@Nonnull Consumer<Player> runnable, @Range(from = 1, to = Integer.MAX_VALUE) @Nonnull Action... actions) {
         if (actions.length < 1) {
             throw new IndexOutOfBoundsException("This requires at least one action.");
         }
@@ -393,9 +394,9 @@ public class ItemBuilder implements Cloneable {
      *
      * @param function - functions.
      */
-    public ItemBuilder addFunction(@Nonnull Function<String, ItemFunction> function) {
+    public ItemBuilder addFunction(@Nonnull Function<Key, ItemFunction> function) {
         final ItemFunctionList functions = getFunctions();
-        final ItemFunction fn = function.apply(id);
+        final ItemFunction fn = function.apply(key);
 
         functions.addFunction(fn);
         return this;
@@ -1019,7 +1020,7 @@ public class ItemBuilder implements Cloneable {
      *
      * @param flags - Flags to hide.
      */
-    public ItemBuilder hideFlag(@Nonnull @Range(min = 1) ItemFlag... flags) {
+    public ItemBuilder hideFlag(@Nonnull @Range(from = 1, to = Byte.MAX_VALUE) ItemFlag... flags) {
         for (ItemFlag flag : flags) {
             hideFlag0(flag);
         }
@@ -1032,7 +1033,7 @@ public class ItemBuilder implements Cloneable {
      *
      * @param flags - Flags to show.
      */
-    public ItemBuilder showFlag(@Nonnull @Range(min = 1) ItemFlag... flags) {
+    public ItemBuilder showFlag(@Nonnull @Range(from = 1, to = Byte.MAX_VALUE) ItemFlag... flags) {
         return modifyMeta(meta -> meta.removeItemFlags(flags));
     }
 
@@ -1167,17 +1168,17 @@ public class ItemBuilder implements Cloneable {
     /**
      * Finalizes item meta and returns an ItemStack.
      *
-     * @param overrideFunctions - if true and the {@link ItemFunctionList} is already registered with this {@link ItemBuilder} {@link #id}, it will override it.
+     * @param overrideFunctions - if true and the {@link ItemFunctionList} is already registered with this {@link ItemBuilder} {@link #key}, it will override it.
      * @return finalized ItemStack.
      */
     @Nonnull
     public ItemStack build(boolean overrideFunctions) {
-        if (id != null) {
+        if (!key.isEmpty()) {
             // Always store Id
-            modifyMeta(meta -> NBT.setValue(meta, PLUGIN_PATH, NBTType.STR, id));
+            modifyMeta(meta -> NBT.setValue(meta, PLUGIN_PATH, NBTType.STR, key.getKey()));
 
-            if (functions != null && (!isIdRegistered(id) || overrideFunctions)) {
-                registeredFunctions.put(id, functions);
+            if (functions != null && (!isIdRegistered(key) || overrideFunctions)) {
+                registeredFunctions.put(key, functions);
             }
         }
 
@@ -1472,25 +1473,36 @@ public class ItemBuilder implements Cloneable {
     }
 
     /**
-     * Returns custom ID of the item.
+     * Gets the key of this item.
      *
-     * @return custom ID of the item.
+     * @return the key of this item.
      */
-    @Nullable
-    public String getId() {
-        return id;
+    @Nonnull
+    @Override
+    public Key getKey() {
+        return key;
     }
 
     /**
-     * Sets the new Id for this {@link ItemBuilder}.
-     * <br>
-     * Don't forget to change the Id if changing the functions!
+     * Sets the key of this item.
+     * <p>Keys are used for function identification.</p>
      *
-     * @param newId - New Id.
+     * @param key - New key.
      */
-    public ItemBuilder setId(@Nonnull @ForceLowercase String newId) {
-        this.id = newId;
+    public ItemBuilder setKey(@Nonnull Key key) {
+        this.key = key;
         return this;
+    }
+
+    /**
+     * Sets the key of this item from the given string.
+     * <p>Keys are used for function identification.</p>
+     *
+     * @param string - String to convert to the key.
+     * @throws IllegalArgumentException if the given string does not match the {@link Key#PATTERN}.
+     */
+    public ItemBuilder setKey(@Nonnull String string) {
+        return setKey(Key.ofString(string));
     }
 
     /**
@@ -1908,7 +1920,7 @@ public class ItemBuilder implements Cloneable {
      * @param lore     - Lore to use.
      */
     @Nonnull
-    public static ItemBuilder of(@Nonnull Material material, @Nonnull String name, @Nonnull @Range(min = 1) String... lore) {
+    public static ItemBuilder of(@Nonnull Material material, @Nonnull String name, @Nonnull @Range(from = 1, to = Byte.MAX_VALUE) String... lore) {
         final ItemBuilder builder = new ItemBuilder(material).setName(name);
 
         for (String str : lore) {
@@ -1990,12 +2002,12 @@ public class ItemBuilder implements Cloneable {
     /**
      * Gets the {@link ItemFunctionList} by the given Id; or null if none.
      *
-     * @param id - Id.
+     * @param key - Key.
      * @return the {@link ItemFunctionList} by the given Id; or null if none.
      */
     @Nullable
-    public static ItemFunctionList getFunctionListById(@Nonnull @ForceLowercase String id) {
-        return registeredFunctions.get(id);
+    public static ItemFunctionList getFunctionListByKey(@Nonnull Key key) {
+        return registeredFunctions.get(key);
     }
 
     /**
@@ -2004,63 +2016,47 @@ public class ItemBuilder implements Cloneable {
      * @return a copy of registered {@link ItemFunctionList} Ids.
      */
     @Nonnull
-    public static Set<String> getRegisteredIDs() {
+    public static Set<Key> getRegisteredKeys() {
         return Sets.newHashSet(registeredFunctions.keySet());
     }
 
     /**
-     * Gets the {@link ItemStack} id; or empty string.
-     * The id is stored in {@link #PLUGIN_PATH}.
+     * Gets the key of the given item, or {@link Key#empty()} key if there is no id.
      *
-     * @param item - Item to get ID from.
-     * @return the {@link ItemStack} id; or empty string.
+     * @param item - Item to get the key from.
+     * @return the key of the given item, or {@link Key#empty()} key if there is no id.
      */
     @Nonnull
-    public static String getItemID(@Nonnull ItemStack item) {
+    public static Key getItemKey(@Nonnull ItemStack item) {
         final ItemMeta meta = item.getItemMeta();
 
         if (meta == null) {
-            return "";
+            return Key.empty();
         }
 
-        final String id = NBT.getString(meta, PLUGIN_PATH, "");
-        return (id.isEmpty() || id.isBlank()) ? "" : id;
+        final String itemKey = NBT.getValue(meta, PLUGIN_PATH, NBTType.STR);
+        return itemKey != null ? Key.ofString(itemKey) : Key.empty();
     }
 
     /**
-     * Returns true if the given item's ID matches the given ID.
+     * Returns {@code true} if the given item matches the given key, {@code false} otherwise.
      *
      * @param item - Item to check.
-     * @param id   - ID to compare to.
-     * @return true if the given item's ID matches the given ID; false otherwise.
+     * @param key  - Key to compare to.
+     * @return {@code true} if the given item matches the given key, {@code false} otherwise.
      */
-    public static boolean itemHasID(@Nonnull ItemStack item, @Nonnull String id) {
-        final String itemId = getItemID(item);
-
-        return itemHasID(item) && !itemId.isEmpty() && itemId.equalsIgnoreCase(id);
+    public static boolean compareItemKey(@Nonnull ItemStack item, @Nonnull Key key) {
+        return getItemKey(item).equals(key);
     }
 
     /**
-     * Returns true if the given item's ID contains a part of the given ID.
+     * Returns {@code true} if the given item has a non-empty {@link Key}, {@code false} otherwise.
      *
      * @param item - Item to check.
-     * @param id   - Id to check.
-     * @return true if the given item's ID contains a part of the given ID; false otherwise.
+     * @return {@code true} if the given item has a non-empty {@link Key}, {@code false} otherwise.
      */
-    public static boolean itemContainsId(@Nonnull ItemStack item, @Nonnull String id) {
-        final String itemId = getItemID(item);
-
-        return itemHasID(item) && !itemId.isEmpty() && itemId.contains(id);
-    }
-
-    /**
-     * Returns true if item has any ID.
-     *
-     * @param item - Item to check.
-     * @return true if an item has any ID; false otherwise.
-     */
-    public static boolean itemHasID(ItemStack item) {
-        return !getItemID(item).isEmpty();
+    public static boolean isItemKeyed(@Nonnull ItemStack item) {
+        return !getItemKey(item).isEmpty();
     }
 
     /**
@@ -2303,8 +2299,8 @@ public class ItemBuilder implements Cloneable {
                 && (chars[index] == MANUAL_SPLIT_CHAR && chars[index + 1] == MANUAL_SPLIT_CHAR);
     }
 
-    private static boolean isIdRegistered(String id) {
-        return id != null && registeredFunctions.containsKey(id);
+    private static boolean isIdRegistered(@Nonnull Key key) {
+        return registeredFunctions.containsKey(key);
     }
 
     private static boolean isManualSplitChar(char c) {

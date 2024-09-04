@@ -2,11 +2,11 @@ package me.hapyl.eterna.module.player.tablist;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import me.hapyl.eterna.module.annotate.Range;
 import me.hapyl.eterna.module.math.Numbers;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -102,7 +102,7 @@ public class Tablist {
      * @param lines  - List of lines, max 20 lines.
      * @return tablist entry.
      */
-    public Tablist setColumn(int column, @Range(max = 20) @Nonnull List<String> lines) {
+    public Tablist setColumn(int column, @Range(from = 0, to = 20) @Nonnull List<String> lines) {
         return setColumn(column, new EntryList(lines));
     }
 
@@ -113,7 +113,7 @@ public class Tablist {
      * @param lines  - Array of lines, max 20 lines.
      * @return tablist entry.
      */
-    public Tablist setColumn(int column, @Range(max = 20) @Nonnull String... lines) {
+    public Tablist setColumn(int column, @Range(from = 0, to = 20) @Nonnull String... lines) {
         return setColumn(column, new EntryList(lines));
     }
 

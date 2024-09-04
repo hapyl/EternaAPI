@@ -59,8 +59,14 @@ public class WrappedPacketPlayOutEntityMetadata extends WrappedPacket<Clientboun
      */
     public static class WrappedDataWatcherValueList extends ArrayList<WrappedDataWatcherValue> {
         public WrappedDataWatcherValueList(List<SynchedEntityData.DataValue<?>> list) {
-            for (SynchedEntityData.DataValue<?> c : list) {
-                add(new WrappedDataWatcherValue(c));
+            for (SynchedEntityData.DataValue<?> dataValue : list) {
+                final DataWatcherType<?> dataWatcherType = DataWatcherType.of(dataValue.serializer());
+
+                if (dataWatcherType == null) {
+                    continue;
+                }
+
+                add(new WrappedDataWatcherValue(dataValue, dataWatcherType));
             }
         }
 
@@ -97,9 +103,9 @@ public class WrappedPacketPlayOutEntityMetadata extends WrappedPacket<Clientboun
         private final DataWatcherType<?> serializer;
         private Object value;
 
-        public WrappedDataWatcherValue(@Nonnull SynchedEntityData.DataValue<?> c) {
+        public WrappedDataWatcherValue(@Nonnull SynchedEntityData.DataValue<?> c, @Nonnull DataWatcherType<?> dataWatcherType) {
             this.id = c.id();
-            this.serializer = DataWatcherType.of(c.serializer());
+            this.serializer = dataWatcherType;
             this.value = c.value();
         }
 

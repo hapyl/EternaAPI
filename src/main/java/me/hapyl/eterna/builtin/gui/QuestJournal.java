@@ -1,103 +1,78 @@
 package me.hapyl.eterna.builtin.gui;
 
-import me.hapyl.eterna.module.annotate.BuiltIn;
-import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.inventory.gui.PlayerGUI;
+import me.hapyl.eterna.module.inventory.gui.SlotPattern;
+import me.hapyl.eterna.module.inventory.gui.SmartComponent;
 import me.hapyl.eterna.module.player.PlayerLib;
-import me.hapyl.eterna.module.quest.PlayerQuestObjective;
-import me.hapyl.eterna.module.quest.QuestManager;
-import me.hapyl.eterna.module.quest.QuestProgress;
-import org.bukkit.ChatColor;
+import me.hapyl.eterna.module.player.quest.Quest;
+import me.hapyl.eterna.module.player.quest.QuestData;
+import me.hapyl.eterna.module.player.quest.QuestObjective;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import java.util.Set;
 
 /**
  * Built in GUI for {@link QuestJournal}.
  */
-@BuiltIn
 public final class QuestJournal extends PlayerGUI {
 
-    public QuestJournal(Player player) {
+    public QuestJournal(@Nonnull Player player) {
         super(player, "Quest Journal", 5);
-        this.setOpenEvent(target -> PlayerLib.playSound(player, Sound.ITEM_BOOK_PAGE_TURN, 0.75f));
-        this.setUpItems();
+
+        setOpenEvent(target -> PlayerLib.playSound(player, Sound.ITEM_BOOK_PAGE_TURN, 0.75f));
+        setUpItems();
     }
 
     private void setUpItems() {
-        clearEverything();
+        clearItemsAndClicks();
 
-        this.setItem(4, new ItemBuilder(Material.PAINTING).setName("&aQuest Journal").toItemStack());
-        this.setItem(40, new ItemBuilder(Material.BARRIER).setName("&cClose Menu").toItemStack(), this::closeInventory);
-        this.setItem(42, new ItemBuilder(Material.NAME_TAG).setName("&aObjective Format").setLore("&7No Format Available").toItemStack());
+        final Set<QuestData> activeQuests = Eterna.getManagers().quest.getActiveQuests(player);
+        final SmartComponent component = newSmartComponent();
 
-        final Set<QuestProgress> quests = QuestManager.current().getActiveQuests(this.getPlayer());
-
-        if (quests.isEmpty()) {
-            this.setItem(
-                    22,
-                    new ItemBuilder(Material.CAULDRON)
-                            .setName("&cNo Quests")
-                            .setSmartLore("You don't have any ongoing quests right now!")
-                            .toItemStack()
-            );
+        if (activeQuests.isEmpty()) {
+            setItem(22, new ItemBuilder(Material.CAULDRON)
+                    .setName("No Quests!")
+                    .asIcon());
         }
-        else {
-            int slot = 10;
-            for (final QuestProgress progress : quests) {
-                final ItemBuilder builder = new ItemBuilder(Material.SKULL_BANNER_PATTERN)
-                        .hideFlags()
-                        .predicate(progress.isComplete(), ItemBuilder::glow);
 
-                builder.setName(ChatColor.GREEN + progress.getQuest().getQuestName());
-                builder.addLore(progress.isComplete() ? "&aFinished Quest" : "&8Ongoing Quest");
-                builder.addLore();
-                builder.addLore("&7Stage: &b%s".formatted(progress.isComplete()
-                        ? "COMPLETE"
-                        : progress.getCurrentStage() + 1 + "/" + progress.getTotalStages()
-                ));
-                builder.addLore();
+        activeQuests.forEach(data -> {
+            final Quest quest = data.getQuest();
 
-                builder.addLore("&7Objectives:");
-                progress.getQuest().getObjectives().forEach((i, obj) -> {
-                    // cannot use comparing since it's another object
-                    // complete objective
-                    if (progress.getCurrentStage() > i) {
-                        builder.addLore(" &a✔ " + obj.getObjectiveName());
-                    }
-
-                    // current objective
-                    else if (progress.getCurrentStage() == i) {
-                        final PlayerQuestObjective current = progress.getCurrentObjective();
-                        builder.addLore(" &e→ %s%s".formatted(obj.getObjectiveName(), current.getPercentComplete()));
-                        builder.addSmartLore(obj.getObjectiveShortInfo(), "  &7&o");
-                    }
-                    // next objectives
-                    else {
-                        builder.addLore(" &8" + (obj.isHidden() ? "???" : obj.getObjectiveName()));
-                    }
-                });
-
-                if (progress.isComplete()) {
-                    builder.addLore().addLore("&eClick to claim rewards!");
-                    setClick(slot, player -> {
-                        progress.grantRewardIfExists();
-                        Chat.sendMessage(player, "&a&lQUEST CLAIMED &7" + progress.getQuest().getQuestName());
-                        QuestManager.current().completeQuest(progress);
-                        PlayerLib.plingNote(player, 2.0f);
-                        setUpItems();
-                    });
-                }
-
-                setItem(slot, builder.toItemStack());
-                slot += (slot % 9 == 8) ? 2 : 1;
+            if (quest.hasCompleted(player)) {
+                return;
             }
-        }
 
-        this.openInventory();
+            final ItemBuilder builder = new ItemBuilder(Material.CREEPER_BANNER_PATTERN);
+
+            builder.setName(quest.getName());
+            builder.addLore();
+            builder.addTextBlockLore(quest.getDescription());
+            builder.addLore();
+
+            builder.addLore("Current Objective:");
+
+            final QuestObjective currentObjective = data.getCurrentObjective();
+
+            if (currentObjective == null) {
+                builder.addLore(" &8None! (somehow?)");
+            }
+            else {
+                builder.addLore(" " + currentObjective.getName());
+                builder.addLore("  &8&o" + currentObjective.getDescription());
+                builder.addLore();
+                builder.addLore("Progress: %s/%s".formatted(data.getCurrentStageProgress(), currentObjective.getGoal()));
+            }
+
+            component.add(builder.asIcon());
+        });
+
+        component.apply(this, SlotPattern.INNER_LEFT_TO_RIGHT, 1);
+        openInventory();
     }
 
 }

@@ -11,7 +11,7 @@ public class NPCRunnable implements Runnable {
 
     @Override
     public void run() {
-        Eterna.getRegistry().npcRegistry.getRegistered().forEach((id, npc) -> {
+        Eterna.getManagers().npc.getRegistered().forEach((id, npc) -> {
             // Visibility
             for (Player player : npc.getViewers()) {
                 LimitedVisibility.check(player, npc);

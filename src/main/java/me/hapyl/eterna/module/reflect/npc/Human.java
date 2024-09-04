@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.reflect.npc;
 
-import me.hapyl.eterna.module.reflect.npc.entry.NPCEntry;
+import me.hapyl.eterna.module.hologram.HologramFunction;
+import me.hapyl.eterna.module.hologram.PlayerHologram;
+import me.hapyl.eterna.module.player.dialog.NPCDialog;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.commons.lang.NotImplementedException;
@@ -10,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,33 +21,48 @@ import java.util.Set;
 public interface Human {
 
     /**
-     * Static access to creating NPC.
+     * Gets the {@link NPCFormat} for this NPC.
      *
-     * @param location - Location to create at.
+     * @return the npc format for this NPC.
+     * @see NPCFormat
      */
-    static Human create(Location location) {
-        return HumanNPC.create(location);
-    }
+    @Nonnull
+    NPCFormat getFormat();
 
     /**
-     * Static access to creating NPC.
+     * Sets the {@link NPCFormat} for this NPC.
      *
-     * @param location - Location to create at.
-     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
+     * @param format - New format.
      */
-    static Human create(Location location, String name) {
-        return HumanNPC.create(location, name);
-    }
+    void setFormat(@Nonnull NPCFormat format);
 
     /**
-     * Static access to creating NPC.
+     * Gets the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
      *
-     * @param location - Location to create at.
-     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
-     * @param skin     - Skin owner username.
+     * @return the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
      */
-    static Human create(Location location, String name, String skin) {
-        return HumanNPC.create(location, name, skin);
+    int getInteractionDelay();
+
+    /**
+     * Sets the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
+     *
+     * @param interactionDelay - New delay, in ticks.
+     */
+    HumanNPC setInteractionDelay(@Range(from = 0, to = Integer.MAX_VALUE) int interactionDelay);
+
+    /**
+     * Sets the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
+     * <p>The default implementation is as follows:</p>
+     * <pre>{@code
+     *     default void setInteractionDelaySec(float interactionDelaySec) {
+     *         setInteractionDelay((int) (interactionDelaySec * 20));
+     *     }
+     * }</pre>
+     *
+     * @param interactionDelaySec - New delay, in seconds.
+     */
+    default HumanNPC setInteractionDelaySec(@Range(from = 0, to = Integer.MAX_VALUE) float interactionDelaySec) {
+        return setInteractionDelay((int) (interactionDelaySec * 20));
     }
 
     /**
@@ -142,28 +160,6 @@ public interface Human {
     boolean isShowingTo(Player player);
 
     /**
-     * Adds entry to NPC's dialog.
-     *
-     * @param entry - Entry to add.
-     */
-    HumanNPC addEntry(NPCEntry entry);
-
-    /**
-     * Adds string entry to NPC's dialog.
-     *
-     * @param string    - String to add.
-     * @param delayNext - Delay before next entry.
-     */
-    HumanNPC addDialogLine(String string, int delayNext);
-
-    /**
-     * Adds string entry to NPC's dialog.
-     *
-     * @param string - String to add.
-     */
-    HumanNPC addDialogLine(String string);
-
-    /**
      * Returns true if NPC's is registered, false otherwise.
      *
      * @return true if NPC's is registered, false otherwise.
@@ -174,33 +170,61 @@ public interface Human {
      * Returns NPC's name.
      *
      * @return NPC's name.
+     * @deprecated NPC names are now per-player, this is considered to be a 'default' name.
      */
+    @Nonnull
+    @Deprecated
     String getName();
 
     /**
-     * Forces NPC to stop talking.
+     * Sets the NPC name.
+     *
+     * @param newName - New name to set.
+     * @deprecated NPC names are not per-player, this is considered to be a 'default' name.
+     */
+    @Deprecated
+    void setName(@Nullable String newName);
+
+    /**
+     * Gets the NPC name for the given {@link Player}.
+     * <p>The default implementation is as follows:</p>
+     * <pre>{@code
+     *     @Nonnull
+     *     default String getName(@Nonnull Player player) {
+     *         return getName();
+     *     }
+     * }</pre>
+     *
+     * @param player - The {@link Player} to get the name for.
+     * @return the NPC name for the given {@link Player}.
+     */
+    @Nonnull
+    default String getName(@Nonnull Player player) {
+        return getName();
+    }
+
+    /**
+     * Returns {@code true} if this {@link Human} has a name, {@code false} otherwise.
+     *
+     * @return {@code true} if this {@link Human} has a name, {@code false} otherwise.
+     */
+    default boolean hasName() {
+        return !getName().isEmpty();
+    }
+
+    /**
+     * Stops this {@link HumanNPC} from talking for all players who currently in a
+     * {@link NPCDialog} with this {@link HumanNPC}.
      */
     void stopTalking();
 
     /**
-     * Sets the interaction delay in <b>millis</b>!
-     * <p>
-     * <b>Note</b> {@link NPCEntry} will override the interaction is applied.
+     * Stops this {@link HumanNPC} from talking for the given {@link Player} is they're
+     * currently in a {@link NPCDialog} with this {@link HumanNPC}.
      *
-     * @param interactionDelayMillis - Interaction delay in millis.
+     * @param player - The player who to stop the dialog for.
      */
-    HumanNPC setInteractionDelay(long interactionDelayMillis);
-
-    /**
-     * Sets the interaction delay in <b>ticks</b>!.
-     * <p>
-     * <b>Note</b> {@link NPCEntry} will override the interaction is applied.
-     *
-     * @param delayInTicks - Interaction delay in ticks.
-     */
-    default HumanNPC setInteractionDelayTick(int delayInTicks) {
-        return setInteractionDelay(delayInTicks * 50L);
-    }
+    void stopTalking(@Nonnull Player player);
 
     /**
      * Returns maximum distance to the nearest player that NPC will look at.
@@ -215,21 +239,6 @@ public interface Human {
      * @param lookAtCloseDist the distance.
      */
     HumanNPC setLookAtCloseDist(int lookAtCloseDist);
-
-    /**
-     * Adds a line of text above the NPC's head.
-     *
-     * @param text - String.
-     */
-    HumanNPC addTextAboveHead(String text);
-
-    /**
-     * Removes a line of text above the NPC's head.
-     *
-     * @param index - Index of the line.
-     * @throws IndexOutOfBoundsException - If the index is out of bounds.
-     */
-    HumanNPC removeTextAboveHead(int index);
 
     /**
      * Changes NPC pose.
@@ -407,7 +416,6 @@ public interface Human {
      */
     void setEquipment(EntityEquipment equipment);
 
-
     /**
      * Changes byte data watcher of this NPC.
      *
@@ -506,6 +514,53 @@ public interface Human {
     void hideDisplayName();
 
     /**
+     * Gets the {@link PlayerHologram} associated with this {@link Human}.
+     * <p>
+     * The aboveHead, NPC name, and belowHead is handled using this {@link PlayerHologram}.
+     * </p>
+     * <p>
+     * It is recommended to use build-in {@link #setAboveHead(HologramFunction)}, and {@link #setBelowHead(HologramFunction)}
+     * methods, rather than manually updating the hologram.
+     * </p>
+     *
+     * @return the {@link PlayerHologram} associated with this NPC.
+     */
+    @Nonnull
+    PlayerHologram getHologram();
+
+    /**
+     * Sets the text above this {@link Human}'s head.
+     *
+     * @param function - How to set the text.
+     * @see HologramFunction
+     * @see #updateHologram()
+     */
+    void setAboveHead(@Nullable HologramFunction function);
+
+    /**
+     * Sets the text below this {@link Human}'s head.
+     *
+     * @param function - How to set the text.
+     * @see HologramFunction
+     * @see #updateHologram()
+     */
+    void setBelowHead(@Nullable HologramFunction function);
+
+    /**
+     * Updates the lines of the {@link PlayerHologram}.
+     * <p>Ths update is done is the specific order</p>
+     * <ul>
+     *     <li>The hologram lines are cleared.
+     *     <li>If aboveHead is not null, it's applied.
+     *     <li>If the NPC has a name, it's applied.
+     *     <li>If belowHead is not null, it's applied.
+     * </ul>
+     *
+     * @see PlayerHologram
+     */
+    void updateHologram();
+
+    /**
      * Returns Bukkit entity of this NPC.
      *
      * @return Bukkit entity of this NPC.
@@ -531,4 +586,34 @@ public interface Human {
      * @return players that can see this NPC.
      */
     Player[] getPlayers();
+
+    /**
+     * Static access to creating NPC.
+     *
+     * @param location - Location to create at.
+     */
+    static Human create(Location location) {
+        return HumanNPC.create(location);
+    }
+
+    /**
+     * Static access to creating NPC.
+     *
+     * @param location - Location to create at.
+     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
+     */
+    static Human create(Location location, String name) {
+        return HumanNPC.create(location, name);
+    }
+
+    /**
+     * Static access to creating NPC.
+     *
+     * @param location - Location to create at.
+     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
+     * @param skin     - Skin owner username.
+     */
+    static Human create(Location location, String name, String skin) {
+        return HumanNPC.create(location, name, skin);
+    }
 }

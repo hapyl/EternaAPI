@@ -42,7 +42,7 @@ public class HumanNPCListener implements Listener {
     }
 
     private void workClick(Player player, HumanNPC npc, ClickType clickType) {
-        Runnables.runSync(() -> npc.onClickAuto(player, clickType));
+        Runnables.runSync(() -> npc.onClick0(player, clickType));
     }
 
 }

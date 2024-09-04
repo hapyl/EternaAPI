@@ -40,7 +40,9 @@ public class SongPlayerQueue implements SongQueue {
     public void playNext() {
         if (this.hasNext()) {
             this.current = this.queue.poll();
-            final SongPlayer player = Eterna.getRegistry().songPlayer;
+
+            final SongPlayer player = SongPlayer.DEFAULT_PLAYER;
+
             player.setCurrentSong(this.current);
             player.startPlaying();
         }

@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.inventory;
 
-import me.hapyl.eterna.module.annotate.*;
+import me.hapyl.eterna.module.annotate.Asynchronous;
+import me.hapyl.eterna.module.annotate.TestedOn;
+import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.Runnables;
 import net.minecraft.core.BlockPos;
@@ -12,6 +14,7 @@ import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,7 +93,7 @@ public abstract class SignGUI {
      *               <b>This method will NOT include '^' character.</b>
      * @throws IllegalArgumentException if prompt lines are longer than 4 lines.
      */
-    public SignGUI(Player player, @Nonnull @Range(max = 4) String... prompt) {
+    public SignGUI(Player player, @Nonnull @Range(from = 0, to = 4) String... prompt) {
         this(player, SignType.OAK, prompt);
     }
 
@@ -103,7 +106,7 @@ public abstract class SignGUI {
      *               <b>This method will NOT include '^' character.</b>
      * @throws IllegalArgumentException if prompt lines are longer than 4 lines.
      */
-    public SignGUI(@Nonnull Player player, @Nonnull SignType type, @Nonnull @Range(max = 4) String... prompt) {
+    public SignGUI(@Nonnull Player player, @Nonnull SignType type, @Nonnull @Range(from = 0, to = 4) String... prompt) {
         this(player, type, (String) null);
         if (prompt.length > 4) {
             throw new IllegalArgumentException("Prompt cannot be longer than 4 lines!");
@@ -165,7 +168,7 @@ public abstract class SignGUI {
      *
      * @param response - Response.
      */
-    @AsyncNotSafe
+    @Asynchronous
     public abstract void onResponse(Response response);
 
     /**

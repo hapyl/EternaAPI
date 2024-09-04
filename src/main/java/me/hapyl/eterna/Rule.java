@@ -7,7 +7,7 @@ import me.hapyl.eterna.module.util.Validate;
  *
  * @param <E>
  */
-public class Rule<E> {
+public final class Rule<E> {
 
     public static final Rule<Boolean> ALLOW_QUEST_JOURNAL = new Rule<>("", Boolean.class, true);
     public static final Rule<Boolean> DELETE_BAD_QUESTS = new Rule<>("remove invalid (deleted) quests on loading", Boolean.class, true);

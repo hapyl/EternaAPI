@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.chat;
 
+import me.hapyl.eterna.module.util.Enums;
 import me.hapyl.eterna.module.util.Validate;
 import net.md_5.bungee.api.ChatColor;
 
@@ -45,7 +46,8 @@ public final class ColorBlockParser {
             }
             else {
                 // Literal color
-                final org.bukkit.ChatColor enumColor = Validate.getEnumValue(org.bukkit.ChatColor.class, color);
+                final org.bukkit.ChatColor enumColor = Enums.byName(org.bukkit.ChatColor.class, color);
+
                 if (enumColor != null) {
                     chatColor = enumColor.toString();
                 }

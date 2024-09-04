@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.reflect.npc;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -11,25 +12,26 @@ import com.mojang.datafixers.util.Pair;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.annotate.Range;
+import me.hapyl.eterna.builtin.manager.DialogManager;
+import me.hapyl.eterna.builtin.manager.QuestManager;
+import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.entity.LimitedVisibility;
-import me.hapyl.eterna.module.hologram.Hologram;
-import me.hapyl.eterna.module.hologram.LineFit;
-import me.hapyl.eterna.module.math.Numbers;
-import me.hapyl.eterna.module.math.nn.IntInt;
-import me.hapyl.eterna.module.player.PlayerLib;
-import me.hapyl.eterna.module.quest.PlayerQuestObjective;
-import me.hapyl.eterna.module.quest.QuestManager;
-import me.hapyl.eterna.module.quest.QuestObjectiveType;
+import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
+import me.hapyl.eterna.module.hologram.HologramFunction;
+import me.hapyl.eterna.module.hologram.PlayerHologram;
+import me.hapyl.eterna.module.hologram.StringArray;
+import me.hapyl.eterna.module.player.dialog.Dialog;
+import me.hapyl.eterna.module.player.dialog.NPCDialog;
+import me.hapyl.eterna.module.player.quest.QuestDataList;
+import me.hapyl.eterna.module.player.quest.QuestObjective;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.JsonHelper;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.reflect.npc.entry.NPCEntry;
-import me.hapyl.eterna.module.reflect.npc.entry.StringEntry;
 import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.util.Placeholder;
 import me.hapyl.eterna.module.util.TeamHelper;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
@@ -37,7 +39,9 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -48,6 +52,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,6 +60,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Allows to create <b>simple</b> player NPCs with support of clicks.
@@ -65,93 +71,144 @@ import java.util.function.Function;
 @TestedOn(version = Version.V1_21)
 public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
-    public static final String CLICK_NAME = "&e&lCLICK";
-    public static final String CHAT_FORMAT = "&e[NPC] &a{NAME}: " + ChatColor.WHITE + "{MESSAGE}";
+    public static final double CHAIR_LOCATION_Y_OFFSET = 0.39d;
+    public static final double HOLOGRAM_Y_OFFSET = 1.75d;
 
     private static final String nameToUuidRequest = "https://api.mojang.com/users/profiles/minecraft/%s";
     private static final String uuidToProfileRequest = "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false";
 
-    private static final double CHAIR_LOCATION_Y_OFFSET = 0.39d;
-
     protected final Set<Player> showingTo = Sets.newHashSet();
+    protected final Map<Player, InteractionDelay> interactedAt = Maps.newHashMap();
 
-    private final EternaPlayer human;
-    private final Hologram aboveHead;
-    private final String hexName;
-    private final String teamName;
     private final UUID uuid;
-    private final NPCResponse responses = new NPCResponse();
+    private final String hexName;
+    private final EternaPlayer human;
+    private final PlayerHologram hologram;
+
+    private final String teamName;
     private final NPCEquipment equipment;
-    private final Map<Player, InteractionDelay> interactedAt = new HashMap<>();
-    private final List<NPCEntry> entries = new ArrayList<>();
     private final int id;
-    private String npcName;
+
+    private String defaultName;
     private Location location;
-    private String chatPrefix;
-    private boolean alive;
-    private boolean collision = true;
-    private boolean stopTalking = false;
-    private long interactionDelay = 0L;
-    private String cannotInteractMessage = "Not now.";
+
+    @Nonnull private NPCFormat format;
+
+    private int interactionDelay;
     private int lookAtCloseDist;
+
+    private boolean collision;
+    private boolean alive;
+
+    @Nullable private Dialog dialog;
+    @Nullable private HologramFunction aboveHead;
+    @Nullable private HologramFunction belowHead;
+
     private BukkitTask moveTask;
     private AreaEffectCloud chair;
     private RestPosition restPosition;
 
-    private HumanNPC() {
-        this(BukkitUtils.getSpawnLocation(), "", "");
-    }
-
-    public HumanNPC(Location location, @Nullable String npcName) {
-        this(location, npcName, npcName);
+    /**
+     * Creates a new {@link HumanNPC} at the given {@link Location} with the given default name.
+     *
+     * @param location    - Location to create the {@link HumanNPC} at.
+     * @param defaultName - The default name of the npc.
+     *                    NPCs support per-player names: {@link #getName(Player)}
+     */
+    public HumanNPC(@Nonnull Location location, @Nullable String defaultName) {
+        this(location, defaultName, defaultName);
     }
 
     /**
-     * Create instance of HumanNPC class.
+     * Creates a new {@link HumanNPC} at the given {@link Location} with the given default name
+     * and applies a skin from the given skin owner name.
      *
-     * @param location  - Location of NPC.
-     * @param npcName   - Name of NPC.
-     *                  Use null or blank string to remove name.
-     * @param skinOwner - Skin owner.
-     *                  Leave empty or null to apply skin later.
-     *                  Only use online players names for this. See {@link HumanNPC#setSkin(String)} disclaimer.
+     * @param location    - {@link Location} to create the {@link HumanNPC} at.
+     * @param defaultName - The default name of the npc.
+     *                    NPCs support per-player names: {@link #getName(Player)}
+     * @param skinOwner   - The skin owner.
+     *                    I strongly recommend against setting a skin using the owner, unless you
+     *                    specifically want to set a skin for a given player, otherwise, prefer {@link #setSkin(String, String)}
      */
-    public HumanNPC(@Nonnull Location location, @Range(max = 32, throwsError = true) @Nullable String npcName, @Nullable String skinOwner) {
-        this(location, npcName, skinOwner, uuid -> ("§8[NPC] " + uuid.toString().replace("-", "")).substring(0, 16));
+    public HumanNPC(@Nonnull Location location, @Range(from = 0, to = 32) @Nullable String defaultName, @Nullable String skinOwner) {
+        this(location, defaultName, skinOwner, uuid -> ("§8[NPC] " + uuid.toString().replace("-", "")).substring(0, 16));
     }
 
-    protected HumanNPC(Location location, String npcName, String skinOwner, Function<UUID, String> hexNameFn) {
-        if (npcName == null) {
-            npcName = "";
-        }
-
-        if (npcName.length() > 32) {
-            throw new IndexOutOfBoundsException("NPC name cannot be longer than 32.");
-        }
-
-        if (!npcName.isEmpty()) {
-            this.chatPrefix = npcName;
+    /**
+     * Creates a new {@link HumanNPC} at the given {@link Location} with the given default name
+     * and applies a skin from the given skin owner name.
+     *
+     * @param location    - {@link Location} to create the {@link HumanNPC} at.
+     * @param defaultName - The default name of the npc.
+     *                    NPCs support per-player names: {@link #getName(Player)}
+     * @param skinOwner   - The skin owner.
+     *                    I strongly recommend against setting a skin using the owner, unless you
+     *                    specifically want to set a skin for a given player, otherwise, prefer {@link #setSkin(String, String)}
+     * @param hexNameFn   - A {@link Function} on how to create a hex name for the {@link HumanNPC}.
+     *                    Hex name is the actual entity name, used for team collision and name tag visibility.
+     */
+    protected HumanNPC(@Nonnull Location location, @Nullable String defaultName, @Nullable String skinOwner, @Nonnull Function<UUID, String> hexNameFn) {
+        if (defaultName == null) {
+            defaultName = "";
         }
 
         this.uuid = UUID.randomUUID();
-        this.location = location.clone();
-        this.npcName = npcName;
         this.hexName = hexNameFn.apply(uuid);
-        this.aboveHead = new Hologram().addLine(this.npcName).create(getLocation().subtract(0.0d, 1.75d, 0.0d));
-        this.equipment = new NPCEquipment();
-        this.teamName = TeamHelper.PARENT + "npc." + uuid;
 
         this.human = new EternaPlayer(location, hexName);
         this.human.setLocation(location);
+
+        this.hologram = new PlayerHologram(BukkitUtils.newLocation(location).subtract(0, HOLOGRAM_Y_OFFSET, 0));
+        updateHologram();
+
+        this.equipment = new NPCEquipment();
+        this.teamName = "%s.npc.%s".formatted(TeamHelper.PARENT, uuid.toString());
         this.id = human.getEntityId();
 
+        this.defaultName = defaultName;
+        this.location = BukkitUtils.newLocation(location);
+
+        this.format = NPCFormat.DEFAULT;
+
+        this.interactionDelay = 10;
+        this.lookAtCloseDist = 0;
+
+        // Apply skin if the skinOwner provided
         if (skinOwner != null && !skinOwner.isEmpty()) {
             setSkin(skinOwner);
         }
 
+        // Default visibility to 40 blocks
         setVisibility(40);
-        Eterna.getRegistry().npcRegistry.register(this);
+
+        // Register NPC
+        Eterna.getManagers().npc.register(this);
+
+        // Set collision and mark as 'alive'
+        this.collision = true;
         this.alive = true;
+    }
+
+    @Nonnull
+    @Override
+    public NPCFormat getFormat() {
+        return format;
+    }
+
+    @Override
+    public void setFormat(@Nonnull NPCFormat format) {
+        this.format = format;
+    }
+
+    @Override
+    public int getInteractionDelay() {
+        return interactionDelay;
+    }
+
+    @Override
+    public HumanNPC setInteractionDelay(int interactionDelay) {
+        this.interactionDelay = interactionDelay;
+        return this;
     }
 
     @Override
@@ -165,7 +222,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
                 human,
                 DataWatcherType.INT,
                 7,
-                shaking ? Integer.MAX_VALUE : 0
+                shaking ? Integer.MAX_VALUE : -100
         ));
 
         updateDataWatcher();
@@ -177,8 +234,42 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Nonnull
-    public Hologram getAboveHead() {
-        return aboveHead;
+    @Override
+    public PlayerHologram getHologram() {
+        return hologram;
+    }
+
+    @Override
+    public void setAboveHead(@Nullable HologramFunction function) {
+        this.aboveHead = function;
+        updateHologram();
+    }
+
+    @Override
+    public void setBelowHead(@Nullable HologramFunction function) {
+        this.belowHead = function;
+        updateHologram();
+    }
+
+    @Override
+    public final void updateHologram() {
+        this.hologram.setLines(player -> {
+            final StringArray array = StringArray.empty();
+
+            if (aboveHead != null) {
+                array.append(aboveHead.apply(player));
+            }
+
+            if (hasName()) {
+                array.append(format.formatName(player, this));
+            }
+
+            if (belowHead != null) {
+                array.append(belowHead.apply(player));
+            }
+
+            return array;
+        });
     }
 
     @Override
@@ -299,195 +390,106 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return this.showingTo.contains(player);
     }
 
-    public String getNpcName() {
-        return npcName;
-    }
-
-    public void rename(@Nullable String newName) {
-        npcName = newName == null ? "" : newName;
-        aboveHead.setLine(0, npcName);
-        aboveHead.updateLines();
-    }
-
+    @Nonnull
     public String getHexName() {
         return hexName;
     }
 
+    @Nonnull
     public UUID getUuid() {
         return uuid;
     }
 
-    public String getChatPrefix() {
-        return chatPrefix;
+    /**
+     * Sends NPC message to the given {@link Player}.
+     * <p>The message is sent as the NPC would talk to the player.</p>
+     * <p>The message is formatted using {@link #getFormat()} and {@link Placeholder#format(String, Object...)}</p>
+     *
+     * @param player  - Player to send the message to.
+     * @param message - Message to send.
+     */
+    public void sendNpcMessage(@Nonnull Player player, @Nonnull String message) {
+        Chat.sendMessage(player, Placeholder.format(format.formatText(player, this, message), player, this));
     }
 
-    public void setChatPrefix(String chatPrefix) {
-        this.chatPrefix = chatPrefix;
-    }
-
-    public void sendNpcMessage(Player player, String msg) {
-        // Placeholders
-        if (msg.contains("{") && msg.contains("}")) {
-            msg = placeHold(msg, player);
-        }
-
-        final String finalMessage = CHAT_FORMAT.replace("{NAME}", this.getPrefix()).replace("{MESSAGE}", msg);
-        Chat.sendMessage(player, finalMessage);
-
-    }
-
-    @Override
-    public HumanNPC addEntry(NPCEntry entry) {
-        this.entries.add(entry);
-        return this;
-    }
-
-    @Override
-    public HumanNPC addDialogLine(String string, int delayNext) {
-        entries.add(new StringEntry(string, delayNext));
-        return this;
-    }
-
-    @Override
-    public HumanNPC addDialogLine(String string) {
-        return this.addDialogLine(string, Numbers.clamp(string.length(), 20, 100));
-    }
-
+    @EventLike
     @Override
     public void onClick(@Nonnull Player player, @Nonnull ClickType type) {
     }
 
-    public final boolean onClickAuto(Player player, ClickType clickType) {
-        // Can interact?
-        if (!this.canInteract(player)) {
-            final String cannotInteract = this.getNPCResponses().getCannotInteract();
-            if (cannotInteract.isEmpty()) {
-                return false;
-            }
-            sendNpcMessage(player, cannotInteract);
-            return false;
+    public final void onClick0(@Nonnull Player player, @Nonnull ClickType clickType) {
+        // Check if the player can interact
+        if (!canInteract(player)) {
+            return;
+        }
+
+        // Call event
+        final PlayerClickAtNpcEvent event = new PlayerClickAtNpcEvent(player, this, clickType);
+        event.callEvent();
+
+        final PlayerClickAtNpcEvent.ClickResponse response = event.getResponse();
+
+        if (response == PlayerClickAtNpcEvent.ClickResponse.CANCEL) {
+            return;
+        }
+        else if (response == PlayerClickAtNpcEvent.ClickResponse.HOLD) {
+            startInteractionCooldown(player);
+            return;
+        }
+
+        if (dialog != null) {
+            dialog.start(player);
         }
 
         onClick(player, clickType);
-
-        // Do the entry magic
-        final QuestManager quest = QuestManager.current();
-        if (!this.entries.isEmpty()) {
-            final IntInt nextDelay = new IntInt();
-            final IntInt i = new IntInt();
-
-            for (final NPCEntry entry : this.entries) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!exists() || !player.isOnline() || stopTalking) {
-                            stopTalking = false;
-                            cancel();
-                            return;
-                        }
-
-                        // Progress FINISH_DIALOG
-                        if (i.get() == (entries.size() - 1)) {
-                            quest.checkActiveQuests(player, QuestObjectiveType.FINISH_DIALOGUE, this);
-                        }
-
-                        i.increment();
-                        entry.invokeEntry(HumanNPC.this, player);
-                    }
-                }.runTaskLater(EternaPlugin.getPlugin(), nextDelay.get());
-                nextDelay.addAndGet(entry.getDelay());
-            }
-
-            setInteractDelay(player, nextDelay.get() + 20L);
-        }
-        // Only start interact delay if there are no entries, entries override the delay because yes
-        else {
-            setInteractDelay(player, interactionDelay);
-        }
-
-        // Progress TALK_TO_NPC
-        quest.checkActiveQuests(player, QuestObjectiveType.TALK_TO_NPC, this);
-
-        // Progress GIVE_ITEM_STACK_TO_NPC
-        final ItemStack item = player.getInventory().getItemInMainHand();
-        if (!item.getType().isAir()) {
-
-            // Item Stack test
-            quest.checkActiveQuests(player, QuestObjectiveType.GIVE_ITEM_STACK_TO_NPC, item, this);
-
-            // Material test
-            if (quest.hasQuestsOfType(player, QuestObjectiveType.GIVE_ITEMS_TO_NPC)) {
-                for (final PlayerQuestObjective obj : quest.getActiveObjectivesOfType(player, QuestObjectiveType.GIVE_ITEMS_TO_NPC)) {
-                    final int amount = item.getAmount();
-                    // Check for the correct item
-                    if (obj.testQuestCompletion(item.getType(), amount, this) >= 0.0d) {
-
-                        final int needMore = (int) (obj.getCompletionGoal() - obj.getGoalCurrent());
-                        final int canGive = Numbers.clamp(amount - needMore, needMore, amount);
-
-                        obj.incrementGoal(canGive, true);
-
-                        if (obj.isFinished()) {
-                            this.sendNpcMessage(player, this.getNPCResponses().getQuestGiveItemsFinish());
-                            PlayerLib.villagerYes(player);
-                        }
-                        else {
-                            this.sendNpcMessage(player, this.getNPCResponses().getQuestGiveItemsNeedMore());
-                            PlayerLib.playSound(player, Sound.ENTITY_VILLAGER_TRADE, 1.0f);
-                        }
-                    }
-                    // Not correct item
-                    else {
-                        this.sendNpcMessage(player, this.getNPCResponses().getQuestGiveItemsInvalidItem());
-                        PlayerLib.villagerNo(player);
-                    }
-                }
-            }
-
-        }
-        return true;
+        startInteractionCooldown(player);
     }
 
-    public NPCResponse getNPCResponses() {
-        return responses;
+    @Nullable
+    public Dialog getDialog() {
+        return dialog;
     }
 
-    public void setInteractDelay(@Nonnull Player player, long delayMillis) {
-        this.interactedAt.put(player, new InteractionDelay(player, delayMillis));
+    public void setDialog(@Nullable Dialog dialog) {
+        this.dialog = dialog;
     }
 
     @Override
     public boolean exists() {
-        return Eterna.getRegistry().npcRegistry.isRegistered(getId());
+        return Eterna.getManagers().npc.isManaging(getId());
     }
 
     @Override
+    @Nonnull
+    @Deprecated
     public String getName() {
-        return npcName;
+        return defaultName;
+    }
+
+    @Override
+    @Deprecated
+    public void setName(@Nullable String newName) {
+        defaultName = newName == null ? "" : newName;
+        updateHologram();
+    }
+
+    @Nonnull
+    public String getName(@Nonnull Player player) {
+        return this.defaultName;
     }
 
     @Override
     public void stopTalking() {
-        this.stopTalking = true;
-    }
+        final DialogManager dialogManager = Eterna.getManagers().dialog;
 
-    public String getCannotInteractMessage() {
-        return cannotInteractMessage;
-    }
-
-    public HumanNPC setCannotInteractMessage(String cannotInteractMessage) {
-        this.cannotInteractMessage = cannotInteractMessage;
-        return this;
-    }
-
-    public long getInteractionDelay() {
-        return interactionDelay;
+        dialogManager.stopDialogIf(dialogPredicate());
     }
 
     @Override
-    public HumanNPC setInteractionDelay(long interactionDelayMillis) {
-        this.interactionDelay = interactionDelayMillis;
-        return this;
+    public void stopTalking(@Nonnull Player player) {
+        final DialogManager dialogManager = Eterna.getManagers().dialog;
+
+        dialogManager.stopDialogIf(player, dialogPredicate());
     }
 
     @Override
@@ -498,20 +500,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public HumanNPC setLookAtCloseDist(int lookAtCloseDist) {
         this.lookAtCloseDist = lookAtCloseDist;
-        return this;
-    }
-
-    @Override
-    public HumanNPC addTextAboveHead(String text) {
-        this.aboveHead.addLine(text);
-        this.aboveHead.updateLines(LineFit.BACKWARDS);
-        return this;
-    }
-
-    @Override
-    public HumanNPC removeTextAboveHead(int index) {
-        this.aboveHead.removeLine(index);
-        this.aboveHead.updateLines(LineFit.BACKWARDS);
         return this;
     }
 
@@ -868,7 +856,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void show(@Nonnull Player player) {
         showingTo.add(player);
-        aboveHead.show(player);
+        hologram.create(player);
 
         onSpawn(player);
         showVisibility(player);
@@ -940,7 +928,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void remove() {
         remove0();
-        Eterna.getRegistry().npcRegistry.unregister(getId());
+        Eterna.getManagers().npc.unregister(getId());
     }
 
     /**
@@ -972,8 +960,8 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     public void hide0(@Nonnull Player player) {
-        aboveHead.hide(player);
         human.hide(player);
+        hologram.destroy(player);
 
         if (chair != null) {
             Reflect.destroyEntity(chair, player);
@@ -1022,13 +1010,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      * Syncs the text above the NPC's head.
      */
     public void syncText() {
-        if (this.aboveHead == null) {
+        if (this.hologram == null) {
             return;
         }
 
         final Location location = getLocation();
 
-        location.add(0.0d, 1.75d, 0.0d);
+        location.add(0.0d, HOLOGRAM_Y_OFFSET, 0.0d);
 
         // ;; DoNotInline
         if (isDynamicNameTag()) {
@@ -1037,7 +1025,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             }
         }
 
-        this.aboveHead.teleport(location);
+        this.hologram.move(location);
     }
 
     @Override
@@ -1048,6 +1036,25 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public Player[] getPlayers() {
         return showingTo.toArray(new Player[0]);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        final HumanNPC other = (HumanNPC) object;
+        return Objects.equals(uuid, other.uuid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(uuid);
     }
 
     protected void sendPacket(@Nonnull Packet<?> packet) {
@@ -1066,6 +1073,34 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
 
         return delay.isOver();
+    }
+
+    private void startInteractionCooldown(Player player) {
+        interactedAt.put(player, new InteractionDelay(player, interactionDelay));
+    }
+
+    private Predicate<Dialog> dialogPredicate() {
+        return dialog -> dialog instanceof NPCDialog npcDialog && npcDialog.getNpc().equals(this);
+    }
+
+    private void stopTalking0(Player player) {
+        final DialogManager dialogManager = Eterna.getManagers().dialog;
+        final QuestManager questManager = Eterna.getManagers().quest;
+
+        final QuestDataList questData = questManager.get(player);
+
+        questData.forEach(data -> {
+            final QuestObjective currentObjective = data.getCurrentObjective();
+            if (currentObjective == null) {
+                return;
+            }
+
+            final NPCDialog dialog = currentObjective.getDialog(this);
+
+            if (dialog != null) {
+                dialogManager.stopDialog(player, dialog);
+            }
+        });
     }
 
     private void removeChair() {
@@ -1124,23 +1159,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
         // Force update name tag
         syncText();
-    }
-
-    private String getPrefix() {
-        return this.chatPrefix;
-    }
-
-    private String placeHold(String entry, Player player) {
-        final String[] splits = entry.split(" ");
-        final StringBuilder builder = new StringBuilder();
-        for (String split : splits) {
-            split = split.replace(Placeholders.PLAYER.get(), player.getName())
-                    .replace(Placeholders.NAME.get(), this.getName())
-                    .replace(Placeholders.LOCATION.get(), BukkitUtils.locationToString(this.getLocation()));
-            builder.append(split);
-            builder.append(" ");
-        }
-        return builder.toString().trim();
     }
 
     private void move0(double x, double y, double z) {
@@ -1205,18 +1223,17 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     public static boolean isNPC(int entityId) {
-        return Eterna.getRegistry().npcRegistry.isRegistered(entityId);
+        return Eterna.getManagers().npc.isManaging(entityId);
     }
 
     @Nullable
     public static HumanNPC getById(int id) {
-        return Eterna.getRegistry().npcRegistry.byKey(id);
+        return Eterna.getManagers().npc.get(id);
     }
 
     public static void hideAllNames(Scoreboard score) {
-        for (final HumanNPC value : Eterna.getRegistry().npcRegistry.getRegistered().values()) {
+        for (final HumanNPC value : Eterna.getManagers().npc.getRegistered().values()) {
             value.hideTabListName();
         }
     }
-
 }

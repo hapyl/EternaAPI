@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.reflect.glow;
 
 import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.builtin.manager.GlowingManager;
 import me.hapyl.eterna.module.event.protocol.PacketSendEvent;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
@@ -12,7 +13,7 @@ import org.bukkit.event.Listener;
 
 public class GlowingProtocolEntitySpawnListener implements Listener {
 
-    private final GlowingRegistry registry = Eterna.getRegistry().glowingRegistry;
+    private final GlowingManager manager = Eterna.getManagers().glowing;
 
     @EventHandler()
     public void handlePacketSendEvent(PacketSendEvent ev) {
@@ -30,13 +31,13 @@ public class GlowingProtocolEntitySpawnListener implements Listener {
         }
 
         final int entityId = packet.getEntityId();
-        final Entity entity = registry.getById(entityId);
+        final Entity entity = manager.getById(entityId);
 
         if (entity == null) {
             return;
         }
 
-        final Glowing glowing = registry.getGlowing(player, entity);
+        final Glowing glowing = manager.getGlowing(player, entity);
 
         if (glowing == null || !glowing.isGlowing()) {
             return;

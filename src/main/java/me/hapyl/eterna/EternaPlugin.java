@@ -2,19 +2,18 @@ package me.hapyl.eterna;
 
 import me.hapyl.eterna.builtin.command.EternaCommand;
 import me.hapyl.eterna.builtin.command.NoteBlockStudioCommand;
-import me.hapyl.eterna.builtin.event.PlayerConfigEvent;
+import me.hapyl.eterna.builtin.command.SelectDialogOptionCommand;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.command.CommandProcessor;
+import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
 import me.hapyl.eterna.module.hologram.HologramListener;
 import me.hapyl.eterna.module.hologram.HologramRunnable;
 import me.hapyl.eterna.module.inventory.ItemBuilderListener;
 import me.hapyl.eterna.module.inventory.SignListener;
 import me.hapyl.eterna.module.inventory.gui.GUIListener;
 import me.hapyl.eterna.module.inventory.item.CustomItemListener;
-import me.hapyl.eterna.module.locaiton.TriggerManager;
 import me.hapyl.eterna.module.parkour.ParkourListener;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
-import me.hapyl.eterna.module.quest.QuestListener;
 import me.hapyl.eterna.module.record.ReplayListener;
 import me.hapyl.eterna.module.reflect.NPCRunnable;
 import me.hapyl.eterna.module.reflect.glow.GlowingProtocolEntitySpawnListener;
@@ -23,7 +22,7 @@ import me.hapyl.eterna.module.reflect.glow.GlowingRunnable;
 import me.hapyl.eterna.module.reflect.npc.HumanNPCListener;
 import me.hapyl.eterna.module.util.Runnables;
 import me.hapyl.eterna.protocol.EternaProtocol;
-import me.hapyl.eterna.registry.EternaRegistry;
+import me.hapyl.eterna.builtin.manager.EternaManagers;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
@@ -36,11 +35,11 @@ import java.io.File;
 /**
  * Represents EternaAPI plugin.
  */
-public class EternaPlugin extends JavaPlugin {
+public /*final*/ class EternaPlugin extends JavaPlugin {
 
     private static EternaPlugin plugin;
 
-    protected EternaRegistry registry;
+    protected EternaManagers managers;
     protected Updater updater;
     protected EternaConfig config;
     protected EternaProtocol protocol;
@@ -55,24 +54,22 @@ public class EternaPlugin extends JavaPlugin {
         // Init protocol
         this.protocol = new EternaProtocol(this);
 
-        // Init registry
-        this.registry = new EternaRegistry(this);
+        // Init managers
+        this.managers = new EternaManagers(this);
 
         final PluginManager manager = this.getServer().getPluginManager();
 
         manager.registerEvents(new ItemBuilderListener(), this);
         manager.registerEvents(new CustomItemListener(), this);
         manager.registerEvents(new GUIListener(), this);
-        manager.registerEvents(new TriggerManager(), this);
-        manager.registerEvents(new QuestListener(), this);
         manager.registerEvents(new ParkourListener(), this);
-        manager.registerEvents(new PlayerConfigEvent(), this);
         manager.registerEvents(new ReplayListener(), this);
         manager.registerEvents(new HologramListener(), this);
         manager.registerEvents(new SignListener(), this);
         manager.registerEvents(new HumanNPCListener(), this);
         manager.registerEvents(new GlowingProtocolMetadataListener(), this);
         manager.registerEvents(new GlowingProtocolEntitySpawnListener(), this);
+        manager.registerEvents(new PlayerMoveOneBlockEvent.Handler(), this);
 
         final BukkitScheduler scheduler = Bukkit.getScheduler();
 
@@ -94,6 +91,7 @@ public class EternaPlugin extends JavaPlugin {
         final CommandProcessor commandProcessor = new CommandProcessor(this);
         commandProcessor.registerCommand(new EternaCommand("eterna"));
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
+        commandProcessor.registerCommand(new SelectDialogOptionCommand("selectdialogoption"));
 
         // Create songs folder
         try {
@@ -101,9 +99,6 @@ public class EternaPlugin extends JavaPlugin {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Load PlayerConfig for online players
-        Runnables.runLater(() -> Bukkit.getOnlinePlayers().forEach(player -> registry.configRegistry.getConfig(player).loadAll()), 10L);
 
         // Load dependencies
         EternaAPI.loadAll();
@@ -118,7 +113,7 @@ public class EternaPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        registry.onDisable();
+        managers.dispose();
     }
 
     /**

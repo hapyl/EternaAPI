@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.reflect.border;
 
-import me.hapyl.eterna.module.EternaModule;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.math.Numbers;
@@ -16,7 +15,6 @@ import org.bukkit.entity.Player;
  * Note that this client is only change, and it will
  * be reset after player re-logins.
  */
-@EternaModule
 @TestedOn(version = Version.V1_21)
 public class PlayerBorder extends Holder<Player> {
 
@@ -47,7 +45,7 @@ public class PlayerBorder extends Holder<Player> {
         final Player player = getPlayer();
         final Location location = player.getLocation();
 
-        size = Numbers.clamp(size, 2.0d, Double.MAX_VALUE);
+        size = Math.clamp(size, 2.0d, Double.MAX_VALUE);
         border.setCenter(location.getX(), location.getZ());
 
         if (operation == Operation.REMOVE) {

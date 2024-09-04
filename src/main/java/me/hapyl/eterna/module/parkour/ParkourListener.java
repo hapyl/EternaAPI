@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.parkour;
 
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.builtin.InternalCooldown;
+import me.hapyl.eterna.builtin.manager.ParkourManager;
 import me.hapyl.eterna.module.chat.Chat;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,16 +21,12 @@ import org.bukkit.event.player.*;
 
 public class ParkourListener implements Listener {
 
-    private ParkourRegistry manager() {
-        return Eterna.getRegistry().parkourRegistry;
-    }
-
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerJoin(PlayerJoinEvent ev) {
         final Player player = ev.getPlayer();
 
-        manager().getRegisteredParkours().forEach(p -> {
-            p.showHolograms(player);
+       manager().forEach((k, v) -> {
+            v.showHolograms(player);
         });
     }
 
@@ -81,7 +78,7 @@ public class ParkourListener implements Listener {
 
             // Start
             if (parkour.getStart().compare(clickedBlockLocation)) {
-                manager().startParkour(player, parkour);
+                manager().start(player, parkour);
                 return;
             }
 
@@ -100,13 +97,13 @@ public class ParkourListener implements Listener {
                 // Not all checkpoints
                 if (!data.getCheckpoints().isEmpty()) {
                     if (data.hasNextCheckpoint()) {
-                        manager().teleportToCheckpoint(player);
+                        manager().checkpoint(player);
                     }
                     parkour.getFormatter().sendErrorMissedCheckpointCannotFinish(data);
                     return;
                 }
 
-                manager().finishParkour(player);
+                manager().finish(player);
             }
         }
 
@@ -186,7 +183,7 @@ public class ParkourListener implements Listener {
 
         final Data data = manager().getData(player);
 
-        if (ev.getNewEffect() == null || !manager().isParkouring(player) || data == null) {
+        if (ev.getNewEffect() == null || !manager().isInParkour(player) || data == null) {
             return;
         }
 
@@ -195,7 +192,7 @@ public class ParkourListener implements Listener {
             return;
         }
 
-        manager().failParkour(player, FailType.EFFECT_CHANGE);
+        manager().fail(player, FailType.EFFECT_CHANGE);
     }
 
     @EventHandler()
@@ -210,6 +207,10 @@ public class ParkourListener implements Listener {
         data.getStats().increment(Stats.Type.JUMP, 1);
     }
 
+    private ParkourManager manager() {
+        return Eterna.getManagers().parkour;
+    }
+
     private void testFail(Player player, FailType type) {
         final Data data = manager().getData(player);
 
@@ -217,7 +218,7 @@ public class ParkourListener implements Listener {
             return;
         }
 
-        manager().failParkour(player, type);
+        manager().fail(player, type);
     }
 
 }

@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender;
 /**
  * Represents API logger.
  */
-public class EternaLogger {
+public final class EternaLogger {
 
     public static final String PREFIX = "&b&lEternaAPI&b> &a";
     public static final String DEBUG_PREFIX = PREFIX + "&c&lDEBUG&4> &7&o";

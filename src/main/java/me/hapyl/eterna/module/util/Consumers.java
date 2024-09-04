@@ -12,6 +12,28 @@ import java.util.function.Consumer;
 public interface Consumers {
 
     /**
+     * Gets an empty {@link Consumer}.
+     *
+     * @return an empty consumer.
+     */
+    @Nonnull
+    static <T> Consumer<T> empty() {
+        return t -> {
+        };
+    }
+
+    /**
+     * Gets an empty {@link BiConsumer}.
+     *
+     * @return an empty bi-consumer.
+     */
+    @Nonnull
+    static <T, U> BiConsumer<T, U> emptyBi() {
+        return (t, u) -> {
+        };
+    }
+
+    /**
      * @deprecated Use {@link Consumer} instead.
      */
     @Deprecated

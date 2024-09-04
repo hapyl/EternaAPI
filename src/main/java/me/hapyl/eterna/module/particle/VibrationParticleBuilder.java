@@ -16,10 +16,10 @@ public class VibrationParticleBuilder extends ParticleBuilder {
 
     private final Vibration vibration;
 
-    VibrationParticleBuilder(@Nonnull Location origin, @Nonnull Vibration.Destination destination, int arrivalTime) {
+    VibrationParticleBuilder(@Nonnull Vibration.Destination destination, int arrivalTime) {
         super(Particle.VIBRATION);
 
-        this.vibration = new Vibration(origin, destination, arrivalTime);
+        this.vibration = new Vibration(destination, arrivalTime);
     }
 
     @Override
@@ -27,12 +27,14 @@ public class VibrationParticleBuilder extends ParticleBuilder {
         super.display0(player, location, count, x, y, z, speed, vibration);
     }
 
-    static ParticleBuilder of(@Nonnull Location from, @Nonnull Location to, int arrivalTime) {
-        return new VibrationParticleBuilder(from, new Vibration.Destination.BlockDestination(to), arrivalTime);
+    @Nonnull
+    static ParticleBuilder of(@Nonnull Location to, int arrivalTime) {
+        return new VibrationParticleBuilder(new Vibration.Destination.BlockDestination(to), arrivalTime);
     }
 
-    static ParticleBuilder of(@Nonnull Location from, @Nonnull Entity to, int arrivalTime) {
-        return new VibrationParticleBuilder(from, new Vibration.Destination.EntityDestination(to), arrivalTime);
+    @Nonnull
+    static ParticleBuilder of(@Nonnull Entity to, int arrivalTime) {
+        return new VibrationParticleBuilder(new Vibration.Destination.EntityDestination(to), arrivalTime);
     }
 
 }

@@ -44,7 +44,7 @@ public class TypeConverter {
      * @return the byte.
      */
     public byte toByte(byte def) {
-        return Validate.isByte(obj) ? Validate.getByte(obj) : def;
+        return Numbers.getByte(obj, def);
     }
 
     /**
@@ -148,7 +148,7 @@ public class TypeConverter {
      * @return the double.
      */
     public boolean toBoolean() {
-        return Boolean.getBoolean(String.valueOf(obj));
+        return "true".equalsIgnoreCase(obj.toString());
     }
 
     /**
@@ -173,7 +173,7 @@ public class TypeConverter {
      */
     @Nonnull(when = When.MAYBE)
     public <T extends Enum<T>> T toEnum(@Nonnull Class<T> clazz, T def) {
-        return Validate.getEnumValue(clazz, obj, def);
+        return Enums.byName(clazz, obj.toString(), def);
     }
 
     /**
@@ -233,6 +233,7 @@ public class TypeConverter {
      *
      *     converter.toStringFormatted("%.1f"); // 12.3
      * </pre>
+     *
      * @param format - Format.
      * @return the formatted string.
      */

@@ -1,7 +1,5 @@
 package me.hapyl.eterna.module.scoreboard;
 
-import me.hapyl.eterna.module.EternaModule;
-import me.hapyl.eterna.module.annotate.Range;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.md_5.bungee.api.ChatColor;
@@ -9,6 +7,7 @@ import net.minecraft.network.chat.numbers.BlankFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -16,7 +15,6 @@ import java.util.*;
 /**
  * This class allows creating per-player scoreboards.
  */
-@EternaModule
 public class Scoreboarder {
 
     private final Scoreboard scoreboard;
@@ -87,7 +85,7 @@ public class Scoreboarder {
      *
      * @param lines - Array of new lines.
      */
-    public void setLines(@Range(max = 17) String... lines) {
+    public void setLines(@Range(from = 0, to = 17) String... lines) {
         this.lines.clear();
         this.lines.addAll(Arrays.asList(lines));
 
@@ -108,7 +106,7 @@ public class Scoreboarder {
      * Adds a line to the scoreboard.
      * Does NOT update scoreboard lines.
      *
-     * @param line    - Line to add.
+     * @param line - Line to add.
      */
     public void addLine(@Nonnull String line) {
         this.lines.add(line);
