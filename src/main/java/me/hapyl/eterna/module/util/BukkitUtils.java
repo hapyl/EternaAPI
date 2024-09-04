@@ -6,11 +6,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.PaperWorkaround;
-import me.hapyl.eterna.module.annotate.Range;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.reflect.Reflect;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.core.BlockPos;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -338,7 +336,7 @@ public class BukkitUtils {
      * @return the closest entity to the location.
      */
     @Nullable
-    public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location, @Range EntityType... allowedTypes) {
+    public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location, @Nonnull EntityType... allowedTypes) {
         if (collection.isEmpty()) {
             return null;
         }
@@ -348,11 +346,9 @@ public class BukkitUtils {
 
         search:
         for (final Entity entity : collection) {
-            if (allowedTypes != null) {
-                for (final EntityType allowedType : allowedTypes) {
-                    if (entity.getType() != allowedType) {
-                        continue search;
-                    }
+            for (final EntityType allowedType : allowedTypes) {
+                if (entity.getType() != allowedType) {
+                    continue search;
                 }
             }
 

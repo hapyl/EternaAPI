@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.Range;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,11 +28,7 @@ public class WeightedCollection<T> implements Iterable<T> {
      * @param weight - Weight of the element.
      * @throws IllegalArgumentException If weight is negative.
      */
-    public void add(@Nonnull T t, @Range int weight) {
-        if (weight < 0) {
-            throw new IllegalArgumentException("Weight cannot be negative!");
-        }
-
+    public void add(@Nonnull T t, @Range(from = 0, to = Integer.MAX_VALUE) int weight) {
         elements.add(new WeightedElement(t, weight));
         totalWeight += weight;
     }
@@ -60,7 +56,7 @@ public class WeightedCollection<T> implements Iterable<T> {
      * @param weight     - Weight of all elements.
      * @param collection - Collection.
      */
-    public void addAll(@Range int weight, @Nonnull Collection<T> collection) {
+    public void addAll(@Range(from = 0, to = Integer.MAX_VALUE) int weight, @Nonnull Collection<T> collection) {
         for (T t : collection) {
             this.add(t, weight);
         }
@@ -126,7 +122,7 @@ public class WeightedCollection<T> implements Iterable<T> {
      * @return a list of all elements from this collection matching the given weight.
      */
     @Nonnull
-    public List<T> getElementsByWeight(@Range int weight) {
+    public List<T> getElementsByWeight(@Range(from = 0, to = Integer.MAX_VALUE) int weight) {
         final List<T> elements = new ArrayList<>();
 
         for (WeightedElement element : this.elements) {

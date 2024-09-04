@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.inventory.item;
 
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.Eterna;
-import me.hapyl.eterna.module.annotate.Event;
+import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.nbt.NBTType;
@@ -66,23 +66,23 @@ public abstract class CustomItem implements Keyed {
         this.lore.addAll(ItemBuilder.splitString(lore, 35));
     }
 
-    @Event
+    @EventLike
     public void onClick(Player player, ItemStack item, PlayerInteractEvent event) {
     }
 
-    @Event
+    @EventLike
     public void onPlace(Player player, ItemStack item, BlockPlaceEvent event) {
     }
 
-    @Event
+    @EventLike
     public void onInventoryClick(Player player, ItemStack item, InventoryClickEvent event) {
     }
 
-    @Event
+    @EventLike
     public void onDrop(Player player, ItemStack item, PlayerDropItemEvent event) {
     }
 
-    @Event
+    @EventLike
     public void onPickup(Player player, ItemStack item, EntityPickupItemEvent event) {
     }
 

@@ -2,8 +2,6 @@ package me.hapyl.eterna.module.inventory;
 
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.quest.QuestManager;
-import me.hapyl.eterna.module.quest.QuestObjectiveType;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -96,13 +94,6 @@ public class ItemFunction {
         }
 
         runnable.accept(player);
-
-        if (item != null) {
-            final String id = ItemBuilder.getItemID(item);
-
-            // Progress USE_CUSTOM_ITEM
-            QuestManager.current().checkActiveQuests(player, QuestObjectiveType.USE_CUSTOM_ITEM, id);
-        }
     }
 
     public boolean isAccepts(@Nonnull Action action) {

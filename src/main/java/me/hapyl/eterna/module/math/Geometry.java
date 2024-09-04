@@ -1,9 +1,7 @@
 package me.hapyl.eterna.module.math;
 
 import com.google.common.collect.Lists;
-import me.hapyl.eterna.module.annotate.AsyncNotSafe;
-import me.hapyl.eterna.module.annotate.AsyncSafe;
-import me.hapyl.eterna.module.annotate.Range;
+import me.hapyl.eterna.module.annotate.Asynchronous;
 import me.hapyl.eterna.module.math.geometry.Drawable;
 import me.hapyl.eterna.module.math.geometry.Quality;
 import me.hapyl.eterna.module.util.BukkitUtils;
@@ -13,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -38,7 +37,6 @@ public class Geometry {
      * @param draw    - Drawable.
      * @throws NullPointerException if location, quality or drawable is null.
      */
-    @AsyncSafe
     public static void drawCircle(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Drawable draw) {
         Validate.notNull(center, "location cannot be null");
         Validate.notNull(draw, "draw particle cannot be null");
@@ -63,12 +61,12 @@ public class Geometry {
      * @throws IllegalArgumentException if material is not a block.
      * @throws NullPointerException     if the world is unloaded.
      */
-    @AsyncNotSafe
+    @Asynchronous
     public static List<Block> drawCircleWithBlocks(@Nonnull Location center, int radius, Material material) {
         return drawCircleWithBlocks(center, radius, material, false);
     }
 
-    @AsyncNotSafe
+    @Asynchronous
     public static List<Block> drawCircleWithBlocks(@Nonnull Location center, int radius, Material material, boolean trueCircle) {
         final World world = center.getWorld();
         radius = Math.max(radius, 0);
@@ -158,7 +156,6 @@ public class Geometry {
      * @throws NullPointerException     if start, end or drawable is null.
      * @throws IllegalArgumentException if start and end are not in the same world.
      */
-    @AsyncSafe
     public static void drawLine(@Nonnull Location start, @Nonnull Location end, double step, @Nonnull Drawable draw) {
         Validate.notNull(start);
         Validate.notNull(end);
@@ -186,7 +183,6 @@ public class Geometry {
      * @param drawOnlyTop - If true, only the top of the sphere will be drawn to save on resources.
      * @throws NullPointerException if center or draw is null.
      */
-    @AsyncSafe
     public static void drawSphere(@Nonnull Location center, double rings, double radius, @Nonnull Drawable draw, boolean drawOnlyTop) {
         Validate.notNull(center);
         Validate.notNull(draw);
@@ -216,7 +212,6 @@ public class Geometry {
      * @param draw   - Drawable.
      * @throws NullPointerException if center or draw is null.
      */
-    @AsyncSafe
     public static void drawSphere(Location center, double rings, double radius, Drawable draw) {
         drawSphere(center, rings, radius, draw, false);
     }
@@ -234,7 +229,7 @@ public class Geometry {
      * @throws IllegalArgumentException if radius is negative.
      * @throws IllegalArgumentException if points are <= 3
      */
-    public static void drawPolygon(@Nonnull Location center, @Range(min = 3) int points, double radius, @Nonnull Drawable draw) {
+    public static void drawPolygon(@Nonnull Location center, @Range(from = 3, to = Byte.MAX_VALUE) int points, double radius, @Nonnull Drawable draw) {
         Validate.notNull(center);
         Validate.notNull(draw);
         Validate.isTrue(radius > 0, "radius must be positive");

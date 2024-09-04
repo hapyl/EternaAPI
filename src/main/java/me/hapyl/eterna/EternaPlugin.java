@@ -5,16 +5,15 @@ import me.hapyl.eterna.builtin.command.NoteBlockStudioCommand;
 import me.hapyl.eterna.builtin.command.SelectDialogOptionCommand;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.command.CommandProcessor;
+import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
 import me.hapyl.eterna.module.hologram.HologramListener;
 import me.hapyl.eterna.module.hologram.HologramRunnable;
 import me.hapyl.eterna.module.inventory.ItemBuilderListener;
 import me.hapyl.eterna.module.inventory.SignListener;
 import me.hapyl.eterna.module.inventory.gui.GUIListener;
 import me.hapyl.eterna.module.inventory.item.CustomItemListener;
-import me.hapyl.eterna.module.locaiton.TriggerManager;
 import me.hapyl.eterna.module.parkour.ParkourListener;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
-import me.hapyl.eterna.module.quest.QuestListener;
 import me.hapyl.eterna.module.record.ReplayListener;
 import me.hapyl.eterna.module.reflect.NPCRunnable;
 import me.hapyl.eterna.module.reflect.glow.GlowingProtocolEntitySpawnListener;
@@ -63,8 +62,6 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new ItemBuilderListener(), this);
         manager.registerEvents(new CustomItemListener(), this);
         manager.registerEvents(new GUIListener(), this);
-        manager.registerEvents(new TriggerManager(), this);
-        manager.registerEvents(new QuestListener(), this);
         manager.registerEvents(new ParkourListener(), this);
         manager.registerEvents(new ReplayListener(), this);
         manager.registerEvents(new HologramListener(), this);
@@ -72,6 +69,7 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new HumanNPCListener(), this);
         manager.registerEvents(new GlowingProtocolMetadataListener(), this);
         manager.registerEvents(new GlowingProtocolEntitySpawnListener(), this);
+        manager.registerEvents(new PlayerMoveOneBlockEvent.Handler(), this);
 
         final BukkitScheduler scheduler = Bukkit.getScheduler();
 

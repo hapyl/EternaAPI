@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.player.dialog;
 
 import com.google.common.collect.Lists;
-import me.hapyl.eterna.module.annotate.Range;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.LazyEvent;
 import me.hapyl.eterna.module.player.PlayerLib;
@@ -10,6 +9,7 @@ import me.hapyl.eterna.module.util.CollectionUtils;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,8 +40,7 @@ public class DialogOptionEntry implements DialogEntry {
      * @throws IllegalArgumentException If the index is less than one or greater than {@link #MAX_OPTIONS}.
      * @throws IllegalArgumentException If the option for the given index is already set.
      */
-    public DialogOptionEntry setOption(@Range(min = 1, max = MAX_OPTIONS) int index, @Nonnull Builder builder) {
-        Validate.isTrue(index >= 1 && index <= MAX_OPTIONS, "Option must be greater than 1 and less than %s!".formatted(MAX_OPTIONS));
+    public DialogOptionEntry setOption(@Range(from = 1, to = MAX_OPTIONS) int index, @Nonnull Builder builder) {
         Validate.isTrue(!options.containsKey(index), "%s option is already set!".formatted(Chat.stNdTh(index)));
 
         options.put(index, builder.build(index));
@@ -149,6 +148,7 @@ public class DialogOptionEntry implements DialogEntry {
     public static Builder goodbye(@Nonnull String prompt) {
         return new Builder()
                 .prompt(goodbyePrompt(prompt))
+                .advanceDialog(true)
                 .add(DialogInstance::cancel);
     }
 

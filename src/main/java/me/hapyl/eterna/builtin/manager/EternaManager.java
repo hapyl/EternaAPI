@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class EternaManager<K, V> {
 
@@ -29,8 +30,9 @@ public class EternaManager<K, V> {
         managing.put(k, v);
     }
 
-    public void unregister(@Nonnull K k) {
-        managing.remove(k);
+    @Nullable
+    public V unregister(@Nonnull K k) {
+        return managing.remove(k);
     }
 
     public boolean isManaging(@Nonnull K k) {
@@ -44,6 +46,10 @@ public class EternaManager<K, V> {
 
     public void forEach(@Nonnull BiConsumer<K, V> consumer) {
         managing.forEach(consumer);
+    }
+
+    public void forEach(@Nonnull Consumer<V> consumer) {
+        managing.values().forEach(consumer);
     }
 
 }

@@ -583,10 +583,10 @@ public final class Chat {
      *     First, Second, Third and Fourth
      * </pre>
      * <p>
-     * Meaning appends commands between each element except the last one, where <code>and</code> is used instead of commad.
+     * Meaning appends commands between each element except the last one, where <code>and</code> is used instead of comma.
      *
-     * @param collection - Collection.
-     * @param fn         - Function.
+     * @param collection - Collection to format.
+     * @param fn         - Function on how to get the string.
      * @return a string.
      */
     @Nonnull
@@ -612,6 +612,23 @@ public final class Chat {
         }
 
         return builder.toString();
+    }
+
+    /**
+     * Makes a string from the given array, following the format:
+     * <pre>
+     *     First, Second, Third and Fourth
+     * </pre>
+     * <p>
+     * Meaning appends commands between each element except the last one, where <code>and</code> is used instead of comma.
+     *
+     * @param collection - Array to format.
+     * @param fn         - Function on how to get the string.
+     * @return a string.
+     */
+    @Nonnull
+    public static <T> String makeStringCommaAnd(@Nonnull T[] collection, @Nonnull Function<T, String> fn) {
+        return makeStringCommaAnd(List.of(collection), fn);
     }
 
     /**

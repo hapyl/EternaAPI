@@ -2,7 +2,6 @@ package me.hapyl.eterna.builtin.command;
 
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.annotate.BuiltIn;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.LazyClickEvent;
 import me.hapyl.eterna.module.chat.LazyHoverEvent;
@@ -12,7 +11,6 @@ import me.hapyl.eterna.module.player.song.Song;
 import me.hapyl.eterna.module.player.song.SongPlayer;
 import me.hapyl.eterna.module.player.song.SongQueue;
 import me.hapyl.eterna.builtin.manager.SongManager;
-import me.hapyl.eterna.module.util.Validate;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.ChatColor;
@@ -26,7 +24,6 @@ import java.util.Queue;
 /**
  * Built in command for playing nbs files.
  */
-@BuiltIn
 public final class NoteBlockStudioCommand extends SimpleAdminCommand {
 
     private final SongPlayer radio = SongPlayer.DEFAULT_PLAYER;

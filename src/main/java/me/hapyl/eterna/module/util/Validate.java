@@ -1,12 +1,12 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.Range;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * Validator utility class.
@@ -105,6 +105,25 @@ public final class Validate {
         if (!expression) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    /**
+     * Validates that the given condition is true for the provided object.
+     * If the condition is not met, an {@link IllegalArgumentException} is thrown with the specified message.
+     *
+     * @param e       - The object to validate.
+     * @param fn      - The function to test the object against.
+     * @param message - The exception message if the validation fails.
+     * @return the validated object if the condition is true.
+     * @throws IllegalArgumentException if the condition is false.
+     */
+    @Nonnull
+    public static <E> E isTrue(@Nonnull E e, @Nonnull Function<E, Boolean> fn, @Nonnull String message) {
+        if (!fn.apply(e)) {
+            throw new IllegalArgumentException(message);
+        }
+
+        return e;
     }
 
     /**

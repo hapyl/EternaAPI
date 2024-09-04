@@ -22,6 +22,11 @@ public class Key {
     public static final Pattern PATTERN = Pattern.compile("^[a-z0-9_]+$");
 
     /**
+     * A constant used for {@link #empty()} {@link Key}.
+     */
+    public static final String EMPTY_KEY_CONSTANT = "_";
+
+    /**
      * An empty {@link Key} instance.
      *
      * @see #empty()
@@ -118,6 +123,7 @@ public class Key {
 
     /**
      * A factory method for creating {@link Key}s.
+     * <p>This returns {@link #empty()} {@link Key} for empty strings and {@link #EMPTY_KEY_CONSTANT}.</p>
      *
      * @param string - Id.
      * @return a new string.
@@ -149,13 +155,11 @@ public class Key {
      * The returned {@link Key} is guaranteed to return true when {@link #isEmpty()} is called.
      *
      * @return an empty ket.
-     * @deprecated Keys exist for a reason, use {@link #empty()} only for testing or development!
      */
     @Nonnull
-    @Deprecated
     public static Key empty() {
         if (EMPTY == null) {
-            EMPTY = new Key("_");
+            EMPTY = new Key(EMPTY_KEY_CONSTANT);
         }
 
         return EMPTY;

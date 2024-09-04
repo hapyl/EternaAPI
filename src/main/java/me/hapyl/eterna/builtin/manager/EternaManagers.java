@@ -16,6 +16,7 @@ public final class EternaManagers implements Disposable {
     public final SongManager song;
     public final GlowingManager glowing;
     public final DialogManager dialog;
+    public final QuestManager quest;
 
     private final EternaPlugin plugin;
 
@@ -30,6 +31,7 @@ public final class EternaManagers implements Disposable {
         this.song = new SongManager(eterna);
         this.glowing = new GlowingManager(eterna);
         this.dialog = new DialogManager(eterna);
+        this.quest = new QuestManager(eterna);
     }
 
     @Nonnull

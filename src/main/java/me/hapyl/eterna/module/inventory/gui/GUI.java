@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.inventory.gui;
 
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.module.annotate.Range;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
@@ -15,6 +14,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -311,7 +311,7 @@ public class GUI {
      * @throws IndexOutOfBoundsException if slot is out of bounds. (slot > {@link GUI#getSize()})
      * @throws IllegalArgumentException  if the given {@link ClickType} are empty or null.
      */
-    public final void setItem(int slot, @Nullable ItemStack item, @Nonnull Action action, @Range(min = 1) ClickType... types) {
+    public final void setItem(int slot, @Nullable ItemStack item, @Nonnull Action action, @Range(from = 1, to = Byte.MAX_VALUE) ClickType... types) {
         Validate.isTrue(types.length != 0, "there must be at least 1 type");
 
         final GUIClick guiClick = getOrNew(slot);
@@ -824,6 +824,8 @@ public class GUI {
     /**
      * Clears everything this GUI has to offer, such as items, click, close and open events.
      * Recommended to use if updating menus to clear old items and clicks.
+     *
+     * @deprecated We usually want to clear click events and items, this also clears GUI events, use {@link #clearItemsAndClicks()} instead.
      */
     @Deprecated
     public final void clearEverything() {

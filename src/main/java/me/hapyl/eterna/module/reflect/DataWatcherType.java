@@ -15,6 +15,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DataWatcherType<T> {
@@ -84,7 +85,18 @@ public class DataWatcherType<T> {
         return (EntityDataSerializer<Object>) serializer;
     }
 
-    @Nonnull
+    @Override
+    public String toString() {
+        return clazz.getSimpleName();
+    }
+
+    /**
+     * Gets a supported {@link DataWatcherType} based on the {@link EntityDataSerializer}.
+     *
+     * @param serializer - Serializer.
+     * @return a {@link DataWatcherType} if the given {@link EntityDataSerializer} is supported, {@code null} otherwise.
+     */
+    @Nullable
     public static DataWatcherType<?> of(@Nonnull EntityDataSerializer<?> serializer) {
         for (DataWatcherType<?> type : watcherTypes) {
             if (type.serializer.equals(serializer)) {
@@ -92,11 +104,6 @@ public class DataWatcherType<T> {
             }
         }
 
-        throw new IllegalArgumentException("Unsupported serializer: " + serializer);
-    }
-
-    @Override
-    public String toString() {
-        return clazz.getSimpleName();
+        return null;
     }
 }

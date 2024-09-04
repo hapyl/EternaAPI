@@ -22,13 +22,13 @@ public enum TeamHelper {
     GLOWING("glowing", null),
     NPC("npc", team -> team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER));
 
+    public static final String PARENT = "eterna_api";
+
     private final String name;
     private final Consumer<Team> action;
 
-    public static final String PARENT = "eternaApi.";
-
     TeamHelper(String name, Consumer<Team> action) {
-        this.name = PARENT + name;
+        this.name = PARENT + "." + name;
         this.action = action;
     }
 

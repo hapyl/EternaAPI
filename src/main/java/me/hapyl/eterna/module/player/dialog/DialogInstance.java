@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.player.dialog;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaPlugin;
+import me.hapyl.eterna.module.player.quest.objective.FinishDialogQuestObjective;
 import me.hapyl.eterna.module.util.Compute;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -114,13 +115,16 @@ public class DialogInstance extends BukkitRunnable {
      * <br>
      * If the next {@link DialogEntry} is {@code null}, the {@link Dialog} is considered as finished.
      */
-    public void nextEntry() {
+    public final void nextEntry() {
         currentEntry = entries.pollFirst();
 
         // Dialog finished
         if (currentEntry == null) {
             dialog.onDialogComplete(player);
             selectedOptions.clear();
+
+            // Progress quest
+            Eterna.getManagers().quest.tryIncrementObjective(player, FinishDialogQuestObjective.class, dialog);
             cancel();
             return;
         }
@@ -145,9 +149,16 @@ public class DialogInstance extends BukkitRunnable {
      */
     @Override
     public final synchronized void cancel() throws IllegalStateException {
-        super.cancel();
+        cancel0();
         Eterna.getManagers().dialog.unregister(player);
+    }
 
+    /**
+     * Forcefully cancels this {@link DialogInstance} without unregistering it.
+     * @throws IllegalStateException If the dialog was not started.
+     */
+    public final synchronized void cancel0() throws IllegalStateException {
+        super.cancel();
         dialog.onDialogFinish(player);
     }
 

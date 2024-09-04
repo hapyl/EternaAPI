@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.reflect.npc;
 
+import me.hapyl.eterna.module.annotate.EventLike;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -13,6 +14,7 @@ public interface NPCListener {
      * @param player - Player.
      * @param type   - Click type.
      */
+    @EventLike
     void onClick(@Nonnull Player player, @Nonnull ClickType type);
 
     /**
@@ -22,6 +24,7 @@ public interface NPCListener {
      *
      * @param player - Player.
      */
+    @EventLike
     default void onSpawn(@Nonnull Player player) {
     }
 
@@ -30,6 +33,7 @@ public interface NPCListener {
      *
      * @param player - Player.
      */
+    @EventLike
     default void onDespawn(@Nonnull Player player) {
     }
 
@@ -39,6 +43,7 @@ public interface NPCListener {
      * @param player - Player.
      * @param location - New location.
      */
+    @EventLike
     default void onTeleport(@Nonnull Player player, @Nonnull Location location) {
     }
 

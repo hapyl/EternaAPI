@@ -66,7 +66,9 @@ public abstract class Placeholder<T> {
     @Nonnull
     public static String format(@Nonnull String string, @Nonnull Object... objects) {
         for (Placeholder<?> placeholder : PLACEHOLDERS) {
-            string = placeholder.format0(string, objects);
+            for (Object object : objects) {
+                string = placeholder.format0(string, object);
+            }
         }
 
         return string;

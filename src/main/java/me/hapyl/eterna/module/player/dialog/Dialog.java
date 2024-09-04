@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.player.dialog;
 
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.builtin.manager.DialogManager;
-import me.hapyl.eterna.module.annotate.Event;
+import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -160,7 +160,7 @@ public class Dialog {
      *
      * @param player - {@link Player} who has started the {@link Dialog}.
      */
-    @Event
+    @EventLike
     public void onDialogStart(@Nonnull Player player) {
         final AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH);
 
@@ -175,7 +175,7 @@ public class Dialog {
      *
      * @param player - {@link Player} who has finished the {@link Dialog}.
      */
-    @Event
+    @EventLike
     public void onDialogFinish(@Nonnull Player player) {
         final AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH);
 
@@ -190,7 +190,7 @@ public class Dialog {
      *
      * @param player - {@link Player} who has <b>successfully</b> finished the {@link Dialog}.
      */
-    @Event
+    @EventLike
     public void onDialogComplete(@Nonnull Player player) {
     }
 

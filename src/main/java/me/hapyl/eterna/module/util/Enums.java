@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.util;
 
 import com.google.common.collect.Lists;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
@@ -92,11 +91,9 @@ public final class Enums {
      */
     @Nonnull
     public static <T extends Enum<T>> T byName(@Nonnull Class<T> enumClass, @Nonnull String name, @Nonnull T def) {
-        try {
-            return Enum.valueOf(enumClass, name.toUpperCase());
-        } catch (IllegalArgumentException ignored0) {
-            return def;
-        }
+        final T anEnum = byName(enumClass, name);
+
+        return anEnum != null ? anEnum : def;
     }
 
     /**

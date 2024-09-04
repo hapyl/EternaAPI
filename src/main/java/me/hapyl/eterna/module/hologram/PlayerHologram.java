@@ -16,6 +16,7 @@ import java.util.function.Function;
 public class PlayerHologram {
 
     private final Map<Player, Hologram> playerHolograms;
+
     private Location location;
     private Function<Player, StringArray> function;
 
@@ -29,7 +30,7 @@ public class PlayerHologram {
      *
      * @param function - Lines to set.
      */
-    public void setLines(@Nonnull Function<Player, StringArray> function) {
+    public void setLines(@Nonnull HologramFunction function) {
         this.function = function;
         updateAll();
     }
