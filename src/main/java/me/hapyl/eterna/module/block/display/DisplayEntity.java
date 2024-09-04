@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Represents a display entity.
@@ -1046,6 +1047,20 @@ public class DisplayEntity implements Iterable<Display>, Display {
 
     @Override
     public void setOp(boolean value) {
+    }
+
+    /**
+     * Iterates over all children and applies the given {@link Consumer} if the child has a given tag as their scoreboard tag.
+     *
+     * @param tag      - The tag to check.
+     * @param consumer - The consumer to apply.
+     */
+    public void asTagged(@Nonnull String tag, @Nonnull Consumer<Display> consumer) {
+        children.forEach(child -> {
+            if (child.getScoreboardTags().contains(tag)) {
+                consumer.accept(child);
+            }
+        });
     }
 
     @Nonnull
