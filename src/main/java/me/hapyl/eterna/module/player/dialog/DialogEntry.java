@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.player.dialog;
 
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
-import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -26,18 +25,6 @@ public interface DialogEntry {
      */
     default int getDelay() {
         return 20;
-    }
-
-    /**
-     * Gets the delay before sending the next {@link DialogEntry}.
-     * <br>
-     * This method allows per-player delays, defaults to {@link #getDelay()}
-     *
-     * @param player - Player to get the delay for.
-     * @return the delay before sending the next {@link DialogEntry}.
-     */
-    default int getDelay(@Nonnull Player player) {
-        return getDelay();
     }
 
     /**

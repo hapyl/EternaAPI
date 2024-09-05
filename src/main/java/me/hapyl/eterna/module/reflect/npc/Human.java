@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.reflect.npc;
 
 import me.hapyl.eterna.module.hologram.HologramFunction;
 import me.hapyl.eterna.module.hologram.PlayerHologram;
-import me.hapyl.eterna.module.player.dialog.NPCDialog;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.commons.lang.NotImplementedException;
@@ -211,20 +210,6 @@ public interface Human {
     default boolean hasName() {
         return !getName().isEmpty();
     }
-
-    /**
-     * Stops this {@link HumanNPC} from talking for all players who currently in a
-     * {@link NPCDialog} with this {@link HumanNPC}.
-     */
-    void stopTalking();
-
-    /**
-     * Stops this {@link HumanNPC} from talking for the given {@link Player} is they're
-     * currently in a {@link NPCDialog} with this {@link HumanNPC}.
-     *
-     * @param player - The player who to stop the dialog for.
-     */
-    void stopTalking(@Nonnull Player player);
 
     /**
      * Returns maximum distance to the nearest player that NPC will look at.

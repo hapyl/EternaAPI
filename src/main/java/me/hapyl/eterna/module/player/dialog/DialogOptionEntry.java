@@ -107,11 +107,6 @@ public class DialogOptionEntry implements DialogEntry {
         return 5; // Do keep a little of delay
     }
 
-    @Override
-    public final int getDelay(@Nonnull Player player) {
-        return getDelay();
-    }
-
     /**
      * Gets the number of options, excluding the one that will advance the dialog if selected.
      *

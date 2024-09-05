@@ -21,7 +21,7 @@ import java.util.Queue;
  */
 public class Dialog {
 
-    private final Queue<DialogEntry> entries;
+    protected final Queue<DialogEntry> entries;
 
     public Dialog() {
         this.entries = new LinkedList<>();
@@ -194,4 +194,15 @@ public class Dialog {
     public void onDialogComplete(@Nonnull Player player) {
     }
 
+    /**
+     * Gets the delay before the next {@link DialogEntry} is displayed.
+     * <p>Override to allow per-player delays.</p>
+     *
+     * @param entry  - The entry to get the delay for.
+     * @param player - The player to get the delay for,
+     * @return the delay before the next entry is displayed.
+     */
+    public int getEntryDelay(@Nonnull DialogEntry entry, @Nonnull Player player) {
+        return entry.getDelay();
+    }
 }

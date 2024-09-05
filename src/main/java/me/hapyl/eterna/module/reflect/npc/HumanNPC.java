@@ -12,8 +12,6 @@ import com.mojang.datafixers.util.Pair;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.builtin.manager.DialogManager;
-import me.hapyl.eterna.builtin.manager.QuestManager;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
@@ -24,9 +22,7 @@ import me.hapyl.eterna.module.hologram.HologramFunction;
 import me.hapyl.eterna.module.hologram.PlayerHologram;
 import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.player.dialog.Dialog;
-import me.hapyl.eterna.module.player.dialog.NPCDialog;
-import me.hapyl.eterna.module.player.quest.QuestDataList;
-import me.hapyl.eterna.module.player.quest.QuestObjective;
+import me.hapyl.eterna.module.player.dialog.DialogEntry;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.JsonHelper;
 import me.hapyl.eterna.module.reflect.Reflect;
@@ -60,7 +56,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Allows to create <b>simple</b> player NPCs with support of clicks.
@@ -476,20 +471,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Nonnull
     public String getName(@Nonnull Player player) {
         return this.defaultName;
-    }
-
-    @Override
-    public void stopTalking() {
-        final DialogManager dialogManager = Eterna.getManagers().dialog;
-
-        dialogManager.stopDialogIf(dialogPredicate());
-    }
-
-    @Override
-    public void stopTalking(@Nonnull Player player) {
-        final DialogManager dialogManager = Eterna.getManagers().dialog;
-
-        dialogManager.stopDialogIf(player, dialogPredicate());
     }
 
     @Override
@@ -1057,6 +1038,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return Objects.hashCode(uuid);
     }
 
+    @Nonnull
+    public final DialogEntry[] dialogEntry(@Nonnull String... entries) {
+        return DialogEntry.of(this, entries);
+    }
+
     protected void sendPacket(@Nonnull Packet<?> packet) {
         if (showingTo.isEmpty()) {
             return;
@@ -1077,30 +1063,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     private void startInteractionCooldown(Player player) {
         interactedAt.put(player, new InteractionDelay(player, interactionDelay));
-    }
-
-    private Predicate<Dialog> dialogPredicate() {
-        return dialog -> dialog instanceof NPCDialog npcDialog && npcDialog.getNpc().equals(this);
-    }
-
-    private void stopTalking0(Player player) {
-        final DialogManager dialogManager = Eterna.getManagers().dialog;
-        final QuestManager questManager = Eterna.getManagers().quest;
-
-        final QuestDataList questData = questManager.get(player);
-
-        questData.forEach(data -> {
-            final QuestObjective currentObjective = data.getCurrentObjective();
-            if (currentObjective == null) {
-                return;
-            }
-
-            final NPCDialog dialog = currentObjective.getDialog(this);
-
-            if (dialog != null) {
-                dialogManager.stopDialog(player, dialog);
-            }
-        });
     }
 
     private void removeChair() {
