@@ -1,10 +1,11 @@
 package me.hapyl.eterna.module.player.quest.objective;
 
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.player.PlayerLib;
-import me.hapyl.eterna.module.player.quest.QuestObjectArray;
 import me.hapyl.eterna.module.player.quest.QuestData;
+import me.hapyl.eterna.module.player.quest.QuestObjectArray;
 import me.hapyl.eterna.module.player.quest.QuestObjective;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.util.Validate;
@@ -96,7 +97,11 @@ public class GiveItemToNpcQuestObjective extends QuestObjective {
         final int canGive = Math.min(amount, needMore);
 
         // Complete
-        if (currentStageProgress - canGive == 0) {
+        final int k = needMore - canGive;
+
+        EternaLogger.debug(k);
+
+        if (k == 0) {
             onGiveItemComplete(player);
         }
         else {

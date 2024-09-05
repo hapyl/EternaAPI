@@ -1,29 +1,38 @@
 package me.hapyl.eterna.module.player.quest.objective;
 
-import me.hapyl.eterna.module.player.dialog.NPCDialog;
+import me.hapyl.eterna.module.player.dialog.Dialog;
+import me.hapyl.eterna.module.player.quest.QuestData;
 import me.hapyl.eterna.module.player.quest.QuestObjective;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 
 import javax.annotation.Nonnull;
 
 /**
- * A {@link QuestObjective} for the completion of which the player must finish a {@link NPCDialog}.
- * <p>This objective will automatically start the given dialog whenever the player clicks at the npc.</p>
+ * A {@link QuestObjective} for the completion of which the player must talk to a npc.
+ * <p>The given dialog will be started automatically if this is the current objective of the quest and the player clicks at the given npc.</p>
+ *
+ * @see TalkToMultipleNpcQuestObjective
  */
-public class TalkToNpcQuestObjective extends FinishDialogQuestObjective {
+public class TalkToNpcQuestObjective extends AbstractDialogQuestObjective {
+
+    public final HumanNPC npc;
+    public final Dialog dialog;
 
     /**
-     * Creates a new objective for the completion of which the player must finish a {@link NPCDialog}.
+     * Creates a new objective for the completion of which the player must craft an item.
      *
-     * @param dialog - The dialog to finish.
+     * @param npc    - The npc to talk to.
+     * @param dialog - The dialog to display.
      */
-    public TalkToNpcQuestObjective(@Nonnull NPCDialog dialog) {
-        super(dialog);
+    public TalkToNpcQuestObjective(@Nonnull HumanNPC npc, @Nonnull Dialog dialog) {
+        super("Talker", "Talk to %s.".formatted(npc.getName()));
 
-        final HumanNPC npc = dialog.getNpc();
-
-        setDescription("Talk to %s.".formatted(npc.getName()));
-        setDialog(dialog);
+        this.npc = npc;
+        this.dialog = dialog;
     }
 
+    @Override
+    public boolean test(@Nonnull QuestData data, @Nonnull Dialog dialog) {
+        return this.dialog == dialog;
+    }
 }

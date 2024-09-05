@@ -3,7 +3,7 @@ package me.hapyl.eterna.module.player.dialog;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.player.quest.objective.FinishDialogQuestObjective;
+import me.hapyl.eterna.module.player.quest.objective.AbstractDialogQuestObjective;
 import me.hapyl.eterna.module.util.Compute;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -124,14 +124,14 @@ public class DialogInstance extends BukkitRunnable {
             selectedOptions.clear();
 
             // Progress quest
-            Eterna.getManagers().quest.tryIncrementObjective(player, FinishDialogQuestObjective.class, dialog);
+            Eterna.getManagers().quest.tryIncrementObjective(player, AbstractDialogQuestObjective.class, dialog);
             cancel();
             return;
         }
 
         currentEntry.run(this);
 
-        int delay = currentEntry.getDelay(getPlayer());
+        int delay = dialog.getEntryDelay(currentEntry, player);
 
         // Add a little more delay if the next is an option because it uses
         // all ten chat lines and short strings are very easy to miss
@@ -155,6 +155,7 @@ public class DialogInstance extends BukkitRunnable {
 
     /**
      * Forcefully cancels this {@link DialogInstance} without unregistering it.
+     *
      * @throws IllegalStateException If the dialog was not started.
      */
     public final synchronized void cancel0() throws IllegalStateException {

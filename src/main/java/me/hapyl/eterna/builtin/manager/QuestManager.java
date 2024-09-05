@@ -5,7 +5,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
 import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
-import me.hapyl.eterna.module.player.dialog.NPCDialog;
+import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.quest.*;
 import me.hapyl.eterna.module.player.quest.objective.*;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
@@ -253,22 +253,32 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
     }
 
     @EventHandler(ignoreCancelled = true)
-    @ObjectiveHandler({ FinishDialogQuestObjective.class, GiveItemToNpcQuestObjective.class, GiveKeyedItemToNpcQuestObjective.class })
+    @ObjectiveHandler({ // jesus
+            FinishDialogQuestObjective.class,
+            GiveItemToNpcQuestObjective.class,
+            GiveKeyedItemToNpcQuestObjective.class,
+            TalkToMultipleNpcQuestObjective.class,
+            TalkToNpcQuestObjective.class
+    })
     public void handlePlayerClickAtNpcEvent(PlayerClickAtNpcEvent ev) {
         final Player player = ev.getPlayer();
         final HumanNPC npc = ev.getNpc();
 
         // Dialog start
+
         for (QuestData data : getActiveQuests(player)) {
             final QuestObjective objective = data.getCurrentObjective();
 
-            if (objective == null) {
-                continue;
+            Dialog dialog = null;
+
+            if (objective instanceof TalkToNpcQuestObjective talkToNpcQuestObjective && npc.equals(talkToNpcQuestObjective.npc)) {
+                dialog = talkToNpcQuestObjective.dialog;
+            }
+            else if (objective instanceof TalkToMultipleNpcQuestObjective talkToMultipleNpcQuestObjective) {
+                dialog = talkToMultipleNpcQuestObjective.getDialog(npc, player);
             }
 
-            final NPCDialog dialog = objective.getDialog(npc);
-
-            if (dialog == null || !dialog.getNpc().equals(npc)) {
+            if (dialog == null) {
                 continue;
             }
 

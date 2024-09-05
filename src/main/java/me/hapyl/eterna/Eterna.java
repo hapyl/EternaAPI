@@ -1,8 +1,8 @@
 package me.hapyl.eterna;
 
+import me.hapyl.eterna.builtin.manager.EternaManagers;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.protocol.EternaProtocol;
-import me.hapyl.eterna.builtin.manager.EternaManagers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

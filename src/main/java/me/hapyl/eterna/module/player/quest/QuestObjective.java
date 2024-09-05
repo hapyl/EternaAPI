@@ -2,20 +2,14 @@ package me.hapyl.eterna.module.player.quest;
 
 import me.hapyl.eterna.module.ai.goal.MoveToGoal;
 import me.hapyl.eterna.module.annotate.EventLike;
-import me.hapyl.eterna.module.player.dialog.NPCDialog;
 import me.hapyl.eterna.module.player.quest.objective.BreakBlockQuestObjective;
 import me.hapyl.eterna.module.player.quest.objective.TalkInChatQuestObjective;
-import me.hapyl.eterna.module.player.quest.objective.TalkToNpcQuestObjective;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.util.Described;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The base objective class.
@@ -29,7 +23,6 @@ import java.util.Map;
 public abstract class QuestObjective implements Described {
 
     private final double goal;
-    private final Map<HumanNPC, NPCDialog> dialogs; // hash map is faster
 
     private String name;
     private String description;
@@ -38,30 +31,6 @@ public abstract class QuestObjective implements Described {
         this.name = name;
         this.description = description;
         this.goal = goal;
-        this.dialogs = new HashMap<>();
-    }
-
-    /**
-     * Sets the {@link NPCDialog} for the given {@link HumanNPC}.
-     * <p>This is a 'magical' method - it stores the dialog for the given {@link HumanNPC},
-     * and if the current objective of the {@link Quest} is {@link TalkToNpcQuestObjective},
-     * the dialog is automatically started upon player clicking at the NPC! <i>(very magic, I know ✨)</i></p>
-     *
-     * @param dialog - The dialog to set.
-     */
-    public void setDialog(@Nonnull NPCDialog dialog) {
-        this.dialogs.put(dialog.getNpc(), dialog);
-    }
-
-    /**
-     * Gets the {@link NPCDialog} for the given {@link HumanNPC}, or {@code null} if it doesn't exist.
-     *
-     * @param npc - The npc to get the dialog for.
-     * @return the dialog for the given npc, or null if it doesn't exist.
-     */
-    @Nullable
-    public NPCDialog getDialog(@Nonnull HumanNPC npc) {
-        return this.dialogs.get(npc);
     }
 
     /**

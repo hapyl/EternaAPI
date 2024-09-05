@@ -12,20 +12,19 @@ import java.util.function.Function;
 
 /**
  * Allows static computation for hash maps.
- * <pre>
- * Map<\String, Integer> namesToScore = new HashMap<>();
+ * <pre>{@code
+ * Map<String, Integer> namesToScore = new HashMap<>();
  *
  * namesToScore.compute("hapyl", (name, score) -> {
  *     return score != null ? score + 1 : 1;
  * });
  *
- * <i>Can be replaced with:</i>
- *
+ * // Can be replaced with:
  * namesToScore.compute("hapyl", Compute.intAdd());
- * </pre>
+ * }</pre>
  *
- * <pre>
- * Map<\String, List<\Material>> materialsByType = new HashMap<>();
+ * <pre>{@code
+ * Map<String, List<Material>> materialsByType = new HashMap<>();
  *
  * materialsByType.compute("stone", (str, list) -> {
  *      if (list == null) {
@@ -37,10 +36,9 @@ import java.util.function.Function;
  *      return list;
  *  });
  *
- * <i>Can be replaced with:</i>
- *
+ * // Can be replaced with:
  * materialsByType.compute("stone", Compute.listAdd(Material.STONE, Material.COBBLESTONE));
- * </pre>
+ * }</pre>
  */
 public final class Compute {
 
