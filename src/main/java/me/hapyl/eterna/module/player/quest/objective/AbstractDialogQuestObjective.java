@@ -8,8 +8,8 @@ import me.hapyl.eterna.module.player.quest.QuestObjective;
 import javax.annotation.Nonnull;
 
 public abstract class AbstractDialogQuestObjective extends QuestObjective {
-    AbstractDialogQuestObjective(@Nonnull String name, @Nonnull String description) {
-        super(name, description, 1);
+    AbstractDialogQuestObjective(@Nonnull String description) {
+        super(description, 1);
     }
 
     public abstract boolean test(@Nonnull QuestData data, @Nonnull Dialog dialog);

@@ -19,8 +19,8 @@ public class Data extends Holder<Player> {
     private final Stats stats;
 
     private final PlayerInfo info;
-    private List<Position> checkpoints;
-    private Position previousCheckpoint;
+    private List<ParkourPosition> checkpoints;
+    private ParkourPosition previousCheckpoint;
     private long startedAt;
     private long finishedAt = -1;
 
@@ -34,12 +34,12 @@ public class Data extends Holder<Player> {
     }
 
     @Nullable // if last checkpoint
-    public Position getNextCheckpoint() {
+    public ParkourPosition getNextCheckpoint() {
         return checkpoints.size() > 0 ? checkpoints.get(0) : null;
     }
 
     @Nullable
-    public Position getCurrentCheckpoint() {
+    public ParkourPosition getCurrentCheckpoint() {
         return this.checkpoints.get(0);
     }
 
@@ -65,14 +65,14 @@ public class Data extends Holder<Player> {
         return previousCheckpoint != null;
     }
 
-    public boolean isNextChechpoint(Position position) {
+    public boolean isNextCheckpoint(ParkourPosition position) {
         if (!hasNextCheckpoint()) {
             return false;
         }
         return Objects.requireNonNull(getNextCheckpoint()).compare(position);
     }
 
-    public List<Position> getCheckpoints() {
+    public List<ParkourPosition> getCheckpoints() {
         return checkpoints;
     }
 
@@ -101,7 +101,7 @@ public class Data extends Holder<Player> {
             return;
         }
 
-        final Position currentCheckpoint = getCurrentCheckpoint();
+        final ParkourPosition currentCheckpoint = getCurrentCheckpoint();
         previousCheckpoint = currentCheckpoint;
         checkpoints.remove(currentCheckpoint);
 
@@ -119,11 +119,11 @@ public class Data extends Holder<Player> {
     }
 
     @Nullable
-    public Position getPreviousCheckpoint() {
+    public ParkourPosition getPreviousCheckpoint() {
         return previousCheckpoint;
     }
 
-    public void setPreviousCheckpoint(Position previousCheckpoint) {
+    public void setPreviousCheckpoint(ParkourPosition previousCheckpoint) {
         this.previousCheckpoint = previousCheckpoint;
     }
 
@@ -194,7 +194,7 @@ public class Data extends Holder<Player> {
 
     // Checks if location is a valid checkpoint
     public boolean isFutureCheckpoint(Location clickedBlockLocation) {
-        for (Position checkpoint : checkpoints) {
+        for (ParkourPosition checkpoint : checkpoints) {
             if (checkpoint.compare(clickedBlockLocation)) {
                 return true;
             }

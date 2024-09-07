@@ -27,6 +27,7 @@ import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.inventory.*;
 import me.hapyl.eterna.module.inventory.gui.*;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
+import me.hapyl.eterna.module.locaiton.Position;
 import me.hapyl.eterna.module.math.Geometry;
 import me.hapyl.eterna.module.math.geometry.WorldParticle;
 import me.hapyl.eterna.module.nbt.NBT;
@@ -35,10 +36,9 @@ import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
+import me.hapyl.eterna.module.player.dialog.DialogEntry;
 import me.hapyl.eterna.module.player.quest.*;
-import me.hapyl.eterna.module.player.quest.objective.GiveItemToNpcQuestObjective;
-import me.hapyl.eterna.module.player.quest.objective.TalkToMultipleNpcQuestObjective;
-import me.hapyl.eterna.module.player.quest.objective.TalkToNpcQuestObjective;
+import me.hapyl.eterna.module.player.quest.objective.JumpQuestObjective;
 import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
 import me.hapyl.eterna.module.player.tablist.*;
@@ -1813,41 +1813,30 @@ public final class EternaRuntimeTest {
                     npc3 = new HumanNPC(location.add(-2, 0, 0), "Test Npc 3", "sdimas74");
                     npc3.show(player);
 
-                    final QuestChain questChain = new QuestChain(Key.ofString("the_eye"));
+                    final Quest tqsb0 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_0"));
+                    tqsb0.addObjective(new JumpQuestObjective(1));
+                    tqsb0.setStartBehaviour(QuestStartBehaviour.onJoin());
 
-                    final Quest quest3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("eterna_test_quest3"));
-                    quest3.setName("Diamonds!");
-                    quest3.setDescription("Now that you have mined the ore, it's time to show the diamonds.");
-                    quest3.addObjective(new GiveItemToNpcQuestObjective(npc1, Material.DIAMOND, 2));
-                    quest3.addObjective(new TalkToNpcQuestObjective(npc1, new Dialog()
-                            .addEntry(
-                                    npc1,
-                                    "You're done? That was fast!",
-                                    "Thanks for the diamons."
-                            )));
+                    final Quest tqsb1 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_1"));
+                    tqsb1.addObjective(new JumpQuestObjective(2));
+                    tqsb1.setStartBehaviour(QuestStartBehaviour.talkToNpc(npc1, new Dialog()
+                            .addEntry(npc1, "Yes hello", "Oh the quest is gonna start now!")
+                    ));
 
-                    quest3.addObjective(new TalkToMultipleNpcQuestObjective(List.of(
-                            TalkToMultipleNpcQuestObjective.entry(
-                                    npc1,
-                                    new Dialog().addEntry(npc1.dialogEntry("Oh you want to talk to me?", "No!")),
-                                    new Dialog().addEntry(npc1.dialogEntry("I said don't talk to me..."))
-                            ),
-                            TalkToMultipleNpcQuestObjective.entry(
-                                    npc2,
-                                    new Dialog().addEntry(npc2.dialogEntry("Hello hello hello hello!", "Hiiii!", "Okay bye.")),
-                                    new Dialog().addEntry(npc2.dialogEntry("hiiiii"))
-                            ),
-                            TalkToMultipleNpcQuestObjective.entry(
-                                    npc3,
-                                    new Dialog().addEntry(npc3.dialogEntry("meow meow meow?", "meow meow...", "meow?", "MEOW!")),
-                                    new Dialog().addEntry(npc2.dialogEntry("MEOW!"))
-                            )
-                    )));
+                    final Quest tqsb2 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_2"));
+                    tqsb2.addObjective(new JumpQuestObjective(3));
+                    tqsb2.setStartBehaviour(QuestStartBehaviour.goTo(new Position(16, 62, -2, 19, 67, 2)));
 
-                    questChain.addQuests(quest3);
-                    registry.register(questChain);
+                    final Quest tqsb3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_3"));
+                    tqsb3.addObjective(new JumpQuestObjective(4));
+                    tqsb3.setStartBehaviour(QuestStartBehaviour.goTo(new Position(-2, 62, 16, 2, 66, 19), new Dialog()
+                            .addEntry(DialogEntry.of("You feel like this is the right area!", "Surely a quest will start!"))
+                    ));
 
-                    questChain.startNextQuest(player); // for testing, impl should not do this
+                    registry.register(tqsb0);
+                    registry.register(tqsb1);
+                    registry.register(tqsb2);
+                    registry.register(tqsb3);
                 }
                 else {
                     final String argument = args.getString(0);

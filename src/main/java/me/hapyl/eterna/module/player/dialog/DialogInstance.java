@@ -3,6 +3,8 @@ package me.hapyl.eterna.module.player.dialog;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaPlugin;
+import me.hapyl.eterna.builtin.manager.QuestManager;
+import me.hapyl.eterna.module.player.quest.QuestStartBehaviour;
 import me.hapyl.eterna.module.player.quest.objective.AbstractDialogQuestObjective;
 import me.hapyl.eterna.module.util.Compute;
 import org.bukkit.entity.Player;
@@ -123,9 +125,23 @@ public class DialogInstance extends BukkitRunnable {
             dialog.onDialogComplete(player);
             selectedOptions.clear();
 
-            // Progress quest
-            Eterna.getManagers().quest.tryIncrementObjective(player, AbstractDialogQuestObjective.class, dialog);
-            cancel();
+            final QuestManager questManager = Eterna.getManagers().quest;
+
+            // Try to start the quest
+            questManager.tryStartQuest(player, quest -> {
+                final QuestStartBehaviour startBehaviour = quest.getStartBehaviour();
+
+                if (startBehaviour instanceof QuestStartBehaviour.DialogStartBehaviour dialogStartBehaviour) {
+                    return this.dialog == dialogStartBehaviour.dialog();
+                }
+
+                return false;
+            });
+
+            // Increment objective
+            questManager.tryIncrementObjective(player, AbstractDialogQuestObjective.class, dialog);
+
+            this.cancel();
             return;
         }
 
@@ -166,11 +182,10 @@ public class DialogInstance extends BukkitRunnable {
     /**
      * Stars this {@link DialogInstance}.
      */
-    public final DialogInstance doStartInstance() {
+    public final void doStartInstance() {
         runTaskTimer(EternaPlugin.getPlugin(), 1, 1);
 
         dialog.onDialogStart(player);
-        return this;
     }
 
     /**

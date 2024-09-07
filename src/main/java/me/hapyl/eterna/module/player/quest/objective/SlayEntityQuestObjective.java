@@ -22,7 +22,7 @@ public class SlayEntityQuestObjective extends QuestObjective {
      * @param goal       - The total number of times to slay the entity.
      */
     public SlayEntityQuestObjective(@Nonnull EntityType entityType, double goal) {
-        super("Slayers", "Slay %s %s times.".formatted(Chat.capitalize(entityType.getKey().getKey()), goal), goal);
+        super("Slay %s %s times.".formatted(Chat.capitalize(entityType.getKey().getKey()), goal), goal);
 
         this.entityType = entityType;
     }

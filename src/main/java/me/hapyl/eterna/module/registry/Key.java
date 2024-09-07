@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.registry;
 
+import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Validate;
+import org.bukkit.NamespacedKey;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -98,7 +100,7 @@ public class Key {
      * @return true if the given object is equals to this one.
      */
     @Override
-    public boolean equals(Object object) {
+    public final boolean equals(Object object) {
         if (this == object) {
             return true;
         }
@@ -117,8 +119,13 @@ public class Key {
      * @return the hash code of this key.
      */
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hashCode(key);
+    }
+
+    @Nonnull
+    public final NamespacedKey asNamespacedKey() {
+        return BukkitUtils.createKey(key);
     }
 
     /**

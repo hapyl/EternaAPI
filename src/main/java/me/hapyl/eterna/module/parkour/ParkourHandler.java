@@ -16,7 +16,7 @@ public interface ParkourHandler {
     Response onFail(Player player, Data data, FailType failType);
 
     @Nullable
-    Response onCheckpoint(Player player, Data data, Position position, Type type);
+    Response onCheckpoint(Player player, Data data, ParkourPosition position, Type type);
 
     enum Type {
         TELEPORT_TO, // player teleported to checkpoint using an item or command.

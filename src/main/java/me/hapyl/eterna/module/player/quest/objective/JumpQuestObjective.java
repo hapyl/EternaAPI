@@ -17,7 +17,7 @@ public class JumpQuestObjective extends QuestObjective {
      * @param goal - The total number of times to jump.
      */
     public JumpQuestObjective(double goal) {
-        super("Jumper", "Jump %s times.".formatted(goal), goal);
+        super("Jump %s times.".formatted(goal), goal);
     }
 
     @Nonnull

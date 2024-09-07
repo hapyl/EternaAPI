@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public final class ParkourManager extends EternaManager<Position, Parkour> implements Disposable {
+public final class ParkourManager extends EternaManager<ParkourPosition, Parkour> implements Disposable {
 
     private final ParkourItemStorage parkourItemStorage;
     private final Map<Player, Data> parkourData;
@@ -120,7 +120,7 @@ public final class ParkourManager extends EternaManager<Position, Parkour> imple
         }
 
         final Parkour parkour = data.getParkour();
-        final Position checkpoint = data.getPreviousCheckpoint();
+        final ParkourPosition checkpoint = data.getPreviousCheckpoint();
 
         if (checkpoint == null) {
             parkour.getFormatter().sendHaventPassedCheckpoint(data);
@@ -191,7 +191,7 @@ public final class ParkourManager extends EternaManager<Position, Parkour> imple
     @Nullable
     public Parkour byCheckpoint(@Nonnull Location location) {
         for (Parkour parkour : managing.values()) {
-            for (Position checkpoint : parkour.getCheckpoints()) {
+            for (ParkourPosition checkpoint : parkour.getCheckpoints()) {
                 if (checkpoint.compare(location)) {
                     return parkour;
                 }

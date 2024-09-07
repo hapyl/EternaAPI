@@ -32,7 +32,7 @@ public class GiveItemToNpcQuestObjective extends QuestObjective {
      * @param goal     - The number of items to give.
      */
     public GiveItemToNpcQuestObjective(@Nonnull HumanNPC npc, @Nonnull Material material, double goal) {
-        super("Giver", "Give %s %sx %s.".formatted(npc.getName(), goal, Chat.capitalize(material)), goal);
+        super("Give %s %sx %s.".formatted(npc.getName(), goal, Chat.capitalize(material)), goal);
 
         this.npc = npc;
         this.material = Validate.isTrue(material, Material::isItem, "Material must be an item!");

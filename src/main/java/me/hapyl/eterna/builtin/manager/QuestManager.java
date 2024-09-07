@@ -5,6 +5,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
 import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
+import me.hapyl.eterna.module.locaiton.Position;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.quest.*;
 import me.hapyl.eterna.module.player.quest.objective.*;
@@ -46,6 +47,7 @@ import java.lang.annotation.Target;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public final class QuestManager extends EternaManager<Player, QuestDataList> implements Listener {
 
@@ -80,19 +82,20 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
                 questData.data.put(data.getQuest(), data);
             }
 
+            // Start onJoin quests
             handler.getQuests().forEach(quest -> {
-                final QuestJoinBehaviour joinBehaviour = quest.getJoinBehaviour();
+                final QuestStartBehaviour startBehaviour = quest.getStartBehaviour();
 
-                // Don't start manual or chained quests.
-                if (joinBehaviour == QuestJoinBehaviour.DO_NOTHING || quest.isChainedQuest()) {
+                if (!(startBehaviour instanceof QuestStartBehaviour.OnJoin onJoin)) {
                     return;
                 }
 
+                // Not using tryStartQuest() because this is faster
                 if (!handler.canActuallyStart(player, quest)) {
                     return;
                 }
 
-                startQuest(player, quest, joinBehaviour == QuestJoinBehaviour.START);
+                startQuest(player, quest, onJoin.sendNotification());
             });
 
             // Handle chained quests
@@ -264,8 +267,25 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
         final Player player = ev.getPlayer();
         final HumanNPC npc = ev.getNpc();
 
-        // Dialog start
+        // Quest start
+        tryStartQuest(player, quest -> {
+            final QuestStartBehaviour startBehaviour = quest.getStartBehaviour();
 
+            if (!(startBehaviour instanceof QuestStartBehaviour.TalkToNpc talkToNpc)) {
+                return false;
+            }
+
+            if (!talkToNpc.npc().equals(npc)) {
+                return false;
+            }
+
+            final Dialog dialog = talkToNpc.dialog();
+
+            dialog.start(player);
+            return false;
+        });
+
+        // Dialog start
         for (QuestData data : getActiveQuests(player)) {
             final QuestObjective objective = data.getCurrentObjective();
 
@@ -422,6 +442,32 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
             }
         }
 
+        // Start quest
+        tryStartQuest(player, quest -> {
+            final QuestStartBehaviour startBehaviour = quest.getStartBehaviour();
+
+            if (!(startBehaviour instanceof QuestStartBehaviour.GoTo goTo)) {
+                return false;
+            }
+
+            final Position position = goTo.position();
+
+            if (!position.contains(player.getLocation())) {
+                return false;
+            }
+
+            final Dialog dialog = goTo.dialog();
+
+            if (dialog != null) {
+                dialog.start(player);
+                return false; // The dialog starts the quest
+            }
+
+            // Otherwise do start the quest
+            return true;
+        });
+
+        // Increment objective
         tryIncrementObjective(player, TravelDistanceQuestObjective.class, travelType);
         tryIncrementObjective(player, TravelToQuestObjective.class, player.getLocation());
     }
@@ -558,6 +604,19 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
     @ApiStatus.Internal
     public void workHandlers(@Nonnull Consumer<QuestHandler> consumer) {
         pluginHandlers.values().forEach(consumer);
+    }
+
+    @ApiStatus.Internal
+    public void tryStartQuest(@Nonnull Player player, @Nonnull Predicate<Quest> predicate) {
+        workHandlers(handler -> handler.getQuests().forEach(quest -> {
+            if (get(player).hasData(quest)) {
+                return;
+            }
+
+            if (handler.canActuallyStart(player, quest) && predicate.test(quest)) {
+                startQuest(player, quest, true);
+            }
+        }));
     }
 
     @Retention(RetentionPolicy.RUNTIME)

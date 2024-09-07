@@ -39,8 +39,8 @@ public class Quest implements Keyed, Described {
     private boolean isRepeatable;
 
     @Nonnull private QuestFormatter formatter;
-    @Nonnull private QuestJoinBehaviour joinBehaviour;
 
+    @Nullable private QuestStartBehaviour startBehaviour;
     @Nullable private QuestPreRequirement preRequirement;
 
     public Quest(@Nonnull JavaPlugin plugin, @Nonnull Key key) {
@@ -50,7 +50,7 @@ public class Quest implements Keyed, Described {
         this.description = "No description.";
         this.objectives = Lists.newLinkedList();
         this.formatter = QuestFormatter.DEFAULT;
-        this.joinBehaviour = QuestJoinBehaviour.DO_NOTHING;
+        this.startBehaviour = null;
         this.preRequirement = null;
         this.isRepeatable = false;
     }
@@ -64,25 +64,13 @@ public class Quest implements Keyed, Described {
         return this.questChain != null;
     }
 
-    /**
-     * Gets the {@link QuestJoinBehaviour} of this {@link Quest}.
-     * <p>The join behaviour is ignored is this quest is part of a chain.</p>
-     *
-     * @return the quest join behaviour of this quest.
-     */
-    @Nonnull
-    public QuestJoinBehaviour getJoinBehaviour() {
-        return joinBehaviour;
+    @Nullable
+    public QuestStartBehaviour getStartBehaviour() {
+        return startBehaviour;
     }
 
-    /**
-     * Sets the {@link QuestJoinBehaviour} of this {@link Quest}.
-     * <p>The join behaviour is ignored is this quest is part of a chain.</p>
-     *
-     * @param joinBehaviour - New join behaviour.
-     */
-    public void setJoinBehaviour(@Nonnull QuestJoinBehaviour joinBehaviour) {
-        this.joinBehaviour = joinBehaviour;
+    public void setStartBehaviour(@Nullable QuestStartBehaviour startBehaviour) {
+        this.startBehaviour = startBehaviour;
     }
 
     /**

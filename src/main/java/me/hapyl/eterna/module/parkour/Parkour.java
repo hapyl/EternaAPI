@@ -21,9 +21,9 @@ public class Parkour {
 
     private final Set<Hologram> holograms;
     private final String name;
-    private final Position start;
-    private final Position finish;
-    private final List<Position> checkpoints;
+    private final ParkourPosition start;
+    private final ParkourPosition finish;
+    private final List<ParkourPosition> checkpoints;
     private final Set<FailType> allowedFails;
 
     @Nonnull private ParkourFormatter formatter;
@@ -31,7 +31,7 @@ public class Parkour {
     private Location quitLocation;
     private boolean spawnHolograms;
 
-    public Parkour(String name, Position start, Position finish) {
+    public Parkour(String name, ParkourPosition start, ParkourPosition finish) {
         Validate.isTrue(start.isStartOrFinish(), "must be start, not checkpoint!");
         Validate.isTrue(finish.isStartOrFinish(), "must be finish, not checkpoint!");
         this.name = name;
@@ -47,7 +47,7 @@ public class Parkour {
     }
 
     public Parkour(String name, Location start, Location finish) {
-        this(name, new Position(Position.Type.START_OR_FINISH, start), new Position(Position.Type.START_OR_FINISH, finish));
+        this(name, new ParkourPosition(ParkourPosition.Type.START_OR_FINISH, start), new ParkourPosition(ParkourPosition.Type.START_OR_FINISH, finish));
     }
 
     public void start(@Nonnull Player player) {
@@ -173,7 +173,7 @@ public class Parkour {
         createHologram("&6&l" + name, "&aFinish").create(this.getFinish().toLocation(0.5d, 0.0d, 0.5d));
 
         for (int i = 0; i < checkpoints.size(); i++) {
-            final Position current = checkpoints.get(i);
+            final ParkourPosition current = checkpoints.get(i);
             createHologram("&aCheckpoint (%s/%s)".formatted(i + 1, checkpoints.size())).create(current.toLocation(0.5d, 0.0d, 0.5d));
         }
 
@@ -251,7 +251,7 @@ public class Parkour {
      * @param location - location.
      */
     public void addCheckpoint(Location location) {
-        this.checkpoints.add(new Position(Position.Type.CHECKPOINT, location));
+        this.checkpoints.add(new ParkourPosition(ParkourPosition.Type.CHECKPOINT, location));
     }
 
     /**
@@ -265,7 +265,7 @@ public class Parkour {
      * @param pitch - Pitch.
      */
     public void addCheckpoint(World world, int x, int y, int z, float yaw, float pitch) {
-        this.checkpoints.add(new Position(Position.Type.CHECKPOINT, world, x, y, z, yaw, pitch));
+        this.checkpoints.add(new ParkourPosition(ParkourPosition.Type.CHECKPOINT, world, x, y, z, yaw, pitch));
     }
 
     /**
@@ -273,7 +273,7 @@ public class Parkour {
      *
      * @return start position of parkour.
      */
-    public Position getStart() {
+    public ParkourPosition getStart() {
         return start;
     }
 
@@ -282,7 +282,7 @@ public class Parkour {
      *
      * @return finish position of parkour.
      */
-    public Position getFinish() {
+    public ParkourPosition getFinish() {
         return finish;
     }
 
@@ -293,7 +293,7 @@ public class Parkour {
      * @return all checkpoints of parkour.
      */
     @Nonnull
-    public List<Position> getCheckpoints() {
+    public List<ParkourPosition> getCheckpoints() {
         return checkpoints;
     }
 
@@ -304,7 +304,7 @@ public class Parkour {
      * @return if specific location is parkour checkpoint.
      */
     public boolean isCheckpoint(Location location) {
-        for (Position checkpoint : getCheckpoints()) {
+        for (ParkourPosition checkpoint : getCheckpoints()) {
             if (checkpoint.compare(location)) {
                 return true;
             }
@@ -318,7 +318,7 @@ public class Parkour {
     public void spawnWorldEntities() {
         this.start.setBlock();
         this.finish.setBlock();
-        this.checkpoints.forEach(Position::setBlock);
+        this.checkpoints.forEach(ParkourPosition::setBlock);
         if (spawnHolograms) {
             createHolograms();
         }
@@ -330,7 +330,7 @@ public class Parkour {
     public void removeWorldEntities() {
         this.start.restoreBlock();
         this.finish.restoreBlock();
-        this.checkpoints.forEach(Position::restoreBlock);
+        this.checkpoints.forEach(ParkourPosition::restoreBlock);
         removeHolograms();
     }
 

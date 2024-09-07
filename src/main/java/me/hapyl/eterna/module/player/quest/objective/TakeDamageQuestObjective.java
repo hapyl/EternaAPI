@@ -28,7 +28,7 @@ public class TakeDamageQuestObjective extends QuestObjective {
      * @param goal        - The total amount of damage to take.
      */
     public TakeDamageQuestObjective(@Nullable EntityType entityType, @Nullable EntityDamageEvent.DamageCause damageCause, double goal) {
-        super("Ouch!", makeDescription(entityType, damageCause, goal), goal);
+        super(makeDescription(entityType, damageCause, goal), goal);
 
         this.entityType = entityType;
         this.damageCause = damageCause;

@@ -28,7 +28,7 @@ public class PlayNoteQuestObjective extends QuestObjective {
      * @param goal       - The total number of times to play.
      */
     public PlayNoteQuestObjective(@Nullable Instrument instrument, @Nullable Note note, double goal) {
-        super("Musician", makeDescription(instrument, note, goal), goal);
+        super(makeDescription(instrument, note, goal), goal);
 
         this.instrument = instrument;
         this.note = note;

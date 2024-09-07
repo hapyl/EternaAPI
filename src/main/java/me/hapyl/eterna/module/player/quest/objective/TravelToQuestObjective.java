@@ -21,7 +21,7 @@ public class TravelToQuestObjective extends QuestObjective {
      * @param position - The position to travel to.
      */
     public TravelToQuestObjective(@Nonnull Position position) {
-        super("I know where to go!", "Travel to around %s.".formatted(position.toString()), 1);
+        super("Travel to around %s.".formatted(position.toString()), 1);
 
         this.position = position;
     }
