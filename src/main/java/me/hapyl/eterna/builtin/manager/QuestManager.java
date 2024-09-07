@@ -84,23 +84,13 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
 
             // Start onJoin quests
             handler.getQuests().forEach(quest -> {
-                for (QuestStartBehaviour behaviour : quest.getStartBehaviours()) {
+                for (QuestStartBehaviour behaviour : quest.getStartBehaviours(player)) {
                     if (!(behaviour instanceof QuestStartBehaviour.OnJoin onJoin)) {
                         continue;
                     }
 
-                    // Not using tryStartQuest() because this is faster
-                    if (!handler.canActuallyStart(player, quest)) {
-                        continue;
-                    }
-
-                    startQuest(player, quest, onJoin.sendNotification());
+                    startQuest(player, quest, false, onJoin.sendNotification());
                 }
-            });
-
-            // Handle chained quests
-            handler.getQuestChains().forEach(chain -> {
-                chain.startNextQuest(player);
             });
         });
     }
@@ -269,7 +259,7 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
 
         // Quest start
         tryStartQuest(player, quest -> {
-            for (QuestStartBehaviour behaviour : quest.getStartBehaviours()) {
+            for (QuestStartBehaviour behaviour : quest.getStartBehaviours(player)) {
                 if (!(behaviour instanceof QuestStartBehaviour.TalkToNpc talkToNpc)) {
                     continue;
                 }
@@ -444,7 +434,7 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
 
         // Start quest
         tryStartQuest(player, quest -> {
-            for (QuestStartBehaviour behaviour : quest.getStartBehaviours()) {
+            for (QuestStartBehaviour behaviour : quest.getStartBehaviours(player)) {
                 if (!(behaviour instanceof QuestStartBehaviour.GoTo goTo)) {
                     continue;
                 }
@@ -525,15 +515,17 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
     /**
      * Attempts to start the given {@link Quest} for the given {@link Player}.
      * <br>
-     * This method silently ignores starting already started quest.
+     * This method silently ignores starting already started quests.
      *
-     * @param player - Player to start the quest for.
-     * @param quest  - Quest to start.
-     * @param notify - Whenever to notify that the quest was started.
-     * @return {@code true} if, and only if, the quest was started, {@code false} otherwise.
+     * @param player      - Player to start the quest for.
+     * @param quest       - Quest to start.
+     * @param notifyError - Whether to send error messages if the quest was not started.
+     * @param notifyStart - Whether to send the 'quest started' message.
+     * @return The outcome of the start attempt.
      * @throws IllegalStateException If the plugin attempts to start unregistered quest
      */
-    public boolean startQuest(@Nonnull Player player, @Nonnull Quest quest, boolean notify) {
+    @Nonnull
+    public StartResponse startQuest(@Nonnull Player player, @Nonnull Quest quest, boolean notifyError, boolean notifyStart) {
         final QuestHandler handler = getHandler(quest.getPlugin());
         final QuestDataList questData = get(player);
         final QuestFormatter formatter = quest.getFormatter();
@@ -542,7 +534,11 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
         quest.getFirstObjective();
 
         if (questData.hasData(quest)) {
-            return false;
+            if (notifyError) {
+                formatter.sendCannotStartQuestAlreadyStarted(player, quest);
+            }
+
+            return StartResponse.ALREADY_STARTED;
         }
 
         // Make sure the quest is registered
@@ -553,21 +549,29 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
         // Pre requirements
         final QuestPreRequirement preRequirements = quest.getPreRequirement();
         if (preRequirements != null && !preRequirements.isMet(player)) {
-            quest.getFormatter().sendPreRequirementNotMet(player, preRequirements);
-            return false;
+            if (notifyError) {
+                formatter.sendPreRequirementNotMet(player, preRequirements);
+            }
+
+            return StartResponse.PRE_REQUIREMENTS_NOT_MET;
         }
 
         // Already completed
         if (handler.hasCompleted(player, quest)) {
-            quest.getFormatter().sendCannotStartQuestAlreadyCompleted(player, quest);
-            return false;
+            if (notifyError) {
+                formatter.sendCannotStartQuestAlreadyCompleted(player, quest);
+            }
+
+            return StartResponse.ALREADY_COMPLETED;
         }
 
         questData.getDataOrCompute(quest);
-        if (notify) {
+
+        if (notifyStart) {
             formatter.sendQuestStartedFormat(player, quest);
         }
-        return true;
+
+        return StartResponse.OK;
     }
 
     /**
@@ -610,13 +614,11 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
     @ApiStatus.Internal
     public void tryStartQuest(@Nonnull Player player, @Nonnull Predicate<Quest> predicate) {
         workHandlers(handler -> handler.getQuests().forEach(quest -> {
-            if (get(player).hasData(quest)) {
+            if (!predicate.test(quest)) {
                 return;
             }
 
-            if (handler.canActuallyStart(player, quest) && predicate.test(quest)) {
-                startQuest(player, quest, true);
-            }
+            startQuest(player, quest, false, true);
         }));
     }
 
@@ -624,5 +626,12 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
     @Target({ ElementType.METHOD })
     public @interface ObjectiveHandler {
         @Nonnull Class<? extends QuestObjective>[] value();
+    }
+
+    public enum StartResponse {
+        OK,
+        ALREADY_STARTED,
+        PRE_REQUIREMENTS_NOT_MET,
+        ALREADY_COMPLETED
     }
 }

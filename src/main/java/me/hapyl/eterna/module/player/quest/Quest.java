@@ -58,22 +58,74 @@ public class Quest implements Keyed, Described {
         this.isRepeatable = false;
     }
 
+    /**
+     * Gets the {@link QuestChain} this quest belongs to, or {@code null} if it doesn't belong to any.
+     *
+     * @return the {@link QuestChain} this quest belongs to, or {@code null} if it doesn't belong to any.
+     */
     @Nullable
     public QuestChain getQuestChain() {
         return this.questChain;
     }
 
+    /**
+     * Returns {@code true} if this quest belongs to a chain, {@code false} otherwise.
+     *
+     * @return {@code true} if this quest belongs to a chain, {@code false} otherwise.
+     */
     public boolean isChainedQuest() {
         return this.questChain != null;
     }
 
+    /**
+     * Gets a {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
+     *
+     * @return a {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
+     */
     @Nonnull
     public Set<QuestStartBehaviour> getStartBehaviours() {
         return new HashSet<>(startBehaviours);
     }
 
+    /**
+     * Gets a {@link Set} of {@link QuestStartBehaviour} applicable to this quest
+     * if this is the next {@link Quest} in the {@link QuestChain} for the given {@link Player},
+     * an empty {@link Set} otherwise.
+     *
+     * @param player - The player to get the start behaviours for.
+     * @return - a {@link Set} of {@link QuestStartBehaviour} applicable to this quest
+     * if this is the next {@link Quest} in the {@link QuestChain} for the given {@link Player},
+     * an empty {@link Set} otherwise.
+     */
+    @Nonnull
+    public Set<QuestStartBehaviour> getStartBehaviours(@Nonnull Player player) {
+        if (questChain != null) {
+            final Quest nextQuest = questChain.getNextQuest(player);
+
+            if (!this.equals(nextQuest)) {
+                return Set.of();
+            }
+        }
+
+        return getStartBehaviours();
+    }
+
+    /**
+     * Adds a {@link QuestStartBehaviour} to this quest.
+     *
+     * @param startBehaviour - The start behaviour to add.
+     */
     public void addStartBehaviour(@Nonnull QuestStartBehaviour startBehaviour) {
         this.startBehaviours.add(startBehaviour);
+    }
+
+    /**
+     * Returns {@code true} if this quest has {@link QuestStartBehaviour}, {@code false} otherwise.
+     *
+     * @return {@code true} if this quest has {@link QuestStartBehaviour}, {@code false} otherwise.
+     */
+    public boolean hasStartBehaviours() {
+        return !startBehaviours.isEmpty();
     }
 
     /**
@@ -240,10 +292,10 @@ public class Quest implements Keyed, Described {
      * Starts this {@link Quest} for the given {@link Player}.
      *
      * @param player - Player to start the quest for.
-     * @see QuestManager#startQuest(Player, Quest, boolean)
+     * @see QuestManager#startQuest(Player, Quest, boolean, boolean)
      */
     public void start(@Nonnull Player player) {
-        Eterna.getManagers().quest.startQuest(player, this, true);
+        Eterna.getManagers().quest.startQuest(player, this, true, true);
     }
 
     /**
