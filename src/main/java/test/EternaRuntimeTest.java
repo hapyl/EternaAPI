@@ -27,7 +27,6 @@ import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.inventory.*;
 import me.hapyl.eterna.module.inventory.gui.*;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
-import me.hapyl.eterna.module.locaiton.Position;
 import me.hapyl.eterna.module.math.Geometry;
 import me.hapyl.eterna.module.math.geometry.WorldParticle;
 import me.hapyl.eterna.module.nbt.NBT;
@@ -1769,33 +1768,31 @@ public final class EternaRuntimeTest {
                     npc3 = new HumanNPC(location.add(-2, 0, 0), "Test Npc 3", "sdimas74");
                     npc3.show(player);
 
-                    final Quest tqsb0 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_0"));
-                    tqsb0.addObjective(new JumpQuestObjective(1));
-                    tqsb0.addStartBehaviour(QuestStartBehaviour.onJoin());
+                    final QuestChain questChain = new QuestChain(Key.ofString("test_chain"));
 
-                    final Quest tqsb1 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_1"));
-                    tqsb1.addObjective(new JumpQuestObjective(2));
-                    tqsb1.addStartBehaviour(QuestStartBehaviour.talkToNpc(npc1, new Dialog()
-                            .addEntry(npc1, "Yes hello", "Oh the quest is gonna start now!")
-                    ));
-                    tqsb1.addStartBehaviour(QuestStartBehaviour.talkToNpc(npc2, new Dialog()
-                            .addEntry(npc2, "Oh, you desided to talk to me?!")
-                    ));
+                    final Quest quest1 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest1"));
+                    quest1.addObjective(new JumpQuestObjective(1));
+                    quest1.addStartBehaviour(QuestStartBehaviour.onJoin());
 
-                    final Quest tqsb2 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_2"));
-                    tqsb2.addObjective(new JumpQuestObjective(3));
-                    tqsb2.addStartBehaviour(QuestStartBehaviour.goTo(new Position(16, 62, -2, 19, 67, 2)));
-
-                    final Quest tqsb3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_3"));
-                    tqsb3.addObjective(new JumpQuestObjective(4));
-                    tqsb3.addStartBehaviour(QuestStartBehaviour.goTo(new Position(-2, 62, 16, 2, 66, 19), new Dialog()
-                            .addEntry(DialogEntry.of("You feel like this is the right area!", "Surely a quest will start!"))
+                    final Quest quest2 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest2"));
+                    quest2.addObjective(new JumpQuestObjective(2));
+                    quest2.addStartBehaviour(QuestStartBehaviour.talkToNpc(
+                            npc1,
+                            new Dialog().addEntry(DialogEntry.of(npc1, "Yes talk to me!"))
                     ));
 
-                    registry.register(tqsb0);
-                    registry.register(tqsb1);
-                    registry.register(tqsb2);
-                    registry.register(tqsb3);
+                    final Quest quest3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest3"));
+                    quest3.addObjective(new JumpQuestObjective(3));
+                    quest3.addStartBehaviour(QuestStartBehaviour.talkToNpc(
+                            npc2,
+                            new Dialog().addEntry(DialogEntry.of(npc2, "Oh yes do talk to me next quest will automatically start!"))
+                    ));
+
+                    final Quest quest4 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest4"));
+                    quest4.addObjective(new JumpQuestObjective(4));
+
+                    questChain.addQuests(quest1, quest2, quest3, quest4);
+                    registry.register(questChain);
                 }
                 else {
                     final String argument = args.getString(0);

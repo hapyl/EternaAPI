@@ -44,6 +44,10 @@ public interface QuestFormatter extends Formatter {
         }
 
         @Override
+        public void sendCannotStartQuestAlreadyStarted(@Nonnull Player player, @Nonnull Quest quest) {
+        }
+
+        @Override
         public void sendQuestFailedFormat(@Nonnull Player player, @Nonnull Quest quest) {
         }
     };
@@ -120,6 +124,11 @@ public interface QuestFormatter extends Formatter {
             Chat.sendMessage(player, "&4" + preRequirement.getMessage());
         }
 
+        @Override
+        public void sendCannotStartQuestAlreadyStarted(@Nonnull Player player, @Nonnull Quest quest) {
+            Chat.sendMessage(player, "&4This quest is already started!");
+        }
+
         private void sendLine(Player player, ChatColor color) {
             Chat.sendCenterMessage(player, color + "&m]                                      [");
         }
@@ -190,4 +199,12 @@ public interface QuestFormatter extends Formatter {
      * @param preRequirement - Pre-requirements.
      */
     void sendPreRequirementNotMet(@Nonnull Player player, @Nonnull QuestPreRequirement preRequirement);
+
+    /**
+     * Sent whenever the player attempts to start a quest while it's already active.
+     *
+     * @param player - The player who attempted to start the quest.
+     * @param quest  - The quest.
+     */
+    void sendCannotStartQuestAlreadyStarted(@Nonnull Player player, @Nonnull Quest quest);
 }

@@ -180,13 +180,12 @@ public class QuestData implements Debuggable {
             final QuestChain questChain = quest.getQuestChain();
 
             if (questChain != null) {
-                Runnables.runLater(() -> {
-                    final Quest nextQuest = questChain.getNextQuest(player);
+                final Quest nextQuest = questChain.getNextQuest(player);
 
-                    if (nextQuest != null) {
-                        nextQuest.start(player);
-                    }
-                }, 50);
+                // Only auto-start if the next quest doesn't have any start behaviours
+                if (nextQuest != null && !nextQuest.hasStartBehaviours()) {
+                    Runnables.runLater(() -> nextQuest.start(player), 50);
+                }
             }
             return null;
         }

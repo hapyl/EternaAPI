@@ -123,6 +123,12 @@ public class Key {
         return Objects.hashCode(key);
     }
 
+    /**
+     * Gets a {@link NamespacedKey} representation of this {@link Key}.
+     * <p>The namespace always belongs to {@code Eterna}</p>
+     *
+     * @return a {@link NamespacedKey} representation of this {@link Key}.
+     */
     @Nonnull
     public final NamespacedKey asNamespacedKey() {
         return BukkitUtils.createKey(key);

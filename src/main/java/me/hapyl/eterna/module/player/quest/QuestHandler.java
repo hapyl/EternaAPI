@@ -76,7 +76,7 @@ public abstract class QuestHandler extends SimplePluginRegistry<Quest> {
     public abstract void completeQuest(@Nonnull Player player, @Nonnull Quest quest);
 
     /**
-     * Attempts to register the given {@link Quest} for this {@link JavaPlugin} {@link QuestHandler}.
+     * Attempts to register the given {@link Quest} for this {@link QuestHandler}.
      *
      * @param quest - The {@link Quest} to register.
      * @return the registered {@link Quest}.
@@ -95,6 +95,12 @@ public abstract class QuestHandler extends SimplePluginRegistry<Quest> {
         return super.register(validateQuestPlugin(quest));
     }
 
+    /**
+     * Attempts to register the given {@link QuestChain} for this {@link QuestHandler}.
+     *
+     * @param questChain - The quest chain to register.
+     * @throws IllegalArgumentException If the owning {@link JavaPlugin} of the given {@link Quest} is not {@link #getPlugin()}.
+     */
     public final void register(@Nonnull QuestChain questChain) {
         this.questChains.add(questChain);
 
@@ -126,25 +132,10 @@ public abstract class QuestHandler extends SimplePluginRegistry<Quest> {
     }
 
     /**
-     * Returns {@code true} if the requirements are met and the player has not yet completed the quest, {@code false} otherwise.
+     * Gets a copy of all {@link QuestChain} registered in this handler.
      *
-     * @param player - Player to check.
-     * @return {@code true} if the requirements are met and the player has not yet completed the quest, {@code false} otherwise.
+     * @return a copy of all {@link QuestChain} registered in this handler.
      */
-    public final boolean canActuallyStart(@Nonnull Player player, @Nonnull Quest quest) {
-        final QuestPreRequirement preRequirement = quest.getPreRequirement();
-
-        if (preRequirement != null && !preRequirement.isMet(player)) {
-            return false;
-        }
-
-        if (hasCompleted(player, quest)) {
-            return false;
-        }
-
-        return true;
-    }
-
     @Nonnull
     public List<QuestChain> getQuestChains() {
         return new ArrayList<>(questChains);
