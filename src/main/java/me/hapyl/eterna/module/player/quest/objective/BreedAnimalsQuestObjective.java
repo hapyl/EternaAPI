@@ -26,7 +26,7 @@ public class BreedAnimalsQuestObjective extends QuestObjective {
      * @throws IllegalArgumentException If the given entity type is not {@link Breedable}.
      */
     public BreedAnimalsQuestObjective(@Nonnull EntityType entityType, double goal) {
-        super("Animal Breeder", "Breed %s %s times.".formatted(Chat.capitalize(entityType.getKey().getKey()), goal), goal);
+        super("Breed %s %s times.".formatted(Chat.capitalize(entityType.getKey().getKey()), goal), goal);
 
         this.entityType = Validate.isTrue(entityType, type -> {
             final Class<? extends Entity> entityClass = type.getEntityClass();

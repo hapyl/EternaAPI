@@ -53,8 +53,7 @@ public interface QuestFormatter extends Formatter {
         @Override
         public void sendObjectiveNew(@Nonnull Player player, @Nonnull QuestObjective objective) {
             sendLine(player, ChatColor.GOLD);
-            Chat.sendCenterMessage(player, "&e&lNEW OBJECTIVE!");
-            Chat.sendCenterMessage(player, "&6" + objective.getName());
+            Chat.sendCenterMessage(player, "&e&lɴᴇᴡ ᴏʙᴊᴇᴄᴛɪᴠᴇ");
             Chat.sendCenterMessage(player, "&7" + objective.getDescription());
             sendLine(player, ChatColor.GOLD);
 
@@ -64,8 +63,8 @@ public interface QuestFormatter extends Formatter {
         @Override
         public void sendObjectiveComplete(@Nonnull Player player, @Nonnull QuestObjective objective) {
             sendLine(player, ChatColor.GREEN);
-            Chat.sendCenterMessage(player, "&2&lOBJECTIVE COMPLETE!");
-            Chat.sendCenterMessage(player, "&a✔ " + objective.getName());
+            Chat.sendCenterMessage(player, "&2&lᴏʙᴊᴇᴄᴛɪᴠᴇ ᴄᴏᴍᴘʟᴇᴛᴇ");
+            Chat.sendCenterMessage(player, "&a✔ " + objective.getDescription());
             sendLine(player, ChatColor.GREEN);
 
             PlayerLib.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f);
@@ -74,8 +73,8 @@ public interface QuestFormatter extends Formatter {
         @Override
         public void sendObjectiveFailed(@Nonnull Player player, @Nonnull QuestObjective objective) {
             sendLine(player, ChatColor.DARK_RED);
-            Chat.sendCenterMessage(player, "&c&lOBJECTIVE FAILED!");
-            Chat.sendCenterMessage(player, "&c" + objective.getName());
+            Chat.sendCenterMessage(player, "&c&lᴏʙᴊᴇᴄᴛɪᴠᴇ ꜰᴀɪʟᴇᴅ");
+            Chat.sendCenterMessage(player, "&c" + objective.getDescription());
             Chat.sendCenterMessage(player, "&7It's ok! Try again.");
             sendLine(player, ChatColor.DARK_RED);
 
@@ -98,8 +97,7 @@ public interface QuestFormatter extends Formatter {
             Chat.sendCenterMessage(player, "&6&lQUEST STARTED!");
             Chat.sendCenterMessage(player, "&a" + quest.getName());
             Chat.sendCenterMessage(player, "");
-            Chat.sendCenterMessage(player, "&aᴄᴜʀʀᴇɴᴛ ᴏʙᴊᴇᴄᴛɪᴠᴇ");
-            Chat.sendCenterMessage(player, "&7&o" + quest.getFirstObjective().getName());
+            Chat.sendCenterMessage(player, "&a&lᴄᴜʀʀᴇɴᴛ ᴏʙᴊᴇᴄᴛɪᴠᴇ");
             Chat.sendCenterMessage(player, "&7&o" + quest.getFirstObjective().getDescription());
             sendLine(player, ChatColor.YELLOW);
         }

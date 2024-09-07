@@ -24,7 +24,7 @@ public class CraftItemQuestObjective extends QuestObjective {
      * @throws IllegalArgumentException If the given material is not an item.
      */
     public CraftItemQuestObjective(@Nonnull Material material, double goal) {
-        super("Crafter", "Craft %s %s times.".formatted(Chat.capitalize(material), goal), goal);
+        super("Craft %s %s times.".formatted(Chat.capitalize(material), goal), goal);
 
         this.material = Validate.isTrue(material, Material::isItem, "Material must be an item!");
     }

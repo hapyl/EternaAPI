@@ -37,7 +37,7 @@ public class TalkInChatQuestObjective extends QuestObjective {
      * @param cancelMessage - Whether or not to cancel the chat message.
      */
     public TalkInChatQuestObjective(@Nonnull String thingToSay, boolean exactMatch, boolean cancelMessage) {
-        super("Talker", "Say %s in chat.".formatted(thingToSay), 1);
+        super("Say %s in chat.".formatted(thingToSay), 1);
 
         this.thingToSay = thingToSay;
         this.exactMatch = exactMatch;

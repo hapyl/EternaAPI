@@ -23,7 +23,7 @@ public class FinishDialogQuestObjective extends AbstractDialogQuestObjective {
      * @param dialog - The dialog to complete.
      */
     public FinishDialogQuestObjective(@Nonnull Dialog dialog) {
-        super("Talker", "Complete a dialog.");
+        super("Complete a dialog.");
 
         this.dialog = dialog;
     }

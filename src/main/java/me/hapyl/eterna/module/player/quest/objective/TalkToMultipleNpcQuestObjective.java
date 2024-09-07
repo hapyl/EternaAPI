@@ -45,7 +45,7 @@ public class TalkToMultipleNpcQuestObjective extends AbstractDialogQuestObjectiv
      * @see TalkToMultipleNpcQuestObjective#entry(HumanNPC, Dialog, Dialog)
      */
     public TalkToMultipleNpcQuestObjective(@Range(from = 2, to = Integer.MAX_VALUE) @Nonnull List<Entry> entries) {
-        super("Talker", "Talk to NPCs.");
+        super("Talk to NPCs.");
 
         if (entries.size() < MIN_DIALOGS) {
             throw new IllegalArgumentException(

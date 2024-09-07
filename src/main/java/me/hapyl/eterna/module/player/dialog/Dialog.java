@@ -23,6 +23,10 @@ public class Dialog {
 
     protected final Queue<DialogEntry> entries;
 
+    public Dialog(@Nonnull Dialog dialog) {
+        this.entries = new LinkedList<>(dialog.entries);
+    }
+
     public Dialog() {
         this.entries = new LinkedList<>();
     }

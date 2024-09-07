@@ -25,7 +25,7 @@ public class TalkToNpcQuestObjective extends AbstractDialogQuestObjective {
      * @param dialog - The dialog to display.
      */
     public TalkToNpcQuestObjective(@Nonnull HumanNPC npc, @Nonnull Dialog dialog) {
-        super("Talker", "Talk to %s.".formatted(npc.getName()));
+        super("Talk to %s.".formatted(npc.getName()));
 
         this.npc = npc;
         this.dialog = dialog;

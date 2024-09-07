@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.player.quest.objective;
 
-import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.player.PlayerLib;
@@ -32,7 +31,7 @@ public class GiveItemToNpcQuestObjective extends QuestObjective {
      * @param goal     - The number of items to give.
      */
     public GiveItemToNpcQuestObjective(@Nonnull HumanNPC npc, @Nonnull Material material, double goal) {
-        super("Giver", "Give %s %sx %s.".formatted(npc.getName(), goal, Chat.capitalize(material)), goal);
+        super("Give %s %sx %s.".formatted(npc.getName(), goal, Chat.capitalize(material)), goal);
 
         this.npc = npc;
         this.material = Validate.isTrue(material, Material::isItem, "Material must be an item!");
@@ -97,11 +96,7 @@ public class GiveItemToNpcQuestObjective extends QuestObjective {
         final int canGive = Math.min(amount, needMore);
 
         // Complete
-        final int k = needMore - canGive;
-
-        EternaLogger.debug(k);
-
-        if (k == 0) {
+        if (needMore - canGive == 0) {
             onGiveItemComplete(player);
         }
         else {

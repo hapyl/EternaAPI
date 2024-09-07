@@ -24,34 +24,36 @@ public abstract class QuestObjective implements Described {
 
     private final double goal;
 
-    private String name;
     private String description;
 
-    public QuestObjective(@Nonnull String name, @Nonnull String description, double goal) {
-        this.name = name;
+    public QuestObjective(@Nonnull String description, double goal) {
         this.description = description;
         this.goal = goal;
     }
 
     /**
-     * Gets the name of this quest.
+     * Gets the description of this objective.
      *
-     * @return the name of this quest.
+     * @return the description of this objective.
+     * @deprecated Names aren't supported for objectives.
      */
     @Nonnull
     @Override
-    public String getName() {
-        return name;
+    @Deprecated
+    public final String getName() {
+        return this.description;
     }
 
     /**
-     * Sets the name of this quest.
+     * Sets the description of this quest.
      *
-     * @param name - The name to set.
+     * @param description - The description to set.
+     * @deprecated Names aren't supported for objectives.
      */
     @Override
-    public void setName(@Nonnull String name) {
-        this.name = name;
+    @Deprecated
+    public void setName(@Nonnull String description) {
+        this.description = description;
     }
 
     /**

@@ -23,7 +23,7 @@ public class BreakItemQuestObjective extends QuestObjective {
      * @throws IllegalArgumentException If the given material is not an item.
      */
     public BreakItemQuestObjective(@Nonnull Material material) {
-        super("Item Breaker", "Break %s.".formatted(Chat.capitalize(material)), 1);
+        super("Break %s.".formatted(Chat.capitalize(material)), 1);
 
         this.material = Validate.isTrue(material, Material::isItem, "Material must be an item!");
     }

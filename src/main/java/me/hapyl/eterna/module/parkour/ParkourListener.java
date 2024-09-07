@@ -59,7 +59,7 @@ public class ParkourListener implements Listener {
         final Location clickedBlockLocation = clickedBlock.getLocation();
 
         /** Start and Finish */
-        if (clickedBlockType == Position.Type.START_OR_FINISH.material()) {
+        if (clickedBlockType == ParkourPosition.Type.START_OR_FINISH.material()) {
             final Parkour parkour = manager().byStartOrFinish(clickedBlockLocation);
 
             if (parkour == null) {
@@ -108,7 +108,7 @@ public class ParkourListener implements Listener {
         }
 
         /** Checkpoint */
-        else if (clickedBlockType == Position.Type.CHECKPOINT.material()) {
+        else if (clickedBlockType == ParkourPosition.Type.CHECKPOINT.material()) {
             if (manager().isCheckpointOfAnyParkour(clickedBlockLocation)) {
                 ev.setUseInteractedBlock(Event.Result.DENY);
                 ev.setCancelled(true);
@@ -119,7 +119,7 @@ public class ParkourListener implements Listener {
             }
 
             InternalCooldown.PARKOUR_CHECKPOINT.start(player);
-            final Position nextCheckpoint = data.getNextCheckpoint();
+            final ParkourPosition nextCheckpoint = data.getNextCheckpoint();
 
             if (nextCheckpoint != null) {
                 if (data.getParkour() instanceof ParkourHandler handler &&

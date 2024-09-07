@@ -24,7 +24,7 @@ public class PlaceBlockQuestObjective extends QuestObjective {
      * @throws IllegalArgumentException If the material is not a block.
      */
     public PlaceBlockQuestObjective(@Nonnull Material material, double goal) {
-        super("Placer", "Place %s %s.".formatted(goal, Chat.capitalize(material)), goal);
+        super("Place %s %s.".formatted(goal, Chat.capitalize(material)), goal);
 
         this.material = Validate.isTrue(material, Material::isBlock, "Material must be a block!");
     }

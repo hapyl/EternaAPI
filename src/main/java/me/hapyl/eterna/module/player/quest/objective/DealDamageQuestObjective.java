@@ -28,7 +28,7 @@ public class DealDamageQuestObjective extends QuestObjective {
      * @param goal        - The total amount of damage to deal.
      */
     public DealDamageQuestObjective(@Nullable EntityType entityType, @Nullable EntityDamageEvent.DamageCause damageCause, double goal) {
-        super("Damager", makeDescription(entityType, damageCause, goal), goal);
+        super(makeDescription(entityType, damageCause, goal), goal);
 
         this.entityType = entityType;
         this.damageCause = damageCause;

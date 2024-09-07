@@ -4,7 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 
-public class Position {
+public class ParkourPosition {
 
     private final Type type;
     private final World world;
@@ -16,7 +16,7 @@ public class Position {
 
     private Material oldBlock;
 
-    public Position(Type type, World world, int x, int y, int z, float yaw, float pitch) {
+    public ParkourPosition(Type type, World world, int x, int y, int z, float yaw, float pitch) {
         this.type = type;
         this.world = world;
         this.x = x;
@@ -26,19 +26,19 @@ public class Position {
         this.pitch = pitch;
     }
 
-    public Position(World world, int x, int y, int z, float yaw, float pitch) {
+    public ParkourPosition(World world, int x, int y, int z, float yaw, float pitch) {
         this(Type.START_OR_FINISH, world, x, y, z, yaw, pitch);
     }
 
-    public Position(Type type, World world, int x, int y, int z) {
+    public ParkourPosition(Type type, World world, int x, int y, int z) {
         this(type, world, x, y, z, 0.0f, 0.0f);
     }
 
-    public Position(World world, int x, int y, int z) {
+    public ParkourPosition(World world, int x, int y, int z) {
         this(Type.START_OR_FINISH, world, x, y, z, 0.0f, 0.0f);
     }
 
-    public Position(Type type, Location location) {
+    public ParkourPosition(Type type, Location location) {
         this(
                 type,
                 location.getWorld(),
@@ -50,7 +50,7 @@ public class Position {
         );
     }
 
-    public Position(Location location) {
+    public ParkourPosition(Location location) {
         this(
                 Type.START_OR_FINISH,
                 location.getWorld(),
@@ -105,7 +105,7 @@ public class Position {
         return location.getBlockX() == this.x && location.getBlockY() == this.y && location.getBlockZ() == this.z;
     }
 
-    public boolean compare(Position position) {
+    public boolean compare(ParkourPosition position) {
         return position.x == this.x && position.y == this.y && position.z == this.z;
     }
 

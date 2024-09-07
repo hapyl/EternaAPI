@@ -24,7 +24,7 @@ public class BreakBlockQuestObjective extends QuestObjective {
      * @throws IllegalArgumentException If the given material is not a block.
      */
     public BreakBlockQuestObjective(@Nonnull Material material, double goal) {
-        super("Miner", "Break %s %s blocks.".formatted(goal, Chat.capitalize(material)), goal);
+        super("Break %s %s blocks.".formatted(goal, Chat.capitalize(material)), goal);
 
         this.material = Validate.isTrue(material, Material::isBlock, "Material must be a block!");
     }

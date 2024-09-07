@@ -26,7 +26,7 @@ public class GiveKeyedItemToNpcQuestObjective extends QuestObjective {
      * @param npc - The NPC to give the item to.
      */
     public GiveKeyedItemToNpcQuestObjective(@Nonnull Key key, @Nonnull HumanNPC npc) {
-        super("Giver", "Give %s item to %s.".formatted(key.getKey(), npc.getName()), 1);
+        super("Give %s item to %s.".formatted(key.getKey(), npc.getName()), 1);
 
         this.key = validateKey(key);
         this.npc = npc;

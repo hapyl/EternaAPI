@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.player.quest;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaAPI;
 import me.hapyl.eterna.builtin.manager.QuestManager;
@@ -13,8 +14,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A {@link Quest} implementation.
@@ -30,6 +33,7 @@ public class Quest implements Keyed, Described {
     private final JavaPlugin plugin;
     private final Key key;
     private final LinkedList<QuestObjective> objectives;
+    private final Set<QuestStartBehaviour> startBehaviours;
 
     QuestChain questChain;
 
@@ -39,7 +43,6 @@ public class Quest implements Keyed, Described {
     private boolean isRepeatable;
 
     @Nonnull private QuestFormatter formatter;
-    @Nonnull private QuestJoinBehaviour joinBehaviour;
 
     @Nullable private QuestPreRequirement preRequirement;
 
@@ -50,7 +53,7 @@ public class Quest implements Keyed, Described {
         this.description = "No description.";
         this.objectives = Lists.newLinkedList();
         this.formatter = QuestFormatter.DEFAULT;
-        this.joinBehaviour = QuestJoinBehaviour.DO_NOTHING;
+        this.startBehaviours = Sets.newHashSet();
         this.preRequirement = null;
         this.isRepeatable = false;
     }
@@ -64,25 +67,13 @@ public class Quest implements Keyed, Described {
         return this.questChain != null;
     }
 
-    /**
-     * Gets the {@link QuestJoinBehaviour} of this {@link Quest}.
-     * <p>The join behaviour is ignored is this quest is part of a chain.</p>
-     *
-     * @return the quest join behaviour of this quest.
-     */
     @Nonnull
-    public QuestJoinBehaviour getJoinBehaviour() {
-        return joinBehaviour;
+    public Set<QuestStartBehaviour> getStartBehaviours() {
+        return new HashSet<>(startBehaviours);
     }
 
-    /**
-     * Sets the {@link QuestJoinBehaviour} of this {@link Quest}.
-     * <p>The join behaviour is ignored is this quest is part of a chain.</p>
-     *
-     * @param joinBehaviour - New join behaviour.
-     */
-    public void setJoinBehaviour(@Nonnull QuestJoinBehaviour joinBehaviour) {
-        this.joinBehaviour = joinBehaviour;
+    public void addStartBehaviour(@Nonnull QuestStartBehaviour startBehaviour) {
+        this.startBehaviours.add(startBehaviour);
     }
 
     /**

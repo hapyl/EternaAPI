@@ -23,7 +23,7 @@ public class TravelDistanceQuestObjective extends QuestObjective {
      * @param distance   - The distance to travel.
      */
     public TravelDistanceQuestObjective(@Nonnull TravelType travelType, double distance) {
-        super("Traveler", "Travel %s blocks %s.".formatted(distance, travelType), distance);
+        super("Travel %s blocks %s.".formatted(distance, travelType), distance);
 
         this.travelType = travelType;
     }
