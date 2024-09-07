@@ -89,7 +89,11 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
                         continue;
                     }
 
-                    startQuest(player, quest, false, onJoin.sendNotification());
+                    if (!canStartQuest(player, quest, false).isOk()) {
+                        return;
+                    }
+
+                    startQuestForcefully(player, quest, onJoin.sendNotification());
                 }
             });
         });
@@ -514,18 +518,53 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
 
     /**
      * Attempts to start the given {@link Quest} for the given {@link Player}.
-     * <br>
-     * This method silently ignores starting already started quests.
      *
      * @param player      - Player to start the quest for.
      * @param quest       - Quest to start.
      * @param notifyError - Whether to send error messages if the quest was not started.
      * @param notifyStart - Whether to send the 'quest started' message.
-     * @return The outcome of the start attempt.
-     * @throws IllegalStateException If the plugin attempts to start unregistered quest
+     * @return The attempt outcome.
+     * @throws IllegalStateException If the plugin attempts to start unregistered quest.
      */
     @Nonnull
-    public StartResponse startQuest(@Nonnull Player player, @Nonnull Quest quest, boolean notifyError, boolean notifyStart) {
+    public StartResponse startQuestIfPossible(@Nonnull Player player, @Nonnull Quest quest, boolean notifyError, boolean notifyStart) {
+        final StartResponse startResponse = canStartQuest(player, quest, notifyError);
+
+        if (startResponse.isOk()) {
+            startQuestForcefully(player, quest, notifyStart);
+        }
+
+        return startResponse;
+    }
+
+    /**
+     * Forcefully starts the given {@link Quest} for the given {@link Player}.
+     *
+     * @param player      - Player to start the quest for.
+     * @param quest       - Quest to start.
+     * @param notifyStart - Whether to send the 'quest started' message.
+     * @see #startQuestIfPossible(Player, Quest, boolean, boolean)
+     */
+    @ApiStatus.Internal
+    public void startQuestForcefully(@Nonnull Player player, @Nonnull Quest quest, boolean notifyStart) {
+        get(player).getDataOrCompute(quest);
+
+        if (notifyStart) {
+            quest.getFormatter().sendQuestStartedFormat(player, quest);
+        }
+    }
+
+    /**
+     * Checks if the given player can start the given quest and returns the appropriate {@link StartResponse}.
+     *
+     * @param player      - Player to start the quest for.
+     * @param quest       - Quest to start.
+     * @param notifyError - Whether to send error messages if the quest was not started.
+     * @return the start response.
+     * @throws IllegalStateException If the plugin attempts to start unregistered quest.
+     */
+    @Nonnull
+    public StartResponse canStartQuest(@Nonnull Player player, @Nonnull Quest quest, boolean notifyError) {
         final QuestHandler handler = getHandler(quest.getPlugin());
         final QuestDataList questData = get(player);
         final QuestFormatter formatter = quest.getFormatter();
@@ -563,12 +602,6 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
             }
 
             return StartResponse.ALREADY_COMPLETED;
-        }
-
-        questData.getDataOrCompute(quest);
-
-        if (notifyStart) {
-            formatter.sendQuestStartedFormat(player, quest);
         }
 
         return StartResponse.OK;
@@ -614,24 +647,51 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
     @ApiStatus.Internal
     public void tryStartQuest(@Nonnull Player player, @Nonnull Predicate<Quest> predicate) {
         workHandlers(handler -> handler.getQuests().forEach(quest -> {
-            if (!predicate.test(quest)) {
+            if (!canStartQuest(player, quest, false).isOk() || !predicate.test(quest)) {
                 return;
             }
 
-            startQuest(player, quest, false, true);
+            startQuestForcefully(player, quest, true);
         }));
+    }
+
+    /**
+     * Represents a start response.
+     */
+    public enum StartResponse {
+        /**
+         * The quest was started.
+         */
+        OK,
+
+        /**
+         * The quest could not be started because it's already active.
+         */
+        ALREADY_STARTED,
+
+        /**
+         * The quest could not be started because the player does not meet the pre-requirements.
+         */
+        PRE_REQUIREMENTS_NOT_MET,
+
+        /**
+         * The quest could not be started because the player has already completed it.
+         */
+        ALREADY_COMPLETED;
+
+        /**
+         * Returns {@code true} if the response was {@link #OK}, {@code false} otherwise.
+         *
+         * @return {@code true} if the response was {@link #OK}, {@code false} otherwise.
+         */
+        public boolean isOk() {
+            return this == OK;
+        }
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.METHOD })
     public @interface ObjectiveHandler {
         @Nonnull Class<? extends QuestObjective>[] value();
-    }
-
-    public enum StartResponse {
-        OK,
-        ALREADY_STARTED,
-        PRE_REQUIREMENTS_NOT_MET,
-        ALREADY_COMPLETED
     }
 }

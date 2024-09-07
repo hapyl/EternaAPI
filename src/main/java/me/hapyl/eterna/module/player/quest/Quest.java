@@ -292,10 +292,10 @@ public class Quest implements Keyed, Described {
      * Starts this {@link Quest} for the given {@link Player}.
      *
      * @param player - Player to start the quest for.
-     * @see QuestManager#startQuest(Player, Quest, boolean, boolean)
+     * @see QuestManager#startQuestIfPossible(Player, Quest, boolean, boolean)
      */
     public void start(@Nonnull Player player) {
-        Eterna.getManagers().quest.startQuest(player, this, true, true);
+        Eterna.getManagers().quest.startQuestIfPossible(player, this, true, true);
     }
 
     /**
