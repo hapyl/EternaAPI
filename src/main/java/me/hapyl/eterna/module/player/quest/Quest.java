@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.player.quest;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaAPI;
 import me.hapyl.eterna.builtin.manager.QuestManager;
@@ -13,8 +14,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A {@link Quest} implementation.
@@ -30,6 +33,7 @@ public class Quest implements Keyed, Described {
     private final JavaPlugin plugin;
     private final Key key;
     private final LinkedList<QuestObjective> objectives;
+    private final Set<QuestStartBehaviour> startBehaviours;
 
     QuestChain questChain;
 
@@ -40,7 +44,6 @@ public class Quest implements Keyed, Described {
 
     @Nonnull private QuestFormatter formatter;
 
-    @Nullable private QuestStartBehaviour startBehaviour;
     @Nullable private QuestPreRequirement preRequirement;
 
     public Quest(@Nonnull JavaPlugin plugin, @Nonnull Key key) {
@@ -50,7 +53,7 @@ public class Quest implements Keyed, Described {
         this.description = "No description.";
         this.objectives = Lists.newLinkedList();
         this.formatter = QuestFormatter.DEFAULT;
-        this.startBehaviour = null;
+        this.startBehaviours = Sets.newHashSet();
         this.preRequirement = null;
         this.isRepeatable = false;
     }
@@ -64,13 +67,13 @@ public class Quest implements Keyed, Described {
         return this.questChain != null;
     }
 
-    @Nullable
-    public QuestStartBehaviour getStartBehaviour() {
-        return startBehaviour;
+    @Nonnull
+    public Set<QuestStartBehaviour> getStartBehaviours() {
+        return new HashSet<>(startBehaviours);
     }
 
-    public void setStartBehaviour(@Nullable QuestStartBehaviour startBehaviour) {
-        this.startBehaviour = startBehaviour;
+    public void addStartBehaviour(@Nonnull QuestStartBehaviour startBehaviour) {
+        this.startBehaviours.add(startBehaviour);
     }
 
     /**

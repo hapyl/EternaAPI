@@ -59,8 +59,6 @@ import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -1741,54 +1739,12 @@ public final class EternaRuntimeTest {
                     registry = new QuestHandler(EternaPlugin.getPlugin()) {
                         @Override
                         public void saveQuests(@Nonnull Player player, @Nonnull Set<QuestData> questDataSet) {
-                            final String uuid = player.getUniqueId().toString();
-                            final YamlConfiguration yaml = config.getConfig();
-
-                            for (QuestData data : questDataSet) {
-                                final Quest quest = data.getQuest();
-                                final int currentStage = data.getCurrentStage();
-                                final double progress = data.getCurrentStageProgress();
-
-                                yaml.set("%s.%s.stage".formatted(uuid, quest.getKeyAsString()), currentStage);
-                                yaml.set("%s.%s.progress".formatted(uuid, quest.getKeyAsString()), progress);
-                            }
-
-                            config.save();
                         }
 
                         @Nonnull
                         @Override
                         public Set<QuestData> loadQuests(@Nonnull Player player) {
-                            final String uuid = player.getUniqueId().toString();
-
-                            final YamlConfiguration yaml = config.getConfig();
-                            final ConfigurationSection section = yaml.getConfigurationSection(uuid);
-                            final Set<QuestData> questDataSet = new HashSet<>();
-
-                            if (section == null) {
-                                return questDataSet;
-                            }
-
-                            for (String questKey : section.getValues(false).keySet()) {
-                                final Quest quest = registry.get(questKey);
-
-                                if (quest == null) {
-                                    EternaLogger.debug("Skipped deleted quest!");
-                                    continue;
-                                }
-
-                                final int stage = yaml.getInt("%s.%s.stage".formatted(uuid, questKey));
-                                final double progress = yaml.getDouble("%s.%s.progress".formatted(uuid, questKey));
-
-                                // Don't load completed quests
-                                if (hasCompleted(player, quest)) {
-                                    continue;
-                                }
-
-                                questDataSet.add(QuestData.load(this, player, quest, stage, progress));
-                            }
-
-                            return questDataSet;
+                            return Set.of();
                         }
 
                         @Override
@@ -1815,21 +1771,24 @@ public final class EternaRuntimeTest {
 
                     final Quest tqsb0 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_0"));
                     tqsb0.addObjective(new JumpQuestObjective(1));
-                    tqsb0.setStartBehaviour(QuestStartBehaviour.onJoin());
+                    tqsb0.addStartBehaviour(QuestStartBehaviour.onJoin());
 
                     final Quest tqsb1 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_1"));
                     tqsb1.addObjective(new JumpQuestObjective(2));
-                    tqsb1.setStartBehaviour(QuestStartBehaviour.talkToNpc(npc1, new Dialog()
+                    tqsb1.addStartBehaviour(QuestStartBehaviour.talkToNpc(npc1, new Dialog()
                             .addEntry(npc1, "Yes hello", "Oh the quest is gonna start now!")
+                    ));
+                    tqsb1.addStartBehaviour(QuestStartBehaviour.talkToNpc(npc2, new Dialog()
+                            .addEntry(npc2, "Oh, you desided to talk to me?!")
                     ));
 
                     final Quest tqsb2 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_2"));
                     tqsb2.addObjective(new JumpQuestObjective(3));
-                    tqsb2.setStartBehaviour(QuestStartBehaviour.goTo(new Position(16, 62, -2, 19, 67, 2)));
+                    tqsb2.addStartBehaviour(QuestStartBehaviour.goTo(new Position(16, 62, -2, 19, 67, 2)));
 
                     final Quest tqsb3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("tqsb_3"));
                     tqsb3.addObjective(new JumpQuestObjective(4));
-                    tqsb3.setStartBehaviour(QuestStartBehaviour.goTo(new Position(-2, 62, 16, 2, 66, 19), new Dialog()
+                    tqsb3.addStartBehaviour(QuestStartBehaviour.goTo(new Position(-2, 62, 16, 2, 66, 19), new Dialog()
                             .addEntry(DialogEntry.of("You feel like this is the right area!", "Surely a quest will start!"))
                     ));
 

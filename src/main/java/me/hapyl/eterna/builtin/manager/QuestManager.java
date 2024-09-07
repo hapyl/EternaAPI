@@ -84,18 +84,18 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
 
             // Start onJoin quests
             handler.getQuests().forEach(quest -> {
-                final QuestStartBehaviour startBehaviour = quest.getStartBehaviour();
+                for (QuestStartBehaviour behaviour : quest.getStartBehaviours()) {
+                    if (!(behaviour instanceof QuestStartBehaviour.OnJoin onJoin)) {
+                        continue;
+                    }
 
-                if (!(startBehaviour instanceof QuestStartBehaviour.OnJoin onJoin)) {
-                    return;
+                    // Not using tryStartQuest() because this is faster
+                    if (!handler.canActuallyStart(player, quest)) {
+                        continue;
+                    }
+
+                    startQuest(player, quest, onJoin.sendNotification());
                 }
-
-                // Not using tryStartQuest() because this is faster
-                if (!handler.canActuallyStart(player, quest)) {
-                    return;
-                }
-
-                startQuest(player, quest, onJoin.sendNotification());
             });
 
             // Handle chained quests
@@ -269,19 +269,19 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
 
         // Quest start
         tryStartQuest(player, quest -> {
-            final QuestStartBehaviour startBehaviour = quest.getStartBehaviour();
+            for (QuestStartBehaviour behaviour : quest.getStartBehaviours()) {
+                if (!(behaviour instanceof QuestStartBehaviour.TalkToNpc talkToNpc)) {
+                    continue;
+                }
 
-            if (!(startBehaviour instanceof QuestStartBehaviour.TalkToNpc talkToNpc)) {
+                if (!talkToNpc.npc().equals(npc)) {
+                    continue;
+                }
+
+                talkToNpc.dialog().start(player);
                 return false;
             }
 
-            if (!talkToNpc.npc().equals(npc)) {
-                return false;
-            }
-
-            final Dialog dialog = talkToNpc.dialog();
-
-            dialog.start(player);
             return false;
         });
 
@@ -444,27 +444,28 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
 
         // Start quest
         tryStartQuest(player, quest -> {
-            final QuestStartBehaviour startBehaviour = quest.getStartBehaviour();
+            for (QuestStartBehaviour behaviour : quest.getStartBehaviours()) {
+                if (!(behaviour instanceof QuestStartBehaviour.GoTo goTo)) {
+                    continue;
+                }
 
-            if (!(startBehaviour instanceof QuestStartBehaviour.GoTo goTo)) {
-                return false;
+                final Position position = goTo.position();
+
+                if (!position.contains(player.getLocation())) {
+                    continue;
+                }
+
+                final Dialog dialog = goTo.dialog();
+
+                if (dialog != null) {
+                    dialog.start(player);
+                    return false; // The dialog starts the quest
+                }
+
+                return true; // Otherwise do start the quest
             }
 
-            final Position position = goTo.position();
-
-            if (!position.contains(player.getLocation())) {
-                return false;
-            }
-
-            final Dialog dialog = goTo.dialog();
-
-            if (dialog != null) {
-                dialog.start(player);
-                return false; // The dialog starts the quest
-            }
-
-            // Otherwise do start the quest
-            return true;
+            return false;
         });
 
         // Increment objective
