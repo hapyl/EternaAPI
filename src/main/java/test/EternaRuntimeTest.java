@@ -1877,6 +1877,34 @@ public final class EternaRuntimeTest {
             }
         });
 
+        addTest(new EternaTest("cooldown") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final ItemStack test1 = ItemBuilder.createDummyCooldownItem(Material.DIAMOND_SWORD, Key.ofString("test_1"));
+                final ItemStack test2 = ItemBuilder.createDummyCooldownItem(Material.DIAMOND_SWORD, Key.ofString("test_2"));
+                final ItemStack test3 = ItemBuilder.createDummyCooldownItem(Material.DIAMOND_SWORD, Key.ofString("test_3"));
+
+                final PlayerInventory inventory = player.getInventory();
+                inventory.clear();
+                inventory.addItem(test1);
+                inventory.addItem(test2);
+                inventory.addItem(test3);
+
+                player.setCooldown(test1, 500);
+                player.setCooldown(test2, 250);
+                player.setCooldown(test3, 100);
+
+                later(() -> {
+                    info(player, "Stopped cooldowns");
+
+                    PlayerLib.stopCooldowns(player);
+                    assertTestPassed();
+                }, 60);
+
+                return false;
+            }
+        });
+
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override

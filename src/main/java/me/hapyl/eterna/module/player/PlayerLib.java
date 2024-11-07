@@ -1,10 +1,14 @@
 package me.hapyl.eterna.module.player;
 
+import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.math.Numbers;
+import me.hapyl.eterna.module.reflect.access.ReflectAccess;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.Runnables;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemCooldowns;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -13,6 +17,8 @@ import org.bukkit.potion.PotionEffectType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Tiny player library to make player methods easier.
@@ -333,7 +339,7 @@ public final class PlayerLib {
     }
 
     /**
-     * Sets the cooldown for the given {@link Key} of the given {@link Keyed} for the given {@link Player}.
+     * Sets the cooldown for the given {@link Key} of the given {@link Keyed} item for the given {@link Player}.
      *
      * @param player   - The player to set the cooldown for.
      * @param keyed    - The keyed item.
@@ -347,7 +353,7 @@ public final class PlayerLib {
      * Gets the cooldown for the given {@link Key} for the given {@link Player}.
      *
      * @param player - The player to get the cooldown for.
-     * @param key    - The
+     * @param key    - The key.
      * @return the cooldown for the given key for the given player.
      */
     public static int getCooldown(@Nonnull Player player, @Nonnull Key key) {
@@ -355,7 +361,7 @@ public final class PlayerLib {
     }
 
     /**
-     * Gets the cooldown for the given {@link Key} of the given {@link Keyed} for the given {@link Player}.
+     * Gets the cooldown for the given {@link Key} of the given {@link Keyed} item for the given {@link Player}.
      *
      * @param player - The player to get the cooldown for.
      * @param keyed  - The keyed item.
@@ -363,6 +369,56 @@ public final class PlayerLib {
      */
     public static int getCooldown(@Nonnull Player player, @Nonnull Keyed keyed) {
         return getCooldown(player, keyed.getKey());
+    }
+
+    /**
+     * Returns {@code true} if the given {@link Player} has a cooldown for the given {@link Key}.
+     *
+     * @param player - The player to check the cooldown for.
+     * @param key    - The key.
+     * @return {@code true} if the given player has a cooldown for given key.
+     */
+    public static boolean isOnCooldown(@Nonnull Player player, @Nonnull Key key) {
+        return player.hasCooldown(ItemBuilder.createDummyCooldownItem(key));
+    }
+
+    /**
+     * Returns {@code true} if the given {@link Player} has a cooldown for the given {@link Key} of the given {@link Keyed}.
+     *
+     * @param player - The player to check the cooldown for.
+     * @param keyed  - The key item.
+     * @return {@code true} if the given player has a cooldown for given key of the given keyed item.
+     */
+    public static boolean isOnCooldown(@Nonnull Player player, @Nonnull Keyed keyed) {
+        return isOnCooldown(player, keyed.getKey());
+    }
+
+    /**
+     * Stops <b>all the cooldowns</b> for the given {@link Player}.
+     *
+     * @param player - The player to stop the cooldowns for.
+     */
+    public static void stopCooldowns(@Nonnull Player player) {
+        stopCooldowns(player, t -> true);
+    }
+
+    /**
+     * Stops <b>all the cooldowns</b> that match the given {@link Predicate} for the given {@link Player}.
+     *
+     * @param player    - The player to stop the cooldowns for.
+     * @param predicate - The predicate to match.
+     */
+    public static void stopCooldowns(@Nonnull Player player, @Nonnull Predicate<Key> predicate) {
+        final ItemCooldowns cooldowns = ReflectAccess.PLAYER.access(player).getCooldowns();
+        final Set<ResourceLocation> keys = Sets.newHashSet(cooldowns.cooldowns.keySet());
+
+        keys.stream().filter(rl -> {
+            final String path = rl.getPath();
+            final Key key = Key.ofStringOrNull(path);
+
+            return key != null && predicate.test(key);
+        }).forEach(cooldowns::removeCooldown);
+        keys.clear();
     }
 
 }

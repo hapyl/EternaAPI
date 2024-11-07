@@ -136,17 +136,6 @@ public class Key {
     }
 
     /**
-     * Gets a {@link ResourceLocation} representation of this {@link Key}.
-     *
-     * @return a {@link ResourceLocation} representation of this {@link Key}.
-     * @see Cooldown
-     */
-    @Nonnull
-    public ResourceLocation asResourceLocation() {
-        return ResourceLocation.fromNamespaceAndPath("eterna", key);
-    }
-
-    /**
      * A factory method for creating {@link Key}s.
      * <p>This returns {@link #empty()} {@link Key} for empty strings and {@link #EMPTY_KEY_CONSTANT}.</p>
      *

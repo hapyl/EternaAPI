@@ -1701,6 +1701,15 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
 
     /**
+     * Sets the cooldown group for this item.
+     *
+     * @param key - The key for the group.
+     */
+    public ItemBuilder setCooldownGroup(@Nonnull Key key) {
+        return setCooldown(cd -> cd.setCooldownGroup(key.asNamespacedKey()));
+    }
+
+    /**
      * Modifies the {@link ToolComponent} for this item.
      *
      * @param modifier - Modifier.
@@ -2314,7 +2323,7 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
 
     /**
-     * Creates a dummy itemwith a {@link UseCooldownComponent}
+     * Creates a dummy item with a {@link UseCooldownComponent}
      * {@link UseCooldownComponent#getCooldownGroup()} matching the given {@link Key}.
      *
      * @param key - The cooldown key.
@@ -2322,9 +2331,20 @@ public class ItemBuilder implements Cloneable, Keyed {
      */
     @Nonnull
     public static ItemStack createDummyCooldownItem(@Nonnull Key key) {
-        return new ItemBuilder(Material.STONE)
-                .setCooldown(cd -> cd.setCooldownGroup(key.asNamespacedKey()))
-                .item;
+        return createDummyCooldownItem(Material.STONE, key);
+    }
+
+    /**
+     * Creates a dummy item with a {@link UseCooldownComponent}
+     * {@link UseCooldownComponent#getCooldownGroup()} matching the given {@link Key}.
+     *
+     * @param material - The material of the item.
+     * @param key      - The cooldown key.
+     * @return a dummy item.
+     */
+    @Nonnull
+    public static ItemStack createDummyCooldownItem(@Nonnull Material material, @Nonnull Key key) {
+        return new ItemBuilder(material).setCooldownGroup(key).item;
     }
 
     private static boolean isManualSplit(char[] chars, int index) {
