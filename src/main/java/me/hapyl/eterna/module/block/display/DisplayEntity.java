@@ -22,6 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
@@ -700,6 +701,11 @@ public class DisplayEntity implements Iterable<Display>, Display {
     @Override
     public String getScoreboardEntryName() {
         return head.getScoreboardEntryName();
+    }
+
+    @Deprecated
+    @Override
+    public void broadcastHurtAnimation(@NotNull Collection<Player> collection) {
     }
 
     /**

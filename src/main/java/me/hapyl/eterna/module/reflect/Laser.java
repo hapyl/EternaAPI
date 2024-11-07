@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * Creates a laser (Guardian beam) between start and end.
  */
-@TestedOn(version = Version.V1_21)
+@TestedOn(version = Version.V1_21_3)
 public class Laser implements EternaEntity {
 
     private final Location start;
@@ -62,8 +62,8 @@ public class Laser implements EternaEntity {
         create();
 
         // spawn entity
-        Packets.Server.spawnEntityLiving(guardian, player);
-        Packets.Server.spawnEntityLiving(squid, player);
+        Packets.Clientbound.spawnEntity(guardian).send(player);
+        Packets.Clientbound.spawnEntity(squid).send(player);
 
         // guardian-squid collision
         guardian.collidableExemptions.add(squid.getBukkitEntity().getUniqueId());

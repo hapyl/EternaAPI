@@ -5,7 +5,6 @@ import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -60,7 +59,7 @@ public class HologramArmorStand {
     }
 
     public void updateLocation(@Nonnull Player player) {
-        Reflect.sendPacket(player, new ClientboundTeleportEntityPacket(armorStand));
+        Reflect.updateEntityLocation(armorStand, player);
     }
 
     public void updateLocation(Set<Player> players) {

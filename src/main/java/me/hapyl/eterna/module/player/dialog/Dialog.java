@@ -166,7 +166,7 @@ public class Dialog {
      */
     @EventLike
     public void onDialogStart(@Nonnull Player player) {
-        final AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH);
+        final AttributeInstance attribute = player.getAttribute(Attribute.JUMP_STRENGTH);
 
         if (attribute != null) {
             player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, -1, 2, false, false, false));
@@ -181,7 +181,7 @@ public class Dialog {
      */
     @EventLike
     public void onDialogFinish(@Nonnull Player player) {
-        final AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH);
+        final AttributeInstance attribute = player.getAttribute(Attribute.JUMP_STRENGTH);
 
         if (attribute != null) {
             player.removePotionEffect(PotionEffectType.SLOWNESS);

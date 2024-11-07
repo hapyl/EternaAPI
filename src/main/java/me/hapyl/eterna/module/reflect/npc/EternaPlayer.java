@@ -7,6 +7,7 @@ import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.nulls.NullConnection;
 import me.hapyl.eterna.module.reflect.nulls.NullPacketListener;
+import me.hapyl.eterna.module.reflect.packet.Packets;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -176,7 +177,7 @@ public class EternaPlayer extends ServerPlayer {
     public class PacketFactory {
         @Nonnull
         public ClientboundTeleportEntityPacket getPacketTeleport() {
-            return new ClientboundTeleportEntityPacket(EternaPlayer.this);
+            return Packets.Clientbound.teleportEntity(EternaPlayer.this).packet();
         }
 
         @Nonnull

@@ -66,15 +66,13 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
@@ -1378,15 +1376,8 @@ public final class EternaRuntimeTest {
                         .setName("FOOD")
                         .setFood(food -> {
                             food.setCanAlwaysEat(true);
-                            food.setEatSeconds(6.9f);
                             food.setSaturation(100);
                             food.setNutrition(100);
-                            food.setUsingConvertsTo(new ItemStack(Material.BEDROCK));
-
-                            final FoodComponent.FoodEffect effect = food.addEffect(
-                                    new PotionEffect(PotionEffectType.SLOWNESS, 60, 6),
-                                    1.0f
-                            );
                         });
 
                 final ItemBuilder toolItem = new ItemBuilder(Material.IRON_INGOT)
@@ -1398,8 +1389,16 @@ public final class EternaRuntimeTest {
                             tool.addRule(Material.GLASS, 5f, true);
                         });
 
+                final ItemBuilder equippableItem = new ItemBuilder(Material.MAGENTA_BANNER)
+                        .setName("EQUIPPABLE")
+                        .setEquippable(equippable -> {
+                            equippable.setSlot(EquipmentSlot.HEAD);
+                            equippable.setEquipSound(Sound.ENTITY_BAT_DEATH);
+                        });
+
                 player.getInventory().addItem(foodItem.build());
                 player.getInventory().addItem(toolItem.build());
+                player.getInventory().addItem(equippableItem.build());
 
                 return true;
             }

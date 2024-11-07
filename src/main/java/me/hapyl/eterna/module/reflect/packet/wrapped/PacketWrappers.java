@@ -16,6 +16,7 @@ public final class PacketWrappers {
 
     // In
     public static final PacketWrapperIn<ServerboundInteractPacket, WrappedPacketPlayInUseEntity> PACKET_PLAY_IN_USE_ENTITY;
+    public static final PacketWrapperIn<ServerboundPlayerInputPacket, WrappedPacketPlayInSteerVehicle> PACKET_PLAY_IN_STEER_VEHICLE;
 
     // Out
     public static final PacketWrapperOut<ClientboundSetEntityDataPacket, WrappedPacketPlayOutEntityMetadata> PACKET_PLAY_OUT_ENTITY_METADATA;
@@ -24,6 +25,7 @@ public final class PacketWrappers {
     static {
         // In
         PACKET_PLAY_IN_USE_ENTITY = ofIn(ServerboundInteractPacket.class, WrappedPacketPlayInUseEntity::new);
+        PACKET_PLAY_IN_STEER_VEHICLE = ofIn(ServerboundPlayerInputPacket.class, WrappedPacketPlayInSteerVehicle::new);
 
         // Out
         PACKET_PLAY_OUT_ENTITY_METADATA = ofOut(ClientboundSetEntityDataPacket.class, WrappedPacketPlayOutEntityMetadata::new);

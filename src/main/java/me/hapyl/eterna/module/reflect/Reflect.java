@@ -6,6 +6,7 @@ import io.netty.channel.Channel;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.*;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
+import me.hapyl.eterna.module.reflect.packet.Packets;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
@@ -25,6 +26,7 @@ import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
@@ -46,10 +48,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Useful utility class, which was indented to use reflection, hence the name - Reflect.
@@ -57,7 +56,7 @@ import java.util.UUID;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_21)
+@TestedOn(version = Version.V1_21_3)
 public final class Reflect {
 
     private static final String mcVersion;
@@ -112,7 +111,7 @@ public final class Reflect {
      * @param player - Player to update location for.
      */
     public static void updateEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        sendPacket(player, new ClientboundTeleportEntityPacket(entity));
+        Packets.Clientbound.teleportEntity(entity).send(player);
     }
 
     /**
@@ -134,7 +133,7 @@ public final class Reflect {
      * @param player - Player to remove this entity for.
      */
     public static void destroyEntity(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        sendPacket(player, new ClientboundRemoveEntitiesPacket(entity.getId()));
+        Packets.Clientbound.destroyEntity(entity).send(player);
     }
 
     /**
@@ -958,6 +957,19 @@ public final class Reflect {
         }
 
         throw new IllegalArgumentException("%s cannot be cast to %s".formatted(object.toString(), clazz.getSimpleName()));
+    }
+
+    /**
+     * Attempts to retrieve a tile entity for the given {@link Block}.
+     *
+     * @param block - The block to get the tile entity for.
+     * @return a tile entity at the given block, or {@code null} if it isn't a tile entity.
+     */
+    @Nullable
+    public static BlockEntity getTileEntity(@Nonnull Block block) {
+        final ServerLevel world = getMinecraftWorld(block.getWorld());
+
+        return world.getBlockEntity(new BlockPos(block.getX(), block.getY(), block.getZ()));
     }
 
     /**

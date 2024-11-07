@@ -1,6 +1,9 @@
 package me.hapyl.eterna.module.player;
 
+import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.math.Numbers;
+import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.Runnables;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -16,23 +19,21 @@ import java.util.Collection;
  */
 public final class PlayerLib {
 
-    private PlayerLib() {
-    }
-
     /**
      * The default sound category {@link PlayerLib} plays the sounds to.
      */
     public static final SoundCategory SOUND_CATEGORY = SoundCategory.RECORDS;
-
     /**
      * Default volume for global sounds.
      */
     public static final int WORLD_SOUND_VOLUME = 2;
-
     /**
      * Default volume for player-specific sounds.
      */
     public static final int PLAYER_SOUND_VOLUME = 1;
+
+    private PlayerLib() {
+    }
 
     /**
      * Plays a sound to the player.
@@ -318,6 +319,50 @@ public final class PlayerLib {
      */
     public static void endermanTeleport(@Nonnull Player player, float pitch) {
         playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, pitch);
+    }
+
+    /**
+     * Sets the cooldown for the given {@link Key} for the given {@link Player}.
+     *
+     * @param player   - The player to set the cooldown for.
+     * @param key      - The key.
+     * @param cooldown - The cooldown in Minecraft ticks.
+     */
+    public static void setCooldown(@Nonnull Player player, @Nonnull Key key, int cooldown) {
+        player.setCooldown(ItemBuilder.createDummyCooldownItem(key), cooldown);
+    }
+
+    /**
+     * Sets the cooldown for the given {@link Key} of the given {@link Keyed} for the given {@link Player}.
+     *
+     * @param player   - The player to set the cooldown for.
+     * @param keyed    - The keyed item.
+     * @param cooldown - The cooldown in Minecraft ticks.
+     */
+    public static void setCooldown(@Nonnull Player player, @Nonnull Keyed keyed, int cooldown) {
+        setCooldown(player, keyed.getKey(), cooldown);
+    }
+
+    /**
+     * Gets the cooldown for the given {@link Key} for the given {@link Player}.
+     *
+     * @param player - The player to get the cooldown for.
+     * @param key    - The
+     * @return the cooldown for the given key for the given player.
+     */
+    public static int getCooldown(@Nonnull Player player, @Nonnull Key key) {
+        return player.getCooldown(ItemBuilder.createDummyCooldownItem(key));
+    }
+
+    /**
+     * Gets the cooldown for the given {@link Key} of the given {@link Keyed} for the given {@link Player}.
+     *
+     * @param player - The player to get the cooldown for.
+     * @param keyed  - The keyed item.
+     * @return the cooldown for the given key for the given player.
+     */
+    public static int getCooldown(@Nonnull Player player, @Nonnull Keyed keyed) {
+        return getCooldown(player, keyed.getKey());
     }
 
 }
