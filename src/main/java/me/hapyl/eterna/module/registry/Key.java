@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.registry;
 
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Validate;
+import net.minecraft.resources.ResourceLocation;
 import org.bukkit.NamespacedKey;
 
 import javax.annotation.Nonnull;
@@ -132,6 +133,17 @@ public class Key {
     @Nonnull
     public final NamespacedKey asNamespacedKey() {
         return BukkitUtils.createKey(key);
+    }
+
+    /**
+     * Gets a {@link ResourceLocation} representation of this {@link Key}.
+     *
+     * @return a {@link ResourceLocation} representation of this {@link Key}.
+     * @see Cooldown
+     */
+    @Nonnull
+    public ResourceLocation asResourceLocation() {
+        return ResourceLocation.fromNamespaceAndPath("eterna", key);
     }
 
     /**

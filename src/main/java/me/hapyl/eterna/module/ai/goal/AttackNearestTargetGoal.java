@@ -1,7 +1,9 @@
 package me.hapyl.eterna.module.ai.goal;
 
 import me.hapyl.eterna.module.ai.AI;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
@@ -28,7 +30,12 @@ public class AttackNearestTargetGoal<T extends LivingEntity> extends Goal {
                 interval,
                 mustSee,
                 mustReach,
-                predicate == null ? null : t -> predicate.test((T) t.getBukkitEntity())
+                new TargetingConditions.Selector() {
+                    @Override
+                    public boolean test(net.minecraft.world.entity.LivingEntity livingEntity, ServerLevel serverLevel) {
+                        return predicate.test((T)livingEntity.getBukkitEntity());
+                    }
+                }
         ));
     }
 

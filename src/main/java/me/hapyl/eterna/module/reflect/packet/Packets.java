@@ -3,59 +3,83 @@ package me.hapyl.eterna.module.reflect.packet;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import me.hapyl.eterna.module.annotate.TestedOn;
+import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.npc.ItemSlot;
 import me.hapyl.eterna.module.reflect.npc.NPCAnimation;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Set;
 
 /**
- * This class is a shortcut to packet creating and sending.
+ * A static utility class that allows creating and sending packets easily.
  */
-@TestedOn(version = Version.V1_21)
+@TestedOn(version = Version.V1_21_3)
+@UtilityClass
 public final class Packets {
 
     private Packets() {
-        throw new IllegalStateException();
+        UtilityClass.Validator.throwIt();
+    }
+
+    @Nonnull
+    private static <P extends Packet<?>> IPacket<P> make(@Nonnull P packet) {
+        return IPacket.of(packet);
     }
 
     /**
-     * Represents all server packets, or 'Out'.
+     * Represents all client bound packets, or 'Out'.
      */
-    public final static class Server {
+    @UtilityClass
+    public static final class Clientbound {
 
-        public static void spawnEntityLiving(@Nonnull LivingEntity entity, @Nonnull Player player) {
-            Reflect.sendPacket(player, new ClientboundAddEntityPacket(entity, entity.getId(), Reflect.getEntityBlockPosition(entity)));
+        private Clientbound() {
+            UtilityClass.Validator.throwIt();
         }
 
-        public static void entityDestroy(@Nonnull Entity entity, @Nonnull Player player) {
-            Reflect.destroyEntity(entity, player);
+        @Nonnull
+        public static IPacket<ClientboundAddEntityPacket> spawnEntity(@Nonnull LivingEntity entity) {
+            return make(new ClientboundAddEntityPacket(entity, entity.getId(), Reflect.getEntityBlockPosition(entity)));
         }
 
-        public static void entityTeleport(@Nonnull Entity entity, @Nonnull Player player) {
-            Reflect.sendPacket(player, new ClientboundTeleportEntityPacket(entity));
+        @Nonnull
+        public static IPacket<ClientboundRemoveEntitiesPacket> destroyEntity(@Nonnull Entity entity) {
+            return make(new ClientboundRemoveEntitiesPacket(entity.getId()));
         }
 
-        public static void entityMetadata(@Nonnull Entity entity, @Nonnull SynchedEntityData dataWatcher, @Nonnull Player player) {
-            Reflect.sendPacket(player, new ClientboundSetEntityDataPacket(Reflect.getEntityId(entity), dataWatcher.getNonDefaultValues()));
+        @Nonnull
+        public static IPacket<ClientboundTeleportEntityPacket> teleportEntity(@Nonnull Entity entity) {
+            return make(ClientboundTeleportEntityPacket.teleport(
+                    entity.getId(),
+                    PositionMoveRotation.of(entity),
+                    Set.of(),
+                    entity.onGround
+            ));
         }
 
-        public static void animation(@Nonnull Entity entity, @Nonnull NPCAnimation type, @Nonnull Player player) {
-            Reflect.sendPacket(player, new ClientboundAnimatePacket(entity, type.getPos()));
+        @Nonnull
+        public static IPacket<ClientboundSetEntityDataPacket> entityMetadata(@Nonnull Entity entity, @Nonnull SynchedEntityData dataWatcher) {
+            return make(new ClientboundSetEntityDataPacket(Reflect.getEntityId(entity), dataWatcher.getNonDefaultValues()));
         }
 
-        public static void entityEquipment(Entity entity, EntityEquipment equipment, Player player) {
+        @Nonnull
+        public static IPacket<ClientboundAnimatePacket> entityAnimation(@Nonnull Entity entity, @Nonnull NPCAnimation type) {
+            return make(new ClientboundAnimatePacket(entity, type.getPos()));
+        }
+
+        @Nonnull
+        public static IPacket<ClientboundSetEquipmentPacket> entityEquipment(@Nonnull Entity entity, @Nonnull EntityEquipment equipment) {
             final List<Pair<EquipmentSlot, ItemStack>> list = Lists.newArrayList();
 
             list.add(new Pair<>(ItemSlot.HEAD.getSlot(), Reflect.bukkitItemToNMS(equipment.getHelmet())));
@@ -65,22 +89,18 @@ public final class Packets {
             list.add(new Pair<>(ItemSlot.MAINHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getItemInMainHand())));
             list.add(new Pair<>(ItemSlot.OFFHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getItemInOffHand())));
 
-            Reflect.sendPacket(player, new ClientboundSetEquipmentPacket(Reflect.getEntityId(entity), list));
+            return make(new ClientboundSetEquipmentPacket(Reflect.getEntityId(entity), list));
         }
 
     }
 
     /**
-     * Represents all client packets, or 'In'.
+     * Represents all server bound packets, or 'In'.
+     *
+     * @deprecated Not implemented yet.
      */
-    public static class Client {
-
-        public static void clientPacketsNotYetImplemented() {
-            throw new NotImplementedException("client packets not yet implemented");
-        }
-
-        static {
-        }
+    @Deprecated
+    public static final class Serverbound {
     }
 
 

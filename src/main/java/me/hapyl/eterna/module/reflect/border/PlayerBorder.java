@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.reflect.border;
 
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
-import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.Holder;
 import org.bukkit.Bukkit;
@@ -15,7 +14,7 @@ import org.bukkit.entity.Player;
  * Note that this client is only change, and it will
  * be reset after player re-logins.
  */
-@TestedOn(version = Version.V1_21)
+@TestedOn(version = Version.V1_21_3) // don't need this anymore it's using spigot now
 public class PlayerBorder extends Holder<Player> {
 
     private final WorldBorder border;

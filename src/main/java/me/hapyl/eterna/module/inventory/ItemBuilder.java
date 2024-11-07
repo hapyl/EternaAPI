@@ -9,6 +9,7 @@ import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
+import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
@@ -26,9 +27,7 @@ import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.inventory.meta.components.FoodComponent;
-import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
-import org.bukkit.inventory.meta.components.ToolComponent;
+import org.bukkit.inventory.meta.components.*;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -1072,7 +1071,7 @@ public class ItemBuilder implements Cloneable, Keyed {
         }
 
         // Store here to not accidentally change it and break the system
-        final Attribute dummyAttribute = Attribute.GENERIC_LUCK;
+        final Attribute dummyAttribute = Attribute.LUCK;
 
         return modifyMeta(meta -> {
             // Make sure the flag is actually applied
@@ -1443,14 +1442,14 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
 
     /**
-     * Gets the sum of {@link Attribute#GENERIC_ATTACK_DAMAGE} attributes from this item.
+     * Gets the sum of {@link Attribute#ATTACK_DAMAGE} attributes from this item.
      *
-     * @return the sum of {@link Attribute#GENERIC_ATTACK_DAMAGE} attributes from this item.
+     * @return the sum of {@link Attribute#ATTACK_DAMAGE} attributes from this item.
      */
     public double getPureDamage() {
         double damage = 0.0d;
 
-        for (AttributeModifier t : getAttributes().get(Attribute.GENERIC_ATTACK_DAMAGE)) {
+        for (AttributeModifier t : getAttributes().get(Attribute.ATTACK_DAMAGE)) {
             final double current = t.getAmount();
             damage = Math.max(current, damage);
         }
@@ -1459,13 +1458,13 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
 
     /**
-     * Adds a {@link Attribute#GENERIC_ATTACK_DAMAGE} with a given value.
+     * Adds a {@link Attribute#ATTACK_DAMAGE} with a given value.
      *
      * @param damage - Damage value of the attribute.
      */
     public ItemBuilder setPureDamage(double damage) {
         return addAttribute(
-                Attribute.GENERIC_ATTACK_DAMAGE,
+                Attribute.ATTACK_DAMAGE,
                 damage,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlot.HAND
@@ -1685,10 +1684,20 @@ public class ItemBuilder implements Cloneable, Keyed {
      *
      * @param modifier - Modifier.
      * @see FoodComponent
-     * @see FoodComponent.FoodEffect
      */
     public ItemBuilder setFood(@Nonnull ComponentModifier<FoodComponent> modifier) {
         return modifyComponent(modifier, ItemMeta::getFood, ItemMeta::setFood);
+    }
+
+    /**
+     * Modifies the {@link UseCooldownComponent} for this item.
+     *
+     * @param modifier - Modifier.
+     * @return UseCooldownComponent
+     * @see PlayerLib#setCooldown(Player, Key, int)
+     */
+    public ItemBuilder setCooldown(@Nonnull ComponentModifier<UseCooldownComponent> modifier) {
+        return modifyComponent(modifier, ItemMeta::getUseCooldown, ItemMeta::setUseCooldown);
     }
 
     /**
@@ -1710,6 +1719,16 @@ public class ItemBuilder implements Cloneable, Keyed {
      */
     public ItemBuilder setJukebox(@Nonnull ComponentModifier<JukeboxPlayableComponent> modifier) {
         return modifyComponent(modifier, ItemMeta::getJukeboxPlayable, ItemMeta::setJukeboxPlayable);
+    }
+
+    /**
+     * Modifies the {@link EquippableComponent} for this item.
+     *
+     * @param modifier - Modifier.
+     * @see EquippableComponent
+     */
+    public ItemBuilder setEquippable(@Nonnull ComponentModifier<EquippableComponent> modifier) {
+        return modifyComponent(modifier, ItemMeta::getEquippable, ItemMeta::setEquippable);
     }
 
     /**
@@ -2292,6 +2311,20 @@ public class ItemBuilder implements Cloneable, Keyed {
         }
 
         throw new IllegalArgumentException("Invalid texture!");
+    }
+
+    /**
+     * Creates a dummy itemwith a {@link UseCooldownComponent}
+     * {@link UseCooldownComponent#getCooldownGroup()} matching the given {@link Key}.
+     *
+     * @param key - The cooldown key.
+     * @return a dummy item.
+     */
+    @Nonnull
+    public static ItemStack createDummyCooldownItem(@Nonnull Key key) {
+        return new ItemBuilder(Material.STONE)
+                .setCooldown(cd -> cd.setCooldownGroup(key.asNamespacedKey()))
+                .item;
     }
 
     private static boolean isManualSplit(char[] chars, int index) {

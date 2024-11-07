@@ -7,6 +7,9 @@ import net.minecraft.world.item.crafting.Ingredient;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+import java.util.List;
+
 /**
  * Adds a goal to tempt the mob by an item.
  */
@@ -41,7 +44,8 @@ public class TemptGoal extends Goal {
         this(ai, new ItemStack(material), speedModifier, scaredByMovement);
     }
 
-    public static Ingredient recipeFromItemStack(ItemStack stack) {
-        return Ingredient.of(Reflect.bukkitItemToNMS(stack));
+    @Nonnull
+    public static Ingredient recipeFromItemStack(@Nonnull ItemStack stack) {
+        return Ingredient.ofStacks(List.of(Reflect.bukkitItemToNMS(stack)));
     }
 }

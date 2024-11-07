@@ -15,6 +15,7 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.level.Level;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -150,12 +151,9 @@ public class PlayerSkin {
 
         // Update player position
         final ClientboundPlayerPositionPacket positionPacket = new ClientboundPlayerPositionPacket(
-                location.getX(),
-                location.getY(),
-                location.getZ(),
-                location.getYaw(),
-                location.getPitch(),
-                Sets.newHashSet(), 0
+                player.getEntityId(),
+                PositionMoveRotation.of(mcPlayer),
+                Sets.newHashSet()
         );
 
         // Update EXP

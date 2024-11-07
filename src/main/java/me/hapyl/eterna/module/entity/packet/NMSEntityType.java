@@ -47,7 +47,7 @@ import java.util.Map;
  * @see #fromNms(net.minecraft.world.entity.EntityType)
  */
 @SuppressWarnings("all")
-@TestedOn(version = Version.V1_21)
+@TestedOn(version = Version.V1_21_3)
 public final class NMSEntityType {
 
     public static final net.minecraft.world.entity.EntityType<Allay> ALLAY;
@@ -196,14 +196,14 @@ public final class NMSEntityType {
         BEE = of(net.minecraft.world.entity.EntityType.BEE, EntityType.BEE);
         BLAZE = of(net.minecraft.world.entity.EntityType.BLAZE, EntityType.BLAZE);
         BLOCK_DISPLAY = of(net.minecraft.world.entity.EntityType.BLOCK_DISPLAY, EntityType.BLOCK_DISPLAY);
-        BOAT = of(net.minecraft.world.entity.EntityType.BOAT, EntityType.BOAT);
+        BOAT = of(net.minecraft.world.entity.EntityType.OAK_BOAT, EntityType.OAK_BOAT);
         BOGGED = of(net.minecraft.world.entity.EntityType.BOGGED, EntityType.BOGGED);
         BREEZE = of(net.minecraft.world.entity.EntityType.BREEZE, EntityType.BREEZE);
         BREEZE_WIND_CHARGE = of(net.minecraft.world.entity.EntityType.BREEZE_WIND_CHARGE, EntityType.BREEZE_WIND_CHARGE);
         CAMEL = of(net.minecraft.world.entity.EntityType.CAMEL, EntityType.CAMEL);
         CAT = of(net.minecraft.world.entity.EntityType.CAT, EntityType.CAT);
         CAVE_SPIDER = of(net.minecraft.world.entity.EntityType.CAVE_SPIDER, EntityType.CAVE_SPIDER);
-        CHEST_BOAT = of(net.minecraft.world.entity.EntityType.CHEST_BOAT, EntityType.CHEST_BOAT);
+        CHEST_BOAT = of(net.minecraft.world.entity.EntityType.OAK_CHEST_BOAT, EntityType.OAK_CHEST_BOAT);
         CHEST_MINECART = of(net.minecraft.world.entity.EntityType.CHEST_MINECART, EntityType.CHEST_MINECART);
         CHICKEN = of(net.minecraft.world.entity.EntityType.CHICKEN, EntityType.CHICKEN);
         COD = of(net.minecraft.world.entity.EntityType.COD, EntityType.COD);
