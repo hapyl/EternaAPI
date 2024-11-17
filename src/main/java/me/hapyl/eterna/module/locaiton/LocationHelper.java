@@ -1,8 +1,12 @@
 package me.hapyl.eterna.module.locaiton;
 
+import me.hapyl.eterna.module.util.CollectionUtils;
+import me.hapyl.eterna.module.util.Validate;
+import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -251,6 +255,41 @@ public final class LocationHelper {
                 location.getYaw(),
                 location.getPitch()
         ).add(x, y, z);
+    }
+
+    /**
+     * Calculates the squared distance between two {@link Location} objects along the specified axes.
+     * <p>This method avoids the computational cost of square root calculation, making it suitable
+     * for comparisons or scenarios where exact distances are unnecessary.</p>
+     *
+     * @param from - The starting {@link Location}.
+     * @param to   - The target {@link Location}.
+     * @param axis - The axes along which to calculate the distance.
+     * @return the squared distance between the two locations along the specified axis.
+     * @throws IllegalArgumentException if no axes are provided.
+     */
+    public static double distanceSquared(@Nonnull Location from, @Nonnull Location to, @Nonnull @Range(from = 1, to = 3) Axis... axis) {
+        Validate.isTrue(axis.length > 0, "There must be at least one axis!");
+
+        double distance = 0.0d;
+
+        if (CollectionUtils.contains(axis, Axis.X)) {
+            distance += square(from.getX() - to.getX());
+        }
+
+        if (CollectionUtils.contains(axis, Axis.Y)) {
+            distance += square(from.getY() - to.getY());
+        }
+
+        if (CollectionUtils.contains(axis, Axis.Z)) {
+            distance += square(from.getZ() - to.getZ());
+        }
+
+        return distance;
+    }
+
+    private static double square(double a) {
+        return a * a;
     }
 
     private static Vector normalizeVector(Location location) {

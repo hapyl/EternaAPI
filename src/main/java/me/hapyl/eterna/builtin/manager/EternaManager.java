@@ -18,7 +18,7 @@ public class EternaManager<K, V> {
 
     EternaManager(@Nonnull EternaPlugin eterna) {
         this.eterna = eterna;
-        this.managing = Maps.newHashMap();
+        this.managing = makeNewMap();
 
         // Register the listener if applicable
         if (this instanceof Listener listener) {
@@ -50,6 +50,11 @@ public class EternaManager<K, V> {
 
     public void forEach(@Nonnull Consumer<V> consumer) {
         managing.values().forEach(consumer);
+    }
+
+    @Nonnull
+    protected Map<K, V> makeNewMap() {
+        return Maps.newHashMap();
     }
 
 }
