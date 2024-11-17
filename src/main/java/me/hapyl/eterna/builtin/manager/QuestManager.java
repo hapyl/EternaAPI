@@ -59,6 +59,12 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
         this.pluginHandlers = Maps.newHashMap();
     }
 
+    @Nonnull
+    @Override
+    protected Map<Player, QuestDataList> makeNewMap() {
+        return Maps.newConcurrentMap();
+    }
+
     /**
      * Simulates the actions performed as the player would have joined the server.
      * <p>Needed in case of reload.</p>
