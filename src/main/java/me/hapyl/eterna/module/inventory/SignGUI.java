@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Opens a SIGN that can be used as input.
  */
-@TestedOn(version = Version.V1_21_3)
+@TestedOn(version = Version.V1_21_4)
 public abstract class SignGUI {
 
     public static final String DASHED_LINE = "^^^^^^^^^^^^^^";
