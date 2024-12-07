@@ -1,6 +1,9 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.math.Numbers;
+import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.registry.Keyed;
+import me.hapyl.eterna.module.registry.Registry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -240,6 +243,19 @@ public class TypeConverter {
     @Nonnull
     public String toStringFormatted(@Nonnull String format) {
         return format.formatted(obj);
+    }
+
+    /**
+     * Converts this object into a {@link Key} and uses it to access the given {@link Registry} to retrieve an item.
+     *
+     * @param registry - Registry to access.
+     * @return the registered item or {@code null} if not registered or malformed {@link Key}.
+     */
+    @Nullable
+    public <K extends Keyed> K toRegistryItem(@Nonnull Registry<K> registry) {
+        final Key key = Key.ofStringOrNull(toString());
+
+        return key != null ? registry.get(key) : null;
     }
 
     /**
