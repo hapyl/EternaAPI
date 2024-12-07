@@ -52,6 +52,7 @@ import me.hapyl.eterna.module.reflect.npc.ClickType;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.registry.SimpleRegistry;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
 import me.hapyl.eterna.module.util.collection.Cache;
@@ -751,7 +752,6 @@ public final class EternaRuntimeTest {
         });
 
         addTest(new EternaTest("synthesizer") {
-
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final Synthesizer b = new Synthesizer() {
@@ -1685,6 +1685,9 @@ public final class EternaRuntimeTest {
         });
 
         addTest(new EternaTest("typeConverter") {
+
+            private SimpleRegistry<ITempRegistryItem> registry;
+
             @Override
             public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
                 final int int1 = TypeConverter.from(1).toInt();
@@ -1716,8 +1719,35 @@ public final class EternaRuntimeTest {
                 assertTrue(falseBool == false);
                 assertTrue(flsBool == false);
 
+                // toRegistry
+                if (registry == null) {
+                    registry = new SimpleRegistry<ITempRegistryItem>();
+                    registry.register(new ITempRegistryItem(Key.ofString("test_item")));
+                }
+
+                final ITempRegistryItem testItem = TypeConverter.from("test_item").toRegistryItem(registry);
+                final ITempRegistryItem invalidItem = TypeConverter.from("invalid_item").toRegistryItem(registry);
+
+                assertNotNull(testItem);
+                assertNull(invalidItem);
+
                 return true;
             }
+
+            class ITempRegistryItem implements me.hapyl.eterna.module.registry.Keyed {
+                private final Key key;
+
+                ITempRegistryItem(Key key) {
+                    this.key = key;
+                }
+
+                @Nonnull
+                @Override
+                public Key getKey() {
+                    return this.key;
+                }
+            }
+
         });
 
         addTest(new EternaTest("quest") {

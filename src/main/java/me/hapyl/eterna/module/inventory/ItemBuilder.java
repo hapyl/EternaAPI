@@ -1331,10 +1331,11 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
 
     /**
-     * Returns original item without the meta applied.
+     * Gets the actual {@link ItemStack} of this {@link ItemBuilder}.
      *
-     * @return original item without the meta applied.
+     * @return the actual {@link ItemStack} of this {@link ItemBuilder}.
      */
+    @Nonnull
     public ItemStack getItem() {
         return item;
     }
