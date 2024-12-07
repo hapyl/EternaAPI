@@ -44,6 +44,7 @@ import me.hapyl.eterna.module.player.tablist.*;
 import me.hapyl.eterna.module.record.Record;
 import me.hapyl.eterna.module.record.Replay;
 import me.hapyl.eterna.module.record.ReplayData;
+import me.hapyl.eterna.module.reflect.BoundingBox;
 import me.hapyl.eterna.module.reflect.Laser;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.border.PlayerBorder;
@@ -85,6 +86,8 @@ import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+
+// TODO (Sat, Dec 7 2024 @xanyjl): Add an automatic way of testing this because kinda annoying scrolling through tests
 
 @SuppressWarnings("all")
 public final class EternaRuntimeTest {
@@ -1932,6 +1935,17 @@ public final class EternaRuntimeTest {
                 }, 60);
 
                 return false;
+            }
+        });
+
+        addTest(new EternaTest("boundingBox") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final Location location = player.getLocation();
+                final BoundingBox boundingBox = new BoundingBox(player, location.clone().add(5, 5, 5), location.clone().subtract(5, 5, 5));
+
+                boundingBox.show();
+                return true;
             }
         });
 

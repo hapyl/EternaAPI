@@ -19,9 +19,9 @@ import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
- * Creates a laser (Guardian beam) between start and end.
+ * Creates a laser ({@link Guardian} beam) between start and end.
  */
-@TestedOn(version = Version.V1_21_3)
+@TestedOn(version = Version.V1_21_4)
 public class Laser implements EternaEntity {
 
     private final Location start;

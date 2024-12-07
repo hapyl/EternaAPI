@@ -2,9 +2,12 @@ package me.hapyl.eterna.module.annotate;
 
 /**
  * Represents a major Minecraft version.
+ *
+ * @see TestedOn
  */
 public enum Version {
-    V1_21_3,
+    V1_21_4,
+    @Deprecated V1_21_3,
     @Deprecated V1_21,
     @Deprecated V1_20_6,
     @Deprecated V1_20_4,
