@@ -139,6 +139,50 @@ public final class Compute {
     }
 
     /**
+     * Performs a {@link Double} computation in a {@link java.util.Map} by 1.
+     *
+     * @param <K> - Key.
+     * @return a computation {@link BiFunction} which increments a {@link Double} by 1.
+     */
+    @Nonnull
+    public static <K> BiFunction<K, Double, Double> doubleAdd() {
+        return doubleAdd(1);
+    }
+
+    /**
+     * Performs a {@link Double} computation in a {@link java.util.Map} by a given value.
+     *
+     * @param <K> - Key.
+     * @return a computation {@link BiFunction} which increments a {@link Double} by a given value.
+     */
+    @Nonnull
+    public static <K> BiFunction<K, Double, Double> doubleAdd(double addition) {
+        return (k, aDouble) -> aDouble == null ? addition : aDouble + addition;
+    }
+
+    /**
+     * Performs a {@link Double} computation in a {@link java.util.Map} by -1.
+     *
+     * @param <K> - Key.
+     * @return a computation {@link BiFunction} which decrements a {@link Double} by 1.
+     */
+    @Nonnull
+    public static <K> BiFunction<K, Double, Double> doubleSubtract() {
+        return doubleSubtract(1);
+    }
+
+    /**
+     * Performs a {@link Double} computation in a {@link java.util.Map} by -1.
+     *
+     * @param <K> - Key.
+     * @return a computation {@link BiFunction} which decrements a {@link Double} by 1.
+     */
+    @Nonnull
+    public static <K> BiFunction<K, Double, Double> doubleSubtract(double subtraction) {
+        return (k, aDouble) -> aDouble == null ? -subtraction : aDouble - subtraction;
+    }
+
+    /**
      * Performs a {@link List} computation in a {@link java.util.Map} list value.
      *
      * @param v   - Values to add to the list.
