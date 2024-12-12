@@ -8,6 +8,9 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
+/**
+ * Represents a wrapper for an entity that is spawned via packets, rather than adding it to the world.
+ */
 public interface IPacketEntity {
 
     /**
@@ -27,27 +30,27 @@ public interface IPacketEntity {
     boolean isShowingTo(@Nonnull Player player);
 
     /**
-     * Spawns this entity for the given player.
+     * Shows this entity for the given player.
      *
-     * @param player - Player to spawn for.
+     * @param player - Player to show for.
      */
-    void spawn(@Nonnull Player player);
+    void show(@Nonnull Player player);
 
     /**
-     * Spawns this entity globally for each online player.
+     * Shows this entity globally for each online player.
      */
-    default void spawnGlobally() {
-        Bukkit.getOnlinePlayers().forEach(this::spawn);
+    default void showGlobally() {
+        Bukkit.getOnlinePlayers().forEach(this::show);
     }
 
     /**
-     * Spawns this entity for the given players.
+     * Shows this entity for the given players.
      *
-     * @param players - Players to spawn for.
+     * @param players - Players to show for.
      */
-    default void spawn(@Nonnull Collection<Player> players) {
+    default void show(@Nonnull Collection<Player> players) {
         for (Player player : players) {
-            spawn(player);
+            show(player);
         }
     }
 

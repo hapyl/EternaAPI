@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.entity.packet;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.util.BukkitWrapper;
 import me.hapyl.eterna.module.util.TeamHelper;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
@@ -13,13 +14,15 @@ import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Objects;
 import java.util.Set;
 
-public class PacketEntity<T extends Entity> implements IPacketEntity {
+public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrapper<org.bukkit.entity.Entity> {
 
     public final int entityId;
-    private final T entity;
+    public final T entity;
+
     private final Set<Player> players;
 
     public PacketEntity(@Nonnull T entity, @Nonnull Location location) {
@@ -28,6 +31,26 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
         this.entityId = Reflect.getEntityId(entity);
 
         Reflect.setEntityLocation(entity, location);
+    }
+
+    /**
+     * Gets the bukkit entity of the packet entity.
+     *
+     * @return the bukkit entity.
+     * @implNote Implementation may override this method to statically cast the entity.
+     * <pre>{@code
+     * @Nonnull
+     * @Override
+     * public final BlockDisplay bukkit() {
+     *      return (BlockDisplay) super.bukkit();
+     * }
+     * }</pre>
+     */
+    @Nonnull
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public org.bukkit.entity.Entity bukkit() {
+        return entity.getBukkitEntity();
     }
 
     @Override
@@ -42,7 +65,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     }
 
     @Override
-    public void spawn(@Nonnull Player player) {
+    public void show(@Nonnull Player player) {
         players.add(player);
         Reflect.createEntity(entity, player);
     }
@@ -102,9 +125,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     @Override
     public void teleport(@Nonnull Location location) {
         Reflect.setEntityLocation(entity, location);
-        players.forEach(player -> {
-            Reflect.updateEntityLocation(entity, player);
-        });
+        players.forEach(player -> Reflect.updateEntityLocation(entity, player));
     }
 
     @Override
@@ -113,12 +134,10 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     }
 
     protected void updateMetadata() {
-        players.forEach(player -> {
-            Reflect.updateMetadata(entity, player);
-        });
+        players.forEach(player -> Reflect.updateMetadata(entity, player));
     }
 
-    protected <D> void setDataWatcherValue(DataWatcherType<D> type, int key, D value) {
+    protected <D> void setDataWatcherValue(@Nonnull DataWatcherType<D> type, int key, D value) {
         final SynchedEntityData dataWatcher = getDataWatcher();
 
         Reflect.setDataWatcherValue0(dataWatcher, type.get().createAccessor(key), value);
@@ -126,12 +145,12 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     }
 
     @Nullable
-    protected <D> D getDataWatcherValue(DataWatcherType<D> type, int key) {
+    protected <D> D getDataWatcherValue(@Nonnull DataWatcherType<D> type, int key) {
         return getDataWatcherValue(type, key, null);
     }
 
     @Nonnull
-    protected <D> D getDataWatcherValue(DataWatcherType<D> type, int key, D def) {
+    protected <D> D getDataWatcherValue(@Nonnull DataWatcherType<D> type, int key, D def) {
         final D value = Reflect.getDataWatcherValue(entity, type, key);
 
         return value == null ? def : value;
@@ -147,7 +166,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity {
     }
 
     @Nonnull
-    public static ServerLevel getWorld(@Nonnull Location location) {
+    protected static ServerLevel getWorld(@Nonnull Location location) {
         return Reflect.getMinecraftWorld(Objects.requireNonNull(location.getWorld(), "World must be loaded."));
     }
 
