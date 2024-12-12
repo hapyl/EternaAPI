@@ -77,6 +77,7 @@ public final class Reflect {
      * @param path - Path of the class.
      * @return net.minecraft.server class if exists, null otherwise
      */
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable
     public static Class<?> getNetClass(@Nonnull String path) {
         try {
@@ -266,6 +267,7 @@ public final class Reflect {
      * @param params    - Constructor parameters.
      * @return NMS constructor if exists, null otherwise.
      */
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable
     public static Constructor<?> getNetConstructor(@Nonnull String className, @Nullable Class<?>... params) {
         try {
@@ -331,6 +333,7 @@ public final class Reflect {
      * @param params     - Method parameters.
      * @return NMS method if exists, null otherwise.
      */
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable
     public static Method getNetMethod(@Nonnull String className, @Nonnull String methodName, @Nullable Class<?>... params) {
         try {
@@ -412,6 +415,7 @@ public final class Reflect {
      * @param fieldName - Field name.
      * @return the field or null.
      */
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable
     public static Field getNetField(@Nonnull String className, @Nonnull String fieldName) {
         try {
@@ -435,6 +439,7 @@ public final class Reflect {
      * @param instance - Instance.
      * @return the field value.
      */
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable
     public static Object getFieldValue(@Nonnull Field field, @Nonnull Object instance) {
         try {
@@ -637,6 +642,7 @@ public final class Reflect {
      * @param craftEntity - CraftEntity.
      * @return NMS class of the CraftEntity.
      */
+    @Deprecated(forRemoval = true)
     public static Object getNetEntity(@Nonnull Entity craftEntity) {
         return invokeMethod(lazyMethod(craftEntity.getClass(), "getHandle"), craftEntity);
     }
@@ -645,6 +651,7 @@ public final class Reflect {
      * @param craftWorld - CraftWorld.
      * @return NMS class of the CraftWorld.
      */
+    @Deprecated(forRemoval = true)
     public static Object getNetWorld(@Nonnull World craftWorld) {
         return invokeMethod(lazyMethod(craftWorld.getClass(), "getHandle"), craftWorld);
     }
@@ -653,6 +660,7 @@ public final class Reflect {
      * @param craftServer - CraftServer.
      * @return NMS class of the CraftWorld.
      */
+    @Deprecated(forRemoval = true)
     public static Object getNetServer(@Nonnull Server craftServer) {
         return invokeMethod(lazyMethod(craftServer.getClass(), "getServer"), craftServer);
     }
@@ -789,12 +797,14 @@ public final class Reflect {
         }
     }
 
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable // Avoid using
     public static Method lazyMethod(Object obj, String name, Class<?>... args) {
         Validate.notNull(obj);
         return lazyMethod(obj.getClass(), name, args);
     }
 
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable // Avoid using
     public static Method lazyMethod(Class<?> clazz, String name, Class<?>... args) {
         try {
@@ -804,6 +814,7 @@ public final class Reflect {
         }
     }
 
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable // Avoid using
     public static Field lazyField(Class<?> clazz, String name) {
         try {
@@ -813,6 +824,7 @@ public final class Reflect {
         }
     }
 
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable // Avoid using
     public static Object lazyFieldValue(Class<?> clazz, String name, Object obj) {
         final Field field = lazyField(clazz, name);
@@ -826,6 +838,7 @@ public final class Reflect {
         }
     }
 
+    @Deprecated(since = "4.7.2", forRemoval = true)
     @Nullable // Avoid using
     public static Constructor<?> lazyConstructor(Class<?> clazz, Class<?>... objects) {
         try {

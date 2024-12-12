@@ -21,6 +21,7 @@ import me.hapyl.eterna.module.chat.messagebuilder.MessageBuilder;
 import me.hapyl.eterna.module.config.Config;
 import me.hapyl.eterna.module.entity.Entities;
 import me.hapyl.eterna.module.entity.Rope;
+import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.hologram.DisplayHologram;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.hologram.StringArray;
@@ -81,6 +82,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -155,12 +157,14 @@ public final class EternaRuntimeTest {
 
                 info(player, "Spawned");
 
-                later(() -> {
-                    info(player, "Removed");
+                later(
+                        () -> {
+                            info(player, "Removed");
 
-                    hologram.remove();
-                    assertTestPassed();
-                }, 60);
+                            hologram.remove();
+                            assertTestPassed();
+                        }, 60
+                );
 
                 return false;
             }
@@ -177,14 +181,16 @@ public final class EternaRuntimeTest {
 
                 info(player, "Shown");
 
-                later(() -> {
-                    info(player, "Hid");
+                later(
+                        () -> {
+                            info(player, "Hid");
 
-                    fake.hide(player);
-                    fake2.hide(player);
+                            fake.hide(player);
+                            fake2.hide(player);
 
-                    assertTestPassed();
-                }, 20);
+                            assertTestPassed();
+                        }, 20
+                );
 
                 return false;
             }
@@ -198,10 +204,12 @@ public final class EternaRuntimeTest {
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final Player diden = Bukkit.getPlayer("DiDenPro");
 
-                final Entity entity = diden != null ? diden : Entities.PIG.spawn(player.getLocation(), self -> {
-                    self.setInvisible(true);
-                    self.setAI(false);
-                });
+                final Entity entity = diden != null ? diden : Entities.PIG.spawn(
+                        player.getLocation(), self -> {
+                            self.setInvisible(true);
+                            self.setAI(false);
+                        }
+                );
 
                 final Scoreboard scoreboard = player.getScoreboard();
                 Team team = scoreboard.getTeam(teamName);
@@ -247,24 +255,30 @@ public final class EternaRuntimeTest {
 
                 info(player, "Created");
 
-                later(() -> {
-                    info(player, "Moved");
+                later(
+                        () -> {
+                            info(player, "Moved");
 
-                    hologram.move(player.getLocation());
+                            hologram.move(player.getLocation());
 
-                    later(() -> {
-                        info(player, "Changed lines");
+                            later(
+                                    () -> {
+                                        info(player, "Changed lines");
 
-                        hologram.setLinesAndUpdate("1", "2", "3", "deez", "nuts", "are", "very", "good");
+                                        hologram.setLinesAndUpdate("1", "2", "3", "deez", "nuts", "are", "very", "good");
 
-                        later(() -> {
-                            info(player, "Removed");
+                                        later(
+                                                () -> {
+                                                    info(player, "Removed");
 
-                            hologram.destroy();
-                            assertTestPassed();
-                        }, 60);
-                    }, 60);
-                }, 60);
+                                                    hologram.destroy();
+                                                    assertTestPassed();
+                                                }, 60
+                                        );
+                                    }, 60
+                            );
+                        }, 60
+                );
 
                 return false;
             }
@@ -360,15 +374,19 @@ public final class EternaRuntimeTest {
                         TEXT BLOCK LORE
                         """);
 
-                textBlock.addTextBlockLore("""
-                        TEXT BLOCK LORE
-                        """, "CUSTOM PREFIX + ");
+                textBlock.addTextBlockLore(
+                        """
+                                TEXT BLOCK LORE
+                                """, "CUSTOM PREFIX + "
+                );
 
                 textBlock.addTextBlockLore("TEXT BLOCK LORE", 5);
 
-                textBlock.addTextBlockLore("""
-                        TEXT BLOCK LORE WITH AAAAAAAA
-                        """, "CUSTOM PREFIX + C", 10);
+                textBlock.addTextBlockLore(
+                        """
+                                TEXT BLOCK LORE WITH AAAAAAAA
+                                """, "CUSTOM PREFIX + C", 10
+                );
 
                 inventory.addItem(textBlock.toItemStack());
                 inventory.addItem(new ItemBuilder(Material.PLAYER_HEAD)
@@ -386,18 +404,22 @@ public final class EternaRuntimeTest {
 
                 info(player, "Spawned");
 
-                later(() -> {
-                    info(player, "Moved");
+                later(
+                        () -> {
+                            info(player, "Moved");
 
-                    laser.move(player.getLocation(), player.getLocation().add(0, 3, 0));
+                            laser.move(player.getLocation(), player.getLocation().add(0, 3, 0));
 
-                    later(() -> {
-                        info(player, "Removed");
+                            later(
+                                    () -> {
+                                        info(player, "Removed");
 
-                        laser.remove(player);
-                        assertTestPassed();
-                    }, 60);
-                }, 60);
+                                        laser.remove(player);
+                                        assertTestPassed();
+                                    }, 60
+                            );
+                        }, 60
+                );
 
                 return false;
             }
@@ -417,18 +439,22 @@ public final class EternaRuntimeTest {
 
                 int delay = 20;
                 for (NPCPose pose : testPoses) {
-                    later(() -> {
-                        info(player, "Posing " + pose.name());
-                        npc.setPose(pose);
-                    }, delay += 20);
+                    later(
+                            () -> {
+                                info(player, "Posing " + pose.name());
+                                npc.setPose(pose);
+                            }, delay += 20
+                    );
                 }
 
-                later(() -> {
-                    info(player, "Removed");
-                    npc.remove();
+                later(
+                        () -> {
+                            info(player, "Removed");
+                            npc.remove();
 
-                    assertTestPassed();
-                }, delay + 30);
+                            assertTestPassed();
+                        }, delay + 30
+                );
 
                 return false;
             }
@@ -469,34 +495,48 @@ public final class EternaRuntimeTest {
 
                 final var later = 30;
 
-                later(() -> {
-                    info(player, "Teleported");
-                    npc.teleport(player.getLocation());
-                    later(() -> {
-                        info(player, "Updating skin...");
-                        npc.setSkin("DiDenPro");
-                        later(() -> {
-                            info(player, "Sitting");
-                            npc.setSitting(true);
-                            later(() -> {
-                                info(player, "Stopped sitting");
-                                npc.setSitting(false);
-                                later(() -> {
-                                    info(player, "Shaking");
-                                    npc.setShaking(true);
-                                    later(() -> {
-                                        info(player, "Stopped shaking");
-                                        npc.setShaking(false);
-                                        later(() -> {
-                                            npc.remove();
-                                            assertTestPassed();
-                                        }, later);
-                                    }, later);
-                                }, later);
-                            }, later);
-                        }, later);
-                    }, later);
-                }, later);
+                later(
+                        () -> {
+                            info(player, "Teleported");
+                            npc.teleport(player.getLocation());
+                            later(
+                                    () -> {
+                                        info(player, "Updating skin...");
+                                        npc.setSkin("DiDenPro");
+                                        later(
+                                                () -> {
+                                                    info(player, "Sitting");
+                                                    npc.setSitting(true);
+                                                    later(
+                                                            () -> {
+                                                                info(player, "Stopped sitting");
+                                                                npc.setSitting(false);
+                                                                later(
+                                                                        () -> {
+                                                                            info(player, "Shaking");
+                                                                            npc.setShaking(true);
+                                                                            later(
+                                                                                    () -> {
+                                                                                        info(player, "Stopped shaking");
+                                                                                        npc.setShaking(false);
+                                                                                        later(
+                                                                                                () -> {
+                                                                                                    npc.remove();
+                                                                                                    assertTestPassed();
+                                                                                                }, later
+                                                                                        );
+                                                                                    }, later
+                                                                            );
+                                                                        }, later
+                                                                );
+                                                            }, later
+                                                    );
+                                                }, later
+                                        );
+                                    }, later
+                            );
+                        }, later
+                );
 
                 return false;
             }
@@ -507,82 +547,86 @@ public final class EternaRuntimeTest {
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final PlayerGUI gui = new PlayerGUI(player);
 
-                gui.setItem(0, new ItemBuilder(Material.STONE).asIcon(), new StrictAction() {
-                    @Override
-                    public void onLeftClick(@Nonnull Player player) {
-                        info(player, "onLeftClick");
-                    }
+                gui.setItem(
+                        0, new ItemBuilder(Material.STONE).asIcon(), new StrictAction() {
+                            @Override
+                            public void onLeftClick(@Nonnull Player player) {
+                                info(player, "onLeftClick");
+                            }
 
-                    @Override
-                    public void onShiftLeftClick(@Nonnull Player player) {
-                        info(player, "onShiftLeftClick");
-                    }
+                            @Override
+                            public void onShiftLeftClick(@Nonnull Player player) {
+                                info(player, "onShiftLeftClick");
+                            }
 
-                    @Override
-                    public void onRightClick(@Nonnull Player player) {
-                        info(player, "onRightClick");
-                    }
+                            @Override
+                            public void onRightClick(@Nonnull Player player) {
+                                info(player, "onRightClick");
+                            }
 
-                    @Override
-                    public void onShiftRightClick(@Nonnull Player player) {
-                        info(player, "onShiftRightClick");
-                    }
+                            @Override
+                            public void onShiftRightClick(@Nonnull Player player) {
+                                info(player, "onShiftRightClick");
+                            }
 
-                    @Override
-                    public void onWindowBorderLeftClick(@Nonnull Player player) {
-                        info(player, "onWindowBorderLeftClick");
-                    }
+                            @Override
+                            public void onWindowBorderLeftClick(@Nonnull Player player) {
+                                info(player, "onWindowBorderLeftClick");
+                            }
 
-                    @Override
-                    public void onWindowBorderRightClick(@Nonnull Player player) {
-                        info(player, "onWindowBorderRightClick");
-                    }
+                            @Override
+                            public void onWindowBorderRightClick(@Nonnull Player player) {
+                                info(player, "onWindowBorderRightClick");
+                            }
 
-                    @Override
-                    public void onMiddleClick(@Nonnull Player player) {
-                        info(player, "onMiddleClick");
-                    }
+                            @Override
+                            public void onMiddleClick(@Nonnull Player player) {
+                                info(player, "onMiddleClick");
+                            }
 
-                    @Override
-                    public void onNumberKeyClick(@Nonnull Player player) {
-                        info(player, "onNumberKeyClick");
-                    }
+                            @Override
+                            public void onNumberKeyClick(@Nonnull Player player) {
+                                info(player, "onNumberKeyClick");
+                            }
 
-                    @Override
-                    public void onDoubleClick(@Nonnull Player player) {
-                        info(player, "onDoubleClick");
-                    }
+                            @Override
+                            public void onDoubleClick(@Nonnull Player player) {
+                                info(player, "onDoubleClick");
+                            }
 
-                    @Override
-                    public void onDropClick(@Nonnull Player player) {
-                        info(player, "onDropClick");
-                    }
+                            @Override
+                            public void onDropClick(@Nonnull Player player) {
+                                info(player, "onDropClick");
+                            }
 
-                    @Override
-                    public void onControlDropClick(@Nonnull Player player) {
-                        info(player, "onControlDropClick");
-                    }
+                            @Override
+                            public void onControlDropClick(@Nonnull Player player) {
+                                info(player, "onControlDropClick");
+                            }
 
-                    @Override
-                    public void onCreativeDropClick(@Nonnull Player player) {
-                        info(player, "onCreativeDropClick");
-                    }
+                            @Override
+                            public void onCreativeDropClick(@Nonnull Player player) {
+                                info(player, "onCreativeDropClick");
+                            }
 
-                    @Override
-                    public void onSwapOffhandClick(@Nonnull Player player) {
-                        info(player, "onSwapOffhandClick");
-                    }
+                            @Override
+                            public void onSwapOffhandClick(@Nonnull Player player) {
+                                info(player, "onSwapOffhandClick");
+                            }
 
-                    @Override
-                    public void onUnknownClick(@Nonnull Player player) {
-                        info(player, "onUnknownClick");
-                    }
-                });
+                            @Override
+                            public void onUnknownClick(@Nonnull Player player) {
+                                info(player, "onUnknownClick");
+                            }
+                        }
+                );
 
-                later(() -> {
-                    info(player, "Renamed");
-                    gui.rename("Hello world!");
-                }, 60);
+                later(
+                        () -> {
+                            info(player, "Renamed");
+                            gui.rename("Hello world!");
+                        }, 60
+                );
 
                 gui.setCloseEvent(pp -> {
                     assertTestPassed();
@@ -631,9 +675,11 @@ public final class EternaRuntimeTest {
 
                 for (int i = 0; i < 16; i++) {
                     int finalI = i;
-                    gui.addItem(new ItemBuilder(Material.APPLE).setAmount(i + 1).build(), click -> {
-                        click.sendMessage("You clicked %sth apple.".formatted(finalI + 1));
-                    });
+                    gui.addItem(
+                            new ItemBuilder(Material.APPLE).setAmount(i + 1).build(), click -> {
+                                click.sendMessage("You clicked %sth apple.".formatted(finalI + 1));
+                            }
+                    );
                 }
 
                 gui.setCloseEvent(pp -> {
@@ -722,13 +768,15 @@ public final class EternaRuntimeTest {
                 );
                 scoreboard.addPlayer(player);
 
-                later(() -> {
-                    info(player, "Hid numbers");
+                later(
+                        () -> {
+                            info(player, "Hid numbers");
 
-                    scoreboard.setHideNumbers(true);
+                            scoreboard.setHideNumbers(true);
 
-                    assertTestPassed();
-                }, 60);
+                            assertTestPassed();
+                        }, 60
+                );
 
                 return false;
             }
@@ -868,12 +916,14 @@ public final class EternaRuntimeTest {
                         ""
                 );
 
-                later(() -> {
-                    task.cancel();
-                    tablist.destroy();
+                later(
+                        () -> {
+                            task.cancel();
+                            tablist.destroy();
 
-                    assertTestPassed();
-                }, 100);
+                            assertTestPassed();
+                        }, 100
+                );
 
                 return false;
             }
@@ -887,17 +937,21 @@ public final class EternaRuntimeTest {
                 info(player, "Red");
                 border.update(PlayerBorder.Operation.BORDER_RED, 5);
 
-                later(() -> {
-                    info(player, "Green");
-                    border.update(PlayerBorder.Operation.BORDER_GREEN, 10);
+                later(
+                        () -> {
+                            info(player, "Green");
+                            border.update(PlayerBorder.Operation.BORDER_GREEN, 10);
 
-                    later(() -> {
-                        info(player, "Reset");
-                        border.reset(player);
+                            later(
+                                    () -> {
+                                        info(player, "Reset");
+                                        border.reset(player);
 
-                        assertTestPassed();
-                    }, 60);
-                }, 60);
+                                        assertTestPassed();
+                                    }, 60
+                            );
+                        }, 60
+                );
 
                 return false;
             }
@@ -911,53 +965,61 @@ public final class EternaRuntimeTest {
 
                 info(player, "Recording...");
 
-                later(() -> {
-                    info(player, "Finished recording");
-                    record.stopRecording();
+                later(
+                        () -> {
+                            info(player, "Finished recording");
+                            record.stopRecording();
 
-                    later(() -> {
-                        info(player, "Playing recording");
+                            later(
+                                    () -> {
+                                        info(player, "Playing recording");
 
-                        final Replay replay = record.replay(r -> {
-                            return new Replay(r) {
-                                @Override
-                                public void onStart() {
-                                    info(player, "Start custom replay.");
-                                }
+                                        final Replay replay = record.replay(r -> {
+                                            return new Replay(r) {
+                                                @Override
+                                                public void onStart() {
+                                                    info(player, "Start custom replay.");
+                                                }
 
-                                @Override
-                                public void onStop() {
-                                    assertTestPassed();
-                                }
+                                                @Override
+                                                public void onStop() {
+                                                    assertTestPassed();
+                                                }
 
-                                @Override
-                                public void onPause(boolean pause) {
-                                    info(player, "Paused custom replay: " + pause);
-                                }
+                                                @Override
+                                                public void onPause(boolean pause) {
+                                                    info(player, "Paused custom replay: " + pause);
+                                                }
 
-                                @Override
-                                public void onStep(@Nonnull ReplayData data, long frame) {
-                                    info(player, "Step custom replay: " + frame);
-                                }
-                            };
-                        });
+                                                @Override
+                                                public void onStep(@Nonnull ReplayData data, long frame) {
+                                                    info(player, "Step custom replay: " + frame);
+                                                }
+                                            };
+                                        });
 
-                        replay.start(player);
+                                        replay.start(player);
 
-                        later(() -> {
-                            info(player, "Paused replay.");
+                                        later(
+                                                () -> {
+                                                    info(player, "Paused replay.");
 
-                            replay.pause();
+                                                    replay.pause();
 
-                            later(() -> {
-                                info(player, "Unpause replay.");
+                                                    later(
+                                                            () -> {
+                                                                info(player, "Unpause replay.");
 
-                                replay.pause();
-                            }, 30);
-                        }, 30);
+                                                                replay.pause();
+                                                            }, 30
+                                                    );
+                                                }, 30
+                                        );
 
-                    }, 20);
-                }, 100);
+                                    }, 20
+                            );
+                        }, 100
+                );
 
                 return false;
             }
@@ -1036,10 +1098,12 @@ public final class EternaRuntimeTest {
 
                 info(player, "Created");
 
-                later(() -> {
-                    rope.remove();
-                    assertTestPassed();
-                }, 60);
+                later(
+                        () -> {
+                            rope.remove();
+                            assertTestPassed();
+                        }, 60
+                );
 
                 return false;
             }
@@ -1100,25 +1164,31 @@ public final class EternaRuntimeTest {
                 final DisplayEntity entity = model.spawn(location);
                 final DisplayEntity textEntity = text.spawn(location);
 
-                assertThrows(() -> {
-                    BDEngine.parse(failData);
-                }, "Parser did not throw for invalid data!");
+                assertThrows(
+                        () -> {
+                            BDEngine.parse(failData);
+                        }, "Parser did not throw for invalid data!"
+                );
 
-                later(() -> {
-                    info(player, "Teleported");
+                later(
+                        () -> {
+                            info(player, "Teleported");
 
-                    final Location newPlayerLocation = player.getLocation();
+                            final Location newPlayerLocation = player.getLocation();
 
-                    entity.teleport(newPlayerLocation);
-                    textEntity.teleport(newPlayerLocation);
+                            entity.teleport(newPlayerLocation);
+                            textEntity.teleport(newPlayerLocation);
 
-                    later(() -> {
-                        entity.remove();
-                        textEntity.remove();
+                            later(
+                                    () -> {
+                                        entity.remove();
+                                        textEntity.remove();
 
-                        assertTestPassed();
-                    }, 60);
-                }, 60);
+                                        assertTestPassed();
+                                    }, 60
+                            );
+                        }, 60
+                );
 
                 return false;
             }
@@ -1225,59 +1295,108 @@ public final class EternaRuntimeTest {
                 info(player, "redstoneDust");
                 ParticleBuilder.redstoneDust(Color.ORANGE, 2).display(location);
 
-                later(() -> {
-                    info(player, "blockBreak");
-                    ParticleBuilder.blockBreak(Material.EMERALD_BLOCK).display(location);
+                later(
+                        () -> {
+                            info(player, "blockBreak");
+                            ParticleBuilder.blockBreak(Material.EMERALD_BLOCK).display(location);
 
-                    later(() -> {
-                        info(player, "blockDust");
-                        ParticleBuilder.blockDust(Material.GOLD_BLOCK).display(location);
+                            later(
+                                    () -> {
+                                        info(player, "blockDust");
+                                        ParticleBuilder.blockDust(Material.GOLD_BLOCK).display(location);
 
-                        later(() -> {
-                            info(player, "mobSpell");
-                            ParticleBuilder.mobSpell(Color.BLACK, false).display(location);
+                                        later(
+                                                () -> {
+                                                    info(player, "mobSpell");
+                                                    ParticleBuilder.mobSpell(Color.BLACK, false).display(location);
 
-                            later(() -> {
-                                info(player, "mobSpellAmbient");
-                                ParticleBuilder.mobSpell(Color.WHITE, true).display(location);
+                                                    later(
+                                                            () -> {
+                                                                info(player, "mobSpellAmbient");
+                                                                ParticleBuilder.mobSpell(Color.WHITE, true).display(location);
 
-                                later(() -> {
-                                    info(player, "itemBreak");
-                                    ParticleBuilder.itemBreak(new ItemStack(Material.EMERALD));
+                                                                later(
+                                                                        () -> {
+                                                                            info(player, "itemBreak");
+                                                                            ParticleBuilder.itemBreak(new ItemStack(Material.EMERALD));
 
-                                    later(() -> {
-                                        info(player, "dustTransition");
-                                        ParticleBuilder.dustTransition(Color.RED, Color.GREEN, 1).display(location);
+                                                                            later(
+                                                                                    () -> {
+                                                                                        info(player, "dustTransition");
+                                                                                        ParticleBuilder.dustTransition(
+                                                                                                Color.RED,
+                                                                                                Color.GREEN,
+                                                                                                1
+                                                                                        ).display(location);
 
-                                        later(() -> {
-                                            info(player, "vibrationBlock");
-                                            ParticleBuilder.vibration(LocationHelper.addAsNew(location, 0, 5, 0), 20)
-                                                    .display(location);
+                                                                                        later(
+                                                                                                () -> {
+                                                                                                    info(player, "vibrationBlock");
+                                                                                                    ParticleBuilder.vibration(
+                                                                                                                    LocationHelper.addAsNew(
+                                                                                                                            location,
+                                                                                                                            0,
+                                                                                                                            5,
+                                                                                                                            0
+                                                                                                                    ), 20
+                                                                                                            )
+                                                                                                            .display(location);
 
-                                            later(() -> {
-                                                info(player, "virationEntity");
-                                                ParticleBuilder.vibration(player, 20).display(location);
+                                                                                                    later(
+                                                                                                            () -> {
+                                                                                                                info(
+                                                                                                                        player,
+                                                                                                                        "virationEntity"
+                                                                                                                );
+                                                                                                                ParticleBuilder.vibration(
+                                                                                                                        player,
+                                                                                                                        20
+                                                                                                                ).display(location);
 
-                                                later(() -> {
-                                                    info(player, "blockMarker");
-                                                    ParticleBuilder.blockMarker(Material.BRICKS).display(location);
+                                                                                                                later(
+                                                                                                                        () -> {
+                                                                                                                            info(
+                                                                                                                                    player,
+                                                                                                                                    "blockMarker"
+                                                                                                                            );
+                                                                                                                            ParticleBuilder.blockMarker(
+                                                                                                                                            Material.BRICKS)
+                                                                                                                                    .display(
+                                                                                                                                            location);
 
-                                                    later(() -> {
-                                                        assertThrows(() -> ParticleBuilder.blockBreak(Material.DIAMOND));
-                                                        assertThrows(() -> ParticleBuilder.blockDust(Material.GOLD_NUGGET));
-                                                        assertThrows(() -> ParticleBuilder.blockMarker(Material.EMERALD));
+                                                                                                                            later(
+                                                                                                                                    () -> {
+                                                                                                                                        assertThrows(
+                                                                                                                                                () -> ParticleBuilder.blockBreak(
+                                                                                                                                                        Material.DIAMOND));
+                                                                                                                                        assertThrows(
+                                                                                                                                                () -> ParticleBuilder.blockDust(
+                                                                                                                                                        Material.GOLD_NUGGET));
+                                                                                                                                        assertThrows(
+                                                                                                                                                () -> ParticleBuilder.blockMarker(
+                                                                                                                                                        Material.EMERALD));
 
-                                                        assertTestPassed();
-                                                    }, 20);
-                                                }, 20);
-                                            }, 20);
-                                        }, 20);
-                                    }, 20);
-                                }, 20);
-                            }, 20);
-                        }, 20);
-                    }, 20);
-                }, 20);
+                                                                                                                                        assertTestPassed();
+                                                                                                                                    }, 20
+                                                                                                                            );
+                                                                                                                        }, 20
+                                                                                                                );
+                                                                                                            }, 20
+                                                                                                    );
+                                                                                                }, 20
+                                                                                        );
+                                                                                    }, 20
+                                                                            );
+                                                                        }, 20
+                                                                );
+                                                            }, 20
+                                                    );
+                                                }, 20
+                                        );
+                                    }, 20
+                            );
+                        }, 20
+                );
 
                 return false;
             }
@@ -1531,17 +1650,23 @@ public final class EternaRuntimeTest {
             public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
                 final Location location = player.getLocation();
 
-                LocationHelper.offset(location, 1, 2, 3, then -> {
-                    PlayerLib.spawnParticle(location, Particle.FLAME, 1);
-                });
+                LocationHelper.offset(
+                        location, 1, 2, 3, then -> {
+                            PlayerLib.spawnParticle(location, Particle.FLAME, 1);
+                        }
+                );
 
-                LocationHelper.offset(location, 3, 2, 1, then -> {
-                    return Entities.PIG.spawn(location);
-                });
+                LocationHelper.offset(
+                        location, 3, 2, 1, then -> {
+                            return Entities.PIG.spawn(location);
+                        }
+                );
 
-                LocationHelper.offset(location, 1, 3, 2, () -> {
-                    PlayerLib.spawnParticle(location, Particle.HAPPY_VILLAGER, 1);
-                });
+                LocationHelper.offset(
+                        location, 1, 3, 2, () -> {
+                            PlayerLib.spawnParticle(location, Particle.HAPPY_VILLAGER, 1);
+                        }
+                );
 
                 return true;
             }
@@ -1554,15 +1679,17 @@ public final class EternaRuntimeTest {
                         "Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do"
                 );
 
-                CollectionUtils.iterate(list, (iterator, item) -> {
-                    if (item.equalsIgnoreCase("sit")) {
-                        iterator.remove();
-                        info(player, "Removed 'sit'");
-                        return;
-                    }
+                CollectionUtils.iterate(
+                        list, (iterator, item) -> {
+                            if (item.equalsIgnoreCase("sit")) {
+                                iterator.remove();
+                                info(player, "Removed 'sit'");
+                                return;
+                            }
 
-                    info(player, "> " + item);
-                });
+                            info(player, "> " + item);
+                        }
+                );
 
                 info(player, list);
                 return true;
@@ -1629,11 +1756,13 @@ public final class EternaRuntimeTest {
                 info(player, "firsrY=" + firstY);
                 info(player, "allY=" + allY);
 
-                later(() -> {
-                    assertTrue(listCacheString.isEmpty());
-                    assertTrue(setCacheInt.isEmpty());
-                    assertTestPassed();
-                }, 21);
+                later(
+                        () -> {
+                            assertTrue(listCacheString.isEmpty());
+                            assertTrue(setCacheInt.isEmpty());
+                            assertTestPassed();
+                        }, 21
+                );
 
                 return false;
             }
@@ -1879,16 +2008,18 @@ public final class EternaRuntimeTest {
 
                 @Override
                 public void run() {
-                    entity.asTagged("ball", display -> {
-                        final Transformation transformation = display.getTransformation();
-                        final Vector3f translation = transformation.getTranslation();
-                        translation.y += Math.sin(theta) * 0.05d;
+                    entity.asTagged(
+                            "ball", display -> {
+                                final Transformation transformation = display.getTransformation();
+                                final Vector3f translation = transformation.getTranslation();
+                                translation.y += Math.sin(theta) * 0.05d;
 
-                        final Quaternionf leftRotation = transformation.getLeftRotation();
-                        leftRotation.y += Math.cos(theta) * 0.001d;
+                                final Quaternionf leftRotation = transformation.getLeftRotation();
+                                leftRotation.y += Math.cos(theta) * 0.001d;
 
-                        display.setTransformation(transformation);
-                    });
+                                display.setTransformation(transformation);
+                            }
+                    );
 
                     theta += Math.PI / 16;
                 }
@@ -1927,12 +2058,14 @@ public final class EternaRuntimeTest {
                 player.setCooldown(test2, 250);
                 player.setCooldown(test3, 100);
 
-                later(() -> {
-                    info(player, "Stopped cooldowns");
+                later(
+                        () -> {
+                            info(player, "Stopped cooldowns");
 
-                    PlayerLib.stopCooldowns(player);
-                    assertTestPassed();
-                }, 60);
+                            PlayerLib.stopCooldowns(player);
+                            assertTestPassed();
+                        }, 60
+                );
 
                 return false;
             }
@@ -1945,6 +2078,24 @@ public final class EternaRuntimeTest {
                 final BoundingBox boundingBox = new BoundingBox(player, location.clone().add(5, 5, 5), location.clone().subtract(5, 5, 5));
 
                 boundingBox.show();
+                return true;
+            }
+        });
+
+        addTest(new EternaTest("packetBlockDisplay") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final PacketBlockDisplay display = new PacketBlockDisplay(player.getLocation());
+                display.show(player);
+
+                display.setBlockData(Material.STONE);
+                display.setTransformation(new Matrix4f(
+                        0.5000f, 0.0000f, 0.0000f, -0.2500f,
+                        0.0000f, 0.5000f, 0.0000f, -0.2500f,
+                        0.0000f, 0.0000f, 0.5000f, -0.2500f,
+                        0.0000f, 0.0000f, 0.0000f, 1.0000f
+                ));
+
                 return true;
             }
         });
