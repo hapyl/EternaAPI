@@ -2086,7 +2086,6 @@ public final class EternaRuntimeTest {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final PacketBlockDisplay display = new PacketBlockDisplay(player.getLocation());
-                display.show(player);
 
                 display.setBlockData(Material.STONE);
                 display.setTransformation(new Matrix4f(
@@ -2095,6 +2094,8 @@ public final class EternaRuntimeTest {
                         0.0000f, 0.0000f, 0.5000f, -0.2500f,
                         0.0000f, 0.0000f, 0.0000f, 1.0000f
                 ));
+
+                display.show(player);
 
                 return true;
             }

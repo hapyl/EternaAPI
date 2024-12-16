@@ -67,7 +67,9 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
     @Override
     public void show(@Nonnull Player player) {
         players.add(player);
+
         Reflect.createEntity(entity, player);
+        Reflect.updateMetadata(entity, player);
     }
 
     @Override
