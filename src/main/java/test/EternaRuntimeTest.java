@@ -30,8 +30,10 @@ import me.hapyl.eterna.module.inventory.gui.*;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
 import me.hapyl.eterna.module.math.Geometry;
 import me.hapyl.eterna.module.math.geometry.WorldParticle;
+import me.hapyl.eterna.module.nbt.EternaTagVisitor;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
+import me.hapyl.eterna.module.nbt.TagFormatter;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
@@ -59,6 +61,7 @@ import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -2097,6 +2100,16 @@ public final class EternaRuntimeTest {
 
                 display.show(player);
 
+                return true;
+            }
+        });
+
+        addTest(new EternaTest("tagVisitor") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final CompoundTag nbt = Reflect.getEntityNbt(Reflect.getMinecraftEntity(player));
+
+                EternaLogger.sendMessage(player, new EternaTagVisitor(TagFormatter.DEFAULT).toString(nbt));
                 return true;
             }
         });

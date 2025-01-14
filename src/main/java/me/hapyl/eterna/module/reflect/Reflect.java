@@ -4,11 +4,13 @@ import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.annotate.*;
+import me.hapyl.eterna.module.annotate.Super;
+import me.hapyl.eterna.module.annotate.TestedOn;
+import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.packet.Packets;
-import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -34,7 +36,6 @@ import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -48,7 +49,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Useful utility class, which was indented to use reflection, hence the name - Reflect.
@@ -319,31 +323,6 @@ public final class Reflect {
             }
 
             return clazz.getConstructor(params);
-        } catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
-        }
-    }
-
-    /**
-     * Returns NMS method.
-     *
-     * @param className  - Class name.
-     * @param methodName - Method name.
-     * @param params     - Method parameters.
-     * @return NMS method if exists, null otherwise.
-     */
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable
-    public static Method getNetMethod(@Nonnull String className, @Nonnull String methodName, @Nullable Class<?>... params) {
-        try {
-            final Class<?> clazz = getNetClass(className);
-
-            if (clazz == null) {
-                return null;
-            }
-
-            return clazz.getMethod(methodName, params);
         } catch (Exception e) {
             EternaLogger.exception(e);
             return null;
@@ -631,38 +610,8 @@ public final class Reflect {
      */
     public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
         final net.minecraft.world.entity.Entity netEntity = getMinecraftEntity(entity);
-        if (netEntity == null) {
-            return;
-        }
 
         createEntity(netEntity, player);
-    }
-
-    /**
-     * @param craftEntity - CraftEntity.
-     * @return NMS class of the CraftEntity.
-     */
-    @Deprecated(forRemoval = true)
-    public static Object getNetEntity(@Nonnull Entity craftEntity) {
-        return invokeMethod(lazyMethod(craftEntity.getClass(), "getHandle"), craftEntity);
-    }
-
-    /**
-     * @param craftWorld - CraftWorld.
-     * @return NMS class of the CraftWorld.
-     */
-    @Deprecated(forRemoval = true)
-    public static Object getNetWorld(@Nonnull World craftWorld) {
-        return invokeMethod(lazyMethod(craftWorld.getClass(), "getHandle"), craftWorld);
-    }
-
-    /**
-     * @param craftServer - CraftServer.
-     * @return NMS class of the CraftWorld.
-     */
-    @Deprecated(forRemoval = true)
-    public static Object getNetServer(@Nonnull Server craftServer) {
-        return invokeMethod(lazyMethod(craftServer.getClass(), "getServer"), craftServer);
     }
 
     /**
@@ -723,26 +672,6 @@ public final class Reflect {
     }
 
     /**
-     * Gets a CraftPlayer of a player.
-     *
-     * @param player - Player.
-     * @return CraftPlayer.
-     */
-    public static Object getCraftPlayer(Player player) {
-        return invokeMethod(lazyMethod(player.getClass(), "getHandle"), player);
-    }
-
-    /**
-     * Gets a CraftEntity of an Entity.
-     *
-     * @param entity - Entity.
-     * @return CraftEntity.
-     */
-    public static Object getCraftEntity(Entity entity) {
-        return getHandle(entity, Object.class); // todo: Might not work casting to an object?
-    }
-
-    /**
      * Gets player's {@link GameProfile}.
      *
      * @param player - Player.
@@ -778,7 +707,7 @@ public final class Reflect {
      * @param className  - Name of the CraftBukkit class.
      * @param methodName - Name of the method.
      * @param params     - Parameters if required.
-     * @return CraftBukkit method if exists, null otherwise.
+     * @return CraftBukkit method if exists, throws an exception otherwise.
      * @throws IllegalArgumentException if the method does not exist, or there is an error in arguments.
      */
     @Nonnull
@@ -794,57 +723,6 @@ public final class Reflect {
         } catch (Exception e) {
             EternaLogger.exception(e);
             throw new IllegalArgumentException(e);
-        }
-    }
-
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable // Avoid using
-    public static Method lazyMethod(Object obj, String name, Class<?>... args) {
-        Validate.notNull(obj);
-        return lazyMethod(obj.getClass(), name, args);
-    }
-
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable // Avoid using
-    public static Method lazyMethod(Class<?> clazz, String name, Class<?>... args) {
-        try {
-            return clazz.getMethod(name, args);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable // Avoid using
-    public static Field lazyField(Class<?> clazz, String name) {
-        try {
-            return clazz.getField(name);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable // Avoid using
-    public static Object lazyFieldValue(Class<?> clazz, String name, Object obj) {
-        final Field field = lazyField(clazz, name);
-        if (field == null) {
-            return null;
-        }
-        try {
-            return field.get(obj);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable // Avoid using
-    public static Constructor<?> lazyConstructor(Class<?> clazz, Class<?>... objects) {
-        try {
-            return clazz.getConstructor(objects);
-        } catch (Exception e) {
-            return null;
         }
     }
 
@@ -880,10 +758,7 @@ public final class Reflect {
      * @return the NMS entity.
      */
     public static net.minecraft.world.entity.Entity getMinecraftEntity(@Nonnull Entity bukkitEntity) {
-        return (net.minecraft.world.entity.Entity) Reflect.invokeMethod(
-                Reflect.lazyMethod(bukkitEntity.getClass(), "getHandle"),
-                bukkitEntity
-        );
+        return getHandle(bukkitEntity, net.minecraft.world.entity.Entity.class);
     }
 
     /**
@@ -1044,9 +919,9 @@ public final class Reflect {
      * @param worldServer - Minecraft world.
      * @return the bukkit world or null.
      */
-    @Nullable
-    public static World getBukkitWorld(ServerLevel worldServer) {
-        return Bukkit.getWorld(worldServer.uuid);
+    @Nonnull
+    public static World getBukkitWorld(@Nonnull ServerLevel worldServer) {
+        return Objects.requireNonNull(Bukkit.getWorld(worldServer.uuid), "Server level must not be null!");
     }
 
     /**
@@ -1177,6 +1052,12 @@ public final class Reflect {
         return locationFromPosition(getBukkitWorld(entity.level()), entity.position());
     }
 
+    /**
+     * Gets the bukkit world from the given {@link Level}.
+     *
+     * @param level - {@link Level}.
+     * @return the bukkit world.
+     */
     @Nonnull
     public static World getBukkitWorld(@Nonnull Level level) {
         if (level instanceof ServerLevel serverLevel) {
@@ -1184,6 +1065,40 @@ public final class Reflect {
         }
 
         throw new IllegalArgumentException("Cannot get world from non-server level!");
+    }
+
+    /**
+     * Creates a new {@link CompoundTag} for the given {@link net.minecraft.world.entity.Entity}, with all the Nbt fields of that entity.
+     *
+     * @param entity - The entity to get the nbt for.
+     * @return a new {@link CompoundTag}.
+     */
+    @Nonnull
+    public static CompoundTag getEntityNbt(@Nonnull net.minecraft.world.entity.Entity entity) {
+        final CompoundTag tag = new CompoundTag();
+        entity.saveWithoutId(tag);
+
+        return tag;
+    }
+
+    /**
+     * Sets the given {@link CompoundTag} to the given {@link net.minecraft.world.entity.Entity}.
+     *
+     * @param tag      - The nbt to set.
+     * @param entity   - The entity to set the nbt to.
+     * @param override - If true, the given nbt will completely override the existing entity's nbt; it will be merged otherwise.
+     */
+    public static void setEntityNbt(@Nonnull CompoundTag tag, @Nonnull net.minecraft.world.entity.Entity entity, boolean override) {
+        if (override) {
+            entity.load(tag);
+        }
+        else {
+            final CompoundTag existingNbt = new CompoundTag();
+            entity.saveWithoutId(existingNbt);
+
+            existingNbt.merge(tag);
+            entity.load(existingNbt);
+        }
     }
 
     private static Field getField0(Object instance, String name, boolean isDeclared) {
