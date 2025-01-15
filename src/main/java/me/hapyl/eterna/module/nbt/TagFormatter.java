@@ -34,7 +34,7 @@ public interface TagFormatter {
 
         @Nonnull
         @Override
-        public String formatInt(int value) {
+        public String formatInteger(int value) {
             return TagFormatter.colorNumber(value, "");
         }
 
@@ -91,7 +91,7 @@ public interface TagFormatter {
      * @return a formatted {@link Integer}.
      */
     @Nonnull
-    String formatInt(int value);
+    String formatInteger(int value);
 
     /**
      * Defines how to format {@link Long}.

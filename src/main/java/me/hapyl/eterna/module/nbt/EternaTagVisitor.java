@@ -17,6 +17,10 @@ public class EternaTagVisitor implements TagVisitor {
     private final StringBuilder builder;
     private final TagFormatter formatter;
 
+    public EternaTagVisitor() {
+        this(TagFormatter.DEFAULT);
+    }
+
     public EternaTagVisitor(@Nonnull TagFormatter formatter) {
         this.builder = new StringBuilder();
         this.formatter = formatter;
@@ -46,7 +50,7 @@ public class EternaTagVisitor implements TagVisitor {
     @Override
     public final void visitInt(IntTag intTag) {
         this.builder.append(
-                this.formatter.formatInt(intTag.getAsInt())
+                this.formatter.formatInteger(intTag.getAsInt())
         );
     }
 
@@ -97,7 +101,7 @@ public class EternaTagVisitor implements TagVisitor {
                 this.builder.append(this.formatter.separatorColor()).append(", ");
             }
 
-            this.builder.append(this.formatter.formatInt(array[i]));
+            this.builder.append(this.formatter.formatInteger(array[i]));
         }
 
         this.builder.append(this.formatter.separatorColor()).append("]");
@@ -175,18 +179,12 @@ public class EternaTagVisitor implements TagVisitor {
     }
 
     @Nonnull
-    public final String visit(@Nonnull Tag tag) {
-        return toString(tag);
-    }
-
-    @Nonnull
-    public final String visit(@Nonnull NbtWrapper tag) {
-        return toString(tag.tag());
-    }
-
-    @Nonnull
     public final String toString(@Nonnull Tag tag) {
         tag.accept(this);
         return builder.toString();
+    }
+
+    public final String toString(@Nonnull NbtWrapper wrapper) {
+        return this.toString(wrapper.tag());
     }
 }
