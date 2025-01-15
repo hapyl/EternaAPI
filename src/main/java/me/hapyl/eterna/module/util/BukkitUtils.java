@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.PaperWorkaround;
 import me.hapyl.eterna.module.chat.Chat;
@@ -695,6 +697,34 @@ public class BukkitUtils {
     @PaperWorkaround
     public static <T extends Keyed> NamespacedKey getKey(@Nullable T keyed) {
         return Nulls.getOrDefault(keyed, Keyed::getKey, DUMMY_KEY);
+    }
+
+    /**
+     * Gets a {@link Keyed} element from the given {@link RegistryKey} by the given key.
+     *
+     * @param registry - The registry to get the item from.
+     * @param key      - The key of the item, always assumed to be in {@code minecraft:} namespace.
+     * @return a {@link Keyed} element or {@code null}.
+     */
+    @Nullable
+    public static <T extends Keyed> T getKeyed(@Nonnull RegistryKey<T> registry, @Nonnull String key) {
+        return RegistryAccess.registryAccess()
+                .getRegistry(registry)
+                .get(NamespacedKey.minecraft(key));
+    }
+
+    /**
+     * Gets a {@link Keyed} element from the given {@link RegistryKey} by the given key.
+     *
+     * @param registry - The registry to get the item from.
+     * @param key      - The key of the item, always assumed to be in {@code minecraft:} namespace.
+     * @return a {@link Keyed} element or {@code default} value.
+     */
+    @Nonnull
+    public static <T extends Keyed> T getKeyed(@Nonnull RegistryKey<T> registry, @Nonnull String key, @Nonnull T def) {
+        final T value = getKeyed(registry, key);
+
+        return value != null ? value : def;
     }
 
     /**
