@@ -1,8 +1,11 @@
 package me.hapyl.eterna;
 
+import me.hapyl.eterna.module.annotate.ReturnValueOfThisMethodIsAnExceptionAndItMustBeThrown;
 import me.hapyl.eterna.module.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+
+import javax.annotation.Nonnull;
 
 /**
  * Represents API logger.
@@ -39,13 +42,15 @@ public final class EternaLogger {
         EternaPlugin.getPlugin().getLogger().severe(message);
     }
 
-    public static void exception(Exception e) {
-        if (!EternaPlugin.getPlugin().getConfig().getBoolean("dev.print-stack-traces")) {
-            return;
+    @Nonnull
+    @ReturnValueOfThisMethodIsAnExceptionAndItMustBeThrown
+    public static RuntimeException exception(Exception e) {
+        if (EternaPlugin.getPlugin().getConfig().getBoolean("dev.print-stack-traces")) {
+            severe("An exception has occurred!");
+            e.printStackTrace();
         }
 
-        severe("An exception has occurred!");
-        e.printStackTrace();
+        return new RuntimeException(e);
     }
 
     public static void debug(Object message) {

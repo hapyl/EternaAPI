@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.block.display;
 
 import com.google.common.collect.Lists;
+import io.papermc.paper.entity.LookAnchor;
 import io.papermc.paper.entity.TeleportFlag;
 import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
 import me.hapyl.eterna.module.block.display.animation.DisplayEntityAnimation;
@@ -810,6 +811,10 @@ public class DisplayEntity implements Iterable<Display>, Display {
     public boolean teleport(@Nonnull Location location, @Nonnull PlayerTeleportEvent.TeleportCause cause, @Nonnull TeleportFlag... teleportFlags) {
         children.forEach(child -> child.teleport(location, cause, teleportFlags));
         return true;
+    }
+
+    @Override
+    public void lookAt(double v, double v1, double v2, @NotNull LookAnchor lookAnchor) {
     }
 
     @Nonnull

@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.nbt;
 
 import me.hapyl.eterna.EternaPlugin;
+import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
@@ -11,8 +12,9 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 
 /**
- * This uses spigot getPersistentDataContainer, <b><i>not</i></b> NMS.
- * For NMS, use {@link NBTNative}.
+ * This uses {@link PersistentDataContainer}, <b><i>NOT</i></b> vanilla {@link CompoundTag}!
+ * <br>
+ * For {@link CompoundTag} wrapper, see {@link NbtWrapper}.
  */
 public class NBT {
 
