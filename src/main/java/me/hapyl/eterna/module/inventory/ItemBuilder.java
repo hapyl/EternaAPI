@@ -225,7 +225,8 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param view - New map view.
      */
     public ItemBuilder setMapView(@Nullable MapView view) {
-        return modifyMeta(MapMeta.class, Material.FILLED_MAP, meta -> meta.setMapView(view));
+        validateItemType(Material.FILLED_MAP);
+        return modifyMeta(MapMeta.class, meta -> meta.setMapView(view));
     }
 
     /**
@@ -235,7 +236,8 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param name - New book name.
      */
     public ItemBuilder setBookName(@Nullable String name) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setTitle(name != null ? Chat.format(name) : null));
+        validateItemType(Material.WRITTEN_BOOK);
+        return modifyMeta(BookMeta.class, meta -> meta.setTitle(name != null ? Chat.format(name) : null));
     }
 
     /**
@@ -245,7 +247,8 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param author - New book author.
      */
     public ItemBuilder setBookAuthor(@Nonnull String author) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setAuthor(Chat.format(author)));
+        validateItemType(Material.WRITTEN_BOOK);
+        return modifyMeta(BookMeta.class, meta -> meta.setAuthor(Chat.format(author)));
     }
 
     /**
@@ -255,7 +258,8 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param title - New book title.
      */
     public ItemBuilder setBookTitle(@Nullable String title) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setTitle(title != null ? Chat.format(title) : null));
+        validateItemType(Material.WRITTEN_BOOK);
+        return modifyMeta(BookMeta.class, meta -> meta.setTitle(title != null ? Chat.format(title) : null));
     }
 
     /**
@@ -265,7 +269,8 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param pages - New book pages.
      */
     public ItemBuilder setBookPages(@Nonnull List<String> pages) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setPages(pages));
+        validateItemType(Material.WRITTEN_BOOK);
+        return modifyMeta(BookMeta.class, meta -> meta.setPages(pages));
     }
 
     /**
@@ -286,7 +291,8 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param contents - Page contents.
      */
     public ItemBuilder setBookPage(int page, @Nonnull String contents) {
-        return modifyMeta(BookMeta.class, Material.WRITTEN_BOOK, meta -> meta.setPage(page, contents));
+        validateItemType(Material.WRITTEN_BOOK);
+        return modifyMeta(BookMeta.class, meta -> meta.setPage(page, contents));
     }
 
     /**
@@ -887,10 +893,12 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param color    - Potion color.
      */
     public ItemBuilder setPotionMeta(@Nonnull PotionEffectType type, int lvl, int duration, @Nullable Color color) {
-        return modifyMeta(PotionMeta.class, meta -> {
-            meta.addCustomEffect(new PotionEffect(type, duration, lvl), true);
-            meta.setColor(color);
-        });
+        return modifyMeta(
+                PotionMeta.class, meta -> {
+                    meta.addCustomEffect(new PotionEffect(type, duration, lvl), true);
+                    meta.setColor(color);
+                }
+        );
     }
 
     /**
@@ -974,10 +982,12 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param sound - Sound
      */
     public ItemBuilder setSkullOwner(@Nonnull String owner, @Nullable Sound sound) {
-        return modifyMeta(SkullMeta.class, meta -> {
-            meta.setPlayerProfile(Bukkit.createProfile(null, owner));
-            meta.setNoteBlockSound(sound != null ? sound.getKey() : null);
-        });
+        return modifyMeta(
+                SkullMeta.class, meta -> {
+                    meta.setPlayerProfile(Bukkit.createProfile(null, owner));
+                    meta.setNoteBlockSound(sound != null ? sound.getKey() : null);
+                }
+        );
     }
 
     /**
@@ -1103,9 +1113,11 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param durability - Durability to set.
      */
     public ItemBuilder setDurability(int durability) {
-        return modifyMeta(Damageable.class, meta -> {
-            meta.setDamage(durability);
-        });
+        return modifyMeta(
+                Damageable.class, meta -> {
+                    meta.setDamage(durability);
+                }
+        );
     }
 
     /**
@@ -1745,11 +1757,13 @@ public class ItemBuilder implements Cloneable, Keyed {
      * Clears all the banner {@link Pattern}s.
      */
     public ItemBuilder clearBannerPatterns() {
-        return modifyMeta(BannerMeta.class, meta -> {
-            for (int i = 0; i < meta.numberOfPatterns(); i++) {
-                meta.removePattern(i);
-            }
-        });
+        return modifyMeta(
+                BannerMeta.class, meta -> {
+                    for (int i = 0; i < meta.numberOfPatterns(); i++) {
+                        meta.removePattern(i);
+                    }
+                }
+        );
     }
 
     /**
@@ -1759,7 +1773,26 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param color - Pattern color.
      */
     public ItemBuilder addBannerPattern(@Nonnull PatternType type, @Nonnull DyeColor color) {
-        return modifyMeta(BannerMeta.class, Material.WHITE_BANNER, meta -> {
+        validateItemType(
+                Material.WHITE_BANNER,
+                Material.LIGHT_GRAY_BANNER,
+                Material.GRAY_BANNER,
+                Material.BLACK_BANNER,
+                Material.BROWN_BANNER,
+                Material.RED_BANNER,
+                Material.ORANGE_BANNER,
+                Material.YELLOW_BANNER,
+                Material.LIME_BANNER,
+                Material.GREEN_BANNER,
+                Material.CYAN_BANNER,
+                Material.LIGHT_BLUE_BANNER,
+                Material.BLUE_BANNER,
+                Material.PURPLE_BANNER,
+                Material.MAGENTA_BANNER,
+                Material.PINK_BANNER
+        );
+
+        return modifyMeta(BannerMeta.class, meta -> {
             meta.addPattern(new Pattern(color, type));
         });
     }
@@ -1770,7 +1803,7 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param patterns - Patterns to set.
      */
     public ItemBuilder setBannerPattern(@Nonnull Pattern... patterns) {
-        return modifyMeta(BannerMeta.class, Material.WHITE_BANNER, meta -> {
+        return modifyMeta(BannerMeta.class, meta -> {
             meta.setPatterns(Arrays.asList(patterns));
         });
     }
@@ -1790,26 +1823,13 @@ public class ItemBuilder implements Cloneable, Keyed {
 
     /**
      * Modifies the {@link ItemMeta} of the given class and applies it to the item.
+     * <br>
+     * Does nothing if the meta is not applicable to the current type.
      *
      * @param clazz    - Meta class.
      * @param consumer - Consumer.
      */
     public <T extends ItemMeta> ItemBuilder modifyMeta(@Nonnull Class<T> clazz, @Nonnull Consumer<T> consumer) {
-        return modifyMeta(clazz, null, consumer);
-    }
-
-    /**
-     * Sets the item {@link Material}, modifies the {@link ItemMeta} of the given class and applies it to the item.
-     *
-     * @param clazz    - Meta class.
-     * @param material - Material.
-     * @param consumer - Consumer.
-     */
-    public <T extends ItemMeta> ItemBuilder modifyMeta(@Nonnull Class<T> clazz, @Nullable Material material, @Nonnull Consumer<T> consumer) {
-        if (material != null) {
-            setType(material);
-        }
-
         final ItemMeta meta = item.getItemMeta();
 
         if (clazz.isInstance(meta)) {
@@ -1842,6 +1862,18 @@ public class ItemBuilder implements Cloneable, Keyed {
         }
     }
 
+    private void validateItemType(Material... types) {
+        final Material itemType = item.getType();
+
+        for (Material type : types) {
+            if (itemType == type) {
+                return;
+            }
+        }
+
+        item.setType(types[0]);
+    }
+
     private void hideFlag0(ItemFlag flag) {
         modifyMeta(meta -> meta.addItemFlags(flag));
 
@@ -1868,6 +1900,7 @@ public class ItemBuilder implements Cloneable, Keyed {
      *
      * @param material - Material.
      * @return true if material has default attributes without any modifiers, false otherwise.
+     * fixme this will not be needed in the next update I think?
      */
     public static boolean isItemHasDefaultAttributes(@Nonnull Material material) {
         return switch (material) {
