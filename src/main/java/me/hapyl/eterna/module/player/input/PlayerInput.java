@@ -63,6 +63,19 @@ public final class PlayerInput {
     }
 
     /**
+     * Returns {@code true} if the given {@link Player} is not holding any keys.
+     * <br><br>
+     * Note that is player has "Toggle Sprint" enabled, and they have toggled their sprint,
+     * this method will return {@code false}, because the key is <i>technically</i> being held.
+     *
+     * @param player - The player to check.
+     * @return {@code true} if the given {@link Player} is not holding any keys.
+     */
+    public static boolean isNoKeyHeld(@Nonnull Player player) {
+        return getHeldKeys0(player).isEmpty();
+    }
+
+    /**
      * Gets an unmodifiable {@link Set} of every {@link InputKey} the player is holding.
      *
      * @param player - The player to get the keys for.
