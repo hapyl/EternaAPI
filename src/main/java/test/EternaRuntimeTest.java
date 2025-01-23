@@ -39,6 +39,8 @@ import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
+import me.hapyl.eterna.module.player.input.InputKey;
+import me.hapyl.eterna.module.player.input.PlayerInput;
 import me.hapyl.eterna.module.player.quest.*;
 import me.hapyl.eterna.module.player.quest.objective.JumpQuestObjective;
 import me.hapyl.eterna.module.player.sound.SoundQueue;
@@ -2156,6 +2158,68 @@ public final class EternaRuntimeTest {
 
                 assertFalse(wrapper.contains("z_raw"));
                 return true;
+            }
+        });
+
+        addTest(new EternaTest("player_input") {
+            private final int maxRuns = 100;
+            private BukkitRunnable runnable;
+
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                if (runnable != null) {
+                    runnable.cancel();
+                    runnable = null;
+
+                    info(player, "&aStopped input test!");
+                    assertTestPassed();
+                    return false;
+                }
+
+                info(player, "Start task for %s".formatted(maxRuns / 20));
+
+                runnable = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        final boolean isW = PlayerInput.isKeyHeld(player, InputKey.W);
+                        final boolean isA = PlayerInput.isKeyHeld(player, InputKey.A);
+                        final boolean isS = PlayerInput.isKeyHeld(player, InputKey.S);
+                        final boolean isD = PlayerInput.isKeyHeld(player, InputKey.D);
+                        final boolean isShift = PlayerInput.isKeyHeld(player, InputKey.SHIFT);
+                        final boolean isControl = PlayerInput.isKeyHeld(player, InputKey.CONTROL);
+                        final boolean isSpace = PlayerInput.isKeyHeld(player, InputKey.SPACE);
+
+                        info(player, "");
+                        info(player, "      %s&lW".formatted(isW ? ChatColor.GREEN : ChatColor.DARK_GRAY));
+                        info(
+                                player, "  %s&lA %s&lS %s&lD".formatted(
+                                        isA ? ChatColor.GREEN : ChatColor.DARK_GRAY,
+                                        isS ? ChatColor.GREEN : ChatColor.DARK_GRAY,
+                                        isD ? ChatColor.GREEN : ChatColor.DARK_GRAY
+                                )
+                        );
+                        info(player, " %s&lSHIFT".formatted(isShift ? ChatColor.GREEN : ChatColor.DARK_GRAY));
+                        info(
+                                player, " %s&lCTRL   %s&lSPACE".formatted(
+                                        isControl ? ChatColor.GREEN : ChatColor.DARK_GRAY,
+                                        isSpace ? ChatColor.GREEN : ChatColor.DARK_GRAY
+                                )
+                        );
+                        info(player, "");
+
+                        final boolean isWASD = PlayerInput.isAnyKeyHeld(player, InputKey.wasd());
+                        final boolean isSpaceAndShift = PlayerInput.isAllKeysHeld(player, Set.of(InputKey.SPACE, InputKey.SHIFT));
+
+                        info(player, "");
+                        info(player, "&e&lIs WASD? %s".formatted(isWASD ? "&a&lYES" : "&c&lNO"));
+                        info(player, "&e&lIs Space or Shift? %s".formatted(isSpaceAndShift ? "&a&lYES" : "&c&lNO"));
+                        info(player, "");
+                    }
+                };
+
+                info(player, "&eStarted input test...");
+                runnable.runTaskTimer(EternaPlugin.getPlugin(), 0, 1);
+                return false;
             }
         });
 
