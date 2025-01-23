@@ -49,10 +49,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Useful utility class, which was indented to use reflection, hence the name - Reflect.
@@ -936,10 +933,12 @@ public final class Reflect {
     @Nonnull
     public static <T> T getHandle(@Nonnull Object craftObject, @Nonnull Class<T> handleClass) {
         try {
-            final Class<?> clazz = craftObject.getClass();
-            final Method method = clazz.getDeclaredMethod(getHandleMethodName);
-            method.setAccessible(true);
+            final Method method = getDeclaredMethodInHierarchy(craftObject.getClass(), getHandleMethodName)
+                    .orElseThrow(() -> {
+                        return makeIllegalArgumentHandle("Provided object is not a CraftBukkit object! (%s)".formatted(craftObject));
+                    });
 
+            method.setAccessible(true);
             final Object object = method.invoke(craftObject);
 
             if (object == null) {
@@ -951,8 +950,6 @@ public final class Reflect {
             }
 
             return handleClass.cast(object);
-        } catch (NoSuchMethodException e) {
-            throw makeIllegalArgumentHandle("Provided object is not a CraftBukkit object!");
         } catch (InvocationTargetException | IllegalAccessException e) {
             EternaLogger.exception(e);
         }
@@ -960,6 +957,39 @@ public final class Reflect {
         throw makeIllegalArgumentHandle("Something unexpected occurred.");
     }
 
+    /**
+     * Gets a {@link Optional} of a {@link Method} from the given class or it's superclasses,
+     * or empty {@link Optional} if there is no method in the given class nor in any of the superclasses.
+     *
+     * @param clazz - The class to get the method in.
+     * @param name  - The name of the method.
+     * @return a {@link Optional} of a {@link Method} from the given class or it's superclasses,
+     * or empty {@link Optional} if there is no method in the given class nor in any of the superclasses.
+     */
+    @Nonnull
+    public static Optional<Method> getDeclaredMethodInHierarchy(@Nonnull Class<?> clazz, @Nonnull String name) {
+        try {
+            return Optional.of(clazz.getDeclaredMethod(name));
+        } catch (NoSuchMethodException noSuchMethodException) {
+            final Class<?> superClass = clazz.getSuperclass();
+
+            // No such method
+            if (superClass == Object.class) {
+                return Optional.empty();
+            }
+
+            return getDeclaredMethodInHierarchy(superClass, name);
+        }
+    }
+
+    /**
+     * Gets the scoreboard name for the given entity.
+     * <br>
+     * For players, it's their name, for other entities it's their UUID.
+     *
+     * @param entity - The entity to get the scoreboard name for.
+     * @return the scoreboard name for the given entity.
+     */
     @Nonnull
     public static String getScoreboardEntityName(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getScoreboardName();

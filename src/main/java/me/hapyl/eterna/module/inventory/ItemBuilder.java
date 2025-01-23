@@ -1792,9 +1792,9 @@ public class ItemBuilder implements Cloneable, Keyed {
                 Material.PINK_BANNER
         );
 
-        return modifyMeta(BannerMeta.class, meta -> {
-            meta.addPattern(new Pattern(color, type));
-        });
+        return modifyMeta(
+                BannerMeta.class, meta -> meta.addPattern(new Pattern(color, type))
+        );
     }
 
     /**
@@ -1803,9 +1803,9 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param patterns - Patterns to set.
      */
     public ItemBuilder setBannerPattern(@Nonnull Pattern... patterns) {
-        return modifyMeta(BannerMeta.class, meta -> {
-            meta.setPatterns(Arrays.asList(patterns));
-        });
+        return modifyMeta(
+                BannerMeta.class, meta -> meta.setPatterns(Arrays.asList(patterns))
+        );
     }
 
     /**
