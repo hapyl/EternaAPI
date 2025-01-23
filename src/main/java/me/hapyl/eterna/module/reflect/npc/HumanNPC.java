@@ -1062,7 +1062,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     private void startInteractionCooldown(Player player) {
-        interactedAt.put(player, new InteractionDelay(player, interactionDelay));
+        interactedAt.put(player, new InteractionDelay(player, interactionDelay * 50L));
     }
 
     private void removeChair() {
