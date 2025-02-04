@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.record;
 
 import com.google.common.collect.Sets;
+import me.hapyl.eterna.module.inventory.Equipment;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import org.bukkit.Location;
@@ -18,13 +19,13 @@ public class ReplayData {
     private final Player player;
     private final Location location;
     private final Set<RecordAction> actions;
-    private final ReplayEquipment equipment;
+    private final Equipment equipment;
 
     public ReplayData(@Nonnull Record record) {
         this.record = record;
         this.player = record.getPlayer();
         this.location = player.getLocation();
-        this.equipment = new ReplayEquipment(player);
+        this.equipment = Equipment.of(player);
         this.actions = Sets.newHashSet();
 
         addActionIf(player.isSneaking(), RecordAction.SNEAK);

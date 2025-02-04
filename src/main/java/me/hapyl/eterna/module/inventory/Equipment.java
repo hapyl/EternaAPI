@@ -1,4 +1,4 @@
-package me.hapyl.eterna.module.record;
+package me.hapyl.eterna.module.inventory;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -12,32 +12,36 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-public class ReplayEquipment implements EntityEquipment {
+/**
+ * A {@link EntityEquipment} implementation supporting all {@link EquipmentSlot}s.
+ */
+public class Equipment implements EntityEquipment {
 
     private static final ItemStack AIR = new ItemStack(Material.AIR);
 
     private final ItemStack[] items;
 
-    public ReplayEquipment() {
-        this.items = new ItemStack[6];
+    public Equipment() {
+        this.items = new ItemStack[EquipmentSlot.values().length];
     }
 
-    public ReplayEquipment(@Nonnull LivingEntity entity) {
-        this();
+    @Nonnull
+    public static Equipment of(@Nonnull LivingEntity entity) {
+        final Equipment equipment = new Equipment();
+        final EntityEquipment entityEquipment = entity.getEquipment();
 
-        final EntityEquipment equipment = entity.getEquipment();
-
-        if (equipment == null) {
-            return;
+        if (entityEquipment != null) {
+            equipment.items[0] = itemCopyOrNull(entityEquipment.getItemInMainHand());
+            equipment.items[1] = itemCopyOrNull(entityEquipment.getItemInOffHand());
+            equipment.items[2] = itemCopyOrNull(entityEquipment.getBoots());
+            equipment.items[3] = itemCopyOrNull(entityEquipment.getLeggings());
+            equipment.items[4] = itemCopyOrNull(entityEquipment.getChestplate());
+            equipment.items[5] = itemCopyOrNull(entityEquipment.getHelmet());
         }
 
-        this.items[0] = itemOrNull(equipment.getItemInMainHand());
-        this.items[1] = itemOrNull(equipment.getItemInOffHand());
-        this.items[2] = itemOrNull(equipment.getBoots());
-        this.items[3] = itemOrNull(equipment.getLeggings());
-        this.items[4] = itemOrNull(equipment.getChestplate());
-        this.items[5] = itemOrNull(equipment.getHelmet());
+        return equipment;
     }
+
 
     @Override
     public void setItem(@Nonnull EquipmentSlot slot, @Nullable ItemStack item) {
@@ -52,7 +56,7 @@ public class ReplayEquipment implements EntityEquipment {
     @Nonnull
     @Override
     public ItemStack getItem(@Nonnull EquipmentSlot slot) {
-        return getItem(slot.ordinal());
+        return itemByIndex(slot.ordinal());
     }
 
     @Nonnull
@@ -258,9 +262,11 @@ public class ReplayEquipment implements EntityEquipment {
         throw new UnsupportedOperationException();
     }
 
+    @Nonnull
     @Override
+    @Deprecated
     public Entity getHolder() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -272,11 +278,8 @@ public class ReplayEquipment implements EntityEquipment {
     public void setDropChance(@NotNull EquipmentSlot slot, float chance) {
     }
 
-    private ItemStack itemOrNull(ItemStack item) {
-        return item != null ? new ItemStack(item) : null;
-    }
-
-    private ItemStack getItem(int index) {
+    @Nonnull
+    private ItemStack itemByIndex(int index) {
         if (index < 0 || index >= items.length) {
             return AIR;
         }
@@ -284,5 +287,10 @@ public class ReplayEquipment implements EntityEquipment {
         final ItemStack item = items[index];
         return item != null ? item : AIR;
     }
+
+    private static ItemStack itemCopyOrNull(ItemStack item) {
+        return item != null ? new ItemStack(item) : null;
+    }
+
 
 }
