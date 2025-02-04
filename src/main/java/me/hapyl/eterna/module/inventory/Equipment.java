@@ -25,24 +25,6 @@ public class Equipment implements EntityEquipment {
         this.items = new ItemStack[EquipmentSlot.values().length];
     }
 
-    @Nonnull
-    public static Equipment of(@Nonnull LivingEntity entity) {
-        final Equipment equipment = new Equipment();
-        final EntityEquipment entityEquipment = entity.getEquipment();
-
-        if (entityEquipment != null) {
-            equipment.items[0] = itemCopyOrNull(entityEquipment.getItemInMainHand());
-            equipment.items[1] = itemCopyOrNull(entityEquipment.getItemInOffHand());
-            equipment.items[2] = itemCopyOrNull(entityEquipment.getBoots());
-            equipment.items[3] = itemCopyOrNull(entityEquipment.getLeggings());
-            equipment.items[4] = itemCopyOrNull(entityEquipment.getChestplate());
-            equipment.items[5] = itemCopyOrNull(entityEquipment.getHelmet());
-        }
-
-        return equipment;
-    }
-
-
     @Override
     public void setItem(@Nonnull EquipmentSlot slot, @Nullable ItemStack item) {
         this.items[slot.ordinal()] = item;
@@ -288,8 +270,121 @@ public class Equipment implements EntityEquipment {
         return item != null ? item : AIR;
     }
 
+    /**
+     * Creates {@link Equipment} from the given entity.
+     *
+     * @param entity - The entity whose equipment to clone.
+     * @return new equipment from the given entity.
+     */
+    @Nonnull
+    public static Equipment of(@Nonnull LivingEntity entity) {
+        final Equipment equipment = new Equipment();
+        final EntityEquipment entityEquipment = entity.getEquipment();
+
+        if (entityEquipment != null) {
+            equipment.items[0] = itemCopyOrNull(entityEquipment.getItemInMainHand());
+            equipment.items[1] = itemCopyOrNull(entityEquipment.getItemInOffHand());
+            equipment.items[2] = itemCopyOrNull(entityEquipment.getBoots());
+            equipment.items[3] = itemCopyOrNull(entityEquipment.getLeggings());
+            equipment.items[4] = itemCopyOrNull(entityEquipment.getChestplate());
+            equipment.items[5] = itemCopyOrNull(entityEquipment.getHelmet());
+        }
+
+        return equipment;
+    }
+
+    /**
+     * Creates a new {@link Builder}.
+     *
+     * @return a new builder.
+     */
+    @Nonnull
+    public static Builder builder() {
+        return new Builder();
+    }
+
     private static ItemStack itemCopyOrNull(ItemStack item) {
         return item != null ? new ItemStack(item) : null;
+    }
+
+    public static class Builder implements me.hapyl.eterna.module.util.Builder<Equipment> {
+
+        private final Equipment equipment;
+
+        private Builder() {
+            this.equipment = new Equipment();
+        }
+
+        public Builder mainHand(@Nonnull ItemStack item) {
+            return set(EquipmentSlot.HAND, item);
+        }
+
+        public Builder mainHand(@Nonnull Material material) {
+            return mainHand(new ItemStack(material));
+        }
+
+        public Builder offHand(@Nonnull ItemStack item) {
+            return set(EquipmentSlot.OFF_HAND, item);
+        }
+
+        public Builder offHand(@Nonnull Material material) {
+            return offHand(new ItemStack(material));
+        }
+
+        public Builder boots(@Nonnull ItemStack item) {
+            return set(EquipmentSlot.FEET, item);
+        }
+
+        public Builder boots(@Nonnull Material material) {
+            return boots(new ItemStack(material));
+        }
+
+        public Builder leggings(@Nonnull ItemStack item) {
+            return set(EquipmentSlot.LEGS, item);
+        }
+
+        public Builder leggings(@Nonnull Material material) {
+            return leggings(new ItemStack(material));
+        }
+
+        public Builder chestPlate(@Nonnull ItemStack item) {
+            return set(EquipmentSlot.CHEST, item);
+        }
+
+        public Builder chestPlate(@Nonnull Material material) {
+            return chestPlate(new ItemStack(material));
+        }
+
+        public Builder helmet(@Nonnull ItemStack item) {
+            return set(EquipmentSlot.HEAD, item);
+        }
+
+        public Builder helmet(@Nonnull Material material) {
+            return helmet(new ItemStack(material));
+        }
+
+        public Builder body(@Nonnull ItemStack item) {
+            return set(EquipmentSlot.BODY, item);
+        }
+
+        public Builder body(@Nonnull Material material) {
+            return body(new ItemStack(material));
+        }
+
+        public Builder set(@Nonnull EquipmentSlot slot, @Nonnull ItemStack item) {
+            this.equipment.setItem(slot, item);
+            return this;
+        }
+
+        public Builder set(@Nonnull EquipmentSlot slot, @Nonnull Material material) {
+            return set(slot, new ItemStack(material));
+        }
+
+        @Nonnull
+        @Override
+        public Equipment build() {
+            return this.equipment;
+        }
     }
 
 
