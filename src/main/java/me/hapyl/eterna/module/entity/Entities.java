@@ -1,35 +1,24 @@
 package me.hapyl.eterna.module.entity;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import me.hapyl.eterna.EternaPlugin;
+import me.hapyl.eterna.module.util.Disposable;
 import me.hapyl.eterna.module.util.Nulls;
-import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.*;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.function.Consumer;
 
 /**
- * This class allows summoning entities easier
- * and saves them into a hash set. Unless set not to.
+ * Allows spawning entities into the world, with the support of {@link EntityCache}.
  *
  * @param <T> - Type of the entity.
  * @author hapyl
  */
 @SuppressWarnings("unused" /*utility class*/)
 public final class Entities<T extends Entity> {
-
-    // All types by name.
-    private static final Map<String, Entities<? extends Entity>> byName = new HashMap<>();
 
     public static final Entities<ExperienceOrb> EXPERIENCE_ORB = new Entities<>(ExperienceOrb.class);
     public static final Entities<AreaEffectCloud> AREA_EFFECT_CLOUD = new Entities<>(AreaEffectCloud.class);
@@ -148,20 +137,29 @@ public final class Entities<T extends Entity> {
     public static final Entities<ItemDisplay> ITEM_DISPLAY = new Entities<>(ItemDisplay.class);
     public static final Entities<Sniffer> SNIFFER = new Entities<>(Sniffer.class);
     public static final Entities<TextDisplay> TEXT_DISPLAY = new Entities<>(TextDisplay.class);
+    public static final Entities<Breeze> BREEZE = new Entities<>(Breeze.class);
+    public static final Entities<Creaking> CREAKING = new Entities<>(Creaking.class);
 
-    // custom entities with root consumer
+    // Custom Entities
     public static final Entities<ArmorStand> ARMOR_STAND_MARKER = new Entities<>(ArmorStand.class, self -> self.setMarker(true));
-    public static final Entities<ArmorStand> ARMOR_STAND_HOLOGRAM = new Entities<>(ArmorStand.class, self -> {
-        self.setMarker(true);
-        self.setSilent(true);
-        self.setInvisible(true);
-        self.setSmall(true);
-    });
+    public static final Entities<ArmorStand> ARMOR_STAND_HOLOGRAM = new Entities<>(
+            ArmorStand.class,
+            self -> {
+                self.setMarker(true);
+                self.setSilent(true);
+                self.setInvisible(true);
+                self.setSmall(true);
+            }
+    );
 
-    private static final EternaPlugin ETERNA_PLUGIN = EternaPlugin.getPlugin();
+    // ** Fields separator ** //
 
-    // Saved all spawned entities per plugin.
-    private static final Map<JavaPlugin, Set<Entity>> spawnedByPlugin = Maps.newConcurrentMap();
+    /**
+     * The default {@link EntityCache}.
+     * <br>
+     * Not {@code final} to allow plugins to use a custom cache if needed.
+     */
+    public static EntityCache DEFAULT_CACHE = new EntityCache();
 
     private final Class<T> entityClass;
     private final Consumer<T> rootConsumer;
@@ -169,8 +167,6 @@ public final class Entities<T extends Entity> {
     private Entities(Class<T> entityClass, Consumer<T> rootConsumer) {
         this.entityClass = entityClass;
         this.rootConsumer = rootConsumer;
-
-        byName.put(this.entityClass.getSimpleName().toLowerCase(Locale.ROOT), this);
     }
 
     private Entities(Class<T> entityClass) {
@@ -182,7 +178,6 @@ public final class Entities<T extends Entity> {
      *
      * @param location - Location to spawn at.
      * @return spawned entity.
-     * @throws NullPointerException if location's world is null
      */
     @Nonnull
     public T spawn(@Nonnull Location location) {
@@ -192,128 +187,46 @@ public final class Entities<T extends Entity> {
     /**
      * Spawn entity at provided location.
      *
-     * @param location - Location to spawn at.
-     * @param cache    - if true, entity will be cached into a hash set.
-     * @return spawned entity.
-     * @throws NullPointerException if location's world is null.
-     */
-    @Nonnull
-    public T spawn(@Nonnull Location location, boolean cache) {
-        return spawn(location, null, cache);
-    }
-
-    /**
-     * Spawn entity at provided location.
-     *
      * @param location    - Location to spawn at.
      * @param beforeSpawn - Consumer to apply to entity before it spawns.
      * @return spawned entity.
-     * @throws NullPointerException if location's world is null
      */
     @Nonnull
     public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn) {
-        return spawn(location, beforeSpawn, true);
+        return spawn(location, beforeSpawn, DEFAULT_CACHE);
     }
 
     /**
      * Spawn entity at provided location.
      *
      * @param location    - Location to spawn at.
-     * @param cache       - if true, entity will be cached into a hash set.
+     * @param cache       - The cache for the spawned entity.
      * @param beforeSpawn - Consumer to apply to entity before it spawns.
      * @return spawned entity.
-     * @throws NullPointerException if location's world is null
      */
     @Nonnull
-    public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn, boolean cache) {
-        return spawn(location, beforeSpawn, cache ? ETERNA_PLUGIN : null);
-    }
+    public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn, @Nonnull EntityCache cache) {
+        final T entity = location.getWorld().spawn(
+                location, this.entityClass, self -> {
+                    Nulls.runIfNotNull(rootConsumer, r -> r.accept(self));
+                    Nulls.runIfNotNull(beforeSpawn, r -> r.accept(self));
+                }
+        );
 
-    /**
-     * Spawn entity at provided location.
-     *
-     * @param location    - Location to spawn at.
-     * @param plugin      - Plugin owner of the cached entities. {@link this#getSpawned(JavaPlugin)}
-     * @param beforeSpawn - Consumer to apply to entity before it spawns.
-     * @return spawned entity.
-     * @throws NullPointerException if location's world is null
-     */
-    @Nonnull
-    public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn, @Nullable JavaPlugin plugin) {
-        Validate.notNull(location.getWorld(), "world cannot be null");
-
-        final T entity = location.getWorld().spawn(location, this.entityClass, self -> {
-            Nulls.runIfNotNull(rootConsumer, r -> r.accept(self));
-            Nulls.runIfNotNull(beforeSpawn, r -> r.accept(self));
-        });
-
-        // cache
-        if (plugin != null) {
-            addSpawned(plugin, entity);
-        }
+        cache.add(entity);
         return entity;
     }
 
     /**
-     * Removes all spawned entities for Eterna plugin.
-     *
-     * @deprecated {@link this#killSpawned(JavaPlugin)}
+     * Represents a cache that stored the spawned entities with a proper {@link Disposable#dispose()}
+     * implementation that removed the entities and clears the cache.
      */
-    @Deprecated
-    public static void killSpawned() {
-        killSpawned(EternaPlugin.getPlugin());
-    }
-
-    /**
-     * Kills all spawned entities for a plugin.
-     *
-     * @param plugin - plugin to kill spawned entities for.
-     */
-    public static void killSpawned(@Nonnull JavaPlugin plugin) {
-        final Set<Entity> set = getSpawned(plugin);
-
-        set.forEach(Entity::remove);
-        set.clear();
-    }
-
-    /**
-     * @deprecated {@link Entities#getSpawned(JavaPlugin)}
-     */
-    @Deprecated
-    public static Set<Entity> getEntities() {
-        return getSpawned(ETERNA_PLUGIN);
-    }
-
-    /**
-     * @deprecated {@link Entities#getSpawned(JavaPlugin)}
-     */
-    public static Set<Entity> getSpawned() {
-        return getSpawned(ETERNA_PLUGIN);
-    }
-
-    /**
-     * Gets a set of spawned entities for a plugin.
-     *
-     * @param plugin - plugin to get spawned entities for.
-     * @return set of spawned entities.
-     */
-    public static Set<Entity> getSpawned(@Nonnull JavaPlugin plugin) {
-        return spawnedByPlugin.computeIfAbsent(plugin, s -> Sets.newHashSet());
-    }
-
-    /**
-     * Returns an entity by its name.
-     *
-     * @param name - name of the entity.
-     * @return entity or null if not found.
-     */
-    @Nullable
-    public static Entities<? extends Entity> byName(@Nonnull String name) {
-        return byName.getOrDefault(name.toLowerCase(Locale.ROOT), null);
-    }
-
-    private static void addSpawned(JavaPlugin plugin, Entity entity) {
-        getSpawned(plugin).add(entity);
+    public static class EntityCache extends HashSet<Entity> implements Disposable {
+        @Override
+        public final void dispose() {
+            this.forEach(Entity::remove);
+            this.clear();
+        }
     }
 
 

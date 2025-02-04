@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.locaiton;
 
+import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.CollectionUtils;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Axis;
@@ -286,6 +287,31 @@ public final class LocationHelper {
         }
 
         return distance;
+    }
+
+    /**
+     * <b>Attempts</b> to anchor the location, so it's directly on a block.
+     *
+     * @param location - The location to anchor.
+     * @return A new anchored location.
+     */
+    @Nonnull
+    public static Location anchor(@Nonnull Location location) {
+        return BukkitUtils.anchorLocation(location);
+    }
+
+    /**
+     * Finds a random {@link Location} around the given location.
+     * <br>
+     * This anchors the location.
+     *
+     * @param location - Location to find around.
+     * @param max      - Max distance in each direction.
+     * @return A new location.
+     */
+    @Nonnull
+    public static Location randomAround(@Nonnull Location location, double max) {
+        return BukkitUtils.findRandomLocationAround(location, max);
     }
 
     private static double square(double a) {
