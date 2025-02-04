@@ -9,6 +9,7 @@ import org.bukkit.entity.minecart.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -159,7 +160,7 @@ public final class Entities<T extends Entity> {
      * <br>
      * Not {@code final} to allow plugins to use a custom cache if needed.
      */
-    public static EntityCache DEFAULT_CACHE = new EntityCache();
+    private static EntityCache DEFAULT_CACHE = new EntityCache();
 
     private final Class<T> entityClass;
     private final Consumer<T> rootConsumer;
@@ -215,6 +216,30 @@ public final class Entities<T extends Entity> {
 
         cache.add(entity);
         return entity;
+    }
+
+    /**
+     * Gets the default {@link EntityCache} for the API.
+     *
+     * @return the default entity cache.
+     */
+    @Nonnull
+    public static EntityCache defaultCache() {
+        return DEFAULT_CACHE;
+    }
+
+    /**
+     * Sets the default {@link EntityCache} for the API.
+     * <br>
+     * The previous cache is always {@link EntityCache#dispose()} before setting a new cache.
+     *
+     * @param cache - The new cache.
+     */
+    public static void defaultCache(@Nonnull EntityCache cache) {
+        Objects.requireNonNull(cache, "Cache must not be null!");
+
+        DEFAULT_CACHE.dispose();
+        DEFAULT_CACHE = cache;
     }
 
     /**
