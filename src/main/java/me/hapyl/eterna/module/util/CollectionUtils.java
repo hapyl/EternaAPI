@@ -387,14 +387,14 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns a random element from the list or first element if the list is empty.
+     * Gets a random element from a given {@link List} or throws a {@link NullPointerException} if the collection is empty.
      *
      * @param list - list to get from.
      * @return a random element.
      */
-    @Nullable
+    @Nonnull
     public static <E> E randomElementOrFirst(@Nonnull List<E> list) {
-        return randomElement(list, get(list, 0));
+        return Objects.requireNonNull(randomElement(list, null), "List must not be empty!");
     }
 
     /**
@@ -409,6 +409,7 @@ public class CollectionUtils {
         if (list.isEmpty()) {
             return def;
         }
+
         return getOrDefault(list, ThreadLocalRandom.current().nextInt(list.size()), def);
     }
 
@@ -425,14 +426,14 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns a random element from the set or first if a set is empty.
+     * Gets a random element from a given {@link Collection} or throws a {@link NullPointerException} if the collection is empty.
      *
      * @param collection - set to get from.
      * @return a random element.
      */
-    @Nullable
+    @Nonnull
     public static <E> E randomElementOrFirst(@Nonnull Collection<E> collection) {
-        return randomElement(collection, get(collection, 0));
+        return Objects.requireNonNull(randomElement(collection, null), "Collection must not be empty!");
     }
 
     /**
@@ -465,14 +466,14 @@ public class CollectionUtils {
     }
 
     /**
-     * Returns a random element from the array or first element if array is empty.
+     * Gets a random element from a given {@link Collection} or throws a {@link NullPointerException} if the collection is empty.
      *
      * @param array - array to get from.
      * @return a random element.
      */
-    @Nullable
+    @Nonnull
     public static <E> E randomElementOrFirst(@Nonnull E[] array) {
-        return randomElement(array, array.length == 0 ? null : array[0]);
+        return Objects.requireNonNull(randomElement(array, null), "Array must not be empty!");
     }
 
     /**
