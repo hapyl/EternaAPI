@@ -434,9 +434,9 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("npcPose") {
 
             private final List<NPCPose> testPoses = CollectionBuilder.<NPCPose>ofList()
-                    .addAll(NPCPose.values())
-                    .putLast(NPCPose.STANDING) // move standing last to test if it works or not
-                    .build();
+                                                                     .addAll(NPCPose.values())
+                                                                     .putLast(NPCPose.STANDING) // move standing last to test if it works or not
+                                                                     .build();
 
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
@@ -1267,9 +1267,9 @@ public final class EternaRuntimeTest {
                 bukkitComponent.append(new SelectorComponent("@e[type=player]")).format(Format.ITALIC).nl();
                 bukkitComponent.append(new ScoreComponent(".eterna", "test")).format(Format.BOLD).nl();
                 bukkitComponent.append(new TranslatableComponent("block.minecraft.lily_pad"))
-                        .color(ChatColor.YELLOW)
-                        .format(Format.BOLD)
-                        .nl();
+                               .color(ChatColor.YELLOW)
+                               .format(Format.BOLD)
+                               .nl();
 
                 bukkitComponent.send(player);
 
@@ -1339,14 +1339,14 @@ public final class EternaRuntimeTest {
                                                                                                 () -> {
                                                                                                     info(player, "vibrationBlock");
                                                                                                     ParticleBuilder.vibration(
-                                                                                                                    LocationHelper.addAsNew(
-                                                                                                                            location,
-                                                                                                                            0,
-                                                                                                                            5,
-                                                                                                                            0
-                                                                                                                    ), 20
-                                                                                                            )
-                                                                                                            .display(location);
+                                                                                                                           LocationHelper.addAsNew(
+                                                                                                                                   location,
+                                                                                                                                   0,
+                                                                                                                                   5,
+                                                                                                                                   0
+                                                                                                                           ), 20
+                                                                                                                   )
+                                                                                                                   .display(location);
 
                                                                                                     later(
                                                                                                             () -> {
@@ -1366,9 +1366,9 @@ public final class EternaRuntimeTest {
                                                                                                                                     "blockMarker"
                                                                                                                             );
                                                                                                                             ParticleBuilder.blockMarker(
-                                                                                                                                            Material.BRICKS)
-                                                                                                                                    .display(
-                                                                                                                                            location);
+                                                                                                                                                   Material.BRICKS)
+                                                                                                                                           .display(
+                                                                                                                                                   location);
 
                                                                                                                             later(
                                                                                                                                     () -> {
@@ -1706,8 +1706,8 @@ public final class EternaRuntimeTest {
             @Override
             public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
                 final MapMaker<Integer, String, LinkedHashMap<Integer, String>> mapMaker = MapMaker.<Integer, String>ofLinkedHashMap()
-                        .put(1, "hello")
-                        .put(2, "world");
+                                                                                                   .put(1, "hello")
+                                                                                                   .put(2, "world");
 
                 final Map<Integer, String> map = mapMaker.makeMap();
                 final LinkedHashMap<Integer, String> genericMap = mapMaker.makeGenericMap();
@@ -1786,37 +1786,37 @@ public final class EternaRuntimeTest {
                 final DisplayEntity entity = data.spawnInterpolated(original);
 
                 entity.newAnimation()
-                        .addFrame(new AnimationFrame(Math.PI * 2, Math.PI / 8) {
-                            @Override
-                            public void tick(@NotNull DisplayEntity entity, double theta) {
-                                final double y = Math.cos(theta) * 0.25;
+                      .addFrame(new AnimationFrame(Math.PI * 2, Math.PI / 8) {
+                          @Override
+                          public void tick(@NotNull DisplayEntity entity, double theta) {
+                              final double y = Math.cos(theta) * 0.25;
 
-                                entity.teleport(entity.getLocation().add(0, y, 0));
-                            }
-                        })
-                        .addFrame(new AnimationFrame(Math.PI, Math.PI / 4) {
-                            @Override
-                            public void tick(@NotNull DisplayEntity entity, double theta) {
-                                final double x = Math.sin(theta) * 1.5;
-                                final double z = Math.cos(theta) * 1.5;
+                              entity.teleport(entity.getLocation().add(0, y, 0));
+                          }
+                      })
+                      .addFrame(new AnimationFrame(Math.PI, Math.PI / 4) {
+                          @Override
+                          public void tick(@NotNull DisplayEntity entity, double theta) {
+                              final double x = Math.sin(theta) * 1.5;
+                              final double z = Math.cos(theta) * 1.5;
 
-                                entity.teleport(entity.getLocation().add(x, 0, z));
-                            }
-                        })
-                        .addFrame(AnimationFrame.builder()
-                                .threshold(3)
-                                .increment(Math.PI / 2)
-                                .tick((frame, slf, theta) -> {
-                                    slf.teleport(slf.getLocation().add(0, 1, 0));
-                                })
-                        ).addFrame(new AnimationFrame() {
-                            @Override
-                            public void tick(@NotNull DisplayEntity entity, double theta) {
-                                entity.teleport(original);
-                                assertTestPassed();
-                            }
-                        })
-                        .start();
+                              entity.teleport(entity.getLocation().add(x, 0, z));
+                          }
+                      })
+                      .addFrame(AnimationFrame.builder()
+                                              .threshold(3)
+                                              .increment(Math.PI / 2)
+                                              .tick((frame, slf, theta) -> {
+                                                  slf.teleport(slf.getLocation().add(0, 1, 0));
+                                              })
+                      ).addFrame(new AnimationFrame() {
+                          @Override
+                          public void tick(@NotNull DisplayEntity entity, double theta) {
+                              entity.teleport(original);
+                              assertTestPassed();
+                          }
+                      })
+                      .start();
 
                 return false;
             }
@@ -1945,7 +1945,12 @@ public final class EternaRuntimeTest {
                     quest2.addObjective(new JumpQuestObjective(2));
                     quest2.addStartBehaviour(QuestStartBehaviour.talkToNpc(
                             npc1,
-                            new Dialog().addEntry(DialogEntry.of(npc1, "Yes talk to me!"))
+                            new Dialog() {
+                                @Override
+                                public void onDialogTick(@Nonnull Player player) {
+                                    player.sendMessage("You're currently ticking in a dialog!");
+                                }
+                            }.addEntry(DialogEntry.of(npc1, "Yes talk to me!"))
                     ));
 
                     final Quest quest3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest3"));
@@ -1986,6 +1991,9 @@ public final class EternaRuntimeTest {
                                         EternaLogger.debug("Progress: %s/%s".formatted(data.getCurrentStageProgress(), objective.getGoal()));
                                     }
                                 });
+                            }
+                            else {
+                                EternaLogger.debug("No quest data!");
                             }
                         }
                     }
@@ -2235,19 +2243,40 @@ public final class EternaRuntimeTest {
                 packetItem.setGravity(false);
                 packetItem.showGlobally();
 
-                later(() -> {
-                    info(player, "Changing item...");
-                    packetItem.setItem(item2);
+                later(
+                        () -> {
+                            info(player, "Changing item...");
+                            packetItem.setItem(item2);
 
-                    later(() -> {
-                        info(player, "Removed item.");
-                        packetItem.hideGlobally();
+                            later(
+                                    () -> {
+                                        info(player, "Removed item.");
+                                        packetItem.hideGlobally();
 
-                        assertTestPassed();
-                    }, 40);
-                }, 20);
+                                        assertTestPassed();
+                                    }, 40
+                            );
+                        }, 20
+                );
 
                 return false;
+            }
+        });
+
+        addTest(new EternaTest("tickingDialog") {
+
+            private final Dialog dialog = new Dialog() {
+                @Override
+                public void onDialogTick(@Nonnull Player player) {
+                    player.sendMessage("You're ticking in the dialog!");
+                }
+            }
+                    .addEntry(DialogEntry.of("test", "test12312321", "test1312312"));
+
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                dialog.start(player);
+                return true;
             }
         });
 

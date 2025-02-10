@@ -199,6 +199,15 @@ public class Dialog {
     }
 
     /**
+     * Called every tick a {@link Player} is listening to this {@link Dialog}.
+     *
+     * @param player - The player who is listening to this dialog.
+     */
+    @EventLike
+    public void onDialogTick(@Nonnull Player player) {
+    }
+
+    /**
      * Gets the delay before the next {@link DialogEntry} is displayed.
      * <p>Override to allow per-player delays.</p>
      *
