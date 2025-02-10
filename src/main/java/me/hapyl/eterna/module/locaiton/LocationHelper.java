@@ -314,6 +314,17 @@ public final class LocationHelper {
         return BukkitUtils.findRandomLocationAround(location, max);
     }
 
+    /**
+     * Converts the given {@link Location} into readable string.
+     *
+     * @param location - The location to convert.
+     * @return a readable location string.
+     */
+    @Nonnull
+    public static String toString(@Nonnull Location location) {
+        return BukkitUtils.locationToString(location);
+    }
+
     private static double square(double a) {
         return a * a;
     }

@@ -135,6 +135,11 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
         return entityId;
     }
 
+    @Nonnull
+    public Location getLocation() {
+        return Reflect.getEntityLocation(entity);
+    }
+
     protected void updateMetadata() {
         players.forEach(player -> Reflect.updateMetadata(entity, player));
     }

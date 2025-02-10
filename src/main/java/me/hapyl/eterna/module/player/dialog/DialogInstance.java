@@ -102,7 +102,9 @@ public class DialogInstance extends BukkitRunnable {
             return;
         }
 
-        // For for player dialog
+        dialog.onDialogTick(player);
+
+        // Wait for player dialog
         if (awaitInput) {
             return;
         }
@@ -128,19 +130,21 @@ public class DialogInstance extends BukkitRunnable {
             final QuestManager questManager = Eterna.getManagers().quest;
 
             // Try to start the quest
-            questManager.tryStartQuest(player, quest -> {
-                for (QuestStartBehaviour behaviour : quest.getStartBehaviours(player)) {
-                    if (behaviour instanceof QuestStartBehaviour.DialogStartBehaviour dialogStartBehaviour) {
-                        if (this.dialog != dialogStartBehaviour.dialog()) {
-                            continue;
+            questManager.tryStartQuest(
+                    player, quest -> {
+                        for (QuestStartBehaviour behaviour : quest.getStartBehaviours(player)) {
+                            if (behaviour instanceof QuestStartBehaviour.DialogStartBehaviour dialogStartBehaviour) {
+                                if (this.dialog != dialogStartBehaviour.dialog()) {
+                                    continue;
+                                }
+
+                                return true;
+                            }
                         }
 
-                        return true;
+                        return false;
                     }
-                }
-
-                return false;
-            });
+            );
 
             // Increment objective
             questManager.tryIncrementObjective(player, AbstractDialogQuestObjective.class, dialog);
