@@ -22,6 +22,7 @@ import me.hapyl.eterna.module.config.Config;
 import me.hapyl.eterna.module.entity.Entities;
 import me.hapyl.eterna.module.entity.Rope;
 import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
+import me.hapyl.eterna.module.entity.packet.PacketItem;
 import me.hapyl.eterna.module.hologram.DisplayHologram;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.hologram.StringArray;
@@ -2219,6 +2220,33 @@ public final class EternaRuntimeTest {
 
                 info(player, "&eStarted input test...");
                 runnable.runTaskTimer(EternaPlugin.getPlugin(), 0, 1);
+                return false;
+            }
+        });
+
+        addTest(new EternaTest("packetItem") {
+
+            private final ItemStack item1 = new ItemStack(Material.STONE);
+            private final ItemStack item2 = new ItemBuilder(Material.DIAMOND_SWORD).addEnchant(Enchant.SWEEPING_EDGE, 1).build();
+
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final PacketItem packetItem = PacketItem.create(player.getLocation(), item1);
+                packetItem.setGravity(false);
+                packetItem.showGlobally();
+
+                later(() -> {
+                    info(player, "Changing item...");
+                    packetItem.setItem(item2);
+
+                    later(() -> {
+                        info(player, "Removed item.");
+                        packetItem.hideGlobally();
+
+                        assertTestPassed();
+                    }, 40);
+                }, 20);
+
                 return false;
             }
         });
