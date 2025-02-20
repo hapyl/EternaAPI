@@ -1,91 +1,104 @@
 package me.hapyl.eterna.module.scoreboard;
 
+import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.reflect.Reflect;
-import net.md_5.bungee.api.ChatColor;
-import net.minecraft.network.chat.numbers.BlankFormat;
+import me.hapyl.eterna.module.util.EternaEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.*;
+import org.bukkit.scoreboard.Criteria;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * This class allows creating per-player scoreboards.
+ * A {@link Scoreboard} builder.
  */
-public class Scoreboarder {
+public class Scoreboarder implements EternaEntity {
+
+    public static final String DUMMY_TEAM_PREFIX = "%";
+    public static final int MAX_LINES = 17;
+    public static final char[] CHARS = { 'a', 'b', 'c', 'd', 'e', 'f', 'k', 'l', 'm', 'n', 'o', '0', '1', '2', '3', '4', '5' };
 
     private final Scoreboard scoreboard;
     private final Objective objective;
-    private final net.minecraft.world.scores.Objective nmsObjective;
     private final List<String> lines;
-    private final Set<Player> players;
+    private final Set<Player> showingTo;
 
     /**
-     * Creates a scoreboard builder with provided title.
+     * Creates a new {@link Scoreboard} with the given title.
      *
-     * @param title - Title. Supports color codes.
+     * @param title - The title.
      */
     public Scoreboarder(@Nonnull String title) {
         this.lines = new ArrayList<>();
-        this.players = new HashSet<>();
+        this.showingTo = new HashSet<>();
 
         this.scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         this.objective = scoreboard.registerNewObjective(UUID.randomUUID().toString(), Criteria.DUMMY, title);
 
-        this.nmsObjective = Reflect.getHandle(this.objective, net.minecraft.world.scores.Objective.class);
-
         this.setTitle(title);
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-        // 17 is the limit so create 17 teams
-        for (int i = 0; i < 17; i++) {
-            this.scoreboard.registerNewTeam("%" + i).addEntry(colorCharAt(i));
+        for (int i = 0; i < MAX_LINES; i++) {
+            this.scoreboard.registerNewTeam(DUMMY_TEAM_PREFIX + i).addEntry(charAt(i));
         }
     }
 
     /**
-     * Sets if the numbers on the right are hidden.
+     * Sets whether this scoreboard has it's score numbers hidden.
      *
-     * @param hideNumbers - Is hidden.
+     * @param hideNumbers - Should numbers be hidden?
      */
     public void setHideNumbers(boolean hideNumbers) {
-        nmsObjective.setNumberFormat(hideNumbers ? BlankFormat.INSTANCE : null);
+        objective.numberFormat(hideNumbers ? NumberFormat.blank() : null);
     }
 
     /**
-     * Changes the current title of the scoreboard.
+     * Sets the {@link NumberFormat} of this scoreboard.
      *
-     * @param title - New title. Supports color codes.
+     * @param numberFormat - The number format to set.
+     */
+    public void setNumberFormat(@Nullable NumberFormat numberFormat) {
+        objective.numberFormat(numberFormat);
+    }
+
+    /**
+     * Sets the new title for this scoreboard.
+     *
+     * @param title - The new title.
      */
     public void setTitle(@Nonnull String title) {
         this.objective.setDisplayName(Chat.format(title));
     }
 
     /**
-     * Changes specific line of the scoreboard.
+     * Sets the line at the given index to the given text.
      *
-     * @param line - index of a line.
-     * @param text - New text.
-     * @throws IllegalArgumentException if line is negative or greater than 17.
-     * @throws NullPointerException     if line with index doesn't exist.
+     * @param line - The index of the line; must be between 0-{@link #MAX_LINES}
+     * @param text - The new text.
+     * @throws IndexOutOfBoundsException - If the given line index is {@code < 0} or {@code > MAX_LINES}
      */
-    public void setLine(int line, String text) {
-        if (line < 0 || line > 17) {
-            throw new IllegalArgumentException("line cannot be negative nor higher than 17");
+    public void setLine(int line, @Nonnull String text) {
+        if (line < 0 || line > MAX_LINES) {
+            throw new IndexOutOfBoundsException("%s < 0 || line > %s".formatted(line, MAX_LINES));
         }
-        Objects.requireNonNull(this.scoreboard.getTeam("%" + line)).setSuffix(text.isEmpty() ? "" : Chat.format(text));
+
+        Objects.requireNonNull(this.scoreboard.getTeam(DUMMY_TEAM_PREFIX + line)).setSuffix(text.isEmpty() ? "" : Chat.format(text));
     }
 
     /**
-     * Removes all lines and sets new lines of the scoreboard
-     * and updates lines.
+     * Clears all the current lines of this scoreboard, replaces it with the given lines and updates it.
+     * <br>
+     * Lines beyond {@link #MAX_LINES} are ignored.
      *
-     * @param lines - Array of new lines.
+     * @param lines - The lines to set.
      */
-    public void setLines(@Range(from = 0, to = 17) String... lines) {
+    public void setLines(@Range(from = 0, to = MAX_LINES) @Nonnull String... lines) {
         this.lines.clear();
         this.lines.addAll(Arrays.asList(lines));
 
@@ -93,80 +106,76 @@ public class Scoreboarder {
     }
 
     /**
-     * Adds lines to the scoreboard.
-     * Does NOT update scoreboard lines.
+     * Adds the given lines to the end of this scoreboard lines.
+     * <br>
+     * Lines beyond {@link #MAX_LINES} are ignored.
+     * <br>
+     * This method does <b>NOT</b> update the scoreboard, {@link #updateLines()} must be called to see changes.
      *
-     * @param lines - Lines to add.
+     * @param lines - The lines to add.
      */
     public void addLines(@Nonnull String... lines) {
         this.lines.addAll(Arrays.asList(lines));
     }
 
     /**
-     * Adds a line to the scoreboard.
-     * Does NOT update scoreboard lines.
+     * Adds the given line to the end of this scoreboard lines.
+     * <br>
+     * This method does <b>NOT</b> update the scoreboard, {@link #updateLines()} must be called to see changes.
      *
-     * @param line - Line to add.
+     * @param line - The line to add.
      */
     public void addLine(@Nonnull String line) {
         this.lines.add(line);
     }
 
     /**
-     * Clears all scoreboard lines.
-     * Does NOT update scoreboard lines.
+     * Clears the lines of this scoreboard.
+     * <br>
+     * This method does <b>NOT</b> update the scoreboard, {@link #updateLines()} must be called to see changes.
      */
     public void clearLines() {
         this.lines.clear();
     }
 
     /**
-     * Remove line at specific index.
-     * Does NOT update scoreboard lines.
+     * Removes the lines at the given index.
+     * <br>
+     * This method does <b>NOT</b> update the scoreboard, {@link #updateLines()} must be called to see changes.
      *
-     * @param line - index of line.
+     * @param index - The index to remove the line at.
+     * @throws IndexOutOfBoundsException if {@code index < 0} or {@code index > MAX_LINES} or {@code index > lines.size()}
      */
-    public void removeLine(int line) {
-        if (line < 0 || line > 17 || line >= lines.size()) {
-            return;
+    public void removeLine(int index) {
+        if (index < 0 || index > 17 || index >= lines.size()) {
+            throw new IndexOutOfBoundsException("%1$s < 0 || %1$s > %2$s || %1$s >= %3$s".formatted(index, MAX_LINES, lines.size()));
         }
-        lines.remove(line);
+
+        lines.remove(index);
     }
 
     /**
-     * Updates scoreboard lines, setting the values
-     * and changing their respective positions.
-     * <p>
-     * This is only called automatically at
-     * {@link Scoreboarder#setLines(String...)} Must be
-     * called manually after adding lines using
-     * other methods.
+     * Visually updates the lines of this scoreboard.
+     * <br>
+     * This method is automatically called when using {@link #setLines(String...)}, but must be manually called otherwise.
      */
     public void updateLines() {
-        // remove old lines
-        for (int i = 0; i < 17; i++) {
-            if (i <= (this.lines.size() - 1)) {
-                continue;
-            }
+        final int length = Math.min(this.lines.size(), MAX_LINES);
 
-            final String colorChar = colorCharAt(i);
-            final Score score = this.objective.getScore(colorChar);
+        for (int i = length; i < MAX_LINES; ++i) {
+            final String colorChar = charAt(i);
 
-            if (score.getScore() > i) {
-                this.scoreboard.resetScores(colorChar);
-            }
+            scoreboard.resetScores(colorChar);
         }
 
-        // set the value
-        int index = this.lines.size() - 1;
-        for (final String line : this.lines) {
-            setLine(index, line);
-            --index;
+        // Set lines
+        for (int i = 0; i < length; i++) {
+            setLine(length - i - 1, this.lines.get(i));
         }
 
-        // update scores
-        for (int i = 1; i <= this.lines.size(); i++) {
-            this.objective.getScore(colorCharAt(i - 1)).setScore(i);
+        // Update scores
+        for (int i = 0; i < length; i++) {
+            this.objective.getScore(charAt(i)).setScore(i + 1);
         }
     }
 
@@ -174,14 +183,11 @@ public class Scoreboarder {
      * Shows this scoreboard to a given player.
      *
      * @param player - Player to show scoreboard to.
+     * @deprecated {@link #show(Player)}
      */
+    @Deprecated
     public void addPlayer(@Nonnull Player player) {
-        if (this.players.contains(player)) {
-            return;
-        }
-        updateLines();
-        this.players.add(player);
-        player.setScoreboard(this.scoreboard);
+        this.show(player);
     }
 
     /**
@@ -189,23 +195,10 @@ public class Scoreboarder {
      * hiding this scoreboard.
      *
      * @param player - PLayer to hide scoreboard from.
+     * @deprecated {@link #hide(Player)}
      */
     public void removePlayer(@Nonnull Player player) {
-        if (!this.players.contains(player)) {
-            return;
-        }
-        this.players.remove(player);
-        player.setScoreboard(Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard());
-    }
-
-    /**
-     * Returns a set of players who can see this scoreboard.
-     *
-     * @return a set of players who can see this scoreboard.
-     */
-    @Nonnull
-    public Set<Player> getPlayers() {
-        return players;
+        this.hide(player);
     }
 
     /**
@@ -236,7 +229,33 @@ public class Scoreboarder {
         return lines;
     }
 
-    private String colorCharAt(int i) {
-        return ChatColor.COLOR_CHAR + "" + ChatColor.ALL_CODES.charAt(i);
+    @Override
+    public void show(@Nonnull Player player) {
+        if (this.showingTo.contains(player)) {
+            return;
+        }
+
+        this.showingTo.add(player);
+        player.setScoreboard(this.scoreboard);
+    }
+
+    @Override
+    public void hide(@Nonnull Player player) {
+        if (!this.showingTo.contains(player)) {
+            return;
+        }
+
+        this.showingTo.remove(player);
+        player.setScoreboard(Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard());
+    }
+
+    @Nonnull
+    @Override
+    public Set<Player> getShowingTo() {
+        return showingTo;
+    }
+
+    private String charAt(int i) {
+        return "§x§" + CHARS[i];
     }
 }

@@ -140,6 +140,8 @@ public final class Entities<T extends Entity> {
     public static final Entities<TextDisplay> TEXT_DISPLAY = new Entities<>(TextDisplay.class);
     public static final Entities<Breeze> BREEZE = new Entities<>(Breeze.class);
     public static final Entities<Creaking> CREAKING = new Entities<>(Creaking.class);
+    public static final Entities<FallingBlock> FALLING_BLOCK = new Entities<>(FallingBlock.class);
+    public static final Entities<ThrownPotion> POTION = new Entities<>(ThrownPotion.class);
 
     // Custom Entities
     public static final Entities<ArmorStand> ARMOR_STAND_MARKER = new Entities<>(ArmorStand.class, self -> self.setMarker(true));

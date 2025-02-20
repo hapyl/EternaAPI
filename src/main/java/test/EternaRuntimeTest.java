@@ -772,15 +772,65 @@ public final class EternaRuntimeTest {
                         "",
                         "hapyl.github.io"
                 );
-                scoreboard.addPlayer(player);
+                scoreboard.setHideNumbers(true);
+                scoreboard.show(player);
 
                 later(
                         () -> {
-                            info(player, "Hid numbers");
+                            info(player, "Shrink scoreboard!");
 
-                            scoreboard.setHideNumbers(true);
+                            scoreboard.setLines("&cTest 1", "Test 2", "Test 3");
 
-                            assertTestPassed();
+                            later(
+                                    () -> {
+                                        info(player, "Grew scoreboard!");
+
+                                        scoreboard.setLines("1", "2", "3", "4", "5", "6");
+
+                                        later(
+                                                () -> {
+                                                    info(player, "Overflowing lines");
+
+                                                    scoreboard.setLines("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18");
+
+                                                    later(
+                                                            () -> {
+                                                                info(player, "Rapidly updating scoreboard!");
+
+                                                                new BukkitRunnable() {
+                                                                    private int tick = 0;
+                                                                    private String[] chars = { "a", "b", "c", "d", "e", "f", "g", "h", "0", "1", "2", "3", "4", "5" };
+
+                                                                    @Override
+                                                                    public void run() {
+                                                                        if (tick++ >= 60) {
+                                                                            assertTestPassed();
+                                                                            scoreboard.hide(player);
+                                                                            cancel();
+                                                                            return;
+                                                                        }
+
+                                                                        scoreboard.setLines(randomString(), randomString(), randomString(), randomString(), randomString());
+                                                                    }
+
+                                                                    private String randomString() {
+                                                                        final StringBuilder builder = new StringBuilder();
+
+                                                                        for (int i = 0; i < 5; i++) {
+                                                                            if (i != 0) {
+                                                                                builder.append(" ");
+                                                                            }
+                                                                            builder.append(CollectionUtils.randomElementOrFirst(chars));
+                                                                        }
+
+                                                                        return builder.toString();
+                                                                    }
+                                                                }.runTaskTimer(EternaPlugin.getPlugin(), 0, 1);
+                                                            }, 60);
+                                                }, 60
+                                        );
+                                    }, 60
+                            );
                         }, 60
                 );
 
