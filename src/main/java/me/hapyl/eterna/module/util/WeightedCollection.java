@@ -275,8 +275,8 @@ public class WeightedCollection<T> implements Iterable<T> {
     }
 
     public final class WeightedElement {
-        private final T t;
-        private final int weight;
+        public final T t;
+        public final int weight;
 
         private WeightedElement(@Nonnull T t, int weight) {
             this.t = t;
