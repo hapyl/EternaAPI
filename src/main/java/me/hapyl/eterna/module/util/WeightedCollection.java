@@ -240,7 +240,7 @@ public class WeightedCollection<T> implements Iterable<T> {
     public int getWeight(@Nonnull T t) {
         final WeightedElement element = getElement(t);
 
-        return element != null ? element.getWeight() : -1;
+        return element != null ? element.weight() : -1;
     }
 
     /**
@@ -284,11 +284,21 @@ public class WeightedCollection<T> implements Iterable<T> {
         }
 
         /**
+         * Gets the object of this element.
+         *
+         * @return the object of this element.
+         */
+        @Nonnull
+        public T t() {
+            return t;
+        }
+
+        /**
          * Gets the weight of this element.
          *
          * @return the weight of this element.
          */
-        public int getWeight() {
+        public int weight() {
             return weight;
         }
 
