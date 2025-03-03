@@ -1809,6 +1809,24 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
 
     /**
+     * Sets the model of this item to be the given {@link Material}.
+     *
+     * @param material - The material.
+     */
+    public ItemBuilder setItemModel(@Nonnull Material material) {
+        return setItemModel(material.getKey());
+    }
+
+    /**
+     * Sets the model of this item to be the given {@link NamespacedKey}.
+     *
+     * @param key - The key.
+     */
+    public ItemBuilder setItemModel(@Nonnull NamespacedKey key) {
+        return modifyMeta(meta -> meta.setItemModel(key));
+    }
+
+    /**
      * Modifies the {@link ItemMeta} and applies it to the item.
      *
      * @param consumer - Consumer.
@@ -1940,8 +1958,6 @@ public class ItemBuilder implements Cloneable, Keyed {
             case BODY -> EquipmentSlotGroup.BODY;
         };
     }
-
-    // *=* Static members *=* //
 
     /**
      * Creates builder of provided ItemStack.
