@@ -47,7 +47,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
@@ -661,12 +660,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public void push(Vector vector) {
-        throw new NotImplementedException();
-        //human.f(vector.getX(), vector.getY(), vector.getZ());
-    }
-
-    @Override
     public void setHeadRotation(float yaw, float pitch) {
         location.setYaw(yaw);
         location.setPitch(pitch);
@@ -736,10 +729,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
                 final GameProfile profile = Reflect.getGameProfile(player);
 
                 final Property textures = profile.getProperties()
-                        .get("textures")
-                        .stream()
-                        .findFirst()
-                        .orElse(new Property("null", "null"));
+                                                 .get("textures")
+                                                 .stream()
+                                                 .findFirst()
+                                                 .orElse(new Property("null", "null"));
 
                 final String signature = textures.signature();
 
@@ -876,9 +869,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void hideTabListName() {
-        Bukkit.getScheduler().runTaskLater(EternaPlugin.getPlugin(), () -> {
-            showingTo.forEach(human::hideTabName);
-        }, 20L);
+        Bukkit.getScheduler().runTaskLater(
+                EternaPlugin.getPlugin(), () -> {
+                    showingTo.forEach(human::hideTabName);
+                }, 20L
+        );
     }
 
     @Override
@@ -1015,12 +1010,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
+    @Nonnull
     public Player[] getPlayers() {
         return showingTo.toArray(new Player[0]);
     }
 
     @Override
-    public boolean equals(Object object) {
+    public final boolean equals(Object object) {
         if (this == object) {
             return true;
         }
@@ -1034,7 +1030,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hashCode(uuid);
     }
 
