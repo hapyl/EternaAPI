@@ -150,6 +150,16 @@ public class Dialog {
     }
 
     /**
+     * Add all the given {@link DialogEntry} to the {@link Dialog}.
+     *
+     * @param entries - Entries to add.
+     */
+    public Dialog addEntry(@Nonnull List<DialogEntry> entries) {
+        this.entries.addAll(entries);
+        return this;
+    }
+
+    /**
      * Adds a {@link DialogNpcEntry} to the {@link Dialog} with the given {@link String}s.
      *
      * @param npc     - {@link HumanNPC} who will be sending the messages.

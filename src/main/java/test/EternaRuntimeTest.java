@@ -40,6 +40,7 @@ import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
+import me.hapyl.eterna.module.player.dialog.DialogOptionEntry;
 import me.hapyl.eterna.module.player.input.InputKey;
 import me.hapyl.eterna.module.player.input.PlayerInput;
 import me.hapyl.eterna.module.player.quest.*;
@@ -826,7 +827,8 @@ public final class EternaRuntimeTest {
                                                                         return builder.toString();
                                                                     }
                                                                 }.runTaskTimer(EternaPlugin.getPlugin(), 0, 1);
-                                                            }, 60);
+                                                            }, 60
+                                                    );
                                                 }, 60
                                         );
                                     }, 60
@@ -2001,6 +2003,7 @@ public final class EternaRuntimeTest {
                                     player.sendMessage("You're currently ticking in a dialog!");
                                 }
                             }.addEntry(DialogEntry.of(npc1, "Yes talk to me!"))
+                             .addEntry(new DialogOptionEntry().setOption(1, DialogOptionEntry.builder("hello").advanceDialog(true)))
                     ));
 
                     final Quest quest3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest3"));

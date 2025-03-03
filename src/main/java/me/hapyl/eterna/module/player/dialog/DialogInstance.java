@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -91,6 +92,22 @@ public class DialogInstance extends BukkitRunnable {
     public void hijackEntries(@Nonnull DialogEntry[] entries) {
         for (int i = entries.length - 1; i >= 0; i--) {
             hijackEntry(entries[i]);
+        }
+    }
+
+    /**
+     * Hijacks the given {@link DialogEntry}s into this {@link DialogInstance}.
+     * <br>
+     * Hijacking the {@link DialogEntry} meaning putting it as the first element in the {@link DialogInstance} entries,
+     * making it the next {@link DialogEntry}.
+     * <br>
+     * The hijacking is done in reverse order, making {@link DialogEntry} maintain their order.
+     *
+     * @param entries - Entries to hijack.
+     */
+    public void hijackEntries(@Nonnull List<DialogEntry> entries) {
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            hijackEntry(entries.get(i));
         }
     }
 

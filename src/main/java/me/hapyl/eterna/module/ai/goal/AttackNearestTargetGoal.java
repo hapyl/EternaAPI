@@ -33,7 +33,7 @@ public class AttackNearestTargetGoal<T extends LivingEntity> extends Goal {
                 new TargetingConditions.Selector() {
                     @Override
                     public boolean test(net.minecraft.world.entity.LivingEntity livingEntity, ServerLevel serverLevel) {
-                        return predicate.test((T)livingEntity.getBukkitEntity());
+                        return predicate != null && predicate.test((T)livingEntity.getBukkitEntity());
                     }
                 }
         ));

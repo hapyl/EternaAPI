@@ -132,4 +132,22 @@ public interface Vectors {
         return origin.getDirection().normalize().setY(0).rotateAroundY(-Math.PI / 2).multiply(magnitude);
     }
 
+    /**
+     * Calculates the normalized direction vector from one location to another.
+     *
+     * <br>
+     * The method returns a vector pointing from the {@code from} location to the {@code to} location.
+     * If the locations are the same (i.e., the length of the vector is zero), the method returns {@link #ZERO}.
+     *
+     * @param from - The starting location.
+     * @param to   - The target location.
+     * @return The normalized direction vector from {@code from} to {@code to}, or {@link #ZERO} if the locations are the same.
+     */
+    @Nonnull
+    static Vector directionTo(@Nonnull Location from, @Nonnull Location to) {
+        final Vector vector = from.toVector().subtract(to.toVector());
+
+        return vector.lengthSquared() > 0 ? vector.normalize() : ZERO;
+    }
+
 }

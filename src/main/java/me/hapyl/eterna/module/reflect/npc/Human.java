@@ -10,7 +10,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
@@ -313,13 +312,6 @@ public interface Human {
     boolean stopMoving();
 
     /**
-     * Pushes NPC by the given vector.
-     *
-     * @param vector - Vector.
-     */
-    void push(Vector vector) throws NotImplementedException;
-
-    /**
      * Changes NPC's head rotation.
      * This method modifies NPCs actual location.
      *
@@ -570,6 +562,7 @@ public interface Human {
      *
      * @return players that can see this NPC.
      */
+    @Nonnull
     Player[] getPlayers();
 
     /**
@@ -577,7 +570,8 @@ public interface Human {
      *
      * @param location - Location to create at.
      */
-    static Human create(Location location) {
+    @Nonnull
+    static Human create(@Nonnull Location location) {
         return HumanNPC.create(location);
     }
 
@@ -585,9 +579,10 @@ public interface Human {
      * Static access to creating NPC.
      *
      * @param location - Location to create at.
-     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
+     * @param name     - NPC name.
      */
-    static Human create(Location location, String name) {
+    @Nonnull
+    static Human create(@Nonnull Location location, @Nonnull String name) {
         return HumanNPC.create(location, name);
     }
 
@@ -595,10 +590,11 @@ public interface Human {
      * Static access to creating NPC.
      *
      * @param location - Location to create at.
-     * @param name     - NPC name. Leave blank for empty name, or null for CLICK name.
+     * @param name     - NPC name.
      * @param skin     - Skin owner username.
      */
-    static Human create(Location location, String name, String skin) {
+    @Nonnull
+    static Human create(@Nonnull Location location, @Nonnull String name, @Nonnull String skin) {
         return HumanNPC.create(location, name, skin);
     }
 }

@@ -47,7 +47,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
@@ -67,6 +66,9 @@ import java.util.function.Function;
 public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public static final double CHAIR_LOCATION_Y_OFFSET = 0.39d;
+    public static final double CROUCH_LOCATION_Y_OFFSET = 0.3d;
+    public static final double LAY_LOCATION_Y_OFFSET = 1.25d;
+
     public static final double HOLOGRAM_Y_OFFSET = 1.75d;
 
     private static final String nameToUuidRequest = "https://api.mojang.com/users/profiles/minecraft/%s";
@@ -508,6 +510,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             updateDataWatcher();
         }
 
+        syncText();
         return this;
     }
 
@@ -661,12 +664,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public void push(Vector vector) {
-        throw new NotImplementedException();
-        //human.f(vector.getX(), vector.getY(), vector.getZ());
-    }
-
-    @Override
     public void setHeadRotation(float yaw, float pitch) {
         location.setYaw(yaw);
         location.setPitch(pitch);
@@ -736,10 +733,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
                 final GameProfile profile = Reflect.getGameProfile(player);
 
                 final Property textures = profile.getProperties()
-                        .get("textures")
-                        .stream()
-                        .findFirst()
-                        .orElse(new Property("null", "null"));
+                                                 .get("textures")
+                                                 .stream()
+                                                 .findFirst()
+                                                 .orElse(new Property("null", "null"));
 
                 final String signature = textures.signature();
 
@@ -876,9 +873,11 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     @Override
     public void hideTabListName() {
-        Bukkit.getScheduler().runTaskLater(EternaPlugin.getPlugin(), () -> {
-            showingTo.forEach(human::hideTabName);
-        }, 20L);
+        Bukkit.getScheduler().runTaskLater(
+                EternaPlugin.getPlugin(), () -> {
+                    showingTo.forEach(human::hideTabName);
+                }, 20L
+        );
     }
 
     @Override
@@ -988,7 +987,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     /**
-     * Syncs the text above the NPC's head.
+     * Syncs the text above the NPCs head.
      */
     public void syncText() {
         if (this.hologram == null) {
@@ -997,16 +996,30 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
         final Location location = getLocation();
 
-        location.add(0.0d, HOLOGRAM_Y_OFFSET, 0.0d);
+        location.add(0.0d, hologramYOffset(), 0.0d);
 
-        // ;; DoNotInline
         if (isDynamicNameTag()) {
             if (isSitting()) {
                 location.subtract(0.0d, CHAIR_LOCATION_Y_OFFSET, 0.0d);
             }
+            else {
+                switch (getPose()) {
+                    case CROUCHING -> location.subtract(0, CROUCH_LOCATION_Y_OFFSET, 0);
+                    case SWIMMING, SLEEPING, FALL_FLYING -> location.subtract(0, LAY_LOCATION_Y_OFFSET, 0);
+                }
+            }
         }
 
         this.hologram.move(location);
+    }
+
+    /**
+     * Get the {@code Y} offset of the hologram above NPCs head.
+     *
+     * @return the {@code Y} offset of the hologram above NPCs head.
+     */
+    public double hologramYOffset() {
+        return HOLOGRAM_Y_OFFSET;
     }
 
     @Override
@@ -1015,12 +1028,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
+    @Nonnull
     public Player[] getPlayers() {
         return showingTo.toArray(new Player[0]);
     }
 
     @Override
-    public boolean equals(Object object) {
+    public final boolean equals(Object object) {
         if (this == object) {
             return true;
         }
@@ -1034,7 +1048,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hashCode(uuid);
     }
 

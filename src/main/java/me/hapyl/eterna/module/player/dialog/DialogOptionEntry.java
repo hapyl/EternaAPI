@@ -135,6 +135,16 @@ public class DialogOptionEntry implements DialogEntry {
     }
 
     /**
+     * Creates a new {@link Builder} with the given prompt.
+     *
+     * @param prompt - The option prompt.
+     */
+    @Nonnull
+    public static Builder builder(@Nonnull String prompt) {
+        return new Builder().prompt(prompt);
+    }
+
+    /**
      * Creates a {@link Builder} with the given prompt that will cancel the {@link Dialog}.
      *
      * @param prompt - Option prompt.
