@@ -263,6 +263,29 @@ public class WeightedCollection<T> implements Iterable<T> {
         return builder.append("]}").toString();
     }
 
+    /**
+     * Creates a dummy {@link WeightedElement} with a given {@code dropChance}.
+     *
+     * @param t          - The element object.
+     * @param dropChance - The drop chance.
+     * @return a dummy {@link WeightedElement} with a given {@code dropChance}.
+     */
+    @Nonnull
+    protected WeightedElement element(@Nonnull T t, double dropChance) {
+        return new WeightedElement(t, 0) {
+            @Override
+            public double getDropChance() {
+                return dropChance;
+            }
+        };
+    }
+
+    /**
+     * Gets a {@link WeightedElement} by its object, or {@code null} if it doesn't exist.
+     *
+     * @param t - The object.
+     * @return a {@link WeightedElement} by its object, or {@code null} if it doesn't exist.
+     */
     @Nullable
     protected WeightedElement getElement(T t) {
         for (WeightedElement element : elements) {
@@ -274,7 +297,7 @@ public class WeightedCollection<T> implements Iterable<T> {
         return null;
     }
 
-    public final class WeightedElement {
+    public class WeightedElement {
         public final T t;
         public final int weight;
 
