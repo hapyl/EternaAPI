@@ -17,10 +17,10 @@ import java.util.function.Function;
  * Useful helper to work with locations.
  */
 public final class LocationHelper {
-
+    
     private LocationHelper() {
     }
-
+    
     /**
      * Gets a {@link Location} behind the given {@link Location} with the given offset.
      *
@@ -32,7 +32,7 @@ public final class LocationHelper {
     public static Location getBehind(@Nonnull Location origin, double offset) {
         return offsetLocation(origin, -validateOffset(offset));
     }
-
+    
     /**
      * Gets a {@link Location} in front of the given {@link Location} with the given offset.
      *
@@ -44,7 +44,7 @@ public final class LocationHelper {
     public static Location getInFront(@Nonnull Location origin, double offset) {
         return offsetLocation(origin, validateOffset(offset));
     }
-
+    
     /**
      * Gets a {@link Vector} that points to the left of the given {@link Location}.
      *
@@ -53,9 +53,9 @@ public final class LocationHelper {
      */
     @Nonnull
     public static Vector getVectorToTheLeft(@Nonnull Location origin) {
-        return normalizeVector(origin).setY(0.0d).rotateAroundY(Math.PI / 2);
+        return normalizedDirection(origin).setY(0.0d).rotateAroundY(Math.PI / 2);
     }
-
+    
     /**
      * Gets a {@link Vector} that points to the right of the given {@link Location}.
      *
@@ -63,9 +63,9 @@ public final class LocationHelper {
      * @return a vector that points to the left of the origin.
      */
     public static Vector getVectorToTheRight(@Nonnull Location origin) {
-        return normalizeVector(origin).setY(0.0d).rotateAroundY(-Math.PI / 2);
+        return normalizedDirection(origin).setY(0.0d).rotateAroundY(-Math.PI / 2);
     }
-
+    
     /**
      * Gets a {@link Location} to the left of the given {@link Location}.
      *
@@ -77,7 +77,7 @@ public final class LocationHelper {
     public static Location getToTheLeft(@Nonnull Location origin, double offset) {
         return origin.clone().add(getVectorToTheLeft(origin).multiply(validateOffset(offset)));
     }
-
+    
     /**
      * Gets a {@link Location} to the right of the given {@link Location}.
      *
@@ -89,7 +89,7 @@ public final class LocationHelper {
     public static Location getToTheRight(@Nonnull Location origin, double offset) {
         return origin.clone().add(getVectorToTheRight(origin).multiply(validateOffset(offset)));
     }
-
+    
     /**
      * Returns {@code true} if both locations are within the same block; false otherwise.
      *
@@ -99,22 +99,22 @@ public final class LocationHelper {
      */
     public static boolean blockLocationEquals(@Nonnull Location location1, @Nonnull Location location2) {
         final World world = location1.getWorld();
-
+        
         if (world == null || world != location2.getWorld()) {
             return false;
         }
-
+        
         final int blockX = location1.getBlockX();
         final int blockY = location1.getBlockY();
         final int blockZ = location1.getBlockZ();
-
+        
         final int blockX2 = location2.getBlockX();
         final int blockY2 = location2.getBlockY();
         final int blockZ2 = location2.getBlockZ();
-
+        
         return blockX == blockX2 && blockY == blockY2 && blockZ == blockZ2;
     }
-
+    
     /**
      * Linearly interpolates between two {@link Location} based on the give interpolation factor.
      *
@@ -128,10 +128,10 @@ public final class LocationHelper {
         final double x = lerp(from.getX(), to.getX(), mu);
         final double y = lerp(from.getY(), to.getY(), mu);
         final double z = lerp(from.getZ(), to.getZ(), mu);
-
+        
         return new Location(from.getWorld(), x, y, z);
     }
-
+    
     /**
      * Performs cosine interpolation between two {@link Location} based on the given interpolation factor.
      * The interpolation smooths the transition between the two locations, creating an easing effect.
@@ -144,10 +144,10 @@ public final class LocationHelper {
     @Nonnull
     public static Location clerp(@Nonnull Location from, @Nonnull Location to, double mu) {
         mu = (1 - Math.cos(mu * 2)) / 2;
-
+        
         return lerp(from, to, mu);
     }
-
+    
     /**
      * Linearly interpolates between two values based on the given interpolation factor.
      *
@@ -159,7 +159,7 @@ public final class LocationHelper {
     public static double lerp(double min, double max, double mu) {
         return min + mu * (max - min);
     }
-
+    
     /**
      * Temporarily adds the given {@code x}, {@code y}, {@code z} values to the provided {@link Location},
      * performs the action specified by the given {@link Consumer}, and restores the location to its original
@@ -184,7 +184,7 @@ public final class LocationHelper {
         consumer.accept(location);
         location.subtract(x, y, z);
     }
-
+    
     /**
      * Temporarily adds the given {@code x}, {@code y}, {@code z} values to the provided {@link Location},
      * performs the action specified by the given {@link Function}, restores the location to its original
@@ -209,10 +209,10 @@ public final class LocationHelper {
         location.add(x, y, z);
         final T t = fn.apply(location);
         location.subtract(x, y, z);
-
+        
         return t;
     }
-
+    
     /**
      * Temporarily adds the given {@code x}, {@code y}, {@code z} values to the provided {@link Location},
      * performs the action specified by the given {@link Consumer}, and restores the location to its original
@@ -236,7 +236,7 @@ public final class LocationHelper {
         action.run();
         location.subtract(x, y, z);
     }
-
+    
     /**
      * Creates a copy of a given {@link Location} and adds the given coordinates to it.
      *
@@ -257,7 +257,7 @@ public final class LocationHelper {
                 location.getPitch()
         ).add(x, y, z);
     }
-
+    
     /**
      * Calculates the squared distance between two {@link Location} objects along the specified axes.
      * <p>This method avoids the computational cost of square root calculation, making it suitable
@@ -271,24 +271,24 @@ public final class LocationHelper {
      */
     public static double distanceSquared(@Nonnull Location from, @Nonnull Location to, @Nonnull @Range(from = 1, to = 3) Axis... axis) {
         Validate.isTrue(axis.length > 0, "There must be at least one axis!");
-
+        
         double distance = 0.0d;
-
+        
         if (CollectionUtils.contains(axis, Axis.X)) {
             distance += square(from.getX() - to.getX());
         }
-
+        
         if (CollectionUtils.contains(axis, Axis.Y)) {
             distance += square(from.getY() - to.getY());
         }
-
+        
         if (CollectionUtils.contains(axis, Axis.Z)) {
             distance += square(from.getZ() - to.getZ());
         }
-
+        
         return distance;
     }
-
+    
     /**
      * <b>Attempts</b> to anchor the location, so it's directly on a block.
      *
@@ -299,7 +299,7 @@ public final class LocationHelper {
     public static Location anchor(@Nonnull Location location) {
         return BukkitUtils.anchorLocation(location);
     }
-
+    
     /**
      * Finds a random {@link Location} around the given location.
      * <br>
@@ -313,7 +313,7 @@ public final class LocationHelper {
     public static Location randomAround(@Nonnull Location location, double max) {
         return BukkitUtils.findRandomLocationAround(location, max);
     }
-
+    
     /**
      * Converts the given {@link Location} into readable string.
      *
@@ -324,22 +324,57 @@ public final class LocationHelper {
     public static String toString(@Nonnull Location location) {
         return BukkitUtils.locationToString(location);
     }
-
-    private static double square(double a) {
+    
+    /**
+     * Converts the given {@link Location} into an array of coordinates, following the pattern:
+     * <pre>{@code [x, y, z]}</pre>
+     *
+     * @param location - The location to convert.
+     * @return a new array with the location's x, y, and z coordinates.
+     */
+    public static double[] toCoordinates(@Nonnull Location location) {
+        return new double[] { location.getX(), location.getY(), location.getZ() };
+    }
+    
+    /**
+     * Converts the given {@link Location} into an array of coordinates, following the pattern:
+     * <pre>{@code [x, y, z, yaw, pitch]}</pre>
+     *
+     * @param location - The location to convert.
+     * @return a new array with the location's x, y, z, pitch, and yaw values.
+     */
+    public static double[] toCoordinatesWithRotation(@Nonnull Location location) {
+        return new double[] { location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() };
+    }
+    
+    /**
+     * Squares the given number.
+     *
+     * @param a - The number to square.
+     * @return the squared number.
+     */
+    public static double square(double a) {
         return a * a;
     }
-
-    private static Vector normalizeVector(Location location) {
-        return location.getDirection().normalize(); // I'm 69% sure that cloning the vector is not necessary
+    
+    /**
+     * Gets the normalized direction of the given {@link Location}.
+     *
+     * @param location - The location.
+     * @return the normalized direction of the given {@link Location}.
+     */
+    @Nonnull
+    public static Vector normalizedDirection(@Nonnull Location location) {
+        return location.getDirection().normalize();
     }
-
+    
     private static double validateOffset(double offset) {
         return Math.max(offset, 0.0d);
     }
-
+    
     private static Location offsetLocation(Location location, double offset) {
-        final Vector vector = normalizeVector(location).multiply(offset);
+        final Vector vector = normalizedDirection(location).multiply(offset);
         return location.clone().add(vector);
     }
-
+    
 }
