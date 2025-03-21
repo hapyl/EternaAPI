@@ -5,61 +5,69 @@ import javax.annotation.Nullable;
 import java.util.Queue;
 
 /**
- * Represents a SongQueue for SongPlayer.
+ * Represents a queue of songs.
  */
 public interface SongQueue {
-
+    
     /**
-     * Returns the current song.
+     * Gets the current song in the queue.
      *
-     * @return current song
+     * @return the current song in the queue.
      */
     @Nullable
     Song current();
-
+    
     /**
-     * Returns next song to play or null if none.
+     * Gets the next song in the queue without advancing the queue.
      *
-     * @return next song to play or null if none.
+     * @return the next song in the queue without advancing the queue.
      */
     @Nullable
     Song getNext();
-
+    
     /**
-     * Returns true if there is next song to play; false otherwise.
+     * Returns {@code true} if the queue has a next song.
      *
-     * @return true if there is next song to play; false otherwise.
+     * @return {@code true} if the queue has a next song.
      */
     boolean hasNext();
-
+    
     /**
-     * Plays the next song if there is one.
+     * Plays the next song in the queue or does nothing if there is none.
      */
     void playNext();
-
+    
     /**
-     * Skips the currently playing song.
-     */
-    void skip();
-
-    /**
-     * Adds a song to a queue.
+     * Adds a song to the queue.
      *
-     * @param song - Song to add.
+     * @param song - The song to add.
      */
-    void addSong(Song song);
-
+    void addSong(@Nonnull Song song);
+    
     /**
-     * Removes the last song from queue.
+     * Removes the next song from the queue.
      */
     void removeSong();
-
+    
     /**
-     * Gets the queue of songs.
+     * Gets the actual queue object.
      *
-     * @return queue of songs.
+     * @return the actual queue object.
      */
     @Nonnull
     Queue<Song> getQueue();
-
+    
+    /**
+     * Clears the queue.
+     */
+    void clear();
+    
+    /**
+     * Gets the size of the queue.
+     *
+     * @return the size of the queue.
+     */
+    default int size() {
+        return getQueue().size();
+    }
 }

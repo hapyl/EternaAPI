@@ -4,63 +4,75 @@ import me.hapyl.eterna.module.annotate.ReturnValueOfThisMethodIsAnExceptionAndIt
 import me.hapyl.eterna.module.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Represents API logger.
+ * Represents the API logger, supporting the Java logger and adding custom methods for debug and tests.
+ * <br>
+ * Should not be used outside the API.
  */
+@ApiStatus.Internal
 public final class EternaLogger {
-
+    
     public static final String PREFIX = "&b&lEternaAPI&b> &a";
     public static final String DEBUG_PREFIX = PREFIX + "&c&lDEBUG&4> &7&o";
     public static final String TEST_PREFIX = PREFIX + "&2&lTEST&2> &a";
-
-    public static final boolean BREAKPOINT = true;
-
-    public static void broadcastMessageOP(String string) {
+    
+    @ApiStatus.Internal
+    public static void broadcastMessageOP(@Nullable Object string) {
         Chat.broadcastOp(PREFIX + string);
     }
-
-    public static void broadcastMessageConsole(String string) {
+    
+    @ApiStatus.Internal
+    public static void broadcastMessageConsole(@Nullable Object string) {
         Chat.sendMessage(Bukkit.getConsoleSender(), PREFIX + string);
     }
-
-    public static void sendMessage(CommandSender player, String message) {
+    
+    @ApiStatus.Internal
+    public static void sendMessage(@Nonnull CommandSender player, @Nullable Object message) {
         Chat.sendMessage(player, PREFIX + message);
     }
-
-    public static void info(String message) {
-        EternaPlugin.getPlugin().getLogger().info(message);
+    
+    @ApiStatus.Internal
+    public static void info(@Nullable Object message) {
+        EternaPlugin.getPlugin().getLogger().info(String.valueOf(message));
     }
-
-    public static void warn(String message) {
-        EternaPlugin.getPlugin().getLogger().warning(message);
+    
+    @ApiStatus.Internal
+    public static void warn(@Nullable Object message) {
+        EternaPlugin.getPlugin().getLogger().warning(String.valueOf(message));
     }
-
-    public static void severe(String message) {
-        EternaPlugin.getPlugin().getLogger().severe(message);
+    
+    @ApiStatus.Internal
+    public static void severe(@Nullable Object message) {
+        EternaPlugin.getPlugin().getLogger().severe(String.valueOf(message));
     }
-
+    
     @Nonnull
+    @ApiStatus.Internal
     @ReturnValueOfThisMethodIsAnExceptionAndItMustBeThrown
-    public static RuntimeException exception(Exception e) {
+    public static RuntimeException exception(@Nonnull Exception e) {
         if (EternaPlugin.getPlugin().getConfig().getBoolean("dev.print-stack-traces")) {
             severe("An exception has occurred!");
             e.printStackTrace();
         }
-
+        
         return new RuntimeException(e);
     }
-
-    public static void debug(Object message) {
+    
+    @ApiStatus.Internal
+    public static void debug(@Nullable Object message) {
         final String formatted = String.valueOf(message);
-
+        
         info(DEBUG_PREFIX + formatted);
         Chat.broadcastOp(DEBUG_PREFIX + formatted);
     }
-
-    public static void test(String s) {
+    
+    @ApiStatus.Internal
+    public static void test(@Nullable String s) {
         info(TEST_PREFIX + s);
         Chat.broadcastOp(TEST_PREFIX + s);
     }

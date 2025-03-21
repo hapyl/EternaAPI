@@ -1,14 +1,19 @@
 package me.hapyl.eterna.module.player.song;
 
+import me.hapyl.eterna.module.annotate.UtilityClass;
 import org.bukkit.Instrument;
 import org.bukkit.Note;
+
+import javax.annotation.Nonnull;
 
 /**
  * Helper for song parsing.
  */
+@UtilityClass
 public final class SongHelper {
 
     private SongHelper() {
+        UtilityClass.Validator.throwIt();
     }
 
     /**
@@ -17,6 +22,7 @@ public final class SongHelper {
      * @param bit - The byte.
      * @return The instrument.
      */
+    @Nonnull
     public static Instrument getInstrument(byte bit) {
         return switch (bit) {
             case 1 -> Instrument.BASS_GUITAR;
@@ -28,6 +34,12 @@ public final class SongHelper {
             case 7 -> Instrument.BELL;
             case 8 -> Instrument.CHIME;
             case 9 -> Instrument.XYLOPHONE;
+            case 10 -> Instrument.IRON_XYLOPHONE;
+            case 11 -> Instrument.COW_BELL;
+            case 12 -> Instrument.DIDGERIDOO;
+            case 13 -> Instrument.BIT;
+            case 14 -> Instrument.BANJO;
+            case 15 -> Instrument.PLING;
             default -> Instrument.PIANO;
         };
     }
@@ -38,6 +50,7 @@ public final class SongHelper {
      * @param note - The byte.
      * @return The note.
      */
+    @Nonnull
     public static Note getNote(byte note) {
         return new Note(Math.min(Math.max(note - 33, 0), 24));
     }

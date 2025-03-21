@@ -204,7 +204,11 @@ public final class Chat {
         final StringBuilder builder = new StringBuilder();
 
         for (int i = startAt; i < array.length; i++) {
-            builder.append(array[i]).append(" ");
+            if (i != startAt) {
+                builder.append(" ");
+            }
+            
+            builder.append(array[i]);
         }
 
         return builder.toString().trim();
