@@ -341,7 +341,7 @@ public final class LocationHelper {
      * <pre>{@code [x, y, z, yaw, pitch]}</pre>
      *
      * @param location - The location to convert.
-     * @return a new array with the location's x, y, z, pitch, and yaw values.
+     * @return a new array with the location's x, y, z, yaw, and pitch values.
      */
     public static double[] toCoordinatesWithRotation(@Nonnull Location location) {
         return new double[] { location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() };
