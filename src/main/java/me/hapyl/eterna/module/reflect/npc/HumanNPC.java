@@ -21,6 +21,7 @@ import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
 import me.hapyl.eterna.module.hologram.HologramFunction;
 import me.hapyl.eterna.module.hologram.PlayerHologram;
 import me.hapyl.eterna.module.hologram.StringArray;
+import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
@@ -697,6 +698,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return this;
     }
 
+    public void setSkin(@Nonnull PlayerSkin skin) {
+        setSkin(skin.getTexture(), skin.getSignature());
+    }
+    
     public boolean hasSkin() {
         final Collection<Property> skin = getSkin();
         return skin != null && !skin.isEmpty();
