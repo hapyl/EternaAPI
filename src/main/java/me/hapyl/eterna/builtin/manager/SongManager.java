@@ -1,109 +1,115 @@
 package me.hapyl.eterna.builtin.manager;
 
+import com.google.common.collect.Lists;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.player.song.Parser;
 import me.hapyl.eterna.module.player.song.Song;
 import me.hapyl.eterna.module.util.CollectionUtils;
-import me.hapyl.eterna.module.util.NonnullConsumer;
-import org.bukkit.scheduler.BukkitRunnable;
+import me.hapyl.eterna.module.util.Runnables;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public final class SongManager extends EternaManager<String, Song> {
-
-    private final int itemsPerPage = 30;
+    
+    private static final int ITEMS_PER_PAGE = 9; // 9 since chat fits 10 lines - 1 for info
+    private static final String WILDCARD_RANDOM_SONG = "?";
+    
     private boolean lock;
-
+    
     SongManager(@Nonnull EternaPlugin eterna) {
         super(eterna);
-
-        reload(NonnullConsumer.empty());
+        
+        reload();
     }
-
+    
     /**
-     * Returns true if registry is locked; false otherwise.
-     * If the registry is locked, songs cannot be retrieved or added
-     * outside the registry.
+     * Returns {@code true} if the registry is currently locked due to song parsing, {@code false} otherwise.
      *
-     * @return true if the registry is locked; false otherwise.
+     * @return {@code true} if the registry is currently locked due to song parsing, {@code false} otherwise.
      */
     public boolean isLock() {
         return lock;
     }
-
+    
     /**
-     * Clears all the cached songs and reloads them from the disk.
-     * This is done asynchronously.
+     * Reloads the songs from disk.
+     * <br>
+     * This will lock the registry until all songs are loaded and parsed.
      *
-     * @param andThen - Consumer of how many songs was loaded to execute <b>after</b> the load.
+     * @return A completable future with a {@code Integer} representing the number of reloaded songs.
      */
-    public void reload(@Nonnull NonnullConsumer<Integer> andThen) {
+    @Nonnull
+    public CompletableFuture<Integer> reload() {
         lock = true;
         managing.clear();
-
-        // Make sure to load async
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                final File directory = new File(eterna.getDataFolder() + "/songs");
-
-                if (!directory.exists()) {
-                    directory.mkdirs();
-                }
-
-                final File[] songs = directory.listFiles();
-
-                if (songs == null || songs.length == 0) {
-                    lock = false;
-                    eterna.getLogger().info("No songs founds, skipping.");
-                    return;
-                }
-
-                eterna.getLogger().info("Found %s songs, parsing...".formatted(songs.length));
-
-                for (File file : songs) {
-                    if (!file.getName().endsWith(".nbs")) {
-                        eterna.getLogger().warning("%s is in '/songs' folder but isn't a 'nbs' file, skipping.".formatted(file.getName()));
-                        continue;
-                    }
-
-                    // Parse
-                    final Song song = Parser.parse(file);
-
-                    if (song != null) {
-                        register(song.getDevName(), song);
-                    }
-
-                }
-
-                eterna.getLogger().info("Successfully parsed %s songs.".formatted(managing.size()));
-                andThen.accept(managing.size());
-                lock = false;
+        
+        final CompletableFuture<Integer> future = new CompletableFuture<>();
+        
+        Runnables.runAsync(() -> {
+            final File directory = new File(eterna.getDataFolder() + "/songs");
+            
+            if (!directory.exists()) {
+                directory.mkdirs();
             }
-        }.runTaskAsynchronously(eterna);
+            
+            final File[] songs = directory.listFiles();
+            
+            if (songs == null || songs.length == 0) {
+                lock = false;
+                EternaLogger.info("No songs founds, skipping.");
+                return;
+            }
+            
+            EternaLogger.info("Found %s songs, parsing...".formatted(songs.length));
+            
+            for (File file : songs) {
+                if (!file.getName().endsWith(".nbs")) {
+                    EternaLogger.warn("%s is in '/songs' folder but isn't a 'nbs' file, skipping.".formatted(file.getName()));
+                    continue;
+                }
+                
+                // Parse
+                final Song song = Parser.parse(file);
+                
+                if (song != null) {
+                    register(song.fileName(), song);
+                }
+                
+            }
+            
+            final int parsedSongCount = managing.size();
+            
+            future.complete(parsedSongCount);
+            lock = false;
+            
+            EternaLogger.info("Successfully parsed %s songs!".formatted(parsedSongCount));
+        });
+        
+        return future;
     }
-
+    
     /**
-     * Returns a song by its name.
-     * This checks both for exact match and for containing name.
-     * Use '?' as input to get a random song.
+     * Gets a {@link Song} by its file name.
+     * <br>
+     * This method first looks for an exact match of the name before trying to find a similar name.
      *
-     * @param name - Song to get.
-     * @return a song by its name or null if none found.
+     * @param name - The file name of the song. Supports {@link #WILDCARD_RANDOM_SONG} as a random song wildcard, returning a random parsed song.
+     * @return a song by its file name or {@code null} if no song was found by that name.
      */
     @Nullable
     public Song byName(@Nonnull String name) {
-        if (name.equalsIgnoreCase("?")) {
+        if (name.equalsIgnoreCase(WILDCARD_RANDOM_SONG)) {
             return randomSong();
         }
-
+        
         name = name.trim();
         Song song = managing.get(name);
-
+        
         // If not exact match, try checking for similar names
         if (song == null) {
             for (String otherName : managing.keySet()) {
@@ -112,71 +118,87 @@ public final class SongManager extends EternaManager<String, Song> {
                 }
             }
         }
-
+        
         return song;
     }
-
+    
     /**
-     * Returns copy of song names.
+     * Gets a {@link List} of all parsed {@link Song}s.
      *
-     * @return copy of song names.
+     * @return a {@link List} of all parsed {@link Song}s.
      */
     @Nonnull
     public List<String> listNames() {
-        return new ArrayList<>(managing.keySet());
+        return Lists.newArrayList(managing.keySet());
     }
-
+    
+    /**
+     * Gets a random {@link Song}, or {@code null} if there are no songs.
+     *
+     * @return a random {@link Song}, or {@code null} if there are no songs.
+     */
     @Nullable
     public Song randomSong() {
-        if (managing.isEmpty()) {
-            return null;
-        }
-
-        return CollectionUtils.randomElement(managing.values(), null);
+        return CollectionUtils.randomElement(managing.values());
     }
-
+    
     /**
-     * Returns a sublist of song names from start to end
+     * Returns a sublist of names from the list of all available names, starting from the specified start index (inclusive)
+     * and ending at the specified end index (exclusive).
      *
-     * @param start - Start. Cannot be negative.
-     * @param end   - End. Cannot be > names.size().
-     * @return a sublist from start to end of song names.
+     * @param start - the index to start the sublist (inclusive)
+     * @param end   - the index to end the sublist (exclusive)
+     * @return a {@link List} of names between the specified start and end indices
      */
+    @Nonnull
     public List<String> listNames(int start, int end) {
         final List<String> names = listNames();
         return names.subList(Math.max(0, start), Math.min(names.size(), end));
     }
-
+    
     /**
-     * Returns a sublist of song names based on a page.
+     * Returns a list of names for the specified page.
+     * <p>
+     * The page is clamped between {@code 0} and the maximum available page.
+     * <p>
+     * The page size is defined by the constant {@link #ITEMS_PER_PAGE}.
+     * This method calculates the appropriate start and end indices based on the requested page.
      *
-     * @param page - Page. Starts at 1.
-     * @return a sublist of song names based on a page.
+     * @param page the page number (starting from 0)
+     * @return a {@link List} of names for the requested page
      */
+    @Nonnull
     public List<String> listNames(int page) {
         page = Math.clamp(page, 0, maxPage());
-        return listNames(page * itemsPerPage - itemsPerPage, page * itemsPerPage);
+        
+        return listNames(page * ITEMS_PER_PAGE - ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
     }
-
+    
     /**
-     * Returns true if there are any songs; false otherwise.
+     * Returns {@code true} if there are any parsed songs, {@code false} otherwise.
      *
-     * @return true if there are any songs; false otherwise.
+     * @return {@code true} if there are any parsed songs, {@code false} otherwise.
      */
     public boolean anySongs() {
         return !managing.isEmpty();
     }
-
+    
     /**
-     * Returns max page.
+     * Returns {@code true} if there are no songs parsed, {@code false} otherwise.
      *
-     * @return max page.
+     * @return {@code true} if there are no songs parsed, {@code false} otherwise.
      */
-    public int maxPage() {
-        return managing.size() / itemsPerPage + 1;
-    }
-
     public boolean isEmpty() {
         return managing.isEmpty();
+    }
+    
+    /**
+     * Returns the maximum page number based on the total number of items
+     * divided by the number of items per page.
+     *
+     * @return the maximum page number.
+     */
+    public int maxPage() {
+        return managing.size() / ITEMS_PER_PAGE + 1;
     }
 }

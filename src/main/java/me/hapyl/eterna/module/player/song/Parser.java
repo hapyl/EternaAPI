@@ -94,8 +94,8 @@ public class Parser {
             this.song = new Song(
                     fileName(),
                     checkEmpty(songName, fileName()),
-                    checkEmpty(songAuthor, "Unknown Author"),
-                    checkEmpty(songOrigin, "Unknown Original Author"),
+                    songAuthor,
+                    songOrigin,
                     length,
                     tempo / 100
             );
@@ -122,14 +122,15 @@ public class Parser {
                     layer += shortLayer;
 
                     final byte noteBlock = this.readByte();
-                    // 33 - 57
-                    final byte key = this.readByte();
+                    final byte key = this.readByte(); // 33 - 57
 
                     final SongNote note = new SongNote(SongHelper.getInstrument(noteBlock), SongHelper.getNote(key));
-                    if (SongHelper.isInvalidOctave(key)) {
+                    
+                    if (SongHelper.isInvalidOctave((byte) (key - 33))) {
                         this.song.markInvalidOctave();
                     }
-                    this.song.putNote(tick, note);
+                    
+                    this.song.setNote(tick, note);
 
                     if (version >= 4) {
                         this.readByte();

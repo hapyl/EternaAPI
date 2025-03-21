@@ -2,50 +2,58 @@ package me.hapyl.eterna.module.player.song;
 
 import org.bukkit.Instrument;
 import org.bukkit.Note;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Represents a note in a song.
  */
-public class SongNote {
-
-    private final Instrument instrument;
-    private final Note note;
-    private boolean okOctave;
-
-    public SongNote(Instrument instrument, Note note) {
-        this.instrument = instrument;
-        this.note = note;
-        this.okOctave = true;
-    }
-
-    public boolean isOkOctave() {
-        return okOctave;
-    }
-
-    public void markInvalidOctave() {
-        this.okOctave = false;
-    }
-
-    public Instrument getInstrument() {
-        return instrument;
-    }
-
-    public Note getNote() {
-        return note;
-    }
-
+public record SongNote(@Nonnull Instrument instrument, @Nonnull Note note) {
+    
+    public static final float DEFAULT_VOLUME = 1.0f;
+    
+    /**
+     * Plays this note to the given players at the default volume.
+     *
+     * @param players - The players to play the note to.
+     */
     public void play(@Nonnull Collection<? extends Player> players) {
-        for (final Player player : players) {
-            this.play(player);
-        }
+        play(players, DEFAULT_VOLUME);
     }
-
+    
+    /**
+     * Plays this note to the given players at the default volume.
+     *
+     * @param players - The players to play the note to.
+     * @param volume  - The volume to play the note at.
+     */
+    public void play(@Nonnull Collection<? extends Player> players, float volume) {
+        players.forEach(player -> play(player, volume));
+    }
+    
+    /**
+     * Plays this note to the given player at the default volume.
+     *
+     * @param player - The player to play the note to.
+     */
     public void play(@Nonnull Player player) {
-        player.playNote(player.getLocation(), this.instrument, this.note);
+        play(player, DEFAULT_VOLUME);
     }
-
+    
+    /**
+     * Plays this note to the given player at the given volume.
+     *
+     * @param player - The player to play the note to.
+     * @param volume - The volume to play the note at.
+     */
+    public void play(@Nonnull Player player, float volume) {
+        final Sound sound = Objects.requireNonNull(instrument.getSound(), "Cannot use heads for notes!");
+        
+        player.playSound(player.getLocation(), sound, volume, note.getPitch());
+    }
+    
 }

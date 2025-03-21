@@ -345,7 +345,7 @@ public interface Human {
      * @param signature - Signature.
      */
     HumanNPC setSkin(String texture, String signature);
-
+    
     /**
      * Ignores NPC's equipment and sends a "ghost" item to provided players.
      * {@link Human#updateEquipment()} will reset NPC's "ghost" equipment.

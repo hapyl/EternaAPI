@@ -1,282 +1,322 @@
 package me.hapyl.eterna.module.player.song;
 
+import com.google.common.collect.Sets;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.util.Holder;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a player that can play {@see Song} to players.
  */
-public class SongPlayer extends Holder<JavaPlugin> {
-
+public class SongPlayer {
+    
     public static final SongPlayer DEFAULT_PLAYER;
-
+    public static final String PREFIX = "&b&lNBS&b> &7";
+    
     static {
-        DEFAULT_PLAYER = new SongPlayer(EternaPlugin.getPlugin());
+        DEFAULT_PLAYER = new SongPlayer(EternaPlugin.getPlugin()) {
+            @Override
+            public boolean isGlobal() {
+                return true; // Force global
+            }
+            
+            @Nonnull
+            @Override
+            public Collection<Player> getListeners() {
+                return Sets.newHashSet(Bukkit.getOnlinePlayers());
+            }
+        };
     }
-
+    
+    private final JavaPlugin plugin;
     private final SongQueue queue;
-    private final String prefix = "&b&lNBS> &7";
-
-    protected Song currentSong;
-
-    private boolean playing;
-    private boolean pause;
-    private boolean repeat;
-    private long tick = 0L;
-    private BukkitTask task;
-    private Set<Player> listeners;
-
-    public SongPlayer(JavaPlugin plugin) {
-        super(plugin);
-        this.listeners = new HashSet<>();
+    private final Collection<Player> listeners;
+    
+    private SongInstance currentInstance;
+    private float volume;
+    
+    public SongPlayer(@Nonnull JavaPlugin plugin) {
+        this.plugin = plugin;
         this.queue = new SongPlayerQueue();
+        this.listeners = Sets.newHashSet();
+        this.volume = SongNote.DEFAULT_VOLUME;
     }
-
+    
     /**
-     * Returns the plugin who owns this player.
+     * Gets the current volume of the player.
      *
-     * @return the plugin who owns this player.
+     * @return the current volume of the player.
      */
+    public float volume() {
+        return volume;
+    }
+    
+    /**
+     * Sets the current volume of the player.
+     * <p>If there is currently an instance playing, its volume will be changed.</p>
+     *
+     * @param volume - The new volume.
+     */
+    public void volume(float volume) {
+        this.volume = Math.clamp(volume, 0, 1);
+        
+        if (currentInstance != null) {
+            currentInstance.volume(volume);
+        }
+    }
+    
+    /**
+     * Gets the owning plugin of the player.
+     *
+     * @return the owning plugin of the player.
+     */
+    @Nonnull
     public JavaPlugin getOwningPlugin() {
-        return get();
+        return plugin;
     }
-
+    
     /**
-     * Returns current song queue.
+     * Gets the song queue of the player.
      *
-     * @return current song queue.
+     * @return the song queue of the player.
      */
+    @Nonnull
     public SongQueue getQueue() {
         return queue;
     }
-
+    
     /**
-     * Adds a listener to this player.
+     * Adds the given player as to listeners.
      *
-     * @param player - Listener.
+     * @param player - The player to add.
      */
-    public void addListener(Player player) {
-        if (this.listeners == null) {
-            return; // global
-        }
+    public void addListener(@Nonnull Player player) {
         this.listeners.add(player);
     }
-
+    
     /**
-     * Removes a listener from this player.
+     * Removes the given player from listeners.
      *
-     * @param player - Listener.
+     * @param player - The player to remove.
      */
     public void removeListener(Player player) {
-        if (this.listeners == null) {
-            return; // global
-        }
         this.listeners.remove(player);
     }
-
+    
     /**
-     * Returns true if the player is paused.
+     * Returns {@code true} if the given player is a listener.
      *
-     * @return true if the player is paused.
+     * @param player - The player to check.
+     * @return {@code true} if the given player is a listener.
      */
-    public boolean isPaused() {
-        return pause;
+    public boolean isListener(@Nonnull Player player) {
+        return this.listeners.isEmpty() || this.listeners.contains(player);
     }
-
+    
     /**
-     * Returns true if song player is on repeat; false otherwise.
+     * Clears all the listeners, making the playback global for each online player.
+     */
+    public void setGlobal() {
+        this.listeners.clear();
+    }
+    
+    /**
+     * Returns {@code true} if playback is global for each online player.
      *
-     * @return true if song player is on repeat; false otherwise.
+     * @return {@code true} if playback is global for each online player.
      */
-    public boolean isOnRepeat() {
-        return repeat;
+    public boolean isGlobal() {
+        return this.listeners.isEmpty();
     }
-
+    
     /**
-     * Sets if song player should repeat song.
+     * Gets the listeners of the player.
      *
-     * @param flag - Repeat.
+     * @return the listeners.
      */
-    public void setOnRepeat(boolean flag) {
-        repeat = flag;
+    @Nonnull
+    public Collection<Player> getListeners() {
+        return listeners;
     }
-
+    
     /**
-     * Returns true if player is listener for this player.
+     * Gets the current song instance or {@code null} if there is none.
      *
-     * @param player - Player to check.
-     * @return true if player is listener for this player.
-     */
-    public boolean isListener(Player player) {
-        return this.listeners == null || this.listeners.contains(player);
-    }
-
-    /**
-     * Returns true if this player is global.
-     */
-    public void everyoneIsListener() {
-        this.listeners = null;
-    }
-
-    /**
-     * Pauses or unpauses the player.
-     */
-    public void pausePlaying() {
-        this.pause = !this.pause;
-        sendMessage("%s Playing &l" + this.currentSong.getName(), this.pause ? "&ePaused" : "&aUnpause");
-    }
-
-    /**
-     * Stops the player.
-     */
-    public void stopPlaying() {
-        if (currentSong != null) {
-            sendMessage("&aFinished Playing &l" + this.currentSong.getName());
-            this.currentSong = null;
-        }
-        if (task != null) {
-            task.cancel();
-        }
-        this.playing = false;
-    }
-
-    /**
-     * Returns true if song player is playing a song.
-     *
-     * @return true if song player is playing a song.
-     */
-    public boolean isPlaying() {
-        return playing;
-    }
-
-    /**
-     * Returns the currently playing song, or null if none is playing.
-     *
-     * @return the currently playing song, or null if none is playing.
+     * @return the current song instance or {@code null} if there is none.
      */
     @Nullable
-    public Song getCurrentSong() {
-        return currentSong;
+    public SongInstance currentInstance() {
+        return currentInstance;
     }
-
+    
     /**
-     * Stops the current song and sets the current song to the given song.
+     * Gets the current song or {@code null} if there is none.
      *
-     * @param song - Song to set.
+     * @return the current song or {@code null} if there is none.
      */
-    public void setCurrentSong(Song song) {
-        this.stopPlaying();
-        this.currentSong = song;
+    @Nullable
+    public Song currentSong() {
+        return currentInstance != null ? currentInstance.song() : null;
     }
-
+    
     /**
-     * Returns true if the player has a song.
+     * Pauses or resumes the current instance if it exists.
+     */
+    public void pausePlaying() {
+        if (this.currentInstance == null) {
+            return;
+        }
+        
+        this.currentInstance.pause();
+    }
+    
+    /**
+     * Forcefully stops the current instance if it exists.
+     */
+    public void stopPlaying() {
+        if (this.currentInstance == null) {
+            return;
+        }
+        
+        this.currentInstance.cancel();
+        this.currentInstance = null;
+    }
+    
+    /**
+     * Returns {@code true} if there is an instance and its currently {@link SongInstance#isPlaying()}.
      *
-     * @return true if the player has a song.
+     * @return {@code true} if there is an instance and its currently {@link SongInstance#isPlaying()}.
+     */
+    public boolean isPlaying() {
+        return this.currentInstance != null && this.currentInstance.isPlaying();
+    }
+    
+    /**
+     * Returns {@code ture} if there is an instance.
+     *
+     * @return {@code ture} if there is an instance.
      */
     public boolean hasSong() {
-        return currentSong != null;
+        return this.currentInstance != null;
     }
-
+    
     /**
-     * Stars the playing of a song.
+     * Starts playing the given {@link Song}.
+     * <p>This will cancel currently playing song if there is one.</p>
+     *
+     * @param song - The song to play.
      */
-    public void startPlaying() {
-        if (playing) {
-            stopPlaying();
-        }
-
-        sendMessage("&aNow Playing &l" + this.currentSong.getName());
-        if (!currentSong.isOkOctave()) {
-            sendMessage("&eSome notes in this song aren't between F#0 and F#2, it might sound off!");
-        }
-        this.playing = true;
-        this.tick = 0;
-        this.task = new BukkitRunnable() {
-
+    public void startPlaying(@Nonnull Song song) {
+        stopPlaying();
+        
+        final SongInstance instance = song.newInstance(plugin);
+        instance.volume(volume);
+        instance.callback(makeCallback(song));
+        
+        this.currentInstance = instance;
+        this.currentInstance.play(getListeners());
+    }
+    
+    /**
+     * Sends the NBS message to the given player.
+     *
+     * @param player  - The player.
+     * @param message - The message.
+     */
+    public void message(@Nonnull CommandSender player, @Nonnull String message) {
+        Chat.sendMessage(player, PREFIX + message);
+    }
+    
+    /**
+     * Sends the NBS message to the given player.
+     *
+     * @param player  - The player.
+     * @param message - The message.
+     */
+    public void message(@Nonnull CommandSender player, @Nonnull TextComponent.Builder message) {
+        player.sendMessage(Component.text(Chat.format(PREFIX)).append(message));
+    }
+    
+    /**
+     * Sends the NBS message to the all listeners.
+     *
+     * @param message - The message.
+     */
+    public void message(@Nonnull String message) {
+        getListeners().forEach(player -> this.message(player, message));
+    }
+    
+    /**
+     * Sends the NBS message to the all listeners.
+     *
+     * @param message - The message.
+     */
+    public void message(@Nonnull TextComponent.Builder message) {
+        getListeners().forEach(player -> this.message(player, message));
+    }
+    
+    private SongCallback makeCallback(Song song) {
+        return new SongCallback() {
             @Override
-            public void run() {
-                if (pause) {
-                    return;
-                }
-
-                if (tick++ >= currentSong.getLength()) {
-                    if (repeat) {
-                        tick = -20; // give it a second of windup
+            public void onStartPlaying() {
+                message("&aNow playing &6%s&a.".formatted(song.getName()));
+                
+                // Display warnings
+                if (!song.isPerfect()) {
+                    final TextComponent.Builder builder = Component.text()
+                                                                   .append(Component.text(" ❗ ", NamedTextColor.GOLD));
+                    
+                    if (!song.isOkOctave()) {
+                        builder.append(
+                                Component.text("Illegal Notes", NamedTextColor.YELLOW, TextDecoration.BOLD, TextDecoration.UNDERLINED)
+                                         .hoverEvent(HoverEvent.showText(Component.text(
+                                                 "Some notes aren't within Minecraft limit of F#0 and F#2 so it might sound off!",
+                                                 NamedTextColor.GOLD
+                                         )))
+                        );
+                        
+                        builder.append(Component.text("  ")); // Don't retain the format
                     }
-                    else {
-                        stopPlaying();
-                        queue.playNext();
+                    
+                    if (!song.isOkTempo()) {
+                        builder.append(
+                                Component.text("Illegal Tempo", NamedTextColor.YELLOW, TextDecoration.BOLD, TextDecoration.UNDERLINED)
+                                         .hoverEvent(HoverEvent.showText(Component.text(
+                                                 "The tempo of the song isn't divisible by 20 so it might sound faster due to tick limitations!",
+                                                 NamedTextColor.GOLD
+                                         )))
+                        );
                     }
-                    return;
+                    
+                    message(builder);
                 }
-
-                final List<SongNote> notes = currentSong.getNotes(tick);
-
-                if (notes != null) {
-                    for (final SongNote note : notes) {
-                        note.play(getListeners());
-                    }
-                }
-
             }
-        }.runTaskTimer(getOwningPlugin(), 0, this.currentSong.getTempo());
+            
+            @Override
+            public void onFinishedPlaying() {
+                stopPlaying();
+                queue.playNext();
+                
+                message("&aFinished playing &6%s&a.".formatted(song.getName()));
+            }
+            
+            @Override
+            public void onPause(boolean pause) {
+                message("%s&a playing &6%s&a.".formatted(pause ? "&ePaused" : "&aResumed", song.getName()));
+            }
+        };
     }
-
-    /**
-     * Returns current frame (tick) of a song.
-     *
-     * @return current frame (tick) of a song.
-     */
-    public long getCurrentFrame() {
-        return tick;
-    }
-
-    /**
-     * Returns max frames (length) of a song.
-     *
-     * @return max frames (length) of a song.
-     */
-    public long getMaxFrame() {
-        return this.currentSong == null ? 1 : this.currentSong.getLength();
-    }
-
-    // shortcuts
-    public void sendMessage(CommandSender player, String msg, Object... dot) {
-        Chat.sendMessage(player, (prefix + msg).formatted(dot));
-    }
-
-    public void sendMessage(CommandSender player, BaseComponent[] components) {
-        player.spigot().sendMessage(new ComponentBuilder(Chat.format(prefix)).append(components).create());
-    }
-
-    public void sendMessage(String msg, Object... dot) {
-        for (final Player player : getListeners()) {
-            Chat.sendMessage(player, (prefix + msg).formatted(dot));
-        }
-    }
-
-    /**
-     * Returns listeners for this song. Or all online players is global.
-     *
-     * @return listeners for this song. Or all online players is global.
-     */
-    private Collection<? extends Player> getListeners() {
-        return this.listeners == null ? Bukkit.getOnlinePlayers() : this.listeners;
-    }
+    
 }
