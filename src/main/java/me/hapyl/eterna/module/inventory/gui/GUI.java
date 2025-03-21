@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
-import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -56,14 +55,14 @@ public class GUI {
     private GUIEventHandler eventHandler;
     private CancelType cancelType;
 
-    public GUI(String name, int rows) {
+    public GUI(@Nonnull String name, int rows) {
         this.name = name;
-        this.size = Numbers.clamp(rows * 9, 9, 54);
+        this.size = Math.clamp(rows * 9L, 9, 54);
         this.bySlot = new HashMap<>();
         this.cancelType = CancelType.EITHER;
         this.ignoredClicks = new HashSet<>();
         this.properties = new Properties();
-        this.inventory = Bukkit.createInventory(null, this.size, name);
+        this.inventory = Bukkit.createInventory(null, this.size, Chat.color(name));
     }
 
     /**
