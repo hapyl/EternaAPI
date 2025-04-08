@@ -39,6 +39,7 @@ public class EternaPlayer extends ServerPlayer {
 
         this.location = location;
         this.packetFactory = new PacketFactory();
+        this.visibleByDefault = false;
 
         setConnection();
     }
