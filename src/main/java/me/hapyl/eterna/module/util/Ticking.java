@@ -1,13 +1,13 @@
 package me.hapyl.eterna.module.util;
 
 /**
- * A ticking object.
+ * Represents an object that can {@link #tick()}.
  */
 public interface Ticking {
-
+    
     /**
-     * Tick.
+     * The tick method.
      */
     void tick();
-
+    
 }

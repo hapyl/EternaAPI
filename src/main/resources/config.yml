@@ -7,8 +7,6 @@ tick-time:
   hologram: 2
   # How fast to update parkour UI.
   parkour: 2
-  # How fast to update glowing.
-  glowing: 1
 
 # Whenever to check for updates upon the plugin load.
 check-for-updates: true
