@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.block.display;
 
 import com.google.common.collect.Lists;
+import io.papermc.paper.datacomponent.DataComponentType;
 import io.papermc.paper.entity.LookAnchor;
 import io.papermc.paper.entity.TeleportFlag;
 import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
@@ -36,6 +37,7 @@ import java.util.function.Consumer;
  * Represents a display entity.
  * An entity consists of a head (always present) and children.
  */
+@SuppressWarnings("UnstanbleApiUsage")
 public class DisplayEntity implements Iterable<Display>, Display {
 
     private final BlockDisplay head;
@@ -1118,7 +1120,22 @@ public class DisplayEntity implements Iterable<Display>, Display {
 
         return hash;
     }
-
+    
+    @Override
+    public <T> @org.jetbrains.annotations.Nullable T getData(DataComponentType.@NotNull Valued<T> valued) {
+        throw uoe("getData");
+    }
+    
+    @Override
+    public <T> @org.jetbrains.annotations.Nullable T getDataOrDefault(DataComponentType.@NotNull Valued<? extends T> valued, @org.jetbrains.annotations.Nullable T t) {
+        throw uoe("getDataOrDefault");
+    }
+    
+    @Override
+    public boolean hasData(@NotNull DataComponentType dataComponentType) {
+        throw uoe("hasData");
+    }
+    
     protected void append(@Nonnull Display display) {
         head.addPassenger(display);
         children.add(display);

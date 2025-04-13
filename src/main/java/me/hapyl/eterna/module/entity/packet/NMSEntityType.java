@@ -14,7 +14,9 @@ import net.minecraft.world.entity.animal.frog.Frog;
 import net.minecraft.world.entity.animal.frog.Tadpole;
 import net.minecraft.world.entity.animal.goat.Goat;
 import net.minecraft.world.entity.animal.horse.*;
+import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.animal.sniffer.Sniffer;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
@@ -48,7 +50,7 @@ import java.util.Map;
  * @see #fromNms(net.minecraft.world.entity.EntityType)
  */
 @SuppressWarnings("all")
-@TestedOn(version = Version.V1_21_4)
+@TestedOn(version = Version.V1_21_5)
 public final class NMSEntityType {
 
     public static final net.minecraft.world.entity.EntityType<Allay> ALLAY;
@@ -133,7 +135,8 @@ public final class NMSEntityType {
     public static final net.minecraft.world.entity.EntityType<PiglinBrute> PIGLIN_BRUTE;
     public static final net.minecraft.world.entity.EntityType<Pillager> PILLAGER;
     public static final net.minecraft.world.entity.EntityType<PolarBear> POLAR_BEAR;
-    public static final net.minecraft.world.entity.EntityType<ThrownPotion> POTION;
+    public static final net.minecraft.world.entity.EntityType<ThrownSplashPotion> SPLASH_POTION;
+    public static final net.minecraft.world.entity.EntityType<ThrownLingeringPotion> LINGERING_POTION;
     public static final net.minecraft.world.entity.EntityType<Pufferfish> PUFFERFISH;
     public static final net.minecraft.world.entity.EntityType<Rabbit> RABBIT;
     public static final net.minecraft.world.entity.EntityType<Ravager> RAVAGER;
@@ -270,7 +273,8 @@ public final class NMSEntityType {
         PIGLIN_BRUTE = of(net.minecraft.world.entity.EntityType.PIGLIN_BRUTE, EntityType.PIGLIN_BRUTE);
         PILLAGER = of(net.minecraft.world.entity.EntityType.PILLAGER, EntityType.PILLAGER);
         POLAR_BEAR = of(net.minecraft.world.entity.EntityType.POLAR_BEAR, EntityType.POLAR_BEAR);
-        POTION = of(net.minecraft.world.entity.EntityType.POTION, EntityType.POTION);
+        SPLASH_POTION = of(net.minecraft.world.entity.EntityType.SPLASH_POTION, EntityType.SPLASH_POTION);
+        LINGERING_POTION = of(net.minecraft.world.entity.EntityType.LINGERING_POTION, EntityType.LINGERING_POTION);
         PUFFERFISH = of(net.minecraft.world.entity.EntityType.PUFFERFISH, EntityType.PUFFERFISH);
         RABBIT = of(net.minecraft.world.entity.EntityType.RABBIT, EntityType.RABBIT);
         RAVAGER = of(net.minecraft.world.entity.EntityType.RAVAGER, EntityType.RAVAGER);

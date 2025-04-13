@@ -63,7 +63,7 @@ import java.util.function.Function;
  * For complex NPCs use <a href="https://github.com/CitizensDev/CitizensAPI">CitizensAPI</a>!
  */
 @SuppressWarnings("unused")
-@TestedOn(version = Version.V1_21_4)
+@TestedOn(version = Version.V1_21_5)
 public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
 
     public static final double CHAIR_LOCATION_Y_OFFSET = 0.39d;
@@ -327,7 +327,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
                 location.subtract(0.0d, CHAIR_LOCATION_Y_OFFSET, 0.0d);
 
                 chair = new AreaEffectCloud(Reflect.getMinecraftWorld(world), location.getX(), location.getY(), location.getZ());
-                chair.absMoveTo(location.getX(), location.getY(), location.getZ());
+                chair.absSnapTo(location.getX(), location.getY(), location.getZ());
                 chair.setRadius(0.0f);
                 chair.setDuration(Integer.MAX_VALUE);
 

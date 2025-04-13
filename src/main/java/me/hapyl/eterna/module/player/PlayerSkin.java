@@ -222,7 +222,7 @@ public class PlayerSkin {
             case LEGS -> net.minecraft.world.entity.EquipmentSlot.LEGS;
             case CHEST -> net.minecraft.world.entity.EquipmentSlot.CHEST;
             case HEAD -> net.minecraft.world.entity.EquipmentSlot.HEAD;
-            case BODY -> net.minecraft.world.entity.EquipmentSlot.BODY;
+            case BODY, SADDLE -> throw new IllegalArgumentException("Equipment slot %s is not supported for players!".formatted(slot));
         };
     }
 
