@@ -57,7 +57,7 @@ import java.util.*;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_21_4)
+@TestedOn(version = Version.V1_21_5)
 public final class Reflect {
 
     private static final String mcVersion;
@@ -125,7 +125,7 @@ public final class Reflect {
      * @param location - Location.
      */
     public static void setEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Location location) {
-        entity.absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        entity.absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**

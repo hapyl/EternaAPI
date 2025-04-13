@@ -987,7 +987,7 @@ public class ItemBuilder implements Cloneable, Keyed {
         return modifyMeta(
                 SkullMeta.class, meta -> {
                     meta.setPlayerProfile(Bukkit.createProfile(null, owner));
-                    meta.setNoteBlockSound(sound != null ? sound.getKey() : null);
+                    meta.setNoteBlockSound(sound != null ? Registry.SOUNDS.getKey(sound) : null);
                 }
         );
     }
@@ -1060,46 +1060,6 @@ public class ItemBuilder implements Cloneable, Keyed {
      */
     public ItemBuilder hideFlags() {
         return hideFlag(ItemFlag.values());
-    }
-    
-    /**
-     * Hides default attribute from tools.
-     * <br>
-     * <br>
-     * Because mojang reworked ItemStacks, and to hide attributes it requires
-     * the item to have attributes modifiers, it means we cannot hide default
-     * attributes for tools, armor, etc. without adding a modifier.
-     * <p>
-     * Spigot has a workaround by adding a dummy modifier, just like you can
-     * do in vanilla, but Paper is annoying and refuses to keep the workaround
-     * or giving the ability to add empty modifiers.
-     * <p>
-     * This is why we need to check for default attributes and add a wacky
-     * dummy attribute modifier.
-     */
-    public ItemBuilder hideDefaultAttributesIfApplicable() {
-        if (!isItemHasDefaultAttributes(getType())) {
-            return this;
-        }
-        
-        // Store here to not accidentally change it and break the system
-        final Attribute dummyAttribute = Attribute.LUCK;
-        
-        return modifyMeta(meta -> {
-            // Make sure the flag is actually applied
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-            
-            // Add dummy modifier
-            final AttributeModifier modifier = getHideFlagsAttributeModifier();
-            final Collection<AttributeModifier> modifiers = meta.getAttributeModifiers(dummyAttribute);
-            
-            // Don't re-add modifier since it throws an error
-            if (modifiers != null && modifiers.contains(modifier)) {
-                return;
-            }
-            
-            meta.addAttributeModifier(dummyAttribute, modifier);
-        });
     }
     
     /**
@@ -1930,10 +1890,6 @@ public class ItemBuilder implements Cloneable, Keyed {
     
     private void hideFlag0(ItemFlag flag) {
         modifyMeta(meta -> meta.addItemFlags(flag));
-        
-        if (flag == ItemFlag.HIDE_ATTRIBUTES) {
-            hideDefaultAttributesIfApplicable();
-        }
     }
     
     private <E> ItemBuilder modifyComponent(ComponentModifier<E> modifier, Function<ItemMeta, E> get, BiConsumer<ItemMeta, E> set) {
@@ -1945,38 +1901,6 @@ public class ItemBuilder implements Cloneable, Keyed {
         });
         
         return this;
-    }
-    
-    /**
-     * Returns true if {@link Material} has default attributes without any modifiers.
-     * <br>
-     * Eg: Tools, Armor, etc.
-     *
-     * @param material - Material.
-     * @return true if material has default attributes without any modifiers, false otherwise.
-     * fixme this will not be needed in the next update I think?
-     */
-    public static boolean isItemHasDefaultAttributes(@Nonnull Material material) {
-        return switch (material) {
-            case WOODEN_SHOVEL, WOODEN_PICKAXE, WOODEN_AXE, WOODEN_HOE, WOODEN_SWORD -> true;
-            case STONE_SHOVEL, STONE_PICKAXE, STONE_AXE, STONE_HOE, STONE_SWORD -> true;
-            case IRON_SHOVEL, IRON_PICKAXE, IRON_AXE, IRON_HOE, IRON_SWORD -> true;
-            case GOLDEN_SHOVEL, GOLDEN_PICKAXE, GOLDEN_AXE, GOLDEN_HOE, GOLDEN_SWORD -> true;
-            case DIAMOND_SHOVEL, DIAMOND_PICKAXE, DIAMOND_AXE, DIAMOND_HOE, DIAMOND_SWORD -> true;
-            case NETHERITE_SHOVEL, NETHERITE_PICKAXE, NETHERITE_AXE, NETHERITE_HOE, NETHERITE_SWORD -> true;
-            case TRIDENT -> true;
-            case MACE -> true;
-            case LEATHER_HELMET, LEATHER_CHESTPLATE, LEATHER_LEGGINGS, LEATHER_BOOTS -> true;
-            case IRON_HELMET, IRON_CHESTPLATE, IRON_LEGGINGS, IRON_BOOTS -> true;
-            case GOLDEN_HELMET, GOLDEN_CHESTPLATE, GOLDEN_LEGGINGS, GOLDEN_BOOTS -> true;
-            case DIAMOND_HELMET, DIAMOND_CHESTPLATE, DIAMOND_LEGGINGS, DIAMOND_BOOTS -> true;
-            case NETHERITE_HELMET, NETHERITE_CHESTPLATE, NETHERITE_LEGGINGS, NETHERITE_BOOTS -> true;
-            case CHAINMAIL_HELMET, CHAINMAIL_CHESTPLATE, CHAINMAIL_LEGGINGS, CHAINMAIL_BOOTS -> true;
-            case TURTLE_HELMET -> true;
-            case LEATHER_HORSE_ARMOR, IRON_HORSE_ARMOR, GOLDEN_HORSE_ARMOR, DIAMOND_HORSE_ARMOR -> true;
-            case WOLF_ARMOR -> true;
-            default -> false;
-        };
     }
     
     @Nonnull
@@ -1993,6 +1917,7 @@ public class ItemBuilder implements Cloneable, Keyed {
             case HEAD -> EquipmentSlotGroup.HEAD;
             case LEGS -> EquipmentSlotGroup.LEGS;
             case BODY -> EquipmentSlotGroup.BODY;
+            case SADDLE -> EquipmentSlotGroup.SADDLE;
         };
     }
     

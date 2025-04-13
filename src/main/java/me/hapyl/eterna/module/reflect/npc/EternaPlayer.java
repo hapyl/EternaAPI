@@ -90,11 +90,11 @@ public class EternaPlayer extends ServerPlayer {
     public void setLocation(@Nonnull Location location) {
         this.location = location;
 
-        absMoveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     public void setYawPitch(float yaw, float pitch) {
-        absMoveTo(location.getX(), location.getY(), location.getZ(), yaw, pitch);
+        absSnapTo(location.getX(), location.getY(), location.getZ(), yaw, pitch);
     }
 
     public NPCPose getNPCPose() {
