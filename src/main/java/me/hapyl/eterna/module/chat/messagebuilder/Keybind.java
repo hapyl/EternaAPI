@@ -1,7 +1,9 @@
 package me.hapyl.eterna.module.chat.messagebuilder;
 
 import com.google.common.collect.Lists;
+import net.kyori.adventure.translation.Translatable;
 import net.md_5.bungee.api.chat.Keybinds;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -12,7 +14,7 @@ import java.util.List;
  * <br>
  * {@link Keybinds} has wrong keybindings for whatever reason.
  */
-public record Keybind(@Nonnull String key) {
+public record Keybind(@Nonnull String key) implements Translatable {
 
     public static final Keybind JUMP;
     public static final Keybind SNEAK;
@@ -94,7 +96,12 @@ public record Keybind(@Nonnull String key) {
         TOGGLE_FULLSCREEN = of("key.fullscreen");
         TOGGLE_PERSPECTIVE = of("key.togglePerspective");
     }
-
+    
+    @Override
+    public @NotNull String translationKey() {
+        return key;
+    }
+    
     static Keybind of(String key) {
         final Keybind keybind = new Keybind(key);
         values.add(keybind);
