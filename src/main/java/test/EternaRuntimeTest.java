@@ -58,6 +58,7 @@ import me.hapyl.eterna.module.reflect.border.PlayerBorder;
 import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.glowing.GlowingColor;
 import me.hapyl.eterna.module.reflect.npc.ClickType;
+import me.hapyl.eterna.module.reflect.npc.EternaPlayer;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.registry.Key;
@@ -2317,6 +2318,42 @@ public final class EternaRuntimeTest {
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 dialog.start(player);
                 return true;
+            }
+        });
+        
+        addTest(new EternaTest("eternaPlayerPing") {
+            
+            private EternaPlayer eternaplayer;
+            
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                if (eternaplayer == null) {
+                    eternaplayer = new EternaPlayer(player.getLocation(), "test");
+                }
+                
+                eternaplayer.show(player);
+                Reflect.sendPacket(player, eternaplayer.packetFactory.getPacketInitPlayer());
+                
+                for (PingBars value : PingBars.values()) {
+                    later(
+                            () -> {
+                                info(player, "Set ping to %s.".formatted(value.name()));
+                                eternaplayer.setPing(value);
+                                eternaplayer.updatePing(player);
+                                
+                                if (value.ordinal() == PingBars.values().length - 1) {
+                                    later(() -> {
+                                        eternaplayer.hide(player);
+                                        eternaplayer = null;
+                                        
+                                        assertTestPassed();
+                                    }, 20);
+                                }
+                            }, (value.ordinal() + 1) * 20
+                    );
+                }
+                
+                return false;
             }
         });
         
