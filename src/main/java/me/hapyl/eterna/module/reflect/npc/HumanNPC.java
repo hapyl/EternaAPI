@@ -379,7 +379,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         updateSkin();
 
         updateDataWatcher();
-        hideTabListName();
         updateSitting();
     }
 
@@ -877,15 +876,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
 
     @Override
-    public void hideTabListName() {
-        Bukkit.getScheduler().runTaskLater(
-                EternaPlugin.getPlugin(), () -> {
-                    showingTo.forEach(human::hideTabName);
-                }, 20L
-        );
-    }
-
-    @Override
     public void updateSkin() {
         setDataWatcherByteValue(17, (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40));
     }
@@ -1212,9 +1202,4 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return Eterna.getManagers().npc.get(id);
     }
 
-    public static void hideAllNames(Scoreboard score) {
-        for (final HumanNPC value : Eterna.getManagers().npc.getRegistered().values()) {
-            value.hideTabListName();
-        }
-    }
 }

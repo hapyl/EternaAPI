@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.scoreboard;
 
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -35,8 +34,7 @@ public class ScoreboardBuilder {
         }
 
         this.score = Bukkit.getScoreboardManager().getNewScoreboard();
-        // If this doesn't work I don't know what will
-        HumanNPC.hideAllNames(this.score);
+        
         this.obj = this.score.registerNewObjective(scoreName, "dummy", "def");
         this.obj.setDisplayName(format(displayName));
         this.obj.setDisplaySlot(DisplaySlot.SIDEBAR);

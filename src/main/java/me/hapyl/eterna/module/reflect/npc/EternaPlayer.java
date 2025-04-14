@@ -52,7 +52,7 @@ public class EternaPlayer extends ServerPlayer {
      */
     public void setPing(int ping) {
         try {
-            FieldUtils.writeDeclaredField(this.connection, "connection", ping, true);
+            FieldUtils.writeField(this.connection, "latency", ping, true);
         } catch (Exception e) {
             EternaLogger.exception(e);
         }
