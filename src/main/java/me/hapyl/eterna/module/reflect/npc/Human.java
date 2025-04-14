@@ -417,11 +417,6 @@ public interface Human {
     SynchedEntityData getDataWatcher();
 
     /**
-     * Hides this NPC's name. <i>NPC's name is actually a {@link HumanNPC#getHexName()}.</i>
-     */
-    void hideTabListName();
-
-    /**
      * Updates skins layers of this NPC.
      */
     void updateSkin();
