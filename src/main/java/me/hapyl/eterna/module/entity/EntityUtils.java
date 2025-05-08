@@ -20,8 +20,6 @@ import java.util.UUID;
  */
 public class EntityUtils {
     
-    public static final String fakeEntityTeamName = "eterna_fake_entity";
-    
     /**
      * Hides entity using packets.
      *
