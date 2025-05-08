@@ -77,13 +77,7 @@ public class TablistEntry extends EternaPlayer implements EternaEntity {
         this.text = newText;
         
         // Update team
-        showingTo.forEach(player -> {
-            team.suffix(player, text);
-            
-            // For some reason, teams don't like empty strings as entries and just... remove them?
-            // So we have to always add it back
-            team.entry(player, scoreboardName);
-        });
+        showingTo.forEach(player -> team.suffix(player, text));
     }
     
     /**
