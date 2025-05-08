@@ -1,8 +1,11 @@
 package me.hapyl.eterna.module.reflect.team;
 
+import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
@@ -12,14 +15,26 @@ import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
 public class PacketTeam {
     
     private static final Scoreboard dummyScoreboard;
+    private static final Method cachedFromStringOrNull;
     
     static {
         dummyScoreboard = new Scoreboard();
+        
+        // Cache the method bukkit uses to parse string -> nms
+        try {
+            final Class<?> clazz = Class.forName("org.bukkit.craftbukkit.util.CraftChatMessage");
+            
+            cachedFromStringOrNull = clazz.getMethod("fromStringOrNull", String.class);
+        }
+        catch (ClassNotFoundException | NoSuchMethodException e) {
+            throw EternaLogger.exception(e);
+        }
     }
     
     protected final String name;
@@ -69,11 +84,11 @@ public class PacketTeam {
     }
     
     public void prefix(@Nonnull Player player, @Nonnull String prefix) {
-        update(player, team -> team.setPlayerPrefix(net.minecraft.network.chat.Component.literal(Chat.color(prefix))));
+        update(player, team -> team.setPlayerPrefix(componentFromString(prefix)));
     }
     
     public void suffix(@Nonnull Player player, @Nonnull String suffix) {
-        update(player, team -> team.setPlayerSuffix(net.minecraft.network.chat.Component.literal(Chat.color(suffix))));
+        update(player, team -> team.setPlayerSuffix(componentFromString(suffix)));
     }
     
     public void color(@Nonnull Player player, @Nonnull ChatColor color) {
@@ -94,11 +109,21 @@ public class PacketTeam {
         );
     }
     
+    @EventLike
     protected void onCreate() {
     }
     
     private void update(Player player, Consumer<PlayerTeam> consumer) {
         consumer.accept(team);
         Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false));
+    }
+    
+    private static Component componentFromString(String string) {
+        try {
+            return (Component) cachedFromStringOrNull.invoke(null, Chat.color(string));
+        }
+        catch (Exception e) {
+            throw EternaLogger.exception(e);
+        }
     }
 }
