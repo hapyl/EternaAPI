@@ -77,12 +77,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     protected final Set<Player> showingTo = Sets.newHashSet();
     protected final Map<Player, InteractionDelay> interactedAt = Maps.newHashMap();
     
+    protected final PacketTeam team;
+    
     private final UUID uuid;
     private final String hexName;
     private final EternaPlayer human;
     private final PlayerHologram hologram;
     
-    private final PacketTeam team;
     private final NPCEquipment equipment;
     private final int id;
     
@@ -703,10 +704,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return this;
     }
     
-    public void setSkin(@Nonnull PlayerSkin skin) {
-        setSkin(skin.getTexture(), skin.getSignature());
-    }
-    
     public boolean hasSkin() {
         final Collection<Property> skin = getSkin();
         return skin != null && !skin.isEmpty();
@@ -714,6 +711,10 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     
     public Collection<Property> getSkin() {
         return this.human.getProfile().getProperties().get("textures");
+    }
+    
+    public void setSkin(@Nonnull PlayerSkin skin) {
+        setSkin(skin.getTexture(), skin.getSignature());
     }
     
     /**
