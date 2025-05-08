@@ -232,7 +232,12 @@ public final class EternaRuntimeTest {
                 
                 final Team finalTeam = team;
                 
-                Glowing.setGlowing(player, entity, GlowingColor.YELLOW, 100);
+                Glowing.setGlowing(player, entity, GlowingColor.YELLOW, 120);
+                
+                later(() -> {
+                    info(player, "Changing color...");
+                    Glowing.setGlowing(player, entity, GlowingColor.BLUE);
+                }, 40);
                 
                 return false;
             }

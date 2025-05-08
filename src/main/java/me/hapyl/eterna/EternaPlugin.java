@@ -17,9 +17,9 @@ import me.hapyl.eterna.module.parkour.ParkourListener;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
 import me.hapyl.eterna.module.record.ReplayListener;
 import me.hapyl.eterna.module.reflect.NPCRunnable;
-import me.hapyl.eterna.module.reflect.glowing.GlowingRunnable;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolEntitySpawnListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolMetadataListener;
+import me.hapyl.eterna.module.reflect.glowing.GlowingRunnable;
 import me.hapyl.eterna.module.reflect.npc.HumanNPCListener;
 import me.hapyl.eterna.module.util.Runnables;
 import me.hapyl.eterna.protocol.EternaProtocol;
@@ -93,7 +93,6 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
         commandProcessor.registerCommand(new SelectDialogOptionCommand("selectdialogoption"));
         
-        // Create songs folder
         try {
             new File(this.getDataFolder() + "/songs").mkdir();
         }

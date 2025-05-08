@@ -17,7 +17,7 @@ public class PacketInterceptor extends ChannelDuplexHandler {
 
     protected volatile Player player;
 
-    public PacketInterceptor(Player player) {
+    PacketInterceptor(Player player) {
         this.player = player;
     }
 

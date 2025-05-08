@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.util;
 
+import javax.annotation.Nonnull;
 import java.util.TreeMap;
 
 /**
@@ -32,11 +33,19 @@ public class RomanNumber {
      * @param number number to convert
      * @return roman numeral.
      */
+    @Nonnull
     public static String toRoman(int number) {
-        int l = map.floorKey(number);
+        // Don't throw exception for invalid roman input
+        if (number <= 0) {
+            return "0";
+        }
+        
+        final int l = map.floorKey(number);
+        
         if (number == l) {
             return map.get(number);
         }
+        
         return map.get(l) + toRoman(number - l);
     }
 

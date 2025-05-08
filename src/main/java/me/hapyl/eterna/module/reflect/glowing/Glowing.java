@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Provides per-player entity glowing with color changing support.
@@ -183,11 +184,14 @@ public class Glowing implements Ticking {
     }
     
     private static void setGlowing0(Player player, Entity entity, @Nullable GlowingColor color, @Nullable Integer duration) {
+        if (Objects.equals(player, entity)) {
+            throw new IllegalArgumentException("Cannot set glowing for self!");
+        }
+        
         final Glowing glowing = playerGlowing(player);
         final GlowingInstance instance = glowing.entityMap.computeIfAbsent(
                 entity,
                 e -> new GlowingInstance(
-                        glowing,
                         player,
                         entity,
                         color != null ? color : DEFAULT_COLOR,

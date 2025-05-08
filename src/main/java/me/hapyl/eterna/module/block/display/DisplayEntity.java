@@ -7,6 +7,7 @@ import io.papermc.paper.entity.TeleportFlag;
 import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
 import me.hapyl.eterna.module.block.display.animation.DisplayEntityAnimation;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.util.TriState;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.PistonMoveReaction;
@@ -142,12 +143,22 @@ public class DisplayEntity implements Iterable<Display>, Display {
     public boolean isVisualFire() {
         return head.isVisualFire();
     }
-
+    
+    @Override
+    public @NotNull TriState getVisualFire() {
+        return TriState.byBoolean(isVisualFire());
+    }
+    
     @Override
     public void setVisualFire(boolean fire) {
         children.forEach(child -> child.setVisualFire(fire));
     }
-
+    
+    @Override
+    public void setVisualFire(@NotNull TriState triState) {
+        setVisualFire(Boolean.TRUE.equals(triState.toBoolean()));
+    }
+    
     @Override
     public int getFreezeTicks() {
         return head.getFreezeTicks();
@@ -409,7 +420,12 @@ public class DisplayEntity implements Iterable<Display>, Display {
     public Set<Player> getTrackedBy() {
         return head.getTrackedBy();
     }
-
+    
+    @Override
+    public boolean isTrackedBy(@NotNull Player player) {
+        return false;
+    }
+    
     @Override
     public boolean isGlowing() {
         return head.isGlowing();
