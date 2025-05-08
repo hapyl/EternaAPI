@@ -3,15 +3,14 @@ package me.hapyl.eterna.module.reflect;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
+import me.hapyl.eterna.module.entity.EntityUtils;
 import me.hapyl.eterna.module.reflect.packet.Packets;
 import me.hapyl.eterna.module.util.EternaEntity;
-import me.hapyl.eterna.module.util.TeamHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.monster.Guardian;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -130,9 +129,7 @@ public class Laser implements EternaEntity {
     }
 
     private void removeCollision(LivingEntity entity, Player player) {
-        final Entity bukkitEntity = entity.getBukkitEntity();
-
-        TeamHelper.FAKE_ENTITY.addToTeam(player.getScoreboard(), bukkitEntity);
+        EntityUtils.setCollision(entity.getBukkitEntity(), EntityUtils.Collision.DENY, player);
     }
 
 }

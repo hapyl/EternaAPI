@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.reflect.glowing;
 
 import me.hapyl.eterna.module.util.CollectionUtils;
-import net.minecraft.ChatFormatting;
 import org.bukkit.ChatColor;
 
 import javax.annotation.Nonnull;
@@ -14,88 +13,88 @@ public enum GlowingColor {
     /**
      * {@link ChatColor#BLACK} outline.
      */
-    BLACK(ChatFormatting.BLACK),
+    BLACK(ChatColor.BLACK),
     
     /**
      * {@link ChatColor#DARK_BLUE} outline.
      */
-    DARK_BLUE(ChatFormatting.DARK_BLUE),
+    DARK_BLUE(ChatColor.DARK_BLUE),
     
     /**
      * {@link ChatColor#DARK_GREEN} outline.
      */
-    DARK_GREEN(ChatFormatting.DARK_GREEN),
+    DARK_GREEN(ChatColor.DARK_GREEN),
     
     /**
      * {@link ChatColor#DARK_AQUA} outline.
      */
-    DARK_AQUA(ChatFormatting.DARK_AQUA),
+    DARK_AQUA(ChatColor.DARK_AQUA),
     
     /**
      * {@link ChatColor#DARK_RED} outline.
      */
-    DARK_RED(ChatFormatting.DARK_RED),
+    DARK_RED(ChatColor.DARK_RED),
     
     /**
      * {@link ChatColor#DARK_PURPLE} outline.
      */
-    DARK_PURPLE(ChatFormatting.DARK_PURPLE),
+    DARK_PURPLE(ChatColor.DARK_PURPLE),
     
     /**
      * {@link ChatColor#GOLD} outline.
      */
-    GOLD(ChatFormatting.GOLD),
+    GOLD(ChatColor.GOLD),
     
     /**
      * {@link ChatColor#GRAY} outline.
      */
-    GRAY(ChatFormatting.GRAY),
+    GRAY(ChatColor.GRAY),
     
     /**
      * {@link ChatColor#DARK_GRAY} outline.
      */
-    DARK_GRAY(ChatFormatting.DARK_GRAY),
+    DARK_GRAY(ChatColor.DARK_GRAY),
     
     /**
      * {@link ChatColor#BLUE} outline.
      */
-    BLUE(ChatFormatting.BLUE),
+    BLUE(ChatColor.BLUE),
     
     /**
      * {@link ChatColor#GREEN} outline.
      */
-    GREEN(ChatFormatting.GREEN),
+    GREEN(ChatColor.GREEN),
     
     /**
      * {@link ChatColor#AQUA} outline.
      */
-    AQUA(ChatFormatting.AQUA),
+    AQUA(ChatColor.AQUA),
     
     /**
      * {@link ChatColor#RED} outline.
      */
-    RED(ChatFormatting.RED),
+    RED(ChatColor.RED),
     
     /**
      * {@link ChatColor#LIGHT_PURPLE} outline.
      */
-    LIGHT_PURPLE(ChatFormatting.LIGHT_PURPLE),
+    LIGHT_PURPLE(ChatColor.LIGHT_PURPLE),
     
     /**
      * {@link ChatColor#YELLOW} outline.
      */
-    YELLOW(ChatFormatting.YELLOW),
+    YELLOW(ChatColor.YELLOW),
     
     /**
      * {@link ChatColor#WHITE} outline.
      * <p>This is a default outline color if non is provided.</p>
      */
-    WHITE(ChatFormatting.WHITE);
+    WHITE(ChatColor.WHITE);
     
-    public final ChatFormatting nmsColor;
+    public final ChatColor bukkit;
     
-    GlowingColor(ChatFormatting nmsColor) {
-        this.nmsColor = nmsColor;
+    GlowingColor(ChatColor bukkit) {
+        this.bukkit = bukkit;
     }
     
     /**

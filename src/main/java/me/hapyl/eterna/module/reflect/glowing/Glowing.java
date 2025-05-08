@@ -187,7 +187,6 @@ public class Glowing implements Ticking {
         final GlowingInstance instance = glowing.entityMap.computeIfAbsent(
                 entity,
                 e -> new GlowingInstance(
-                        glowing,
                         player,
                         entity,
                         color != null ? color : DEFAULT_COLOR,

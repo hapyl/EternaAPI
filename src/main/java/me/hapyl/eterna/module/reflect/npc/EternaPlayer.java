@@ -37,13 +37,12 @@ public class EternaPlayer extends ServerPlayer {
                 ClientInformation.createDefault()
         );
 
-        this.location = location;
         this.packetFactory = new PacketFactory();
-        this.visibleByDefault = false;
+        this.location = location;
 
         setConnection();
     }
-
+    
     /**
      * Sets the ping of this {@link EternaPlayer}.
      *

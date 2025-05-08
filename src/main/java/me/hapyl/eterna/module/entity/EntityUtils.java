@@ -11,6 +11,7 @@ import org.bukkit.scoreboard.Team;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This util class allows to manipulate entities (Hide using packets, remove collision)
@@ -18,7 +19,9 @@ import java.util.List;
  * @author hapyl
  */
 public class EntityUtils {
-
+    
+    public static final String fakeEntityTeamName = "eterna_fake_entity";
+    
     /**
      * Hides entity using packets.
      *
@@ -28,7 +31,7 @@ public class EntityUtils {
     public static void hideEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
         Reflect.hideEntity(entity, viewers);
     }
-
+    
     /**
      * Hides entity using packets.
      *
@@ -38,7 +41,7 @@ public class EntityUtils {
     public static void hideEntity(@Nonnull Entity entity, @Nonnull Player player) {
         Reflect.hideEntity(entity, player);
     }
-
+    
     /**
      * Shows hidden entity using packets.
      *
@@ -48,7 +51,7 @@ public class EntityUtils {
     public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
         Reflect.showEntity(entity, player);
     }
-
+    
     /**
      * Shows hidden entity using packets.
      *
@@ -58,7 +61,7 @@ public class EntityUtils {
     public static void showEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
         Reflect.showEntity(entity, viewers);
     }
-
+    
     /**
      * Changes collision of entity. This method uses scoreboards and will not work if scoreboard is changed.
      *
@@ -67,14 +70,18 @@ public class EntityUtils {
      * @param viewers - Who will be affected by collision change.
      */
     public static void setCollision(@Nonnull Entity entity, @Nonnull Collision flag, @Nonnull Collection<Player> viewers) {
+        final UUID uuid = entity.getUniqueId();
+        
         for (final Player viewer : viewers) {
-            final Team team = TeamHelper.FAKE_ENTITY.getTeam(viewer.getScoreboard());
-
-            team.setOption(Team.Option.COLLISION_RULE, flag == Collision.ALLOW ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
-            team.addEntry(entity.getUniqueId().toString());
+            TeamHelper.fetch(
+                    viewer.getScoreboard(), "fake_entity_" + uuid, team -> {
+                        team.setOption(Team.Option.COLLISION_RULE, flag == Collision.ALLOW ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
+                        team.addEntry(uuid.toString());
+                    }
+            );
         }
     }
-
+    
     /**
      * Changes collision of entity. This method uses scoreboards and will not work if scoreboard is changed.
      *
@@ -84,11 +91,11 @@ public class EntityUtils {
     public static void setCollision(@Nonnull Entity entity, @Nonnull Collision flag) {
         setCollision(entity, flag, Sets.newHashSet(Bukkit.getOnlinePlayers()));
     }
-
+    
     public static void setCollision(@Nonnull Entity entity, @Nonnull Collision flag, @Nonnull Player player) {
         setCollision(entity, flag, List.of(player));
     }
-
+    
     /**
      * Collision status.
      */
@@ -102,5 +109,5 @@ public class EntityUtils {
          */
         DENY
     }
-
+    
 }

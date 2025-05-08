@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.player.tablist;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import me.hapyl.eterna.module.math.Numbers;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * A four column customizable tab list.
@@ -78,11 +76,11 @@ public class Tablist {
      * @see TablistEntry
      */
     public Tablist setColumn(int column, @Nonnull EntryList list) {
-        int index = Numbers.clamp(column, 0, MAX_COLUMN) * MAX_ENTRIES_PER_COLUMN;
+        int index = Math.clamp(column, 0, MAX_COLUMN) * MAX_ENTRIES_PER_COLUMN;
 
         for (EntryConsumer entryConsumer : list.array) {
             final TablistEntry entry = getEntry(index++);
-
+            
             if (entryConsumer == null) {
                 entry.setText(DEFAULT_ENTRY_NAME);
                 entry.setTexture(EntryTexture.DARK_GRAY);
@@ -177,12 +175,4 @@ public class Tablist {
         return PLAYER_TAB_LIST_MAP.get(player.getUniqueId());
     }
 
-    /**
-     * Iterates over all {@link Tablist}.
-     *
-     * @param consumer - Consumer to apply.
-     */
-    public static void forEach(@Nonnull Consumer<Tablist> consumer) {
-        PLAYER_TAB_LIST_MAP.values().forEach(consumer);
-    }
 }

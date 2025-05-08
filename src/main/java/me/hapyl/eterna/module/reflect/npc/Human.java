@@ -481,11 +481,6 @@ public interface Human {
     ServerPlayer getHuman();
 
     /**
-     * Hides display name of this NPC.
-     */
-    void hideDisplayName();
-
-    /**
      * Gets the {@link PlayerHologram} associated with this {@link Human}.
      * <p>
      * The aboveHead, NPC name, and belowHead is handled using this {@link PlayerHologram}.

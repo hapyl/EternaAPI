@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.util;
 
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import me.hapyl.eterna.module.annotate.UtilityClass;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -9,84 +8,46 @@ import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
 /**
- * This helper works with team to apply collision or name tag visibility.
- * Should really be called EternaTeams or something.
+ * A small utility helper that allows lazy team initiation and handling.
  */
-// TODO: 013, Mar 13, 2023 -> Should probably rework using packet teams if possible.
-public enum TeamHelper {
-
-    FAKE_ENTITY("fakeEntity", team -> {
-        team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-    }),
-    GLOWING("glowing", null),
-    NPC("npc", team -> team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER));
-
-    public static final String PARENT = "eterna_api";
-
-    private final String name;
-    private final Consumer<Team> action;
-
-    TeamHelper(String name, Consumer<Team> action) {
-        this.name = PARENT + "." + name;
-        this.action = action;
+@UtilityClass
+public final class TeamHelper {
+    
+    private TeamHelper() {
+        UtilityClass.Validator.throwIt();
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean compareName(String name) {
-        return name.equalsIgnoreCase(this.name);
-    }
-
+    
     /**
-     * Returns team if exists or create if not.
+     * Gets or registers a new team for the given {@link Scoreboard} with the given name.
      *
-     * @param score - Scoreboard to create to.
+     * @param scoreboard - The scoreboard to get or create the team for.
+     * @param teamName   - The team name.
+     * @return the team with the given name from the given scoreboard.
      */
     @Nonnull
-    public Team getTeam(Scoreboard score) {
-        Team team = score.getTeam(name);
+    public static Team fetch(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
+        return fetch(scoreboard, teamName, t -> {});
+    }
+    
+    /**
+     * Gets or registers a new team for the given {@link Scoreboard} with the given name.
+     *
+     * @param scoreboard - The scoreboard to get or create the team for.
+     * @param teamName   - The team name.
+     * @param consumer   - The consumer to apply after getting or creating the team.
+     * @return the team with the given name from the given scoreboard.
+     */
+    @Nonnull
+    public static Team fetch(@Nonnull Scoreboard scoreboard, @Nonnull String teamName, @Nonnull Consumer<Team> consumer) {
+        Team team = scoreboard.getTeam(teamName);
+        
+        // Register if team doesn't exist
         if (team == null) {
-            team = score.registerNewTeam(name);
-
-            if (action != null) {
-                action.accept(team);
-            }
+            team = scoreboard.registerNewTeam(teamName);
         }
+        
+        consumer.accept(team);
         return team;
     }
-
-    public void addToTeam(Player player, Entity entity) {
-        addToTeam(player.getScoreboard(), entity);
-    }
-
-    public void addToTeam(Scoreboard score, Entity entity) {
-        final Team team = getTeam(score);
-        team.addEntry(getEntityName(entity));
-    }
-
-    public boolean isInTeam(Player player, Entity entity) {
-        return isInTeam(player.getScoreboard(), entity);
-    }
-
-    public boolean isInTeam(Scoreboard score, Entity entity) {
-        final Team team = getTeam(score);
-        return team.hasEntry(getEntityName(entity));
-    }
-
-    public void removeFromTeam(Player player, Entity entity) {
-        removeFromTeam(player.getScoreboard(), entity);
-    }
-
-    public void removeFromTeam(Scoreboard score, Entity entity) {
-        final Team team = getTeam(score);
-        team.removeEntry(getEntityName(entity));
-    }
-
-    private String getEntityName(Entity entity) {
-        return entity instanceof Player player ? player.getName() : entity.getUniqueId().toString();
-    }
-
+    
 }

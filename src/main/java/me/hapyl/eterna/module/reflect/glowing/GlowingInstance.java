@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.reflect.glowing;
 import com.google.common.base.Preconditions;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.util.Removable;
 import me.hapyl.eterna.module.util.Ticking;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -29,39 +30,25 @@ public class GlowingInstance implements Ticking, Removable {
     @Nonnull private final Scoreboard playerScoreboard;
     @Nullable private final Team existingTeam;
     
-    private final net.minecraft.world.scores.PlayerTeam nmsTeam;
+    private final PacketTeam team;
     
     @Nonnull private GlowingColor color;
     private int duration;
     
-    GlowingInstance(@Nonnull Glowing glowing, @Nonnull Player player, @Nonnull Entity entity, @Nonnull GlowingColor color, int duration) {
+    GlowingInstance(@Nonnull Player player, @Nonnull Entity entity, @Nonnull GlowingColor color, int duration) {
         this.player = player;
         this.entity = entity;
         this.color = color;
         this.duration = duration;
         
-        // Prepare nms
-        this.nmsTeam = glowing.scoreboard.addPlayerTeam(UUID.randomUUID().toString());
-        this.nmsTeam.setColor(color.nmsColor);
-        
         this.playerScoreboard = player.getScoreboard();
         this.existingTeam = playerScoreboard.getEntryTeam(scoreboardName());
         
-        // If the entity was in the actual team, copy everything from it except color
-        if (existingTeam != null) {
-            this.nmsTeam.setAllowFriendlyFire(existingTeam.allowFriendlyFire());
-            this.nmsTeam.setSeeFriendlyInvisibles(existingTeam.canSeeFriendlyInvisibles());
-            
-            this.nmsTeam.setCollisionRule(NmsTeamOption.of(existingTeam.getOption(Team.Option.COLLISION_RULE)).collision());
-            this.nmsTeam.setDeathMessageVisibility(NmsTeamOption.of(existingTeam.getOption(Team.Option.DEATH_MESSAGE_VISIBILITY)).visibility());
-            this.nmsTeam.setNameTagVisibility(NmsTeamOption.of(existingTeam.getOption(Team.Option.NAME_TAG_VISIBILITY)).visibility());
-        }
-        
-        final ClientboundSetPlayerTeamPacket packetAddTeam = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(nmsTeam, true);
-        final ClientboundSetPlayerTeamPacket packetAddEntity = ClientboundSetPlayerTeamPacket.createPlayerPacket(nmsTeam, scoreboardName(), ClientboundSetPlayerTeamPacket.Action.ADD);
-        
-        Reflect.sendPacket(player, packetAddTeam);
-        Reflect.sendPacket(player, packetAddEntity);
+        // Prepare nms
+        this.team = new PacketTeam(UUID.randomUUID().toString(), existingTeam);
+        this.team.create(player);
+        this.team.color(player, color.bukkit);
+        this.team.entry(player, scoreboardName());
         
         sendGlowingPacket(true);
     }
@@ -128,8 +115,7 @@ public class GlowingInstance implements Ticking, Removable {
         sendGlowingPacket(false);
         
         // Remove fake team
-        final ClientboundSetPlayerTeamPacket packetRemoveTeam = ClientboundSetPlayerTeamPacket.createRemovePacket(nmsTeam);
-        Reflect.sendPacket(player, packetRemoveTeam);
+        team.destroy(player);
         
         // Update the actual team
         final org.bukkit.scoreboard.Scoreboard scoreboard = player.getScoreboard();
@@ -143,9 +129,8 @@ public class GlowingInstance implements Ticking, Removable {
     /**
      * Gets whether this instance should be stopped.
      * <p>
-     *     The default condition for stop is:
+     * The default condition for stop is:
      *     <ul>
-     *         <li>Player's scoreboard or entity's team has changed.
      *         <li>Entity has died.
      *         <li>Duration isn't {@link Glowing#INFINITE_DURATION} and has reached 0.
      *     </ul>
@@ -155,14 +140,6 @@ public class GlowingInstance implements Ticking, Removable {
      */
     @Override
     public boolean shouldRemove() {
-        final Scoreboard currentScoreboard = player.getScoreboard();
-        final Team currentTeam = currentScoreboard.getEntryTeam(scoreboardName());
-        
-        // Changing scoreboard or team throws internal error and is not supported
-        if (playerScoreboard != currentScoreboard || (existingTeam != null && currentTeam != null && !existingTeam.equals(currentTeam))) {
-            return true;
-        }
-        
         return entity.isDead() || duration != Glowing.INFINITE_DURATION && duration <= 0;
     }
     
@@ -187,9 +164,7 @@ public class GlowingInstance implements Ticking, Removable {
     }
     
     private void updateColor() {
-        nmsTeam.setColor(color.nmsColor);
-        
-        Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(nmsTeam, false));
+        team.color(player, color.bukkit);
     }
     
 }
