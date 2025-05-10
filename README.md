@@ -6,6 +6,8 @@
 
 # 🧾 Summary
 
+> The javadocs links are temporary broken!
+
 * Provides builders for:
     * [Item Stacks](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/inventory/ItemBuilder.html)
     * [Particles](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/particle/ParticleBuilder.html)
