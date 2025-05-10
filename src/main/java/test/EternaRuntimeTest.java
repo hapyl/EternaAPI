@@ -65,6 +65,7 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.SimpleRegistry;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
+import me.hapyl.eterna.module.util.Opt;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.nbt.Tag;
@@ -2359,6 +2360,40 @@ public final class EternaRuntimeTest {
                 }
                 
                 return false;
+            }
+        });
+        
+        addTest(new EternaTest("optional") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final Opt<String> opt = Opt.of("hello");
+                final Opt<Object> optNull = Opt.of(null);
+                
+                assertTrue(opt.get().equals("hello"));
+                assertTrue(optNull.getOrNull() == null);
+                
+                assertThrows(() -> optNull.get());
+                assertThrows(() -> optNull.orElseThrow());
+                assertThrows(() -> optNull.orElseThrow(() -> new IllegalStateException()));
+                
+                final Opt<String> optFiltered = opt.filter(s -> !s.equals("hello"));
+                
+                assertTrue(optFiltered.isEmpty());
+                
+                opt.ifPresent(s -> {
+                    info(player, "present = " + s);
+                });
+                
+                optNull.ifPresentOrElse(s -> {
+                    assertFail("opt null must be null!");
+                }, () -> {
+                    info(player, "null = true");
+                });
+                
+                String mapped = opt.map(s -> s + " world").get();
+                assertTrue(mapped.equals("hello world"));
+                
+                return true;
             }
         });
         
