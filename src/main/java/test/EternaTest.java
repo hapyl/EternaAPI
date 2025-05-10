@@ -1,6 +1,5 @@
 package test;
 
-import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.util.ArgumentList;
