@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.util;
 
 import javax.annotation.Nonnull;
+import java.util.function.Supplier;
 
 /**
  * A container for lazily initialized references.
@@ -25,9 +26,9 @@ public final class LazyReference<E> {
      * @param reference - The reference provider that supplies the value if not already initialized.
      * @return the initialized reference.
      */
-    public E get(@Nonnull Reference<E> reference) {
+    public E get(@Nonnull Supplier<E> reference) {
         if (this.e == null) {
-            this.e = reference.refer();
+            this.e = reference.get();
         }
 
         return this.e;
