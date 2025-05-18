@@ -72,7 +72,7 @@ public class TablistEntry extends EternaPlayer {
     /**
      * Gets the tablist order of this entry.
      * <p>The order is calculated as follows:</p>
-     * <pre>{@code return PRIORITY_BOUND - index;}</pre>
+     * <pre>{@code PRIORITY_BOUND - index;}</pre>
      *
      * @return the tablist order of this entry.
      */

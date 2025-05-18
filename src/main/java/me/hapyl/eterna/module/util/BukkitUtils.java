@@ -39,27 +39,27 @@ import java.util.*;
  * @see Numbers
  */
 public class BukkitUtils {
-
+    
     /**
      * Minecraft's gravity constant.
      */
     public static final double GRAVITY = 0.08d;
-
+    
     /**
      * The default decimal format.
      */
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.0");
-
+    
     /**
      * A dummy {@link NamespacedKey}.
      */
     public static final NamespacedKey DUMMY_KEY = NamespacedKey.minecraft("dummy");
-
+    
     /**
      * A <code>Y</code> compensation constant for {@link #anchorLocation(Location)}.
      */
     public static final double ANCHOR_COMPENSATION = 0.61d;
-
+    
     /**
      * An immutable {@link Map} of compensation {@link Tag}.
      */
@@ -67,19 +67,19 @@ public class BukkitUtils {
             Tag.SLABS, 0.5d,
             Tag.WOOL_CARPETS, 0.075d // This does NOT include moss carpet because fuck you
     );
-
+    
     /**
      * An immutable {@link Map} of soft-solid {@link Block} {@link Tag}s, such as carpets, sings, etc.
      */
     public static final Set<Tag<Material>> SOFT_SOLID_TAGS = Set.of(
             Tag.WOOL_CARPETS, Tag.ALL_SIGNS
     );
-
+    
     /**
      * A {@link Random} instance used by this class.
      */
     public static final Random RANDOM = new Random();
-
+    
     /**
      * Returns array item on provided index if exists, def otherwise.
      *
@@ -94,7 +94,7 @@ public class BukkitUtils {
         }
         return array[index];
     }
-
+    
     /**
      * Returns array item on provided index if exists, null otherwise.
      *
@@ -105,7 +105,7 @@ public class BukkitUtils {
     public static <T> T arrayItemOrNull(@Nonnull T[] array, int index) {
         return arrayItemOr(array, index, null);
     }
-
+    
     /**
      * Gets the online players as an array.
      *
@@ -113,9 +113,9 @@ public class BukkitUtils {
      */
     @Nonnull
     public static Player[] onlinePlayersAsArray() {
-        return Bukkit.getOnlinePlayers().toArray(new Player[] {});
+        return Bukkit.getOnlinePlayers().toArray(new Player[] { });
     }
-
+    
     /**
      * Stringifies location to readable format: "x, y, z"
      *
@@ -126,7 +126,7 @@ public class BukkitUtils {
     public static String locationToString(@Nonnull Location location) {
         return locationToString(location, "%s, %s, %s");
     }
-
+    
     /**
      * Stringifies location to readable format: "x, y, z (yaw, pitch)"
      *
@@ -138,7 +138,7 @@ public class BukkitUtils {
     public static String locationToString(@Nonnull Location location, boolean includeRotation) {
         return locationToString(location, "%s, %s, %s (%s, %s)", includeRotation);
     }
-
+    
     /**
      * Stringifies location to readable format.
      *
@@ -150,7 +150,7 @@ public class BukkitUtils {
     public static String locationToString(@Nonnull Location location, @Nonnull String format) {
         return String.format(format, location.getX(), location.getY(), location.getZ());
     }
-
+    
     /**
      * Stringifies location to readable format: "x, y, z (yaw, pitch)"
      *
@@ -168,7 +168,7 @@ public class BukkitUtils {
             return String.format(format, location.getX(), location.getY(), location.getZ());
         }
     }
-
+    
     /**
      * Create vector with velocity of provided distance in Y direction.
      *
@@ -179,7 +179,7 @@ public class BukkitUtils {
     public static Vector vector3Y(double distance) {
         return new Vector(0.0d, sqrtDistance(distance), 0.0d);
     }
-
+    
     /**
      * Squares the distance to (2 * distance * GRAVITY).
      *
@@ -189,32 +189,36 @@ public class BukkitUtils {
     public static double sqrtDistance(double distance) {
         return Math.sqrt(2 * distance * GRAVITY);
     }
-
+    
     /**
      * Converts tick into second for display purpose.
      *
      * @param tick - Tick to format.
      * @return formatted string.
+     * @deprecated {@link me.hapyl.eterna.module.math.Tick#round(int)}
      */
     @Nonnull
+    @Deprecated
     public static String roundTick(int tick) {
         return roundTick(tick, "");
     }
-
+    
     /**
      * Converts tick into second for display purpose.
      *
      * @param tick   - Tick to format.
      * @param suffix - Suffix to append if tick is divisible by 20.
      * @return formatted string.
+     * @deprecated {@link me.hapyl.eterna.module.math.Tick#round(int)}
      */
     @Nonnull
+    @Deprecated
     public static String roundTick(int tick, @Nonnull String suffix) {
         return tick % 20 == 0
-                ? ((tick / 20) + suffix)
-                : BukkitUtils.decimalFormat(tick / 20.0d) + suffix;
+               ? ((tick / 20) + suffix)
+               : BukkitUtils.decimalFormat(tick / 20.0d) + suffix;
     }
-
+    
     /**
      * Calls a bukkit event.
      *
@@ -223,7 +227,7 @@ public class BukkitUtils {
     public static void callEvent(@Nonnull Event event) {
         callCancellableEvent(event);
     }
-
+    
     /**
      * Calls a bukkit event and returns the canceled state.
      *
@@ -237,7 +241,7 @@ public class BukkitUtils {
         }
         return false;
     }
-
+    
     /**
      * Returns new location.
      *
@@ -248,7 +252,7 @@ public class BukkitUtils {
     public static Location newLocation(@Nonnull Location location) {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
-
+    
     /**
      * Returns new location with centered X, Y and Z.
      * This does not modify the original location.
@@ -260,7 +264,7 @@ public class BukkitUtils {
     public static Location centerLocation(@Nonnull Location location) {
         return new Location(location.getWorld(), location.getBlockX() + 0.5d, location.getBlockY() + 0.5d, location.getBlockZ() + 0.5d);
     }
-
+    
     /**
      * Locks all armor stand slots.
      *
@@ -273,7 +277,7 @@ public class BukkitUtils {
             }
         }
     }
-
+    
     /**
      * Unlocks all armor stand slots.
      *
@@ -286,7 +290,7 @@ public class BukkitUtils {
             }
         }
     }
-
+    
     /**
      * Returns spawn location of the world.
      *
@@ -296,7 +300,7 @@ public class BukkitUtils {
     public static Location getSpawnLocation(@Nonnull World world) {
         return world.getSpawnLocation();
     }
-
+    
     /**
      * Returns spawn location of a default world.
      *
@@ -305,7 +309,7 @@ public class BukkitUtils {
     public static Location getSpawnLocation() {
         return getSpawnLocation(Bukkit.getWorlds().get(0));
     }
-
+    
     /**
      * Merges one location's yaw and pitch to another.
      *
@@ -316,7 +320,7 @@ public class BukkitUtils {
         to.setPitch(from.getPitch());
         to.setYaw(from.getYaw());
     }
-
+    
     /**
      * Returns the closest entity to the location.
      *
@@ -326,9 +330,9 @@ public class BukkitUtils {
      */
     @Nullable
     public static Entity getClosestEntityTo(@Nonnull Collection<Entity> collection, @Nonnull Location location) {
-        return getClosestEntityTo(collection, location, new EntityType[] {});
+        return getClosestEntityTo(collection, location, new EntityType[] { });
     }
-
+    
     /**
      * Returns the closest entity to the location.
      *
@@ -342,10 +346,10 @@ public class BukkitUtils {
         if (collection.isEmpty()) {
             return null;
         }
-
+        
         Entity current = null;
         double closest = 0;
-
+        
         search:
         for (final Entity entity : collection) {
             for (final EntityType allowedType : allowedTypes) {
@@ -353,7 +357,7 @@ public class BukkitUtils {
                     continue search;
                 }
             }
-
+            
             // init if first entity
             final double distance = entity.getLocation().distance(location);
             if (current == null || distance <= closest) {
@@ -361,10 +365,10 @@ public class BukkitUtils {
                 closest = distance;
             }
         }
-
+        
         return current;
     }
-
+    
     /**
      * Changes player's held item amount.
      *
@@ -375,7 +379,7 @@ public class BukkitUtils {
         final ItemStack mainItem = player.getInventory().getItemInMainHand();
         mainItem.setAmount(mainItem.getAmount() - amount);
     }
-
+    
     /**
      * Changes player's held item amount if condition is met.
      *
@@ -388,7 +392,7 @@ public class BukkitUtils {
             removeHeldItem(player, amount);
         }
     }
-
+    
     /**
      * Performs DecimalFormat on a number.
      *
@@ -399,7 +403,7 @@ public class BukkitUtils {
     public static String decimalFormat(Number number, String format) {
         return new DecimalFormat(format).format(number);
     }
-
+    
     /**
      * Performs DecimalFormat on a number.
      * The default format is "0.0"
@@ -410,7 +414,7 @@ public class BukkitUtils {
     public static String decimalFormat(Number number) {
         return DECIMAL_FORMAT.format(number);
     }
-
+    
     /**
      * Runs runnable async using BukkitRunnable.
      *
@@ -419,7 +423,7 @@ public class BukkitUtils {
     public static void runAsync(@Nonnull Runnable runnable) {
         Runnables.runAsync(runnable);
     }
-
+    
     /**
      * Runs runnable synchronized to BukkitRunnable.
      *
@@ -428,7 +432,7 @@ public class BukkitUtils {
     public static void runSync(Runnable runnable) {
         Runnables.runSync(runnable);
     }
-
+    
     /**
      * Runs runnable synchronized with delayed.
      *
@@ -438,7 +442,7 @@ public class BukkitUtils {
     public static void runLater(Runnable runnable, int ticks) {
         Runnables.runLater(runnable, Math.max(ticks, 0));
     }
-
+    
     /**
      * Returns a random double between 0.0d-1.0d.
      *
@@ -447,7 +451,7 @@ public class BukkitUtils {
     public static double random() {
         return ThreadRandom.nextDouble();
     }
-
+    
     /**
      * Returns new centered location in the default world.
      *
@@ -459,7 +463,7 @@ public class BukkitUtils {
     public static Location defLocation(int x, int y, int z) {
         return defLocation(x + 0.5f, y + 0.5f, z + 0.5f);
     }
-
+    
     /**
      * Returns new centered location in the default world.
      *
@@ -471,7 +475,7 @@ public class BukkitUtils {
     public static Location defLocation(double x, double y, double z) {
         return new Location(Bukkit.getWorlds().get(0), x, y, z);
     }
-
+    
     /**
      * Returns new centered location in the default world.
      *
@@ -486,10 +490,10 @@ public class BukkitUtils {
         final Location location = defLocation(x, y, z);
         location.setYaw(yaw);
         location.setPitch(pitch);
-
+        
         return location;
     }
-
+    
     /**
      * Returns team with the same name from all players.
      * This is useful for per-player scoreboards, since teams are
@@ -500,17 +504,17 @@ public class BukkitUtils {
      */
     public static Set<Team> getTeamsFromAllPlayers(String name) {
         final Set<Team> teams = Sets.newHashSet();
-
+        
         for (Player player : Bukkit.getOnlinePlayers()) {
             final Team team = player.getScoreboard().getTeam(name);
             if (team != null) {
                 teams.add(team);
             }
         }
-
+        
         return teams;
     }
-
+    
     /**
      * Gets the first (default) world of this server, usually <code>world<code/>.
      *
@@ -520,7 +524,7 @@ public class BukkitUtils {
     public static World defWorld() {
         return Bukkit.getWorlds().getFirst();
     }
-
+    
     /**
      * Get the nearest living entity to the given location.
      *
@@ -534,25 +538,25 @@ public class BukkitUtils {
     @Nullable
     public static <T extends LivingEntity> T getNearestEntity(@Nonnull Location location, double x, double y, double z, @Nonnull Class<T> clazz) {
         final World world = location.getWorld();
-
+        
         if (world == null) {
             return null;
         }
-
+        
         final Collection<Entity> entities = world.getNearbyEntities(location, x, y, z);
-
+        
         if (entities.isEmpty()) {
             return null;
         }
-
+        
         T closest = null;
         double closestDist = Double.MAX_VALUE;
-
+        
         for (final Entity entity : entities) {
             if (!(entity instanceof LivingEntity living) || !clazz.isInstance(living)) {
                 continue;
             }
-
+            
             if (closest == null) {
                 closest = clazz.cast(living);
             }
@@ -564,10 +568,10 @@ public class BukkitUtils {
                 }
             }
         }
-
+        
         return closest;
     }
-
+    
     /**
      * Gets {@link Player}'s texture {@link Property}.
      *
@@ -577,14 +581,14 @@ public class BukkitUtils {
     @Nonnull
     public static Property getPlayerTextures(@Nonnull Player player) {
         final GameProfile profile = Reflect.getGameProfile(player);
-
+        
         return profile.getProperties()
-                .get("textures")
-                .stream()
-                .findFirst()
-                .orElse(new Property("null", "null"));
+                      .get("textures")
+                      .stream()
+                      .findFirst()
+                      .orElse(new Property("null", "null"));
     }
-
+    
     /**
      * Gets the {@link UUID} from the given {@link String}.
      *
@@ -596,14 +600,15 @@ public class BukkitUtils {
         if (string == null) {
             return null;
         }
-
+        
         try {
             return UUID.fromString(string);
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             return null;
         }
     }
-
+    
     /**
      * Convert bukkit {@link Location} into NMS {@link BlockPos}.
      *
@@ -614,7 +619,7 @@ public class BukkitUtils {
     public static BlockPos toBlockPosition(@Nonnull Location location) {
         return toBlockPosition(location.getX(), location.getY(), location.getZ());
     }
-
+    
     /**
      * Convert coordinates into NMS {@link BlockPos}.
      *
@@ -627,7 +632,7 @@ public class BukkitUtils {
     public static BlockPos toBlockPosition(double x, double y, double z) {
         return new BlockPos(roundToNearestInteger(x), roundToNearestInteger(y), roundToNearestInteger(z));
     }
-
+    
     /**
      * Rounds a {@link Double} to the nearest {@link Integer}.
      *
@@ -638,7 +643,7 @@ public class BukkitUtils {
         final int roundedNumber = (int) number;
         return number < (double) roundedNumber ? roundedNumber - 1 : roundedNumber;
     }
-
+    
     /**
      * Colorizes the array of {@link Object} into a {@link List} of {@link String}.
      *
@@ -649,14 +654,14 @@ public class BukkitUtils {
     @Nonnull
     public static List<String> colorStringArrayToList(@Nonnull Object[] objects) {
         final List<String> strings = Lists.newArrayList();
-
+        
         for (Object obj : objects) {
             strings.add(Chat.format(obj));
         }
-
+        
         return strings;
     }
-
+    
     /**
      * Creates a {@link NamespacedKey} from the given object.
      * <br>
@@ -669,7 +674,7 @@ public class BukkitUtils {
     public static NamespacedKey createKey(@Nonnull Object object) {
         return createKey(EternaPlugin.getPlugin(), object);
     }
-
+    
     /**
      * Creates a {@link NamespacedKey} from the given object.
      *
@@ -681,7 +686,7 @@ public class BukkitUtils {
     public static NamespacedKey createKey(@Nonnull JavaPlugin plugin, @Nonnull Object object) {
         return new NamespacedKey(plugin, String.valueOf(object));
     }
-
+    
     /**
      * Gets a {@link NamespacedKey} from the given {@link Keyed}.
      * <br>
@@ -698,7 +703,7 @@ public class BukkitUtils {
     public static <T extends Keyed> NamespacedKey getKey(@Nullable T keyed) {
         return Nulls.getOrDefault(keyed, Keyed::getKey, DUMMY_KEY);
     }
-
+    
     /**
      * Gets a {@link Keyed} element from the given {@link RegistryKey} by the given key.
      *
@@ -709,10 +714,10 @@ public class BukkitUtils {
     @Nullable
     public static <T extends Keyed> T getKeyed(@Nonnull RegistryKey<T> registry, @Nonnull String key) {
         return RegistryAccess.registryAccess()
-                .getRegistry(registry)
-                .get(NamespacedKey.minecraft(key));
+                             .getRegistry(registry)
+                             .get(NamespacedKey.minecraft(key));
     }
-
+    
     /**
      * Gets a {@link Keyed} element from the given {@link RegistryKey} by the given key.
      *
@@ -723,10 +728,10 @@ public class BukkitUtils {
     @Nonnull
     public static <T extends Keyed> T getKeyed(@Nonnull RegistryKey<T> registry, @Nonnull String key, @Nonnull T def) {
         final T value = getKeyed(registry, key);
-
+        
         return value != null ? value : def;
     }
-
+    
     /**
      * Returns true if the given {@link NamespacedKey} is a {@link BukkitUtils#DUMMY_KEY}, false otherwise.
      *
@@ -736,7 +741,7 @@ public class BukkitUtils {
     public static boolean isDummyKey(@Nullable NamespacedKey key) {
         return DUMMY_KEY.equals(key);
     }
-
+    
     /**
      * Finds a random {@link Location} around the given location.
      * <br>
@@ -756,10 +761,10 @@ public class BukkitUtils {
                 around.getYaw(),
                 around.getPitch()
         );
-
+        
         return anchorLocation(location.add(RANDOM.nextDouble(-max, max), 0, RANDOM.nextDouble(-max, max)));
     }
-
+    
     /**
      * <b>Attempts</b> to anchor the location, so it's directly on a block.
      *
@@ -776,62 +781,62 @@ public class BukkitUtils {
                 originalLocation.getYaw(),
                 originalLocation.getPitch()
         );
-
+        
         final World world = location.getWorld();
-
+        
         // in case in a half-block or a carpet
         location.add(0, ANCHOR_COMPENSATION, 0);
-
+        
         // Up
         while (true) {
             final Block block = location.getBlock();
-
+            
             if (location.getY() >= world.getMaxHeight() || !block.getType().isSolid()) {
                 break;
             }
-
+            
             location.add(0, 1, 0);
         }
-
+        
         // Down
         while (true) {
             final Block block = location.getBlock();
             final Block blockAbove = block.getRelative(BlockFace.UP);
             final Block blockBelow = block.getRelative(BlockFace.DOWN);
-
+            
             if (location.getY() <= world.getMinHeight()) {
                 return originalLocation; // fail-safe to NOT fall out of the world
             }
-
+            
             if (isBlockAirOrSoftSolid(blockAbove) && isBlockAirOrSoftSolid(block) && isBlockSolid(blockBelow)) {
                 break;
             }
-
+            
             location.subtract(0, 1, 0);
         }
-
+        
         // Compensate
         location.subtract(0, ANCHOR_COMPENSATION - 0.5d, 0);
-
+        
         // Compensate based on a block below
         final Material blockType = location.getBlock().getType();
         final Material blockBelowType = location.getBlock().getRelative(BlockFace.DOWN).getType();
-
+        
         ANCHOR_COMPENSATION_MAP.forEach((tag, value) -> {
             // If IN a block, compensate UP
             if (tag.isTagged(blockType)) {
                 location.add(0, value, 0);
             }
-
+            
             // If ABOVE a block, compensate DOWN
             else if (tag.isTagged(blockBelowType)) {
                 location.subtract(0, value, 0);
             }
         });
-
+        
         return location;
     }
-
+    
     /**
      * Returns true if the given {@link Block} is {@link Material#AIR}, {@link Material#isOccluding()} or soft-solid.
      *
@@ -841,20 +846,20 @@ public class BukkitUtils {
      */
     public static boolean isBlockAirOrSoftSolid(@Nonnull Block block) {
         final Material type = block.getType();
-
+        
         if (type.isAir() || !type.isOccluding()) {
             return true;
         }
-
+        
         for (Tag<Material> tag : SOFT_SOLID_TAGS) {
             if (tag.isTagged(type)) {
                 return true;
             }
         }
-
+        
         return false;
     }
-
+    
     /**
      * Returns true if the given {@link Block} is solid.
      *
@@ -864,13 +869,13 @@ public class BukkitUtils {
      */
     public static boolean isBlockSolid(@Nonnull Block block) {
         final Material type = block.getType();
-
+        
         return switch (type) {
             case BARRIER -> false;
             default -> type.isSolid();
         };
     }
-
+    
     /**
      * Returns a checkmark based on the condition.
      * <ul>
@@ -886,5 +891,5 @@ public class BukkitUtils {
     public static String checkmark(@Nullable Boolean condition) {
         return condition == null ? "" : condition ? (ChatColor.GREEN + "✔") : (ChatColor.RED + "❌");
     }
-
+    
 }
