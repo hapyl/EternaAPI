@@ -30,6 +30,7 @@ import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Placeholder;
+import me.hapyl.eterna.module.util.Runnables;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -387,6 +388,9 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         
         updateDataWatcher();
         updateSitting();
+        
+        // Hide tab name
+        Runnables.runLater(() -> human.hideTabName(player), 5);
     }
     
     @Override
