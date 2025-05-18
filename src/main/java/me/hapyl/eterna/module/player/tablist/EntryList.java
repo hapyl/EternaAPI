@@ -81,7 +81,7 @@ public class EntryList {
      * @param text - Text to append.
      * @return true if was appended; false otherwise.
      */
-    public boolean append(@Nonnull @SupportsColorFormatting String text) {
+    public boolean append(@Nonnull @SupportsColorFormatting Object text) {
         return append(text, null, null);
     }
 
@@ -93,7 +93,7 @@ public class EntryList {
      * @return true if was appended; false otherwise.
      * @see EntryTexture
      */
-    public boolean append(@Nonnull @SupportsColorFormatting String text, @Nullable EntryTexture texture) {
+    public boolean append(@Nonnull @SupportsColorFormatting Object text, @Nullable EntryTexture texture) {
         return append(text, texture, null);
     }
 
@@ -116,7 +116,7 @@ public class EntryList {
      * @param ping    - Ping to set.
      * @return true if was appended; false otherwise.
      */
-    public boolean append(@Nonnull @SupportsColorFormatting String text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
+    public boolean append(@Nonnull @SupportsColorFormatting Object text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
         return append0(text, texture != null ? texture.getStringArray() : null, ping);
     }
 
@@ -153,7 +153,9 @@ public class EntryList {
         Arrays.fill(array, null);
     }
 
-    protected boolean append0(String text, String[] texture, PingBars ping) {
+    protected boolean append0(Object obj, String[] texture, PingBars ping) {
+        final String text = String.valueOf(obj);
+        
         for (int i = 0; i < array.length; i++) {
             final EntryConsumer val = array[i];
 

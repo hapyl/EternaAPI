@@ -1,111 +1,138 @@
 package me.hapyl.eterna.module.math;
 
-import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.annotate.UtilityClass;
+
+import javax.annotation.Nonnull;
 
 /**
- * Ticks manipulations.
+ * A helper utility class for converting to and from ticks.
  */
+@UtilityClass
 public final class Tick {
-
+    
+    private Tick() {
+    }
+    
     /**
-     * Rounds tick to its string form. {@see BukkitUtils#roundTick(int)}
+     * Converts the given tick count to seconds and formats it to one decimal place with an <code>s</code> suffix.
+     * <pre>{@code
+     * Tick.format(20); // 1.0s
+     * Tick.format(40); // 2.0s
+     * Tick.format(15); // 0.7s
+     * Tick.format(69); // 3.4s
+     * }</pre>
      *
-     * @param tick - tick to round.
-     * @return rounded tick.
+     * @param tick – The number of ticks to format.
+     * @return the formatted time in seconds.
      */
+    @Nonnull
+    public static String format(int tick) {
+        return "%.1fs".formatted((double) tick / 20);
+    }
+    
+    /**
+     * Converts the given tick count to seconds and formats it with either no decimals (if whole) or one decimal.
+     * <pre>{@code
+     * Tick.round(20); // 1s
+     * Tick.round(40); // 2s
+     * Tick.round(15); // 0.7s
+     * Tick.round(69); // 3.4s
+     * }</pre>
+     *
+     * @param tick – The number of ticks to round and format.
+     * @return the rounded time in seconds.
+     */
+    @Nonnull
     public static String round(int tick) {
-        return BukkitUtils.roundTick(tick);
+        final double d = (double) tick / 20;
+        return tick % 20 == 0 ? "%.0fs".formatted(d) : "%.1fs".formatted(d);
     }
-
+    
     /**
-     * Rounds tick to its string form. {@see BukkitUtils#roundTick(int, String)}
+     * Converts hours to ticks.
+     * <p>The formula is: <pre>{@code (int) (hour * 20 * 60 * 60)}</pre></p>
      *
-     * @param tick   - tick to round.
-     * @param suffix - suffix to add.
-     * @return rounded tick.
+     * @param hour – The number of hours.
+     * @return the equivalent duration in ticks.
      */
-    public static String round(int tick, String suffix) {
-        return BukkitUtils.roundTick(tick, suffix);
-    }
-
-    /**
-     * Convert tick to hour.
-     *
-     * @param tick - tick to convert.
-     * @return hour.
-     */
-    public static long toHour(int tick) {
-        return tick / 20 / 60 / 60;
-    }
-
-    /**
-     * Convert hour to tick.
-     *
-     * @param hour - hour to convert.
-     * @return tick.
-     */
-    public static int fromHour(long hour) {
+    public static int fromHours(float hour) {
         return (int) (hour * 20 * 60 * 60);
     }
-
+    
     /**
-     * Convert tick to minute.
+     * Converts ticks to hours.
+     * <p>The formula is: <pre>{@code tick / 20f / 60f / 60f}</pre></p>
      *
-     * @param tick - tick to convert.
-     * @return minute.
+     * @param tick – The number of ticks.
+     * @return the equivalent duration in hours.
      */
-    public static long toMinute(int tick) {
-        return tick / 20 / 60;
+    public static float toHours(int tick) {
+        return tick / 20f / 60f / 60f;
     }
-
+    
     /**
-     * Convert minute to tick.
+     * Converts minutes to ticks.
+     * <p>The formula is: <pre>{@code (int) (minutes * 20 * 60)}</pre></p>
      *
-     * @param minute - minute to convert.
-     * @return tick.
+     * @param minutes – The number of minutes.
+     * @return the equivalent duration in ticks.
      */
-    public static int fromMinute(long minute) {
-        return (int) (minute * 20 * 60);
+    public static int fromMinutes(float minutes) {
+        return (int) (minutes * 20 * 60);
     }
-
+    
     /**
-     * Convert tick to second.
+     * Converts ticks to minutes.
+     * <p>The formula is: <pre>{@code tick / 20f / 60f}</pre></p>
      *
-     * @param tick - tick to convert.
-     * @return second.
+     * @param tick – The number of ticks.
+     * @return the equivalent duration in minutes.
      */
-    public static long toSecond(long tick) {
-        return tick / 20;
+    public static float toMinutes(int tick) {
+        return tick / 20f / 60f;
     }
-
+    
     /**
-     * Convert second to tick.
+     * Converts seconds to ticks.
+     * <p>The formula is: <pre>{@code Math.round(second * 20f)}</pre></p>
      *
-     * @param second - second to convert.
-     * @return tick.
+     * @param second – The number of seconds.
+     * @return the equivalent duration in ticks.
      */
-    public static int fromSecond(long second) {
-        return (int) (second * 20);
+    public static int fromSeconds(float second) {
+        return Math.round(second * 20f);
     }
-
+    
     /**
-     * Convert tick to millisecond.
+     * Converts ticks to seconds.
+     * <p>The formula is: <pre>{@code tick / 20f}</pre></p>
      *
-     * @param tick - tick to convert.
-     * @return millisecond.
+     * @param tick – The number of ticks.
+     * @return the equivalent duration in seconds.
      */
-    public static long toMillis(long tick) {
-        return tick * 50;
+    public static float toSeconds(int tick) {
+        return tick / 20f;
     }
-
+    
     /**
-     * Convert millisecond to tick.
+     * Converts milliseconds to ticks.
+     * <p>The formula is: <pre>{@code Math.round(millis / 50f)}</pre></p>
      *
-     * @param millis - millisecond to convert.
-     * @return tick.
+     * @param millis – The number of milliseconds.
+     * @return the equivalent duration in ticks.
      */
-    public static int fromMillis(long millis) {
-        return (int) (millis / 50);
+    public static int fromMillis(float millis) {
+        return Math.round(millis / 50f);
     }
-
+    
+    /**
+     * Converts ticks to milliseconds.
+     * <p>The formula is: <pre>{@code ticks * 50f}</pre></p>
+     *
+     * @param ticks – The number of ticks.
+     * @return the equivalent duration in milliseconds.
+     */
+    public static float toMillis(int ticks) {
+        return ticks * 50f;
+    }
 }
