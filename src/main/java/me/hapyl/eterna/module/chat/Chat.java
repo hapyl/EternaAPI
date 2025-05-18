@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.chat;
 
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.util.BFormat;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -18,10 +19,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -30,12 +30,27 @@ import java.util.function.Function;
  * @author hapyl
  */
 public final class Chat {
-
-    public static final char ALTERNATE_COLOR_CHAR = '&';
-
+    
+    public static final char ALTERNATE_COLOR_CHAR;
+    
+    private static final Method methodFromString;
+    
+    static {
+        ALTERNATE_COLOR_CHAR = '&';
+        
+        try {
+            final Class<?> clazz = Class.forName("org.bukkit.craftbukkit.util.CraftChatMessage");
+            methodFromString = clazz.getDeclaredMethod("fromStringOrEmpty", String.class);
+            
+        }
+        catch (Exception e) {
+            throw EternaLogger.exception(e);
+        }
+    }
+    
     private Chat() {
     }
-
+    
     /**
      * Safely returns ItemStack name if present, prettified material name otherwise.
      *
@@ -45,10 +60,10 @@ public final class Chat {
     @Nonnull
     public static String getItemName(@Nonnull ItemStack stack) {
         final ItemMeta meta = stack.getItemMeta();
-
+        
         return meta != null ? meta.getDisplayName() : stringifyItemName(stack.getType());
     }
-
+    
     /**
      * Prettifies ItemStack name and amount.
      *
@@ -59,7 +74,7 @@ public final class Chat {
     public static String stringifyItemStack(@Nonnull ItemStack stack) {
         return String.format("x%s %s", stack.getAmount(), getItemName(stack));
     }
-
+    
     /**
      * Formats the string by coloring it with {@link Chat#ALTERNATE_COLOR_CHAR} and {@link ColorBlockParser}.
      *
@@ -69,15 +84,15 @@ public final class Chat {
     @Nonnull
     public static String format(@Nonnull Object input) {
         String string = color(input);
-
+        
         // Parse color text if possible
         if (ColorBlockParser.canParse(string)) {
             string = ColorBlockParser.parse(string);
         }
-
+        
         return string;
     }
-
+    
     /**
      * Colors the given string with an {@link Chat#ALTERNATE_COLOR_CHAR}.
      *
@@ -88,7 +103,7 @@ public final class Chat {
     public static String color(@Nonnull Object string) {
         return ChatColor.translateAlternateColorCodes(ALTERNATE_COLOR_CHAR, String.valueOf(string));
     }
-
+    
     /**
      * Returns a {@link Text} component from a give input.
      *
@@ -99,7 +114,7 @@ public final class Chat {
     public static Text text(@Nonnull Object input) {
         return new Text(Chat.format(input));
     }
-
+    
     /**
      * Sends a {@link Chat#bformat(String, Object...)} formatted message to a player.
      *
@@ -110,7 +125,7 @@ public final class Chat {
     public static void sendFormat(@Nonnull Player player, @Nonnull String string, @Nonnull Object... objects) {
         player.sendMessage(bformat(string, objects));
     }
-
+    
     /**
      * Sends a formatted message to a sender.
      *
@@ -120,7 +135,7 @@ public final class Chat {
     public static void sendMessage(@Nonnull CommandSender sender, @Nonnull Object message) {
         sender.sendMessage(format(message));
     }
-
+    
     /**
      * Sends a formatted message to a player.
      *
@@ -130,7 +145,7 @@ public final class Chat {
     public static void sendMessage(@Nonnull Player player, @Nonnull Object message) {
         sendMessage((CommandSender) player, message);
     }
-
+    
     /**
      * Performs a 'bformat' to a string.
      *
@@ -143,7 +158,7 @@ public final class Chat {
     public static String bformat(@Nonnull String input, @Nonnull Object... objects) {
         return Chat.format(BFormat.format(input, objects));
     }
-
+    
     /**
      * Converts seconds into an array of time formatted as such: [hours, minutes, seconds]
      *
@@ -155,14 +170,15 @@ public final class Chat {
             long hours = Math.max(0, sec / 3600);
             long minutes = Math.max(0, (sec % 3600) / 60);
             long seconds = Math.max(0, sec % 60);
-
+            
             return new long[] { hours, minutes, seconds };
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
             e.printStackTrace();
             return new long[3];
         }
     }
-
+    
     /**
      * Formats seconds into string formatted as such: 0h 0m 0s
      *
@@ -179,7 +195,7 @@ public final class Chat {
         }
         return new SimpleDateFormat("ss").format(millis);
     }
-
+    
     /**
      * Prettifies material name as such: MATERIAL_NAME -> Material Name
      *
@@ -190,7 +206,7 @@ public final class Chat {
     public static String stringifyItemName(@Nonnull Material material) {
         return capitalize(material.name());
     }
-
+    
     /**
      * Converts an array of T to a String separated by space.
      *
@@ -202,7 +218,7 @@ public final class Chat {
     @Nonnull
     public static <T> String arrayToString(@Nonnull T[] array, int startAt) {
         final StringBuilder builder = new StringBuilder();
-
+        
         for (int i = startAt; i < array.length; i++) {
             if (i != startAt) {
                 builder.append(" ");
@@ -210,10 +226,10 @@ public final class Chat {
             
             builder.append(array[i]);
         }
-
+        
         return builder.toString().trim();
     }
-
+    
     /**
      * Converts an array of T to List of String
      *
@@ -224,14 +240,14 @@ public final class Chat {
     @Nonnull
     public static <T> List<String> arrayToList(@Nonnull T[] array) {
         final List<String> newList = new ArrayList<>(array.length);
-
+        
         for (final T t : array) {
             newList.add(String.valueOf(t));
         }
-
+        
         return newList;
     }
-
+    
     /**
      * Sorts List based on last value of last args.
      *
@@ -244,7 +260,7 @@ public final class Chat {
     public static List<String> tabCompleterSort(@Nonnull List<?> list, @Nonnull String[] args, boolean forceLowerCase) {
         return tabCompleterSort0(list, args, forceLowerCase, true);
     }
-
+    
     /**
      * Sorts List based on last value of last args.
      *
@@ -258,7 +274,7 @@ public final class Chat {
     public static List<String> tabCompleterSort0(@Nonnull List<?> list, @Nonnull String[] args, boolean forceLowerCase, boolean method) {
         final List<String> result = new ArrayList<>();
         String latest = args[args.length - 1];
-
+        
         if (forceLowerCase) {
             latest = latest.toLowerCase();
         }
@@ -267,7 +283,7 @@ public final class Chat {
             if (forceLowerCase) {
                 str = str.toLowerCase();
             }
-
+            
             if (str.startsWith(latest) && method) {
                 result.add(str);
             }
@@ -275,10 +291,10 @@ public final class Chat {
                 result.add(str);
             }
         }
-
+        
         return result;
     }
-
+    
     /**
      * @see Chat#tabCompleterSort(List, String[], boolean)
      */
@@ -286,7 +302,7 @@ public final class Chat {
     public static List<String> tabCompleterSort(@Nonnull List<?> list, @Nonnull String[] args) {
         return tabCompleterSort(list, args, true);
     }
-
+    
     /**
      * Capitalizes string.
      *
@@ -297,7 +313,7 @@ public final class Chat {
     public static String capitalize(@Nonnull String str) {
         return WordUtils.capitalize(str.toLowerCase().replace('_', ' '));
     }
-
+    
     /**
      * Capitalizes Enum name.
      *
@@ -308,7 +324,7 @@ public final class Chat {
     public static String capitalize(@Nonnull Enum<?> enumQ) {
         return capitalize(enumQ.name());
     }
-
+    
     /**
      * Sends centered message to player.
      *
@@ -318,7 +334,7 @@ public final class Chat {
     public static void sendCenterMessage(@Nonnull CommandSender sender, @Nonnull Object message) {
         sender.sendMessage(CenterChat.makeString(Chat.format(message)));
     }
-
+    
     /**
      * Broadcasts a centered message to all online players.
      *
@@ -327,7 +343,7 @@ public final class Chat {
     public static void broadcastCenterMessage(@Nonnull Object message) {
         Bukkit.getOnlinePlayers().forEach(player -> sendCenterMessage(player, message));
     }
-
+    
     /**
      * Sends a clickable message to a player.
      *
@@ -338,7 +354,7 @@ public final class Chat {
     public static void sendClickableMessage(@Nonnull CommandSender sender, @Nonnull String runCommand, @Nonnull String message) {
         sendClickableMessage(sender, LazyClickEvent.RUN_COMMAND.of(runCommand), message);
     }
-
+    
     /**
      * Sends hoverable message to a player.
      *
@@ -349,7 +365,7 @@ public final class Chat {
     public static void sendHoverableMessage(@Nonnull CommandSender sender, @Nonnull String showText, @Nonnull String message) {
         sendHoverableMessage(sender, LazyHoverEvent.SHOW_TEXT.of(showText), message);
     }
-
+    
     /**
      * Sends a clickable and hoverable message to a player.
      *
@@ -366,7 +382,7 @@ public final class Chat {
                 message
         );
     }
-
+    
     /**
      * Sends a clickable message to a player.
      *
@@ -383,7 +399,7 @@ public final class Chat {
                         .create()
         );
     }
-
+    
     /**
      * Sends hoverable message to a player.
      *
@@ -400,7 +416,7 @@ public final class Chat {
                         .create()
         );
     }
-
+    
     /**
      * Sends clicakble and hoverable message to a player.
      *
@@ -420,7 +436,7 @@ public final class Chat {
                         .create()
         );
     }
-
+    
     /**
      * Sends an actionbar message (above hotbar) to a player.
      *
@@ -430,7 +446,7 @@ public final class Chat {
     public static void sendActionbar(@Nonnull Player player, @Nonnull Object message) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(format(message)));
     }
-
+    
     /**
      * Sends a title and subtitle message to a player.
      *
@@ -444,7 +460,7 @@ public final class Chat {
     public static void sendTitle(@Nonnull Player player, @Nonnull String title, @Nonnull String subtitle, int fadeIn, int stay, int fadeOut) {
         player.sendTitle(Chat.format(title.isEmpty() ? " " : title), Chat.format(subtitle), fadeIn, stay, fadeOut);
     }
-
+    
     /**
      * Sends a title to all online players.
      *
@@ -459,7 +475,7 @@ public final class Chat {
             sendTitle(player, title, subtitle, fadeIn, stay, fadeOut);
         });
     }
-
+    
     /**
      * Clears the title for the given player.
      *
@@ -468,14 +484,14 @@ public final class Chat {
     public static void clearTitle(@Nonnull Player player) {
         player.resetTitle();
     }
-
+    
     /**
      * Clears the title for each online player.
      */
     public static void clearTitles() {
         Bukkit.getOnlinePlayers().forEach(Player::resetTitle);
     }
-
+    
     /**
      * Broadcasts a message to the whole server.
      *
@@ -484,7 +500,7 @@ public final class Chat {
     public static void broadcast(@Nonnull String string) {
         Bukkit.broadcastMessage(format(string));
     }
-
+    
     /**
      * Broadcasts a message to server operators.
      *
@@ -492,11 +508,11 @@ public final class Chat {
      */
     public static void broadcastOp(@Nonnull String string) {
         Bukkit.getOnlinePlayers()
-                .stream()
-                .filter(Player::isOp)
-                .forEach(player -> Chat.sendMessage(player, string));
+              .stream()
+              .filter(Player::isOp)
+              .forEach(player -> Chat.sendMessage(player, string));
     }
-
+    
     /**
      * Reverses the string completely.
      * <pre>
@@ -510,22 +526,22 @@ public final class Chat {
     public static String reverseString(@Nonnull String input) {
         final StringBuilder builder = new StringBuilder();
         final String[] strings = input.split(" ");
-
+        
         for (int i = strings.length - 1; i >= 0; i--) {
             if (i != strings.length) {
                 builder.append(" ");
             }
-
+            
             final char[] chars = strings[i].toCharArray();
-
+            
             for (int j = chars.length - 1; j >= 0; j--) {
                 builder.append(chars[j]);
             }
         }
-
+        
         return builder.toString().trim();
     }
-
+    
     /**
      * Appends an integer with an appropriate <code>st</code>, <code>nd</code> or <code>th</code>.
      *
@@ -537,9 +553,9 @@ public final class Chat {
         if (i >= 11 && i <= 13) {
             return i + "th";
         }
-
+        
         final int lastDigit = i % 10;
-
+        
         return i + switch (lastDigit) {
             case 1 -> "st";
             case 2 -> "nd";
@@ -547,7 +563,7 @@ public final class Chat {
             default -> "th";
         };
     }
-
+    
     /**
      * Returns a colored fractional string with the following format:
      * <pre>
@@ -564,7 +580,7 @@ public final class Chat {
     public static String makeStringFractional(int current, int max) {
         final float percent = (float) current / max;
         final ChatColor color;
-
+        
         if (percent >= 1.0f) {
             color = ChatColor.GREEN;
         }
@@ -577,10 +593,10 @@ public final class Chat {
         else {
             color = ChatColor.RED;
         }
-
+        
         return "%s%s&7/&a%s".formatted(color, current, max);
     }
-
+    
     /**
      * Makes a string from the given collection, following the format:
      * <pre>
@@ -598,26 +614,26 @@ public final class Chat {
         final StringBuilder builder = new StringBuilder();
         final int size = collection.size();
         int index = 0;
-
+        
         for (T t : collection) {
             if (size == 1) {
                 return fn.apply(t);
             }
-
+            
             if (index == size - 1) {
                 builder.append(" and ");
             }
             else if (index != 0) {
                 builder.append(", ");
             }
-
+            
             builder.append(fn.apply(t));
             ++index;
         }
-
+        
         return builder.toString();
     }
-
+    
     /**
      * Makes a string from the given array, following the format:
      * <pre>
@@ -634,7 +650,7 @@ public final class Chat {
     public static <T> String makeStringCommaAnd(@Nonnull T[] collection, @Nonnull Function<T, String> fn) {
         return makeStringCommaAnd(List.of(collection), fn);
     }
-
+    
     /**
      * Returns a formatted {@link Component}.
      *
@@ -643,6 +659,11 @@ public final class Chat {
      */
     @Nonnull
     public static Component component(@Nonnull String newText) {
-        return Component.literal(format(newText));
+        try {
+            return (Component) methodFromString.invoke(null, Chat.format(newText));
+        } catch (Exception e) {
+            throw EternaLogger.exception(e);
+        }
     }
+    
 }
