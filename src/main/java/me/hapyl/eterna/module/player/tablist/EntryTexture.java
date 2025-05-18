@@ -14,6 +14,7 @@ import java.util.Map;
  * <p>
  * You can generate or browse textures <a href="https://mineskin.org/">here</a>.
  */
+@SuppressWarnings("deprecation")
 public final class EntryTexture {
 
     private static final Map<ChatColor, EntryTexture> chatColorMapped = Maps.newHashMap();
@@ -198,7 +199,7 @@ public final class EntryTexture {
         return new String[] { value[0], value[1] };
     }
 
-    protected String[] getStringArray() {
+    String[] getStringArray() {
         return value;
     }
 

@@ -180,32 +180,6 @@ public final class EternaRuntimeTest {
             }
         });
         
-        addTest(new EternaTest("fakePlayer") {
-            @Override
-            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final TablistEntry fake = new TablistEntry("test test 1").setTexture(EntryTexture.BLACK);
-                final TablistEntry fake2 = new TablistEntry("test test 2").setTexture(EntryTexture.RED);
-                
-                fake.show(player);
-                fake2.show(player);
-                
-                info(player, "Shown");
-                
-                later(
-                        () -> {
-                            info(player, "Hid");
-                            
-                            fake.hide(player);
-                            fake2.hide(player);
-                            
-                            assertTestPassed();
-                        }, 20
-                );
-                
-                return false;
-            }
-        });
-        
         addTest(new EternaTest("glowing") {
             
             final String teamName = "dummyTeam";
@@ -235,10 +209,12 @@ public final class EternaRuntimeTest {
                 
                 Glowing.setGlowing(player, entity, GlowingColor.YELLOW, 120);
                 
-                later(() -> {
-                    info(player, "Changing color...");
-                    Glowing.setGlowing(player, entity, GlowingColor.BLUE);
-                }, 40);
+                later(
+                        () -> {
+                            info(player, "Changing color...");
+                            Glowing.setGlowing(player, entity, GlowingColor.BLUE);
+                        }, 40
+                );
                 
                 return false;
             }
@@ -888,14 +864,10 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("tablist") {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final Tablist tablist = new Tablist();
+                final Tablist tablist = new Tablist(player);
                 final Tablist oldTablist = Tablist.getPlayerTabList(player);
                 
-                if (oldTablist != null) {
-                    oldTablist.destroy();
-                }
-                
-                Bukkit.getOnlinePlayers().forEach(tablist::show);
+                tablist.show();
                 
                 final BukkitTask task = new BukkitRunnable() {
                     @Override
@@ -910,6 +882,8 @@ public final class EternaRuntimeTest {
                             entryList.append(player.getName(), EntryTexture.of(player));
                         });
                         
+                        entryList.append(new Random().nextDouble() * 1000, null, Enums.getRandomValue(PingBars.class));
+                        
                         final EntryList entryList2 = new EntryList();
                         
                         for (ChatColor color : ChatColor.values()) {
@@ -920,22 +894,22 @@ public final class EternaRuntimeTest {
                             entryList2.append(color.name(), EntryTexture.of(color));
                         }
                         
-                        tablist.setColumn(0, entryList);
+                        tablist.setColumn(TablistColumn.FIRST, entryList);
                         
                         tablist.setColumn(
-                                1,
+                                TablistColumn.SECOND,
                                 entryList2
                         );
                         
                         tablist.setColumn(
-                                2,
+                                TablistColumn.THIRD,
                                 "&2Friends:",
                                 "&8Friends? What friends?"
                         );
                         
                         int pingIndex = 0;
                         for (PingBars ping : PingBars.values()) {
-                            final TablistEntry entry = tablist.getEntry(3, pingIndex++);
+                            final TablistEntry entry = tablist.getEntry(TablistColumn.THIRD, pingIndex++);
                             
                             entry.setPing(ping);
                         }
@@ -944,7 +918,7 @@ public final class EternaRuntimeTest {
                 }.runTaskTimer(EternaPlugin.getPlugin(), 0, 20);
                 
                 tablist.setColumn(
-                        1,
+                        TablistColumn.FOURTH,
                         "&e&lHELLO WORLD",
                         "This is a test",
                         "",
@@ -962,8 +936,9 @@ public final class EternaRuntimeTest {
                         "",
                         "",
                         "",
-                        "",
-                        ""
+                        "pre-last",
+                        "last",
+                        "LAST!!!!!!!"
                 );
                 
                 later(
@@ -2348,12 +2323,14 @@ public final class EternaRuntimeTest {
                                 eternaplayer.updatePing(player);
                                 
                                 if (value.ordinal() == PingBars.values().length - 1) {
-                                    later(() -> {
-                                        eternaplayer.hide(player);
-                                        eternaplayer = null;
-                                        
-                                        assertTestPassed();
-                                    }, 20);
+                                    later(
+                                            () -> {
+                                                eternaplayer.hide(player);
+                                                eternaplayer = null;
+                                                
+                                                assertTestPassed();
+                                            }, 20
+                                    );
                                 }
                             }, (value.ordinal() + 1) * 20
                     );
@@ -2384,11 +2361,13 @@ public final class EternaRuntimeTest {
                     info(player, "present = " + s);
                 });
                 
-                optNull.ifPresentOrElse(s -> {
-                    assertFail("opt null must be null!");
-                }, () -> {
-                    info(player, "null = true");
-                });
+                optNull.ifPresentOrElse(
+                        s -> {
+                            assertFail("opt null must be null!");
+                        }, () -> {
+                            info(player, "null = true");
+                        }
+                );
                 
                 String mapped = opt.map(s -> s + " world").get();
                 assertTrue(mapped.equals("hello world"));

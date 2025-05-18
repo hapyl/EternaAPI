@@ -43,6 +43,11 @@ public class EternaPlayer extends ServerPlayer {
         setConnection();
     }
     
+    @Override
+    public UUID getUUID() {
+        return getGameProfile().getId();
+    }
+    
     /**
      * Sets the ping of this {@link EternaPlayer}.
      *
@@ -53,7 +58,7 @@ public class EternaPlayer extends ServerPlayer {
         try {
             FieldUtils.writeField(this.connection, "latency", ping, true);
         } catch (Exception e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
     }
 
