@@ -15,6 +15,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
@@ -311,7 +312,12 @@ public class DisplayEntity implements Iterable<Display>, Display {
     public boolean eject() {
         return false;
     }
-
+    
+    @Override
+    public @NotNull ItemStack getPickItemStack() {
+        return new ItemStack(Material.AIR);
+    }
+    
     @Override
     public float getFallDistance() {
         return head.getFallDistance();
