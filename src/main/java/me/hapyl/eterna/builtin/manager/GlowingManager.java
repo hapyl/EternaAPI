@@ -1,5 +1,6 @@
 package me.hapyl.eterna.builtin.manager;
 
+import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.glowing.GlowingInstance;
@@ -7,6 +8,7 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -37,5 +39,11 @@ public class GlowingManager extends EternaManager<Player, Glowing> {
     
     public void emptyOrphans() {
         managing.keySet().removeIf(player -> !player.isOnline());
+    }
+    
+    @Nonnull
+    @Override
+    protected Map<Player, Glowing> makeNewMap() {
+        return Maps.newConcurrentMap();
     }
 }
