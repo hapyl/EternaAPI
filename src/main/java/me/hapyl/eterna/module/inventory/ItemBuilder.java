@@ -80,7 +80,7 @@ public class ItemBuilder implements Cloneable, Keyed {
     
     private static final char MANUAL_SPLIT_CHAR = '_';
     
-    private static final java.util.regex.Pattern BASE64_DECODE_PATTERN = java.util.regex.Pattern.compile("\"url\":\"(http[^\"]+)\"");
+    private static final java.util.regex.Pattern BASE64_DECODE_PATTERN = java.util.regex.Pattern.compile("\"url\"\\s*:\\s*\"(http[^\"]+)\"");
     private static final String PLUGIN_PATH = "item_key";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
     
@@ -2317,8 +2317,7 @@ public class ItemBuilder implements Cloneable, Keyed {
      * Decodes the base64 texture into a {@link #URL_TEXTURE_LINK} link.
      *
      * @param texture64 - Base64.
-     * @return the decoded link without {@link #URL_TEXTURE_LINK}.
-     * @throws IllegalArgumentException - If the base64 is invalid.
+     * @return the decoded link without {@link #URL_TEXTURE_LINK}, or an empty string is invalid texture.
      */
     @Nonnull
     public static String decodeBase64(@Nonnull String texture64) {
@@ -2331,7 +2330,7 @@ public class ItemBuilder implements Cloneable, Keyed {
             return texture.replace(URL_TEXTURE_LINK, "");
         }
         
-        throw new IllegalArgumentException("Invalid texture!");
+        return "";
     }
     
     /**

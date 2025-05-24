@@ -2,22 +2,16 @@ package me.hapyl.eterna.module.block.display;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.util.Enums;
-import me.hapyl.eterna.module.util.Validate;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
-import org.checkerframework.checker.index.qual.SearchIndexBottom;
-import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
 
