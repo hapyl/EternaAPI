@@ -17,10 +17,10 @@ public class GlowingManager extends EternaManager<Player, Glowing> {
         super(eterna);
     }
     
-    @Nonnull
+    @Nullable
     @Override
     public Glowing get(@Nonnull Player player) {
-        return Objects.requireNonNull(super.get(player), "Illegal get() call!");
+        return Objects.requireNonNull(super.get(player), "Illegal get() call, use get(Player, Function)!");
     }
     
     @Nonnull
@@ -31,7 +31,11 @@ public class GlowingManager extends EternaManager<Player, Glowing> {
     @Nullable
     public GlowingInstance getGlowing(int entityId) {
         for (Glowing glowing : managing.values()) {
-            return glowing.byId(entityId);
+            final GlowingInstance instance = glowing.byId(entityId);
+            
+            if (instance != null) {
+                return instance;
+            }
         }
         
         return null;
@@ -44,6 +48,6 @@ public class GlowingManager extends EternaManager<Player, Glowing> {
     @Nonnull
     @Override
     protected Map<Player, Glowing> makeNewMap() {
-        return Maps.newConcurrentMap();
+        return Maps.newConcurrentMap(); // Dealing with packets, better to use concurrent
     }
 }

@@ -143,7 +143,7 @@ public class GlowingInstance implements Ticking, Removable {
         return entity.isDead() || duration != Glowing.INFINITE_DURATION && duration <= 0;
     }
     
-    protected void sendGlowingPacket(boolean flag) {
+    public void sendGlowingPacket(boolean flag) {
         final SynchedEntityData dataWatcher = Reflect.getDataWatcher(Reflect.getMinecraftEntity(entity));
         final Byte bitMask = dataWatcher.get(DataWatcherType.BYTE.get().createAccessor(0));
         

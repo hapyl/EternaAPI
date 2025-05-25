@@ -9,18 +9,14 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Provides per-player entity glowing with color changing support.
  * <p>
- * <h2>Warning!</h2>
- * Because how stupid Minecraft is, the glowing color is based on entity's team and there is no way to override that.
- * Meaning changing entity's team or player's scoreboard <b><u>will</u></b> break glowing.
- * </p>
+ * <h2>Note!</h2>
+ * Because Minecraft is a stupid game, the glowing color is client-side and based on the entity's team.
+ * This module using packet teams, but changing the <b>actual</b> entity team might break the glowing; I either can't or won't fix it. -h
  *
  * @see #setGlowing(Player, Entity, GlowingColor, int)
  * @see #stopGlowing(Player, Entity)
@@ -71,9 +67,10 @@ public class Glowing implements Ticking {
      */
     @Nullable
     public GlowingInstance byId(int entityId) {
-        for (Map.Entry<Entity, GlowingInstance> entry : entityMap.entrySet()) {
-            if (entry.getKey().getEntityId() == entityId) {
-                return entry.getValue();
+        for (GlowingInstance instance : entityMap.values()) {
+            // jesus fuck I spent 4 hours looks for a bug and THIS
+            if (instance.entity().getEntityId() == entityId) {
+                return instance;
             }
         }
         
@@ -140,8 +137,8 @@ public class Glowing implements Ticking {
         for (final Iterator<GlowingInstance> iterator = playerGlowing(player).entityMap.values().iterator(); iterator.hasNext(); ) {
             final GlowingInstance instance = iterator.next();
             
+            instance.remove(); // Remove instance first because it will ignore the packet
             iterator.remove();
-            instance.remove();
         }
     }
     
@@ -193,7 +190,7 @@ public class Glowing implements Ticking {
                 entity,
                 e -> new GlowingInstance(
                         player,
-                        entity,
+                        e,
                         color != null ? color : DEFAULT_COLOR,
                         duration != null ? duration : INFINITE_DURATION
                 )
@@ -209,8 +206,13 @@ public class Glowing implements Ticking {
         }
     }
     
+    @Override
+    public String toString() {
+        return entityMap.toString();
+    }
+    
     private static Glowing playerGlowing(Player player) {
-        return Eterna.getManagers().glowing.get(player, Glowing::new);
+        return Eterna.getManagers().glowing.get(player, u -> new Glowing(player));
     }
     
 }
