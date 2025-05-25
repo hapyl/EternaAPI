@@ -212,7 +212,7 @@ public class Glowing implements Ticking {
     }
     
     private static Glowing playerGlowing(Player player) {
-        return Eterna.getManagers().glowing.get(player, u -> new Glowing(player));
+        return Eterna.getManagers().glowing.get(player, Glowing::new);
     }
     
 }

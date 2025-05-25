@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
+import me.hapyl.eterna.module.reflect.team.PacketTeamSyncer;
 import me.hapyl.eterna.module.util.Removable;
 import me.hapyl.eterna.module.util.Ticking;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -100,6 +101,9 @@ public class GlowingInstance implements Ticking, Removable {
     
     @Override
     public void tick() {
+        // Synchronize from the existing team, so it updates everything
+        team.synchronize(player, PacketTeamSyncer.NO_COLOR);
+        
         if (duration == Glowing.INFINITE_DURATION) {
             return;
         }
@@ -143,7 +147,7 @@ public class GlowingInstance implements Ticking, Removable {
         return entity.isDead() || duration != Glowing.INFINITE_DURATION && duration <= 0;
     }
     
-    public void sendGlowingPacket(boolean flag) {
+    protected void sendGlowingPacket(boolean flag) {
         final SynchedEntityData dataWatcher = Reflect.getDataWatcher(Reflect.getMinecraftEntity(entity));
         final Byte bitMask = dataWatcher.get(DataWatcherType.BYTE.get().createAccessor(0));
         
