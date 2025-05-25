@@ -38,6 +38,14 @@ public class GlowingProtocolMetadataListener implements Listener {
             return;
         }
         
+        // If the player who's receiving the packet isn't the player instance owner, cancel the packet and return
+        if (!player.equals(instance.player())) {
+            ev.setCancelled(true);
+            return;
+        }
+        
+        // Otherwise do some changes and resend the packet
+        
         final WrappedPacketPlayOutEntityMetadata.WrappedDataWatcherValueList packedItems = packet.getWrappedDataWatcherValueList();
         
         for (WrappedPacketPlayOutEntityMetadata.WrappedDataWatcherValue item : packedItems) {
@@ -52,15 +60,9 @@ public class GlowingProtocolMetadataListener implements Listener {
         
         final ClientboundSetEntityDataPacket newPacket = new ClientboundSetEntityDataPacket(entityId, packedItems.getAsDataWatcherObjectList());
         
-        // Minecraft is annoying with the metadata and will send a Metadata Packet to all
-        // nearby players, we need to cancel the event and send our magic packet to the target.
-        ev.setCancelled(true);
-        
         // Only send the packet to the instance player
-        if (player.equals(instance.player())) {
-            ignoredPackets.add(newPacket);
-            Reflect.sendPacket(player, newPacket);
-        }
+        ignoredPackets.add(newPacket);
+        Reflect.sendPacket(player, newPacket);
     }
     
 }

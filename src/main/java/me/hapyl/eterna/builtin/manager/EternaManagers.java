@@ -51,7 +51,8 @@ public final class EternaManagers implements Disposable {
             runnable.run();
         } catch (Exception exception) {
             EternaLogger.severe("Cannot %s! Did you /reload your server? (%s)".formatted(name, exception.getClass().getSimpleName()));
-            EternaLogger.exception(exception);
+            
+            throw EternaLogger.exception(exception);
         }
     }
 

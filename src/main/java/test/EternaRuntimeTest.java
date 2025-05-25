@@ -65,7 +65,6 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.SimpleRegistry;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
-import me.hapyl.eterna.module.util.Opt;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.nbt.Tag;
@@ -186,7 +185,11 @@ public final class EternaRuntimeTest {
             
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final Player diden = Bukkit.getPlayer("DiDenPro");
+                final Player diden = Bukkit.getPlayer(args.getString(0));
+                
+                if (diden == null) {
+                    info(player, "No player named %s, using a piggy instead!".format(args.getString(0)));
+                }
                 
                 final Entity entity = diden != null ? diden : Entities.PIG.spawn(
                         player.getLocation(), self -> {
@@ -2371,6 +2374,30 @@ public final class EternaRuntimeTest {
                 
                 String mapped = opt.map(s -> s + " world").get();
                 assertTrue(mapped.equals("hello world"));
+                
+                return true;
+            }
+        });
+        
+        addTest(new EternaTest("glowing_all") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+                
+                if (players.size() < 2) {
+                    assertFail("There must be at least two players!");
+                    return false;
+                }
+                
+                players.forEach(online -> {
+                    players.forEach(other -> {
+                        if (online == other) {
+                            return;
+                        }
+                        
+                        Glowing.setGlowing(online, other, GlowingColor.LIGHT_PURPLE, 1000);
+                    });
+                });
                 
                 return true;
             }
