@@ -233,7 +233,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
             final T t = contents.get(index);
             final ItemStack item = asItem(getPlayer(), t, finalI, page);
 
-            for (ClickType type : GUI.getAllowedClickTypes()) {
+            for (ClickType type : GUI.ALLOWED_CLICK_TYPES) {
                 component.add(item, clicked -> onClick0(clicked, t, finalI, page, type), type);
             }
         }

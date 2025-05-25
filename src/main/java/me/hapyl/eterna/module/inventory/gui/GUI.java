@@ -28,20 +28,22 @@ import java.util.*;
 public class GUI {
 
     public static final char ARROW_FORWARD = '➜';
-    private static ClickType[] ALLOWED_CLICK_TYPES;
-    private static final Map<UUID, GUI> lastPlayerInventory = Maps.newHashMap();
-    private static final Map<UUID, GUI> playerInventory = Maps.newHashMap();
-
-    public static ClickType[] getAllowedClickTypes() {
-        if (ALLOWED_CLICK_TYPES == null) {
-            final ClickType[] values = ClickType.values();
-            ALLOWED_CLICK_TYPES = new ClickType[values.length - 1];
-
-            System.arraycopy(values, 0, ALLOWED_CLICK_TYPES, 0, values.length - 1);
-        }
-
-        return ALLOWED_CLICK_TYPES;
-    }
+    public static final ClickType[] ALLOWED_CLICK_TYPES = {
+            ClickType.LEFT,
+            ClickType.SHIFT_LEFT,
+            ClickType.RIGHT,
+            ClickType.SHIFT_RIGHT,
+            ClickType.WINDOW_BORDER_LEFT,
+            ClickType.WINDOW_BORDER_RIGHT,
+            ClickType.MIDDLE,
+            ClickType.NUMBER_KEY,
+            ClickType.DOUBLE_CLICK,
+            ClickType.DROP,
+            ClickType.CONTROL_DROP,
+            ClickType.CREATIVE
+    };
+    
+    protected static final Map<UUID, GUI> playerInventory = Maps.newHashMap();
 
     private final String name;
     private final int size;
@@ -49,12 +51,15 @@ public class GUI {
     private final Properties properties;
     private final Map<Integer, GUIClick> bySlot;
     private final Inventory inventory;
+
+    protected boolean reopen;
+    
     private Action openEvent;
     private Action closeEvent;
     private me.hapyl.eterna.module.inventory.gui.EventListener listener;
     private GUIEventHandler eventHandler;
     private CancelType cancelType;
-
+    
     public GUI(@Nonnull String name, int rows) {
         this.name = name;
         this.size = Math.clamp(rows * 9L, 9, 54);
@@ -684,16 +689,6 @@ public class GUI {
     }
 
     /**
-     * Closes inventory. This will remove instance of players GUI instantly.
-     *
-     * @param player - Player to close inventory for.
-     */
-    public final void closeInventory(Player player) {
-        removePlayerGUI(player);
-        player.closeInventory();
-    }
-
-    /**
      * Opens this GUI to player. This creates GUI instance.
      *
      * @param player - Player to open inventory.
@@ -703,7 +698,16 @@ public class GUI {
             Chat.sendMessage(player, "&cThis feature is currently disabled!");
             return;
         }
-        setPlayerGUI(player, this);
+        
+        final GUI currentGUI = playerInventory.get(player.getUniqueId());
+        
+        // If the player currently has this GUI while calling openInventory(),
+        // it means it was "re-opened", so we mark it as such to prevent calling onClose() etc.
+        if (currentGUI != null && currentGUI.equals(this)) {
+            reopen = true;
+        }
+        
+        playerInventory.put(player.getUniqueId(), this);
         player.openInventory(this.inventory);
     }
 
@@ -811,7 +815,7 @@ public class GUI {
     }
 
     public final boolean compareInventory(Inventory inventory) {
-        return this.inventory.equals(inventory);
+        return this.inventory == inventory;
     }
 
     public final void clearItems() {
@@ -916,41 +920,8 @@ public class GUI {
      * @return player current GUI that is opened, or null if no GUI.
      */
     @Nullable
-    public static GUI getPlayerGUI(Player player) {
+    public static GUI getPlayerGUI(@Nonnull Player player) {
         return playerInventory.getOrDefault(player.getUniqueId(), null);
-    }
-
-    /**
-     * Returns players previous GUI or null if never had previous GUI.
-     *
-     * @param player - Player.
-     * @return players previous GUI or null if never had previous GUI.
-     */
-    @Nullable
-    public static GUI getPlayerLastGUI(Player player) {
-        return lastPlayerInventory.get(player.getUniqueId());
-    }
-
-    protected static void setPlayerGUI(Player player, GUI gui) {
-        playerInventory.put(player.getUniqueId(), gui);
-    }
-
-    protected static void removePlayerGUI(Player player) {
-        final GUI playerGUI = getPlayerGUI(player);
-        if (playerGUI == null) {
-            return;
-        }
-
-        playerInventory.remove(player.getUniqueId());
-        lastPlayerInventory.put(player.getUniqueId(), playerGUI);
-    }
-
-    private static void clearAll() {
-        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.closeInventory();
-            removePlayerGUI(onlinePlayer);
-        }
-        playerInventory.clear();
     }
 
 }
