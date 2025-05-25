@@ -74,7 +74,7 @@ public class PacketTeam {
         this.teamOptionTracker = existingTeam != null ? new TeamOptionTracker(existingTeam) : null;
         
         // Copy options if existing team exists
-        copyOptionsFromExistingTeam(PacketTeamSyncer.DEFAULT);
+        copyOptionsFromExistingTeam(PacketTeamSyncer.DEFAULT, true);
         
         // Call onCreate
         onCreate();
@@ -194,7 +194,7 @@ public class PacketTeam {
         }
         
         // Don't send stray packets
-        if (copyOptionsFromExistingTeam(syncer)) {
+        if (copyOptionsFromExistingTeam(syncer, false)) {
             Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false));
         }
     }
@@ -206,21 +206,21 @@ public class PacketTeam {
     protected void onCreate() {
     }
     
-    private boolean copyOptionsFromExistingTeam(PacketTeamSyncer syncer) {
+    private boolean copyOptionsFromExistingTeam(PacketTeamSyncer syncer, boolean force) {
         if (teamOptionTracker == null) {
             return false;
         }
         
         boolean changed = false;
         
-        changed |= applyIfChanged(syncer.friendlyFire(), teamOptionTracker.friendlyFire, team::setAllowFriendlyFire);
-        changed |= applyIfChanged(syncer.friendlyInvisibles(), teamOptionTracker.friendlyInvisibles, team::setSeeFriendlyInvisibles);
-        changed |= applyIfChanged(syncer.collisionRule(), teamOptionTracker.collisionRule, team::setCollisionRule);
-        changed |= applyIfChanged(syncer.deathMessageVisibility(), teamOptionTracker.deathMessageVisibility, team::setDeathMessageVisibility);
-        changed |= applyIfChanged(syncer.nameTagVisibility(), teamOptionTracker.nameTagVisibility, team::setNameTagVisibility);
-        changed |= applyIfChanged(syncer.prefix(), teamOptionTracker.prefix, team::setPlayerPrefix);
-        changed |= applyIfChanged(syncer.suffix(), teamOptionTracker.suffix, team::setPlayerSuffix);
-        changed |= applyIfChanged(syncer.color(), teamOptionTracker.color, team::setColor);
+        changed |= applyIfChanged(syncer.friendlyFire(), teamOptionTracker.friendlyFire, team::setAllowFriendlyFire, force);
+        changed |= applyIfChanged(syncer.friendlyInvisibles(), teamOptionTracker.friendlyInvisibles, team::setSeeFriendlyInvisibles, force);
+        changed |= applyIfChanged(syncer.collisionRule(), teamOptionTracker.collisionRule, team::setCollisionRule, force);
+        changed |= applyIfChanged(syncer.deathMessageVisibility(), teamOptionTracker.deathMessageVisibility, team::setDeathMessageVisibility, force);
+        changed |= applyIfChanged(syncer.nameTagVisibility(), teamOptionTracker.nameTagVisibility, team::setNameTagVisibility, force);
+        changed |= applyIfChanged(syncer.prefix(), teamOptionTracker.prefix, team::setPlayerPrefix, force);
+        changed |= applyIfChanged(syncer.suffix(), teamOptionTracker.suffix, team::setPlayerSuffix, force);
+        changed |= applyIfChanged(syncer.color(), teamOptionTracker.color, team::setColor, force);
         
         return changed;
     }
@@ -230,8 +230,8 @@ public class PacketTeam {
         Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false));
     }
     
-    private <C> boolean applyIfChanged(boolean condition, TrackedValue<?, C> tracker, Consumer<C> setter) {
-        if (condition && tracker.hasChanged()) {
+    private <C> boolean applyIfChanged(boolean condition, TrackedValue<?, C> tracker, Consumer<C> setter, boolean force) {
+        if (condition && (force || tracker.hasChanged())) {
             setter.accept(tracker.get());
             return true;
         }
