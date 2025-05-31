@@ -35,7 +35,7 @@ public final class Tick {
      * <pre>{@code
      * Tick.round(20); // 1s
      * Tick.round(40); // 2s
-     * Tick.round(15); // 0.7s
+     * Tick.round(15); // 0.8s
      * Tick.round(69); // 3.4s
      * }</pre>
      *
