@@ -69,6 +69,7 @@ public abstract class PlayerGUI {
         this.inventory = Bukkit.createInventory(null, this.size, Chat.color(name));
     }
     
+    ///  todonote - do NOT call openInventory() inside onUpdate
     public abstract void onUpdate();
     
     @Nonnull

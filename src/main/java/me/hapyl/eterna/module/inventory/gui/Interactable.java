@@ -12,17 +12,20 @@ public interface Interactable {
     /**
      * Called whenever the {@link PlayerGUI} opens.
      */
-    void onOpen();
+    default void onOpen() {
+    }
     
     /**
      * Called whenever the {@link PlayerGUI} closes.
      */
-    void onClose();
+    default void onClose() {
+    }
     
     /**
      * Called whenever the {@link PlayerGUI} opened while already opened.
      */
-    void onReopen();
+    default void onReopen() {
+    }
     
     /**
      * Called whenever the player clicks in the {@link PlayerGUI}.
@@ -30,6 +33,7 @@ public interface Interactable {
      * @param slot  - The clicked slot.
      * @param event - The event handling the click.
      */
-    void onClick(int slot, @Nonnull InventoryClickEvent event);
+    default void onClick(int slot, @Nonnull InventoryClickEvent event) {
+    }
     
 }

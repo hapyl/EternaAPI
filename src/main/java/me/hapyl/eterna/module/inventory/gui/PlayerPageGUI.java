@@ -194,7 +194,6 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
             }
             
             postProcessInventory(player, currentPage);
-            super.openInventory();
             return;
         }
         

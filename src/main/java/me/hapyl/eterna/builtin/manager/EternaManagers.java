@@ -8,7 +8,6 @@ import javax.annotation.Nonnull;
 
 public final class EternaManagers implements Disposable {
 
-    public final CustomItemManager customItem;
     public final ParkourManager parkour;
     public final HumanNPCManager npc;
     public final HologramManager hologram;
@@ -23,7 +22,6 @@ public final class EternaManagers implements Disposable {
     public EternaManagers(EternaPlugin eterna) {
         this.plugin = eterna;
 
-        this.customItem = new CustomItemManager(eterna);
         this.parkour = new ParkourManager(eterna);
         this.npc = new HumanNPCManager(eterna);
         this.hologram = new HologramManager(eterna);
