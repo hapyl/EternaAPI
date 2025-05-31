@@ -30,6 +30,7 @@ import me.hapyl.eterna.module.inventory.*;
 import me.hapyl.eterna.module.inventory.gui.*;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
 import me.hapyl.eterna.module.math.Geometry;
+import me.hapyl.eterna.module.math.Tick;
 import me.hapyl.eterna.module.math.geometry.WorldParticle;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
@@ -2398,6 +2399,50 @@ public final class EternaRuntimeTest {
                         Glowing.setGlowing(online, other, GlowingColor.LIGHT_PURPLE, 1000);
                     });
                 });
+                
+                return true;
+            }
+        });
+        
+        addTest(new EternaTest("tick_round") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final String round20 = Tick.round(20);
+                final String round15 = Tick.round(15);
+                final String round60 = Tick.round(60);
+                final String round513 = Tick.round(513);
+                
+                info(player, round20);
+                assertEquals(round20, "1s");
+                
+                info(player, round15);
+                assertEquals(round15, "0.8s");
+                
+                info(player, round60);
+                info(player, round513);
+                
+                return true;
+            }
+        });
+        
+        addTest(new EternaTest("compute_max") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                Map<String, Integer> map = new HashMap<>();
+                
+                map.put("hapyl", 1);
+                map.put("hapyl_d", 100);
+                
+                for (int i = 0; i < 20; i++) {
+                    map.compute("hapyl", Compute.increment(15));
+                }
+                
+                for (int i = 0; i < 20; i++) {
+                    map.compute("hapyl_d", Compute.decrement(97));
+                }
+                
+                assertTrue(map.get("hapyl"), i -> i == 15);
+                assertTrue(map.get("hapyl_d"), i -> i == 97);
                 
                 return true;
             }
