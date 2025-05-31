@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import javax.annotation.Nonnull;
 import java.util.function.Predicate;
@@ -32,6 +33,16 @@ public final class DialogManager extends EternaManager<Player, DialogInstance> i
         dialog.trySelectOption(newSlot + 1);
     }
 
+    @EventHandler
+    public void handlePlayerQuitEvent(PlayerQuitEvent ev) {
+        final Player player = ev.getPlayer();
+        final DialogInstance instance = managing.remove(player);
+        
+        if (instance != null) {
+            instance.cancel0();
+        }
+    }
+    
     /**
      * Stops the {@link DialogInstance} for the given {@link Player} if the instance's dialog matches the given {@link Dialog}.
      *

@@ -2448,6 +2448,27 @@ public final class EternaRuntimeTest {
             }
         });
         
+        addTest(new EternaTest("dialog") {
+            
+            private Dialog dialog;
+            
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                if (dialog == null) {
+                    dialog = new Dialog();
+                    
+                    dialog.addEntry(DialogEntry.of("Hello World!"));
+                    dialog.addEntry(DialogEntry.of("Hello World 2!"));
+                    dialog.addEntry(DialogEntry.of("Hello World 3!"));
+                    dialog.addEntry(DialogEntry.of("Hello World 4!"));
+                    dialog.addEntry(DialogEntry.of("Hello World 5!"));
+                }
+                
+                dialog.startForcefully(player);
+                return false;
+            }
+        });
+        
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override
