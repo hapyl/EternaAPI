@@ -90,12 +90,12 @@ public abstract class Filter<E, S extends Enum<S>> {
 
         gui.setItem(slot, item.asIcon());
 
-        gui.setClick(slot, player -> {
+        gui.setAction(slot, player -> {
             onClick.accept(gui, next());
             PlayerLib.playSound(player, Sound.BLOCK_LEVER_CLICK, 1);
         }, ClickType.LEFT, ClickType.SHIFT_LEFT);
 
-        gui.setClick(slot, player -> {
+        gui.setAction(slot, player -> {
             onClick.accept(gui, previous());
             PlayerLib.playSound(player, Sound.BLOCK_LEVER_CLICK, 1);
         }, ClickType.RIGHT, ClickType.SHIFT_RIGHT);
@@ -173,7 +173,7 @@ public abstract class Filter<E, S extends Enum<S>> {
                     continue;
                 }
             } catch (Exception e) {
-                EternaLogger.exception(e);
+                throw EternaLogger.exception(e);
             }
 
             values.add(s);

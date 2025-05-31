@@ -6,7 +6,7 @@ import org.bukkit.event.inventory.ClickType;
 import javax.annotation.Nonnull;
 
 /**
- * A strict, statically typed impl of {@link Action}.
+ * A strict, statically typed impl of {@link ActionList}.
  * <br>
  * The methods are only called when the appropriate click is used.
  */
@@ -117,23 +117,15 @@ public interface StrictAction {
     }
 
     /**
-     * Called when a player clicked via {@link ClickType#UNKNOWN}.
-     *
-     * @param player - Player, who clicked.
-     */
-    default void onUnknownClick(@Nonnull Player player) {
-    }
-
-    /**
-     * Creates {@link GUIClick}.
+     * Creates {@link ActionList}.
      * <br>
      * Don't override this, duh.
      *
      * @return a new gui click.
      */
     @Nonnull
-    default GUIClick makeGUIClick() {
-        final GUIClick click = new GUIClick();
+    default ActionList makeAction() {
+        final ActionList click = new ActionList();
 
         click.setAction(ClickType.LEFT, this::onLeftClick);
         click.setAction(ClickType.SHIFT_LEFT, this::onShiftLeftClick);
@@ -148,7 +140,6 @@ public interface StrictAction {
         click.setAction(ClickType.CONTROL_DROP, this::onControlDropClick);
         click.setAction(ClickType.CREATIVE, this::onCreativeDropClick);
         click.setAction(ClickType.SWAP_OFFHAND, this::onSwapOffhandClick);
-        click.setAction(ClickType.UNKNOWN, this::onUnknownClick);
 
         return click;
     }

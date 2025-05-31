@@ -3,6 +3,9 @@ package me.hapyl.eterna.module.inventory.gui;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.util.function.Consumer;
+
 /**
  * This GUI will autofill the inventory with the items provided by the {@link SmartComponent}.
  */
@@ -35,14 +38,14 @@ public class PlayerAutoGUI extends PlayerGUI {
     public void setPattern(SlotPattern pattern) {
         this.pattern = pattern;
     }
-
+    
     @Override
-    public final void openInventory() {
+    @OverridingMethodsMustInvokeSuper
+    public void onUpdate() {
         component.apply(this, pattern, 1);
-        super.openInventory();
     }
-
-    public void addItem(ItemStack item, Action action) {
+    
+    public void addItem(ItemStack item, Consumer<Player> action) {
         component.add(item, action);
     }
 

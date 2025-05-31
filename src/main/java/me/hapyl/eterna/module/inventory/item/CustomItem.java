@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Deprecated(forRemoval = true) // useless
 public abstract class CustomItem implements Keyed {
 
     private final Key key;

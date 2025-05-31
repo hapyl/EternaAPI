@@ -77,6 +77,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -522,94 +523,110 @@ public final class EternaRuntimeTest {
         });
         
         addTest(new EternaTest("gui") {
+            class TestGUI extends PlayerGUI implements Interactable {
+                
+                public TestGUI(@Nonnull Player player, @Nonnull String name, int rows) {
+                    super(player, name, rows);
+                }
+                
+                @Override
+                public void onOpen() {
+                
+                }
+                
+                @Override
+                public void onClose() {
+                    assertTestPassed();
+                }
+                
+                @Override
+                public void onReopen() {
+                
+                }
+                
+                @Override
+                public void onClick(int slot, @Nonnull InventoryClickEvent event) {
+                
+                }
+                
+                @Override
+                public void onUpdate() {
+                    setItem(
+                            0, new ItemBuilder(Material.STONE).asIcon(), new StrictAction() {
+                                @Override
+                                public void onLeftClick(@Nonnull Player player) {
+                                    info(player, "onLeftClick");
+                                }
+                                
+                                @Override
+                                public void onShiftLeftClick(@Nonnull Player player) {
+                                    info(player, "onShiftLeftClick");
+                                }
+                                
+                                @Override
+                                public void onRightClick(@Nonnull Player player) {
+                                    info(player, "onRightClick");
+                                }
+                                
+                                @Override
+                                public void onShiftRightClick(@Nonnull Player player) {
+                                    info(player, "onShiftRightClick");
+                                }
+                                
+                                @Override
+                                public void onWindowBorderLeftClick(@Nonnull Player player) {
+                                    info(player, "onWindowBorderLeftClick");
+                                }
+                                
+                                @Override
+                                public void onWindowBorderRightClick(@Nonnull Player player) {
+                                    info(player, "onWindowBorderRightClick");
+                                }
+                                
+                                @Override
+                                public void onMiddleClick(@Nonnull Player player) {
+                                    info(player, "onMiddleClick");
+                                }
+                                
+                                @Override
+                                public void onNumberKeyClick(@Nonnull Player player) {
+                                    info(player, "onNumberKeyClick");
+                                }
+                                
+                                @Override
+                                public void onDoubleClick(@Nonnull Player player) {
+                                    info(player, "onDoubleClick");
+                                }
+                                
+                                @Override
+                                public void onDropClick(@Nonnull Player player) {
+                                    info(player, "onDropClick");
+                                }
+                                
+                                @Override
+                                public void onControlDropClick(@Nonnull Player player) {
+                                    info(player, "onControlDropClick");
+                                }
+                                
+                                @Override
+                                public void onCreativeDropClick(@Nonnull Player player) {
+                                    info(player, "onCreativeDropClick");
+                                }
+                                
+                                @Override
+                                public void onSwapOffhandClick(@Nonnull Player player) {
+                                    info(player, "onSwapOffhandClick");
+                                }
+                                
+                            }
+                    );
+                }
+            }
+            
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final PlayerGUI gui = new PlayerGUI(player);
+                TestGUI gui = new TestGUI(player, "Test GUI", 2);
                 
-                gui.setItem(
-                        0, new ItemBuilder(Material.STONE).asIcon(), new StrictAction() {
-                            @Override
-                            public void onLeftClick(@Nonnull Player player) {
-                                info(player, "onLeftClick");
-                            }
-                            
-                            @Override
-                            public void onShiftLeftClick(@Nonnull Player player) {
-                                info(player, "onShiftLeftClick");
-                            }
-                            
-                            @Override
-                            public void onRightClick(@Nonnull Player player) {
-                                info(player, "onRightClick");
-                            }
-                            
-                            @Override
-                            public void onShiftRightClick(@Nonnull Player player) {
-                                info(player, "onShiftRightClick");
-                            }
-                            
-                            @Override
-                            public void onWindowBorderLeftClick(@Nonnull Player player) {
-                                info(player, "onWindowBorderLeftClick");
-                            }
-                            
-                            @Override
-                            public void onWindowBorderRightClick(@Nonnull Player player) {
-                                info(player, "onWindowBorderRightClick");
-                            }
-                            
-                            @Override
-                            public void onMiddleClick(@Nonnull Player player) {
-                                info(player, "onMiddleClick");
-                            }
-                            
-                            @Override
-                            public void onNumberKeyClick(@Nonnull Player player) {
-                                info(player, "onNumberKeyClick");
-                            }
-                            
-                            @Override
-                            public void onDoubleClick(@Nonnull Player player) {
-                                info(player, "onDoubleClick");
-                            }
-                            
-                            @Override
-                            public void onDropClick(@Nonnull Player player) {
-                                info(player, "onDropClick");
-                            }
-                            
-                            @Override
-                            public void onControlDropClick(@Nonnull Player player) {
-                                info(player, "onControlDropClick");
-                            }
-                            
-                            @Override
-                            public void onCreativeDropClick(@Nonnull Player player) {
-                                info(player, "onCreativeDropClick");
-                            }
-                            
-                            @Override
-                            public void onSwapOffhandClick(@Nonnull Player player) {
-                                info(player, "onSwapOffhandClick");
-                            }
-                            
-                            @Override
-                            public void onUnknownClick(@Nonnull Player player) {
-                                info(player, "onUnknownClick");
-                            }
-                        }
-                );
-                
-                later(
-                        () -> {
-                            info(player, "Renamed");
-                            gui.rename("Hello world!");
-                        }, 60
-                );
-                
-                gui.setCloseEvent(pp -> {
-                    assertTestPassed();
-                });
                 gui.setCancelType(CancelType.NEITHER);
                 gui.openInventory();
                 return false;
@@ -650,10 +667,12 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("autoGUI") {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final PlayerAutoGUI gui = new PlayerAutoGUI(player, "My Menu", 5);
+                final PlayerAutoGUI gui = new PlayerAutoGUI(player, "My Menu", 5) {
+                };
                 
                 for (int i = 0; i < 16; i++) {
                     int finalI = i;
+                    
                     gui.addItem(
                             new ItemBuilder(Material.APPLE).setAmount(i + 1).build(), click -> {
                                 click.sendMessage("You clicked %sth apple.".formatted(finalI + 1));
@@ -661,36 +680,57 @@ public final class EternaRuntimeTest {
                     );
                 }
                 
-                gui.setCloseEvent(pp -> {
-                    assertTestPassed();
-                });
                 gui.setPattern(SlotPattern.DEFAULT);
                 gui.openInventory();
-                
                 return false;
             }
         });
         
         addTest(new EternaTest("pageGUI") {
+            class TestGUI extends PlayerPageGUI<String> implements Interactable {
+                
+                public TestGUI(Player player, String name, int rows) {
+                    super(player, name, rows);
+                }
+                
+                @Override
+                @Nonnull
+                public ItemStack asItem(@Nonnull Player player, String content, int index, int page) {
+                    return new ItemBuilder(Material.STONE)
+                            .setName(content)
+                            .setAmount((index + 1) + (maxItemsPerPage() * page))
+                            .toItemStack();
+                }
+                
+                @Override
+                public void onClick(@Nonnull Player player, @Nonnull String content, int index, int page, @Nonnull org.bukkit.event.inventory.ClickType clickType) {
+                    player.sendMessage("You clicked " + content);
+                    player.sendMessage("Using " + clickType);
+                }
+                
+                @Override
+                public void onOpen() {
+                
+                }
+                
+                @Override
+                public void onClose() {
+                    assertTestPassed();
+                }
+                
+                @Override
+                public void onReopen() {
+                
+                }
+                
+                @Override
+                public void onClick(int slot, @Nonnull InventoryClickEvent event) {
+                }
+            }
+            
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final PlayerPageGUI<String> gui = new PlayerPageGUI<>(player, "Player Page GUI Test", 5) {
-                    @Override
-                    @Nonnull
-                    public ItemStack asItem(@Nonnull Player player, String content, int index, int page) {
-                        return new ItemBuilder(Material.STONE)
-                                .setName(content)
-                                .setAmount((index + 1) + (maxItemsPerPage() * page))
-                                .toItemStack();
-                    }
-                    
-                    @Override
-                    public void onClick(@Nonnull Player player, @Nonnull String content, int index, int page, @Nonnull org.bukkit.event.inventory.ClickType clickType) {
-                        player.sendMessage("You clicked " + content);
-                        player.sendMessage("Using " + clickType);
-                    }
-                    
-                };
+                final TestGUI gui = new TestGUI(player, "Player Page GUI Test", 5);
                 
                 gui.setContents(List.of(
                         "a",
@@ -720,9 +760,7 @@ public final class EternaRuntimeTest {
                         "y",
                         "z"
                 ));
-                gui.setCloseEvent(pp -> {
-                    assertTestPassed();
-                });
+                
                 gui.setFit(PlayerPageGUI.Fit.SLIM);
                 gui.setEmptyContentsItem(null);
                 

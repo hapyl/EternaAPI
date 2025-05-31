@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the {@link Filter} should exclude this item in the filtering.
+ * Indicates that annotated {@link Enum} fields should be excluded in {@link Filter}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
