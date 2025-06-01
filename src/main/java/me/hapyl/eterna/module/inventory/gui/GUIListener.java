@@ -8,12 +8,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
 
 /**
  * A listener implementation for GUIs.
  */
+@ApiStatus.Internal
 public final class GUIListener implements Listener {
     
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -61,8 +63,8 @@ public final class GUIListener implements Listener {
             ev.setCancelled(true);
         }
         
-        if (gui instanceof Interactable interactable) {
-            interactable.onClick(slot, ev);
+        if (gui instanceof GUIEventListener handler) {
+            handler.onClick(slot, ev);
         }
         
         if (gui.hasEvent(slot)) {
@@ -89,15 +91,11 @@ public final class GUIListener implements Listener {
         // If reopened the same GUI, ignore it
         if (gui.reopen) {
             gui.reopen = false;
-            
-            if (gui instanceof Interactable interactable) {
-                interactable.onReopen();
-            }
             return;
         }
         
-        if (gui instanceof Interactable interactable) {
-            interactable.onClose();
+        if (gui instanceof GUIEventListener handler) {
+            handler.onClose(ev);
         }
         
         PlayerGUI.playerInventory.remove(player.getUniqueId(), gui);
@@ -108,8 +106,8 @@ public final class GUIListener implements Listener {
         final Player player = (Player) ev.getPlayer();
         final PlayerGUI gui = fetchGUI(player, ev.getInventory());
         
-        if (gui instanceof Interactable interactable) {
-            interactable.onOpen();
+        if (gui instanceof GUIEventListener handler) {
+            handler.onOpen(ev);
         }
     }
     

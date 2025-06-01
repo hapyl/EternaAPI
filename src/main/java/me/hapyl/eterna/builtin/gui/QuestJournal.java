@@ -2,7 +2,7 @@ package me.hapyl.eterna.builtin.gui;
 
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
-import me.hapyl.eterna.module.inventory.gui.Interactable;
+import me.hapyl.eterna.module.inventory.gui.GUIEventListener;
 import me.hapyl.eterna.module.inventory.gui.PlayerGUI;
 import me.hapyl.eterna.module.inventory.gui.SlotPattern;
 import me.hapyl.eterna.module.inventory.gui.SmartComponent;
@@ -13,7 +13,7 @@ import me.hapyl.eterna.module.player.quest.QuestObjective;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * Built in GUI for {@link QuestJournal}.
  */
-public final class QuestJournal extends PlayerGUI implements Interactable {
+public final class QuestJournal extends PlayerGUI implements GUIEventListener {
 
     public QuestJournal(@Nonnull Player player) {
         super(player, "Quest Journal", 5);
@@ -75,20 +75,8 @@ public final class QuestJournal extends PlayerGUI implements Interactable {
     }
     
     @Override
-    public void onOpen() {
+    public void onOpen(@Nonnull InventoryOpenEvent event) {
         PlayerLib.playSound(player, Sound.ITEM_BOOK_PAGE_TURN, 0.75f);
-    }
-    
-    @Override
-    public void onClose() {
-    }
-    
-    @Override
-    public void onReopen() {
-    }
-    
-    @Override
-    public void onClick(int slot, @Nonnull InventoryClickEvent event) {
     }
     
 }

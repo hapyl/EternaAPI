@@ -1,154 +1,145 @@
 package me.hapyl.eterna.module.util;
 
 import com.google.common.collect.Lists;
+import me.hapyl.eterna.module.annotate.UtilityClass;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Utility class for enums.
  */
+@UtilityClass
 public final class Enums {
-
+    
     private Enums() {
-        throw new IllegalStateException();
+        UtilityClass.Validator.throwIt();
     }
-
+    
     /**
-     * Returns next value in <i>values()</i> of the enum class.
+     * Gets the next {@link Enum} constant after the given one, wrapping to the first if at the end.
      *
-     * @param enumClass - Enum class.
-     * @param current   - Current value.
-     * @return next value of the enum class.
+     * @param enumClass – The enum class.
+     * @param current   – The current enum constant.
+     * @return the next enum constant, or the first if the current is the last
      */
     @Nonnull
-    public static <T extends Enum<T>> T getNextValue(Class<T> enumClass, T current) {
-        final T[] values = getValues(enumClass);
-        for (int i = 0; i < values.length; i++) {
-            final Enum<T> e = values[i];
-            if (e.equals(current)) {
-                return values.length > (i + 1) ? values[i + 1] : values[0];
-            }
-        }
-        return current;
+    public static <T extends Enum<T>> T getNextValue(@Nonnull Class<T> enumClass, @Nonnull T current) {
+        final T[] constants = enumClass.getEnumConstants();
+        
+        return constants[(current.ordinal() + 1) % constants.length];
     }
-
+    
     /**
-     * Returns previous value in <i>values()</i> of the enum class.
+     * Gets the previous {@link Enum} constant before the given one, wrapping to the last if at the beginning.
      *
-     * @param enumClass - Enum class.
-     * @param current   - Current value.
-     * @return previous value in <i>values()</i> of the enum class.
+     * @param enumClass – The enum class.
+     * @param current   – The current enum constant.
+     * @return the previous enum constant, or the last if the current is the first
      */
     @Nonnull
-    public static <T extends Enum<T>> T getPreviousValue(Class<T> enumClass, T current) {
-        final T[] values = getValues(enumClass);
-        for (int i = 0; i < values.length; i++) {
-            final Enum<T> e = values[i];
-            if (e.equals(current)) {
-                return i == 0 ? values[values.length - 1] : values[i - 1];
-            }
-        }
-        return current;
+    public static <T extends Enum<T>> T getPreviousValue(@Nonnull Class<T> enumClass, @Nonnull T current) {
+        final T[] constants = enumClass.getEnumConstants();
+        
+        return constants[(current.ordinal() - 1 + constants.length) % constants.length];
     }
-
+    
     /**
-     * Returns array of strings filled with enum constants names.
+     * Gets an array of {@link String} containing the {@link Enum#name()} of each {@link Enum} constant.
      *
-     * @param enumClass - Enum class.
-     * @return array of strings filled with enum constants names.
+     * @param enumClass - The enum class.
+     * @return an array of {@link String} containing the {@link Enum#name()} of each {@link Enum} constant.
      */
     @Nonnull
-    public static <T extends Enum<T>> String[] getValuesNames(Class<T> enumClass) {
-        final Enum<T>[] values = getValues(enumClass);
-
-        if (values == null || values.length == 0) {
-            return new String[0];
-        }
-
-        final String[] strings = new String[values.length];
-
-        for (int i = 0; i < values.length; i++) {
-            strings[i] = values[i].name();
-        }
-
-        return strings;
+    public static <T extends Enum<T>> String[] getValuesNames(@Nonnull Class<T> enumClass) {
+        return Arrays.stream(enumClass.getEnumConstants())
+                     .map(Enum::name)
+                     .toArray(String[]::new);
     }
-
+    
+    /**
+     * Gets a {@link List} containing the {@link Enum#name()} of each {@link Enum} constants.
+     *
+     * @param enumClass - The enum class.
+     * @param <T>       - The enum type.
+     * @return a {@link List} containing the {@link Enum#name()} of each {@link Enum} constants.
+     */
     @Nonnull
     public static <T extends Enum<T>> List<String> getValuesNameAsList(@Nonnull Class<T> enumClass) {
         return Lists.newArrayList(getValuesNames(enumClass));
     }
-
+    
     /**
-     * Returns an enum constant by name.
+     * Gets the {@link Enum} constant by the given name, or {@code def} if there is no constant by the given name.
+     * <p><i>The name is forcefully uppercased to respect Java's constant name convention.</i></p>
      *
-     * @param enumClass - Enum class.
-     * @param name      - Name to search for.
-     * @param def       - Default value.
-     * @return an enum constant by name.
+     * @param enumClass - The enum class.
+     * @param name      - The name of the content.
+     * @param def       - The default value to return of there is no constant by the given name.
+     * @return an enum constant by name, or {@code def} if no constant by the given name.
      */
     @Nonnull
     public static <T extends Enum<T>> T byName(@Nonnull Class<T> enumClass, @Nonnull String name, @Nonnull T def) {
         final T anEnum = byName(enumClass, name);
-
+        
         return anEnum != null ? anEnum : def;
     }
-
+    
     /**
-     * Returns an enum constant by name or null if invalid.
+     * Gets the {@link Enum} constant by the given name, or {@code null} if there is no constant by the given name.
+     * <p><i>The name is forcefully uppercased to respect Java's constant name convention.</i></p>
      *
-     * @param enumClass - Enum class.
-     * @param name      - Name to search for.
-     * @return an enum constant by name or null if invalid.
+     * @param enumClass - The enum class.
+     * @param name      - The name of the content.
+     * @return an enum constant by name, or {@code null} if no constant by the given name.
      */
     @Nullable
     public static <T extends Enum<T>> T byName(@Nonnull Class<T> enumClass, @Nonnull String name) {
         try {
             return Enum.valueOf(enumClass, name.toUpperCase());
-        } catch (IllegalArgumentException ignored0) {
+        }
+        catch (IllegalArgumentException ignored0) {
             return null;
         }
     }
-
+    
     /**
-     * Return array of enum values. Same as Enum#values().
+     * Gets {@link Enum} constants for the given class.
+     * <p>This method removes the {@code null}ability from {@code enumClass.getEnumConstants()}.</p>
      *
-     * @param enumClass - Enum class.
-     * @return array of enum values. Same as Enum#values().
+     * @param enumClass - The enum class.
+     * @return {@link Enum} constants for the given class.
      */
-    @Nullable
-    public static <T extends Enum<T>> T[] getValues(Class<T> enumClass) {
-        return enumClass.getEnumConstants();
+    @Nonnull
+    public static <T extends Enum<T>> T[] getValues(@Nonnull Class<T> enumClass) {
+        return Objects.requireNonNull(enumClass.getEnumConstants(), "The provided class isn't an enum!");
     }
-
+    
     /**
-     * Gets a random enum value from an enum, or null if enum doesn't have any values.
+     * Gets a random {@link Enum} value for the given {@link Enum}, or {@code null} if the {@link Enum} is empty.
      *
-     * @param enumClass - Enum class.
-     * @return a random enum value; or null.
+     * @param enumClass - The enum class.
+     * @param <T>       - The enum type.
+     * @return a random {@link Enum} value for the given {@link Enum}, or {@code null} if the {@link Enum} is empty.
      */
     @Nullable
-    public static <T extends Enum<T>> T getRandomValue(Class<T> enumClass) {
+    public static <T extends Enum<T>> T getRandomValue(@Nonnull Class<T> enumClass) {
         return getRandomValue(enumClass, null);
     }
-
+    
     /**
-     * Gets a random enum value from an enum, or default if enum doesn't have any values.
+     * Gets a random {@link Enum} value for the given {@link Enum}, or {@code def} if the {@link Enum} is empty.
      *
-     * @param enumClass - Enum class,
-     * @param def       - Default value.
-     * @return a random enum value from an enum, or default.
+     * @param enumClass - The enum class.
+     * @param def       - The default value to return if the enum is empty.
+     * @param <T>       - The enum type.
+     * @return a random {@link Enum} value for the given {@link Enum}, or {@code def} if the {@link Enum} is empty.
      */
-    public static <T extends Enum<T>> T getRandomValue(Class<T> enumClass, T def) {
-        final T[] values = getValues(enumClass);
-
-        if (values == null) {
-            return def;
-        }
-
-        return values[ThreadRandom.nextInt(values.length)];
+    public static <T extends Enum<T>> T getRandomValue(@Nonnull Class<T> enumClass, T def) {
+        return CollectionUtils.randomElement(getValues(enumClass), def);
     }
-
+    
 }

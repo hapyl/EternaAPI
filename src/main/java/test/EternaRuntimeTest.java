@@ -77,7 +77,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -523,30 +524,20 @@ public final class EternaRuntimeTest {
         });
         
         addTest(new EternaTest("gui") {
-            class TestGUI extends PlayerGUI implements Interactable {
+            class TestGUI extends PlayerGUI implements GUIEventListener {
                 
                 public TestGUI(@Nonnull Player player, @Nonnull String name, int rows) {
                     super(player, name, rows);
                 }
                 
                 @Override
-                public void onOpen() {
+                public void onOpen(@Nonnull InventoryOpenEvent event) {
                 
                 }
                 
                 @Override
-                public void onClose() {
+                public void onClose(@Nonnull InventoryCloseEvent event) {
                     assertTestPassed();
-                }
-                
-                @Override
-                public void onReopen() {
-                
-                }
-                
-                @Override
-                public void onClick(int slot, @Nonnull InventoryClickEvent event) {
-                
                 }
                 
                 @Override
@@ -687,7 +678,7 @@ public final class EternaRuntimeTest {
         });
         
         addTest(new EternaTest("pageGUI") {
-            class TestGUI extends PlayerPageGUI<String> implements Interactable {
+            class TestGUI extends PlayerPageGUI<String> implements GUIEventListener {
                 
                 public TestGUI(Player player, String name, int rows) {
                     super(player, name, rows);
@@ -709,22 +700,8 @@ public final class EternaRuntimeTest {
                 }
                 
                 @Override
-                public void onOpen() {
-                
-                }
-                
-                @Override
-                public void onClose() {
+                public void onClose(@Nonnull InventoryCloseEvent event) {
                     assertTestPassed();
-                }
-                
-                @Override
-                public void onReopen() {
-                
-                }
-                
-                @Override
-                public void onClick(int slot, @Nonnull InventoryClickEvent event) {
                 }
             }
             
@@ -2503,6 +2480,31 @@ public final class EternaRuntimeTest {
                 }
                 
                 dialog.startForcefully(player);
+                return false;
+            }
+        });
+        
+        
+        addTest(new EternaTest("gui_fill") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final PlayerGUI playerGUI = new PlayerGUI(player, "test_gui", 6) {
+                    @Override
+                    public void onUpdate() {
+                        final boolean b = args.getString(0).equalsIgnoreCase("outer");
+                        
+                        if (b) {
+                            fillOuter(new ItemStack(Material.SNOW));
+                        }
+                        else {
+                            fillInner(new ItemStack(Material.SNOW));
+                        }
+                        
+                        info(player, "Filled %s!".formatted(b ? "outer" : "inner"));
+                    }
+                };
+                
+                playerGUI.openInventory();
                 return false;
             }
         });

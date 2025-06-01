@@ -26,10 +26,22 @@ public class ActionList {
         setAction(ClickType.LEFT, click);
     }
     
+    /**
+     * Maps the given action to the given type.
+     *
+     * @param type   - The click type.
+     * @param action - The action.
+     */
     public void setAction(@Nonnull ClickType type, @Nonnull Consumer<Player> action) {
         this.perClickAction.put(type, action);
     }
     
+    /**
+     * Gets the action for the given click type.
+     *
+     * @param type - The click type.
+     * @return the action for the given click type.
+     */
     @Nullable
     public Consumer<Player> getAction(@Nonnull ClickType type) {
         return this.perClickAction.get(type);
