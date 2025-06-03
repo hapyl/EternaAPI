@@ -36,10 +36,10 @@ public class ItemBuilderListener implements Listener {
                     : functionList.getFunctions(Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK);
 
             for (ItemFunction function : functions) {
-                if (function.isAllowInventoryClick) {
-                    function.run(player, item);
+                if (function.allowInventoryClick()) {
+                    function.doExecute(player, item);
 
-                    if (function.isCancelClicks) {
+                    if (function.cancelClicks()) {
                         ev.setCancelled(true);
                     }
                 }
@@ -62,9 +62,9 @@ public class ItemBuilderListener implements Listener {
         fetchFunctionList(item, functionList -> {
             // Functions
             functionList.getFunctions(action).forEach(function -> {
-                function.run(player, item);
+                function.doExecute(player, item);
 
-                if (function.isCancelClicks) {
+                if (function.cancelClicks()) {
                     ev.setCancelled(true);
                 }
             });

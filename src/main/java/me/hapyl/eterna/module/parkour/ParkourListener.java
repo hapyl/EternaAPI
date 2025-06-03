@@ -1,9 +1,10 @@
 package me.hapyl.eterna.module.parkour;
 
 import me.hapyl.eterna.Eterna;
-import me.hapyl.eterna.builtin.InternalCooldown;
 import me.hapyl.eterna.builtin.manager.ParkourManager;
 import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.inventory.ItemBuilder;
+import me.hapyl.eterna.module.registry.Key;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
@@ -18,9 +19,13 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
 
 public class ParkourListener implements Listener {
 
+    private final ItemStack cooldownStart = ItemBuilder.createDummyCooldownItem(Key.ofString("eterna_parkour_start"));
+    private final ItemStack cooldownCheckpoint = ItemBuilder.createDummyCooldownItem(Key.ofString("eterna_parkour_checkpoint"));
+    
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerJoin(PlayerJoinEvent ev) {
         final Player player = ev.getPlayer();
@@ -70,11 +75,11 @@ public class ParkourListener implements Listener {
             ev.setUseInteractedBlock(Event.Result.DENY);
             ev.setCancelled(true);
 
-            if (InternalCooldown.PARKOUR_START.isOnCooldown(player)) {
+            if (player.hasCooldown(cooldownStart)) {
                 return;
             }
 
-            InternalCooldown.PARKOUR_START.start(player);
+            player.setCooldown(cooldownStart, 30);
 
             // Start
             if (parkour.getStart().compare(clickedBlockLocation)) {
@@ -114,11 +119,12 @@ public class ParkourListener implements Listener {
                 ev.setCancelled(true);
             }
 
-            if (data == null || InternalCooldown.PARKOUR_CHECKPOINT.isOnCooldown(player)) {
+            if (data == null || player.hasCooldown(cooldownCheckpoint)) {
                 return;
             }
 
-            InternalCooldown.PARKOUR_CHECKPOINT.start(player);
+            player.setCooldown(cooldownCheckpoint, 20);
+            
             final ParkourPosition nextCheckpoint = data.getNextCheckpoint();
 
             if (nextCheckpoint != null) {

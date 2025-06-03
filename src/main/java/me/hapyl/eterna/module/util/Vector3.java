@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.FactoryMethod;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -24,7 +23,6 @@ public record Vector3(double x, double y, double z) {
      * @return a new vector3.
      */
     @Nonnull
-    @FactoryMethod(Vector3.class)
     public static Vector3 of(double x, double y, double z) {
         return new Vector3(x, y, z);
     }
@@ -36,7 +34,6 @@ public record Vector3(double x, double y, double z) {
      * @return a new vector3.
      */
     @Nonnull
-    @FactoryMethod(Vector3.class)
     public static Vector3 of(@Nonnull Location location) {
         return new Vector3(location.getX(), location.getY(), location.getZ());
     }
@@ -48,7 +45,6 @@ public record Vector3(double x, double y, double z) {
      * @return a new vector3.
      */
     @Nonnull
-    @FactoryMethod(Vector3.class)
     public static Vector3 of(@Nonnull Vector vector) {
         return new Vector3(vector.getX(), vector.getY(), vector.getZ());
     }

@@ -10,6 +10,7 @@ import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.PaperWorkaround;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.math.Numbers;
+import me.hapyl.eterna.module.math.Tick;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.core.BlockPos;
 import org.bukkit.*;
@@ -214,9 +215,7 @@ public class BukkitUtils {
     @Nonnull
     @Deprecated
     public static String roundTick(int tick, @Nonnull String suffix) {
-        return tick % 20 == 0
-               ? ((tick / 20) + suffix)
-               : BukkitUtils.decimalFormat(tick / 20.0d) + suffix;
+        return Tick.round(tick) + suffix;
     }
     
     /**

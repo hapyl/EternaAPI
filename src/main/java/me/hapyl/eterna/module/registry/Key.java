@@ -1,13 +1,14 @@
 package me.hapyl.eterna.module.registry;
 
+import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Validate;
-import net.minecraft.resources.ResourceLocation;
 import org.bukkit.NamespacedKey;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -18,31 +19,31 @@ import java.util.regex.Pattern;
  * @see Keyed
  */
 public class Key {
-
+    
     /**
      * A pattern that all {@link Key} must match.
      */
     public static final Pattern PATTERN = Pattern.compile("^[a-z0-9_]+$");
-
+    
     /**
      * A constant used for {@link #empty()} {@link Key}.
      */
     public static final String EMPTY_KEY_CONSTANT = "_";
-
+    
     /**
      * An empty {@link Key} instance.
      *
      * @see #empty()
      */
-    private static Key EMPTY;
-
+    private final static Key EMPTY = new Key(EMPTY_KEY_CONSTANT);
+    
     private final String key;
-
+    
     public Key(@Nonnull String key) {
         Validate.isTrue(PATTERN.matcher(key).matches(), "Key '%s' doesn't match the pattern '%s'!".formatted(key, PATTERN.pattern()));
         this.key = key;
     }
-
+    
     /**
      * Gets the actual {@link String} of this {@link Key}.
      *
@@ -52,19 +53,17 @@ public class Key {
     public String getKey() {
         return key;
     }
-
+    
     /**
      * Gets the actual {@link String} of this {@link Key}.
      *
      * @return the string of this key.
-     * @deprecated This is considered as a 'lazy' way of getting the key, prefer {@link #getKey()}.
      */
     @Override
-    @Deprecated
     public String toString() {
         return key;
     }
-
+    
     /**
      * Returns true if this key is empty.
      *
@@ -73,7 +72,24 @@ public class Key {
     public boolean isEmpty() {
         return this.equals(EMPTY);
     }
-
+    
+    /**
+     * Ensures that this key is not empty.
+     * <p>If the key is empty, an {@link IllegalArgumentException} is thrown.</p>
+     *
+     * <p>This method returns {@code this} to allow for fluent method chaining.</p>
+     *
+     * @throws IllegalArgumentException – If the key is empty
+     */
+    @SelfReturn
+    public Key nonEmpty() throws IllegalArgumentException {
+        if (isEmpty()) {
+            throw new IllegalArgumentException("Key must not be empty!");
+        }
+        
+        return this;
+    }
+    
     /**
      * Returns true if the given {@link String} matches the {@link Key} exactly.
      *
@@ -83,7 +99,7 @@ public class Key {
     public boolean isKeyMatches(@Nonnull String string) {
         return key.equals(string);
     }
-
+    
     /**
      * Returns true if the given {@link String} matches the {@link Key} ignoring the case.
      *
@@ -93,7 +109,7 @@ public class Key {
     public boolean isKeyMatchesIgnoreCase(@Nonnull String string) {
         return key.equalsIgnoreCase(string);
     }
-
+    
     /**
      * Returns true if the given object is a {@link Key} and it matches the string of this key.
      *
@@ -105,15 +121,15 @@ public class Key {
         if (this == object) {
             return true;
         }
-
+        
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-
+        
         final Key that = (Key) object;
         return Objects.equals(key, that.key);
     }
-
+    
     /**
      * Gets the hash code of this key.
      *
@@ -123,7 +139,7 @@ public class Key {
     public final int hashCode() {
         return Objects.hashCode(key);
     }
-
+    
     /**
      * Gets a {@link NamespacedKey} representation of this {@link Key}.
      * <p>The namespace always belongs to {@code Eterna}</p>
@@ -134,7 +150,7 @@ public class Key {
     public final NamespacedKey asNamespacedKey() {
         return BukkitUtils.createKey(key);
     }
-
+    
     /**
      * A factory method for creating {@link Key}s.
      * <p>This returns {@link #empty()} {@link Key} for empty strings and {@link #EMPTY_KEY_CONSTANT}.</p>
@@ -147,7 +163,7 @@ public class Key {
     public static Key ofString(@Nonnull String string) {
         return new Key(string);
     }
-
+    
     /**
      * A factory method for creating {@link Key}s.
      *
@@ -158,11 +174,36 @@ public class Key {
     public static Key ofStringOrNull(@Nonnull String string) {
         try {
             return ofString(string);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return null;
         }
     }
-
+    
+    /**
+     * Creates a new {@link Key} based on the given {@link UUID}.
+     *
+     * @param uuid - The uuid to convert to a {@link Key}.
+     * @return a new key.
+     */
+    @Nonnull
+    public static Key ofUuid(@Nonnull UUID uuid) {
+        return ofString(uuid.toString()
+                            .replace("-", "_")
+                            .toLowerCase()
+        );
+    }
+    
+    /**
+     * Creates a new random {@link Key}.
+     *
+     * @return a new random key.
+     */
+    @Nonnull
+    public static Key ofRandom() {
+        return ofUuid(UUID.randomUUID());
+    }
+    
     /**
      * Gets an empty {@link Key} instance.
      * <br>
@@ -172,13 +213,9 @@ public class Key {
      */
     @Nonnull
     public static Key empty() {
-        if (EMPTY == null) {
-            EMPTY = new Key(EMPTY_KEY_CONSTANT);
-        }
-
         return EMPTY;
     }
-
+    
     /**
      * Returns true if the given string matches the {@link #PATTERN}.
      *

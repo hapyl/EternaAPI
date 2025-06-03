@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.FactoryMethod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -35,7 +34,6 @@ public interface Wrap {
     String end();
 
     @Nonnull
-    @FactoryMethod(Wrap.class)
     static Wrap of(@Nullable String start, @Nullable String between, @Nullable String end) {
         return new Wrap() {
             @Override

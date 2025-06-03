@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.entity.packet;
 
-import me.hapyl.eterna.module.annotate.FactoryMethod;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.Location;
@@ -52,7 +51,6 @@ public class PacketItem extends PacketEntity<ItemEntity> {
      * @return a new {@link PacketItem}.
      */
     @Nonnull
-    @FactoryMethod(PacketItem.class)
     public static PacketItem create(@Nonnull Location location, @Nonnull ItemStack itemStack) {
         return new PacketItem(location, itemStack);
     }

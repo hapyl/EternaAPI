@@ -3,6 +3,8 @@ package me.hapyl.eterna.module.inventory;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.google.common.collect.*;
 import io.papermc.paper.datacomponent.DataComponentType;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.TooltipDisplay;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.Super;
@@ -11,6 +13,7 @@ import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.player.PlayerLib;
+import me.hapyl.eterna.module.registry.CloneableKeyed;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
@@ -46,14 +49,13 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 
 /**
  * Build ItemStack easier. Add names, lore, smart lore, enchants and even click events!
  */
 @SuppressWarnings("UnstableApiUsage")
-public class ItemBuilder implements Cloneable, Keyed {
+public class ItemBuilder implements CloneableKeyed, Keyed {
     
     /**
      * The default smart split char limit.
@@ -76,7 +78,7 @@ public class ItemBuilder implements Cloneable, Keyed {
     /**
      * The default color of name.
      */
-    public static final ChatColor DEFAULT_NAME_COLOR = ChatColor.GREEN;
+    public static final ChatColor DEFAULT_NAME_COLOR = ChatColor.DARK_GREEN;
     
     private static final char MANUAL_SPLIT_CHAR = '_';
     
@@ -84,14 +86,37 @@ public class ItemBuilder implements Cloneable, Keyed {
     private static final String PLUGIN_PATH = "item_key";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
     
+    private static final TooltipDisplay HIDE_FLAGS_TOOLTIP
+            = TooltipDisplay.tooltipDisplay()
+                            .addHiddenComponents(
+                                    DataComponentTypes.DAMAGE,
+                                    DataComponentTypes.UNBREAKABLE,
+                                    DataComponentTypes.ENCHANTMENTS,
+                                    DataComponentTypes.CAN_PLACE_ON,
+                                    DataComponentTypes.CAN_BREAK,
+                                    DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                                    DataComponentTypes.STORED_ENCHANTMENTS,
+                                    DataComponentTypes.DYED_COLOR,
+                                    DataComponentTypes.MAP_ID,
+                                    DataComponentTypes.CHARGED_PROJECTILES,
+                                    DataComponentTypes.BUNDLE_CONTENTS,
+                                    DataComponentTypes.POTION_CONTENTS,
+                                    DataComponentTypes.POTION_DURATION_SCALE,
+                                    DataComponentTypes.WRITABLE_BOOK_CONTENT,
+                                    DataComponentTypes.WRITTEN_BOOK_CONTENT,
+                                    DataComponentTypes.TRIM,
+                                    DataComponentTypes.PROVIDES_TRIM_MATERIAL,
+                                    DataComponentTypes.PROVIDES_BANNER_PATTERNS,
+                                    DataComponentTypes.FIREWORKS,
+                                    DataComponentTypes.BANNER_PATTERNS
+                            ).build();
+    
     protected static Map<Key, ItemFunctionList> registeredFunctions = Maps.newHashMap();
     
-    private static AttributeModifier HIDE_ATTRIBUTES_MODIFIER;
+    @Nonnull private final Key key;
+    @Nonnull protected ItemStack item;
     
-    protected ItemStack item;
-    
-    @Nonnull private Key key;
-    private ItemFunctionList functions;
+    @Nullable private ItemFunctionList functions;
     
     /**
      * Creates a new ItemBuilder from material.
@@ -131,6 +156,11 @@ public class ItemBuilder implements Cloneable, Keyed {
     public ItemBuilder(@Nonnull ItemStack stack, @Nonnull Key key) {
         this.item = stack;
         this.key = key;
+        
+        // Set the cooldown key right away, allowing overriding it if needed
+        if (!key.isEmpty()) {
+            setCooldownGroup(key);
+        }
     }
     
     /**
@@ -201,21 +231,6 @@ public class ItemBuilder implements Cloneable, Keyed {
         if (predicate) {
             action.accept(this);
         }
-        return this;
-    }
-    
-    /**
-     * Sets if click events from inventory are allowed.
-     *
-     * @param allowInventoryClick - New value.
-     * @see #addFunction(ItemFunction)
-     * @deprecated allow inventory clicks is not per-functions
-     */
-    @Deprecated
-    public ItemBuilder setAllowInventoryClick(boolean allowInventoryClick) {
-        final ItemFunctionList functions = getFunctions();
-        
-        functions.first().setAllowInventoryClick(allowInventoryClick);
         return this;
     }
     
@@ -297,50 +312,6 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
     
     /**
-     * Sets the cooldown for click events.
-     *
-     * @param ticks - Cooldown in ticks.
-     * @see #addFunction(ItemFunction)
-     * @deprecated Cooldowns are now per-function.
-     */
-    @Deprecated
-    public ItemBuilder withCooldown(int ticks) {
-        return withCooldown(ticks, null);
-    }
-    
-    /**
-     * Sets the cooldown for click events with predicate.
-     *
-     * @param ticks     - Cooldown in ticks.
-     * @param predicate - Predicate of the cooldown.
-     * @see #addFunction(ItemFunction)
-     * @deprecated Cooldowns are now per-function.
-     */
-    @Deprecated
-    public ItemBuilder withCooldown(int ticks, @Nullable Predicate<Player> predicate) {
-        return withCooldown(ticks, predicate, "&cCannot use that!");
-    }
-    
-    /**
-     * Sets the cooldown for the <b>first</b> {@link ItemFunction}.
-     *
-     * @param ticks        - Cooldown in ticks.
-     * @param predicate    - Predicate of the cooldown.
-     * @param errorMessage - Error message if predicate fails.
-     * @see #addFunction(ItemFunction)
-     * @deprecated Cooldowns are now per-function.
-     */
-    @Deprecated
-    public ItemBuilder withCooldown(int ticks, @Nullable Predicate<Player> predicate, @Nonnull String errorMessage) {
-        final ItemFunction function = getFunctions().first();
-        
-        function.setCd(ticks);
-        function.setPredicate(predicate);
-        function.setErrorMessage(errorMessage);
-        return this;
-    }
-    
-    /**
      * Removes all click events.
      */
     public ItemBuilder removeClickEvent() {
@@ -364,14 +335,12 @@ public class ItemBuilder implements Cloneable, Keyed {
             throw new IndexOutOfBoundsException("This requires at least one action.");
         }
         
-        final ItemFunctionList functions = getFunctions();
-        final ItemFunction function = new ItemFunction(runnable);
-        
-        for (Action action : actions) {
-            function.accept(action);
-        }
-        
-        functions.addFunction(function);
+        getFunctions().addFunction(new ItemFunction(actions) {
+            @Override
+            public void execute(@Nonnull Player player) {
+                runnable.accept(player);
+            }
+        });
         
         return this;
     }
@@ -393,35 +362,6 @@ public class ItemBuilder implements Cloneable, Keyed {
     public ItemBuilder addFunction(@Nonnull ItemFunction function) {
         getFunctions().addFunction(function);
         return this;
-    }
-    
-    /**
-     * Adds an {@link ItemFunction}.
-     *
-     * @param function - functions.
-     */
-    public ItemBuilder addFunction(@Nonnull Function<Key, ItemFunction> function) {
-        final ItemFunctionList functions = getFunctions();
-        final ItemFunction fn = function.apply(key);
-        
-        functions.addFunction(fn);
-        return this;
-    }
-    
-    /**
-     * Adds and returns a new {@link ItemFunction}.
-     * <br>
-     * <b>Do not forget to add a click type! {@link ItemFunction#accept(Action)}</b>
-     *
-     * @param consumer - Action.
-     */
-    @Nonnull
-    public ItemFunction addFunction(@Nonnull Consumer<Player> consumer) {
-        final ItemFunctionList functions = getFunctions();
-        final ItemFunction function = new ItemFunction(consumer);
-        
-        functions.addFunction(function);
-        return function;
     }
     
     /**
@@ -993,6 +933,16 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
     
     /**
+     * Adds an {@link AttributeModifier} to the builder.
+     *
+     * @param attribute - The attribute.
+     * @param modifier  - The attribute modifier.
+     */
+    public ItemBuilder addAttribute(@Nonnull Attribute attribute, @Nonnull AttributeModifier modifier) {
+        return modifyMeta(meta -> meta.addAttributeModifier(attribute, modifier));
+    }
+    
+    /**
      * Adds an attribute to the item.
      *
      * @param attribute - Attribute to add.
@@ -1056,10 +1006,14 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
     
     /**
-     * Hides all the item flags.
+     * Hides all item flags, including tooltips for <b>most</b> components.
+     *
+     * <p>There is currently no way to hide tooltip on Trim and Music Discs because fuck Mojang.</p>
      */
     public ItemBuilder hideFlags() {
-        return hideFlag(ItemFlag.values());
+        modifyMeta(meta -> meta.addItemFlags(ItemFlag.values()));
+        item.setData(DataComponentTypes.TOOLTIP_DISPLAY, HIDE_FLAGS_TOOLTIP);
+        return this;
     }
     
     /**
@@ -1296,15 +1250,6 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
     
     /**
-     * Returns predicate error.
-     *
-     * @return predicate error.
-     */
-    public String getError() {
-        return getFunctions().first().getErrorMessage();
-    }
-    
-    /**
      * Gets the actual {@link ItemStack} of this {@link ItemBuilder}.
      *
      * @return the actual {@link ItemStack} of this {@link ItemBuilder}.
@@ -1454,30 +1399,8 @@ public class ItemBuilder implements Cloneable, Keyed {
      */
     @Nonnull
     @Override
-    public Key getKey() {
+    public final Key getKey() {
         return key;
-    }
-    
-    /**
-     * Sets the key of this item.
-     * <p>Keys are used for function identification.</p>
-     *
-     * @param key - New key.
-     */
-    public ItemBuilder setKey(@Nonnull Key key) {
-        this.key = key;
-        return this;
-    }
-    
-    /**
-     * Sets the key of this item from the given string.
-     * <p>Keys are used for function identification.</p>
-     *
-     * @param string - String to convert to the key.
-     * @throws IllegalArgumentException if the given string does not match the {@link Key#PATTERN}.
-     */
-    public ItemBuilder setKey(@Nonnull String string) {
-        return setKey(Key.ofString(string));
     }
     
     /**
@@ -1541,57 +1464,6 @@ public class ItemBuilder implements Cloneable, Keyed {
      */
     public ItemBuilder setEnchantmentGlintOverride(boolean glow) {
         return modifyMeta(meta -> meta.setEnchantmentGlintOverride(glow));
-    }
-    
-    /**
-     * Gets the cooldown of the item.
-     *
-     * @return the cooldown of the item.
-     * @see #addFunction(ItemFunction)
-     * @deprecated cooldowns are now per-functions
-     */
-    @Deprecated
-    public int getCd() {
-        return getFunctions().first().getCd();
-    }
-    
-    /**
-     * Gets the item predicate for function.
-     *
-     * @return item predicate for function.
-     * @see #addFunction(ItemFunction)
-     * @deprecated predicates are now per-functions
-     */
-    @Deprecated
-    @Nullable
-    public Predicate<Player> getPredicate() {
-        return getFunctions().first().getPredicate();
-    }
-    
-    /**
-     * Returns true if item is canceling clicks.
-     *
-     * @return true if item is canceling clicks.
-     * @see #addFunction(ItemFunction)
-     * @deprecated cancel clicks is now per-functions
-     */
-    @Deprecated
-    public boolean isCancelClicks() {
-        return getFunctions().first().isCancelClicks;
-    }
-    
-    /**
-     * Sets if even should cancel clicks upon click event triggering.
-     * Set to false if using custom checks for click.
-     *
-     * @param cancelClicks - New value.
-     * @see #addFunction(ItemFunction)
-     * @deprecated cancel clicks is now per-functions
-     */
-    @Deprecated
-    public ItemBuilder setCancelClicks(boolean cancelClicks) {
-        getFunctions().first().isCancelClicks = cancelClicks;
-        return this;
     }
     
     /**
@@ -1683,7 +1555,7 @@ public class ItemBuilder implements Cloneable, Keyed {
      * @param key - The key for the group.
      */
     public ItemBuilder setCooldownGroup(@Nonnull Key key) {
-        return setCooldown(cd -> cd.setCooldownGroup(key.asNamespacedKey()));
+        return setCooldown(cd -> cd.setCooldownGroup(key.nonEmpty().asNamespacedKey()));
     }
     
     /**
@@ -1856,24 +1728,24 @@ public class ItemBuilder implements Cloneable, Keyed {
     }
     
     /**
-     * Creates a copy of this builder.
+     * Clones this {@link ItemBuilder} with the new {@link Key}.
+     * <p>The cloned {@link ItemBuilder} inherits a copy of {@link ItemStack} and {@link ItemFunctionList}, which are <b>not</b> backed by this {@link ItemBuilder}.
+     * </p>
      *
-     * @return a copy of this builder.
+     * @param key - The key of the cloned object.
+     * @return the cloned {@link ItemBuilder}.
+     * @throws IllegalArgumentException if the given {@link Key} is {@link Key#isEmpty()}.
      */
-    @Override
     @Nonnull
-    public ItemBuilder clone() {
-        try {
-            final ItemBuilder cloned = (ItemBuilder) super.clone();
-            
-            cloned.item = new ItemStack(item);
-            cloned.functions = functions.clone();
-            
-            return cloned;
+    @Override
+    public ItemBuilder cloneAs(@Nonnull Key key) {
+        final ItemBuilder clone = new ItemBuilder(item.clone(), key.nonEmpty());
+        
+        if (this.functions != null) {
+            clone.functions = this.functions.clone();
         }
-        catch (Exception e) {
-            throw new Error(e);
-        }
+        
+        return clone;
     }
     
     private void validateItemType(Material... types) {
@@ -2298,21 +2170,6 @@ public class ItemBuilder implements Cloneable, Keyed {
         item.setItemMeta(meta);
     }
     
-    @SuppressWarnings("UnstableApiUsage")
-    @Nonnull
-    public static AttributeModifier getHideFlagsAttributeModifier() {
-        if (HIDE_ATTRIBUTES_MODIFIER == null) {
-            HIDE_ATTRIBUTES_MODIFIER = new AttributeModifier(
-                    BukkitUtils.createKey("hide_attributes"),
-                    0,
-                    AttributeModifier.Operation.ADD_NUMBER,
-                    EquipmentSlotGroup.FEET
-            );
-        }
-        
-        return HIDE_ATTRIBUTES_MODIFIER;
-    }
-    
     /**
      * Decodes the base64 texture into a {@link #URL_TEXTURE_LINK} link.
      *
@@ -2355,7 +2212,38 @@ public class ItemBuilder implements Cloneable, Keyed {
      */
     @Nonnull
     public static ItemStack createDummyCooldownItem(@Nonnull Material material, @Nonnull Key key) {
-        return new ItemBuilder(material).setCooldownGroup(key).item;
+        return new ItemBuilder(material, key).item;
+    }
+    
+    /**
+     * Modifies the {@link ItemMeta} of the given {@link ItemStack}.
+     *
+     * @param item     – The item whose metadata should be modified.
+     * @param consumer – The action to perform on the metadata.
+     */
+    public static void modifyMeta(@Nonnull ItemStack item, @Nonnull Consumer<ItemMeta> consumer) {
+        modifyMeta(item, ItemMeta.class, consumer);
+    }
+    
+    /**
+     * Modifies the {@link ItemMeta} of the given {@link ItemStack} if it is an instance of the specified meta class.
+     *
+     * @param item      – The item whose metadata should be modified.
+     * @param metaClass – The class of metadata to modify.
+     * @param consumer  – The action to perform on the metadata.
+     * @param <M>       – The type of {@link ItemMeta} to modify.
+     */
+    public static <M extends ItemMeta> void modifyMeta(@Nonnull ItemStack item, @Nonnull Class<M> metaClass, @Nonnull Consumer<M> consumer) {
+        final ItemMeta meta = item.getItemMeta();
+        
+        if (!metaClass.isInstance(meta)) {
+            return;
+        }
+        
+        final M actualMeta = metaClass.cast(meta);
+        consumer.accept(actualMeta);
+        
+        item.setItemMeta(actualMeta);
     }
     
     private static boolean isManualSplit(char[] chars, int index) {

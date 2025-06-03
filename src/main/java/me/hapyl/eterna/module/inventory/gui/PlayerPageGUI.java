@@ -21,6 +21,9 @@ import java.util.List;
  */
 public abstract class PlayerPageGUI<T> extends PlayerGUI {
     
+    public static final ItemStack ICON_PAGE_NEXT = ItemBuilder.playerHeadUrl("19bf3292e126a105b54eba713aa1b152d541a1d8938829c56364d178ed22bf").setName("&2Next Page").asIcon();
+    public static final ItemStack ICON_PAGE_PREVIOUS = ItemBuilder.playerHeadUrl("bd69e06e5dadfd84e5f3d1c21063f2553b2fa945ee1d4d7152fdc5425bc12a9").setName("&2Previous Page").asIcon();
+    
     private Fit fit;
     private LinkedList<T> contents;
     private int startRow;
@@ -43,13 +46,24 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         this.endRow = rows - 1;
         this.previousPageSlot = size - 7;
         this.nextPageSlot = size - 3;
-        this.emptyContentsItem = ItemBuilder.of(Material.MINECART, "Empty").asIcon();
+        this.currentPage = 1;
+        this.emptyContentsItem = new ItemBuilder(Material.MINECART).setName("Empty!").asIcon();
         
         this.emptyContentsSlot = switch (rows) {
             case 6, 5, 4 -> 22;
             case 3, 2 -> 13;
             default -> 4;
         };
+    }
+    
+    @Nonnull
+    protected ItemStack nextPageItem() {
+        return ICON_PAGE_NEXT;
+    }
+    
+    @Nonnull
+    protected ItemStack previousPageItem() {
+        return ICON_PAGE_PREVIOUS;
     }
     
     /**
@@ -186,14 +200,10 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     @Override
     @OverridingMethodsMustInvokeSuper
     public void onUpdate() {
-        preProcessInventory(player, currentPage);
-        
         if (contents.isEmpty()) {
             if (emptyContentsItem != null) {
                 setItem(emptyContentsSlot, emptyContentsItem);
             }
-            
-            postProcessInventory(player, currentPage);
             return;
         }
         
@@ -203,7 +213,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         // Arrow previous arrows
         if (currentPage > 1) {
             setItem(
-                    previousPageSlot, ItemBuilder.of(Material.ARROW, "Previous Page").asIcon(), player -> {
+                    previousPageSlot, previousPageItem(), player -> {
                         openInventory(currentPage - 1);
                         onPageChange(player, currentPage, currentPage - 1);
                     }
@@ -213,7 +223,7 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         // Arrow next arrows
         if (currentPage < getMaxPage()) {
             setItem(
-                    nextPageSlot, ItemBuilder.of(Material.ARROW, "Next Page").asIcon(), player -> {
+                    nextPageSlot, nextPageItem(), player -> {
                         openInventory(currentPage + 1);
                         onPageChange(player, currentPage, currentPage + 1);
                     }
@@ -238,7 +248,6 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
         }
         
         component.apply(this, fit.pattern, startRow);
-        postProcessInventory(player, currentPage);
     }
     
     public @Range(from = 1, to = Integer.MAX_VALUE) int currentPage() {
@@ -246,41 +255,22 @@ public abstract class PlayerPageGUI<T> extends PlayerGUI {
     }
     
     /**
-     * Opens the inventory to the player.
+     * Opens the inventory to the player from the give page.
      *
      * @param page - Page to open at. The first page is 1.
      */
     public final void openInventory(@Range(from = 1, to = Integer.MAX_VALUE) int page) {
         currentPage = page;
-        super.openInventory();
+        
+        this.openInventory(); // Forcefully call this openInventory, not super, so impl can override openInventory() for pre-checks
     }
     
     /**
-     * Open the first page to the player.
+     * Opens the inventory to the player on the current page.
      */
     @Override
-    @Deprecated
-    public final void openInventory() {
-        currentPage = 1;
+    public void openInventory() {
         super.openInventory();
-    }
-    
-    /**
-     * Called after applying the component, but before opening the inventory.
-     *
-     * @param player - Player.
-     * @param page   - Current page.
-     */
-    public void postProcessInventory(@Nonnull Player player, int page) {
-    }
-    
-    /**
-     * Called after clearing old contents but before making any other calculations.
-     *
-     * @param player - Player.
-     * @param page   - Current page.
-     */
-    public void preProcessInventory(@Nonnull Player player, int page) {
     }
     
     /**

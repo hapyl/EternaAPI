@@ -48,7 +48,7 @@ public interface CommandFormatter extends Formatter {
 
         @Override
         public void sendOnCooldown(Player player, int timeLeftInTicks) {
-            Chat.sendMessage(player, "&cThis command is on cooldown for %ss!".formatted(Tick.round(timeLeftInTicks)));
+            Chat.sendMessage(player, "&cThis command is on cooldown for %s!".formatted(Tick.round(timeLeftInTicks)));
             PlayerLib.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 0.0f);
         }
 

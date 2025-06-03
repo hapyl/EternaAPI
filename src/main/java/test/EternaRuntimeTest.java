@@ -268,11 +268,16 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("itemBuilder") {
             
             static final ItemBuilder testItem = new ItemBuilder(Material.STONE, Key.ofString("itembuildertest_0"))
-                    .setName("&aTest Item")
-                    .addClickEvent(pl -> pl.sendMessage("YOU CLICKED!!!"))
-                    .withCooldown(60, player -> !player.isSneaking(), "NO SNEAKING!!!")
+                    .setName("&aTest Item Cooldown Predicate")
+                    .addFunction(ItemFunction
+                                         .of(player -> {
+                                             player.sendMessage("You clicked without sneaking!");
+                                         })
+                                         .cooldown(60)
+                                         .predicate(DescriptivePredicate.of(player -> !player.isSneaking(), "NO SNEAKING!"))
+                                         .allowInventoryClick(true)
+                    )
                     .addSmartLore("This is a very long string that will be split or wrapped, or I don't &areally care what its &7called.")
-                    .setAllowInventoryClick(true)
                     .setNbt("hello.world", NBTType.SHORT, (short) 12345)
                     .setNbt("goodbye.world", NBTType.STR, "I hecking love Java! ☕");
             
@@ -287,25 +292,29 @@ public final class EternaRuntimeTest {
                 assertEquals(NBT.getValue(oItem.getItemMeta(), "hello.world", NBTType.SHORT), (short) 12345);
                 assertEquals(NBT.getValue(oItem.getItemMeta(), "goodbye.world", NBTType.STR), "I hecking love Java! ☕");
                 
-                final ItemBuilder cloned = testItem.clone();
-                cloned.setName("CLONED BUT WITH A DIFFERENT NAME AND TYPE");
+                final ItemBuilder cloned = testItem.cloneAs(Key.ofString("itembuildertest_1"));
+                cloned.setName("Cloned, Differnt Name & Type & Exclusive LEFT_CLICK_AIR");
                 cloned.setType(Material.BLUE_WOOL);
                 
-                cloned.setKey(Key.ofString("itembuildertest_1"));
-                cloned.addFunction(p -> {
-                    p.sendMessage("CLONED EXLUSIVE");
-                }).accept(Action.LEFT_CLICK_AIR).setCdSec(1);
+                cloned.addFunction(new ItemFunction(Action.LEFT_CLICK_AIR) {
+                                       @Override
+                                       public void execute(@Nonnull Player player) {
+                                           Chat.sendMessage(player, "&dExclusive");
+                                       }
+                                   }
+                );
                 
                 inventory.addItem(cloned.build());
                 inventory.addItem(new ItemBuilder(Material.PLAYER_HEAD).setSkullOwner("hapyl", Sound.ENTITY_IRON_GOLEM_DAMAGE).build());
                 
-                final ItemBuilder clonedClone = cloned.clone();
-                clonedClone.setName("CLONED CLONE");
-                clonedClone.setKey(Key.ofString("itembuildertest_2"));
+                final ItemBuilder clonedClone = cloned.cloneAs(Key.ofString("itembuildertest_2"));
+                clonedClone.setName("Cloned Clone, Only LEFT_CLICK_AIR");
                 clonedClone.clearFunctions();
-                clonedClone.addFunction(p -> {
-                    p.sendMessage("Clicked with clone clone.");
-                }).accept(Action.LEFT_CLICK_AIR);
+                clonedClone.addClickEvent(
+                        p -> {
+                            Chat.sendMessage(player, "&bExclusive of exclusive!");
+                        }, Action.LEFT_CLICK_AIR
+                );
                 
                 inventory.addItem(clonedClone.build());
                 
@@ -347,10 +356,11 @@ public final class EternaRuntimeTest {
                                               }
                                           }).build());
                 
-                inventory.addItem(testItem.clone().removeLore().build());
+                inventory.addItem(testItem.cloneAs(Key.ofString("cloned_cloned_cloned_cloned")).setName("Test Item Without Lore").removeLore().build());
                 
                 // Test text block
                 final ItemBuilder textBlock = new ItemBuilder(Material.GHAST_TEAR);
+                textBlock.setName("Text Block Test");
                 textBlock.addTextBlockLore("""
                                            TEXT BLOCK LORE
                                            """);
@@ -371,6 +381,7 @@ public final class EternaRuntimeTest {
                 
                 inventory.addItem(textBlock.toItemStack());
                 inventory.addItem(new ItemBuilder(Material.PLAYER_HEAD)
+                                          .setName("Head Texture Test")
                                           .setHeadTextureUrl("2a084f78cbd787481eaee173002ac6c081916142b9d9ccc2c3c232cb79c75595")
                                           .toItemStack());
                 return true;

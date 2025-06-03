@@ -15,13 +15,13 @@ import java.util.function.Consumer;
  * @author hapyl
  */
 public class SmartComponent {
-
+    
     private final LinkedHashMap<ItemStack, ActionList> map;
-
+    
     public SmartComponent() {
         this.map = new LinkedHashMap<>();
     }
-
+    
     /**
      * Adds an item to the component with a click action.
      *
@@ -32,7 +32,7 @@ public class SmartComponent {
         this.map.put(item, action);
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action.
      *
@@ -43,7 +43,7 @@ public class SmartComponent {
         this.map.put(item, action != null ? new ActionList(action) : null);
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action.
      *
@@ -55,7 +55,7 @@ public class SmartComponent {
         this.map.put(item, action.makeAction());
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action with multiple click types.
      *
@@ -65,14 +65,14 @@ public class SmartComponent {
      */
     public SmartComponent add(@Nonnull ItemStack item, @Nonnull Consumer<Player> action, @Nonnull ClickType... clickTypes) {
         final ActionList guiClick = this.map.computeIfAbsent(item, a -> new ActionList(action));
-
+        
         for (ClickType click : clickTypes) {
             guiClick.setAction(click, action);
         }
-
+        
         return this.add(item, guiClick);
     }
-
+    
     /**
      * Sets the action for the given item.
      * <br>
@@ -84,19 +84,21 @@ public class SmartComponent {
      * @param types  - Types.
      */
     public SmartComponent set(@Nonnull ItemStack item, @Nonnull Consumer<Player> action, @Nonnull ClickType... types) {
-        this.map.compute(item, (i, click) -> {
-            click = click != null ? click : new ActionList();
-
-            for (ClickType type : types) {
-                click.setAction(type, action);
-            }
-
-            return click;
-        });
-
+        this.map.compute(
+                item, (i, click) -> {
+                    click = click != null ? click : new ActionList();
+                    
+                    for (ClickType type : types) {
+                        click.setAction(type, action);
+                    }
+                    
+                    return click;
+                }
+        );
+        
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action with multiple click types.
      *
@@ -105,7 +107,7 @@ public class SmartComponent {
     public SmartComponent add(@Nonnull ItemStack item) {
         return this.add(item, (ActionList) null);
     }
-
+    
     /**
      * Applies the component to a GUI.
      *
@@ -116,20 +118,29 @@ public class SmartComponent {
     public void apply(@Nonnull PlayerGUI gui, @Nonnull SlotPattern pattern, int startRow) {
         pattern.apply(gui, map, startRow);
     }
-
+    
+    /**
+     * @deprecated {@link SmartComponent#apply(PlayerGUI, SlotPattern, int)}
+     */
     @Deprecated
     public void fillItems(PlayerGUI gui) {
         SlotPattern.DEFAULT.apply(gui, map, 1);
     }
-
+    
+    /**
+     * @deprecated {@link SmartComponent#apply(PlayerGUI, SlotPattern, int)}
+     */
     @Deprecated
     public void fillItems(PlayerGUI gui, SlotPattern pattern) {
         pattern.apply(gui, map, 1);
     }
-
+    
+    /**
+     * @deprecated {@link SmartComponent#apply(PlayerGUI, SlotPattern, int)}
+     */
     @Deprecated
     public void fillItems(PlayerGUI gui, SlotPattern pattern, int startLine) {
         pattern.apply(gui, map, startLine);
     }
-
+    
 }
