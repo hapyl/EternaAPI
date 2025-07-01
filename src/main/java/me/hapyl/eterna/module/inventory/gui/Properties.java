@@ -1,34 +1,19 @@
 package me.hapyl.eterna.module.inventory.gui;
 
-import com.google.common.collect.Maps;
-import org.bukkit.entity.Player;
-
-import java.util.Map;
-
 /**
  * Represents a GUI properties.
  */
 public class Properties {
-
-    private final Map<Player, Long> lastClick;
 
     protected long cooldownClick;
     protected boolean allowDrag;
     protected boolean allowShiftClick;
     protected boolean allowNumbers;
     protected boolean respectItemClick;
+    
+    private long lastClick;
 
-    protected Properties() {
-        lastClick = Maps.newHashMap();
-    }
-
-    /**
-     * Sets click cooldown in milliseconds.
-     *
-     * @param millis - New cooldown.
-     */
-    public void setClickCooldown(long millis) {
-        this.cooldownClick = millis;
+    Properties() {
     }
 
     /**
@@ -38,6 +23,15 @@ public class Properties {
      */
     public long getClickCooldown() {
         return cooldownClick;
+    }
+
+    /**
+     * Sets click cooldown in milliseconds.
+     *
+     * @param millis - New cooldown.
+     */
+    public void setClickCooldown(long millis) {
+        this.cooldownClick = millis;
     }
 
     /**
@@ -113,16 +107,16 @@ public class Properties {
         this.respectItemClick = respectItemClick;
     }
 
-    protected boolean isClickCooldown(Player player) {
-        final long l = lastClick.getOrDefault(player, 0L);
-        return (cooldownClick == 0L || l == 0L) || (System.currentTimeMillis() - l >= cooldownClick);
+    protected boolean isClickCooldown() {
+        return (cooldownClick == 0L || lastClick == 0L) || (System.currentTimeMillis() - lastClick >= cooldownClick);
     }
 
-    protected void markCooldownClick(Player player) {
+    protected void markCooldownClick() {
         if (cooldownClick == 0L) {
             return;
         }
-        lastClick.put(player, System.currentTimeMillis());
+        
+        lastClick = System.currentTimeMillis();
     }
 
 }

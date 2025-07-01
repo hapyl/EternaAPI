@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 public final class SlotPattern {
@@ -128,6 +129,7 @@ public final class SlotPattern {
         compile();
     }
 
+    @Nonnull
     public static SlotPatternBuilder builder() {
         return new SlotPatternBuilder();
     }
@@ -140,7 +142,7 @@ public final class SlotPattern {
      * @param startRow the row to start the pattern from.
      * @throws IllegalArgumentException if no valid pattern can be found.
      */
-    public void apply(GUI gui, LinkedHashMap<ItemStack, GUIClick> items, int startRow) {
+    public void apply(PlayerGUI gui, LinkedHashMap<ItemStack, ActionList> items, int startRow) {
         final List<List<ItemStack>> subList = subList(items);
 
         for (List<ItemStack> itemStacks : subList) {
@@ -154,7 +156,7 @@ public final class SlotPattern {
                     if (bytes[j] == 1) {
                         if (one == i) {
                             final int slot = j + (startRow * 9);
-                            final GUIClick click = items.get(item);
+                            final ActionList click = items.get(item);
 
                             gui.setItem(slot, item, click);
                         }
@@ -197,7 +199,7 @@ public final class SlotPattern {
         return pattern;
     }
 
-    private List<List<ItemStack>> subList(LinkedHashMap<ItemStack, GUIClick> items) {
+    private List<List<ItemStack>> subList(LinkedHashMap<ItemStack, ActionList> items) {
         final List<List<ItemStack>> subList = Lists.newArrayList();
         final List<ItemStack> mapToList = Lists.newArrayList(items.keySet());
 

@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
  *
  * </pre>
  */
+@Deprecated
 public class BFormat {
 
     public static final char OPEN_CHAR = '{';

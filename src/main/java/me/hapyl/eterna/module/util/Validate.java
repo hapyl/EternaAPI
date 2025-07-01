@@ -35,6 +35,7 @@ public final class Validate {
      *
      * @param itemStack - {@link ItemStack}.
      */
+    @Deprecated
     public static void notNullItemStack(@Nullable ItemStack itemStack) {
         notNull(itemStack, "Null ItemStack will cause TRAP server crashes, use Material.AIR!");
         notNull(itemStack.getType(), "Null ItemStack will cause TRAP server crashes, use Material.AIR!");

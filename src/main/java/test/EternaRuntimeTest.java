@@ -34,18 +34,20 @@ import me.hapyl.eterna.module.math.Tick;
 import me.hapyl.eterna.module.math.geometry.WorldParticle;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
-import me.hapyl.eterna.module.nbt.NbtTag;
-import me.hapyl.eterna.module.nbt.NbtWrapper;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
-import me.hapyl.eterna.module.player.dialog.DialogOptionEntry;
 import me.hapyl.eterna.module.player.input.InputKey;
 import me.hapyl.eterna.module.player.input.PlayerInput;
-import me.hapyl.eterna.module.player.quest.*;
+import me.hapyl.eterna.module.player.quest.Quest;
+import me.hapyl.eterna.module.player.quest.QuestChain;
+import me.hapyl.eterna.module.player.quest.QuestData;
+import me.hapyl.eterna.module.player.quest.QuestHandler;
+import me.hapyl.eterna.module.player.quest.objective.GiveItemToNpcQuestObjective;
 import me.hapyl.eterna.module.player.quest.objective.JumpQuestObjective;
+import me.hapyl.eterna.module.player.quest.objective.TalkToNpcQuestObjective;
 import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
 import me.hapyl.eterna.module.player.tablist.*;
@@ -68,7 +70,6 @@ import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -77,6 +78,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -181,18 +184,17 @@ public final class EternaRuntimeTest {
         });
         
         addTest(new EternaTest("glowing") {
-            
             final String teamName = "dummyTeam";
             
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final Player diden = Bukkit.getPlayer(args.getString(0));
+                final Player glowingPlayer = Bukkit.getPlayer(args.getString(0));
                 
-                if (diden == null) {
+                if (glowingPlayer == null) {
                     info(player, "No player named %s, using a piggy instead!".format(args.getString(0)));
                 }
                 
-                final Entity entity = diden != null ? diden : Entities.PIG.spawn(
+                final Entity entity = glowingPlayer != null ? glowingPlayer : Entities.PIG.spawn(
                         player.getLocation(), self -> {
                             self.setInvisible(true);
                             self.setAI(false);
@@ -266,11 +268,16 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("itemBuilder") {
             
             static final ItemBuilder testItem = new ItemBuilder(Material.STONE, Key.ofString("itembuildertest_0"))
-                    .setName("&aTest Item")
-                    .addClickEvent(pl -> pl.sendMessage("YOU CLICKED!!!"))
-                    .withCooldown(60, player -> !player.isSneaking(), "NO SNEAKING!!!")
+                    .setName("&aTest Item Cooldown Predicate")
+                    .addFunction(ItemFunction
+                                         .of(player -> {
+                                             player.sendMessage("You clicked without sneaking!");
+                                         })
+                                         .cooldown(60)
+                                         .predicate(DescriptivePredicate.of(player -> !player.isSneaking(), "NO SNEAKING!"))
+                                         .allowInventoryClick(true)
+                    )
                     .addSmartLore("This is a very long string that will be split or wrapped, or I don't &areally care what its &7called.")
-                    .setAllowInventoryClick(true)
                     .setNbt("hello.world", NBTType.SHORT, (short) 12345)
                     .setNbt("goodbye.world", NBTType.STR, "I hecking love Java! ☕");
             
@@ -285,25 +292,29 @@ public final class EternaRuntimeTest {
                 assertEquals(NBT.getValue(oItem.getItemMeta(), "hello.world", NBTType.SHORT), (short) 12345);
                 assertEquals(NBT.getValue(oItem.getItemMeta(), "goodbye.world", NBTType.STR), "I hecking love Java! ☕");
                 
-                final ItemBuilder cloned = testItem.clone();
-                cloned.setName("CLONED BUT WITH A DIFFERENT NAME AND TYPE");
+                final ItemBuilder cloned = testItem.cloneAs(Key.ofString("itembuildertest_1"));
+                cloned.setName("Cloned, Differnt Name & Type & Exclusive LEFT_CLICK_AIR");
                 cloned.setType(Material.BLUE_WOOL);
                 
-                cloned.setKey(Key.ofString("itembuildertest_1"));
-                cloned.addFunction(p -> {
-                    p.sendMessage("CLONED EXLUSIVE");
-                }).accept(Action.LEFT_CLICK_AIR).setCdSec(1);
+                cloned.addFunction(new ItemFunction(Action.LEFT_CLICK_AIR) {
+                                       @Override
+                                       public void execute(@Nonnull Player player) {
+                                           Chat.sendMessage(player, "&dExclusive");
+                                       }
+                                   }
+                );
                 
                 inventory.addItem(cloned.build());
                 inventory.addItem(new ItemBuilder(Material.PLAYER_HEAD).setSkullOwner("hapyl", Sound.ENTITY_IRON_GOLEM_DAMAGE).build());
                 
-                final ItemBuilder clonedClone = cloned.clone();
-                clonedClone.setName("CLONED CLONE");
-                clonedClone.setKey(Key.ofString("itembuildertest_2"));
+                final ItemBuilder clonedClone = cloned.cloneAs(Key.ofString("itembuildertest_2"));
+                clonedClone.setName("Cloned Clone, Only LEFT_CLICK_AIR");
                 clonedClone.clearFunctions();
-                clonedClone.addFunction(p -> {
-                    p.sendMessage("Clicked with clone clone.");
-                }).accept(Action.LEFT_CLICK_AIR);
+                clonedClone.addClickEvent(
+                        p -> {
+                            Chat.sendMessage(player, "&bExclusive of exclusive!");
+                        }, Action.LEFT_CLICK_AIR
+                );
                 
                 inventory.addItem(clonedClone.build());
                 
@@ -345,10 +356,11 @@ public final class EternaRuntimeTest {
                                               }
                                           }).build());
                 
-                inventory.addItem(testItem.clone().removeLore().build());
+                inventory.addItem(testItem.cloneAs(Key.ofString("cloned_cloned_cloned_cloned")).setName("Test Item Without Lore").removeLore().build());
                 
                 // Test text block
                 final ItemBuilder textBlock = new ItemBuilder(Material.GHAST_TEAR);
+                textBlock.setName("Text Block Test");
                 textBlock.addTextBlockLore("""
                                            TEXT BLOCK LORE
                                            """);
@@ -369,6 +381,7 @@ public final class EternaRuntimeTest {
                 
                 inventory.addItem(textBlock.toItemStack());
                 inventory.addItem(new ItemBuilder(Material.PLAYER_HEAD)
+                                          .setName("Head Texture Test")
                                           .setHeadTextureUrl("2a084f78cbd787481eaee173002ac6c081916142b9d9ccc2c3c232cb79c75595")
                                           .toItemStack());
                 return true;
@@ -522,94 +535,100 @@ public final class EternaRuntimeTest {
         });
         
         addTest(new EternaTest("gui") {
+            class TestGUI extends PlayerGUI implements GUIEventListener {
+                
+                public TestGUI(@Nonnull Player player, @Nonnull String name, int rows) {
+                    super(player, name, rows);
+                }
+                
+                @Override
+                public void onOpen(@Nonnull InventoryOpenEvent event) {
+                
+                }
+                
+                @Override
+                public void onClose(@Nonnull InventoryCloseEvent event) {
+                    assertTestPassed();
+                }
+                
+                @Override
+                public void onUpdate() {
+                    setItem(
+                            0, new ItemBuilder(Material.STONE).asIcon(), new StrictAction() {
+                                @Override
+                                public void onLeftClick(@Nonnull Player player) {
+                                    info(player, "onLeftClick");
+                                }
+                                
+                                @Override
+                                public void onShiftLeftClick(@Nonnull Player player) {
+                                    info(player, "onShiftLeftClick");
+                                }
+                                
+                                @Override
+                                public void onRightClick(@Nonnull Player player) {
+                                    info(player, "onRightClick");
+                                }
+                                
+                                @Override
+                                public void onShiftRightClick(@Nonnull Player player) {
+                                    info(player, "onShiftRightClick");
+                                }
+                                
+                                @Override
+                                public void onWindowBorderLeftClick(@Nonnull Player player) {
+                                    info(player, "onWindowBorderLeftClick");
+                                }
+                                
+                                @Override
+                                public void onWindowBorderRightClick(@Nonnull Player player) {
+                                    info(player, "onWindowBorderRightClick");
+                                }
+                                
+                                @Override
+                                public void onMiddleClick(@Nonnull Player player) {
+                                    info(player, "onMiddleClick");
+                                }
+                                
+                                @Override
+                                public void onNumberKeyClick(@Nonnull Player player) {
+                                    info(player, "onNumberKeyClick");
+                                }
+                                
+                                @Override
+                                public void onDoubleClick(@Nonnull Player player) {
+                                    info(player, "onDoubleClick");
+                                }
+                                
+                                @Override
+                                public void onDropClick(@Nonnull Player player) {
+                                    info(player, "onDropClick");
+                                }
+                                
+                                @Override
+                                public void onControlDropClick(@Nonnull Player player) {
+                                    info(player, "onControlDropClick");
+                                }
+                                
+                                @Override
+                                public void onCreativeDropClick(@Nonnull Player player) {
+                                    info(player, "onCreativeDropClick");
+                                }
+                                
+                                @Override
+                                public void onSwapOffhandClick(@Nonnull Player player) {
+                                    info(player, "onSwapOffhandClick");
+                                }
+                                
+                            }
+                    );
+                }
+            }
+            
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final PlayerGUI gui = new PlayerGUI(player);
+                TestGUI gui = new TestGUI(player, "Test GUI", 2);
                 
-                gui.setItem(
-                        0, new ItemBuilder(Material.STONE).asIcon(), new StrictAction() {
-                            @Override
-                            public void onLeftClick(@Nonnull Player player) {
-                                info(player, "onLeftClick");
-                            }
-                            
-                            @Override
-                            public void onShiftLeftClick(@Nonnull Player player) {
-                                info(player, "onShiftLeftClick");
-                            }
-                            
-                            @Override
-                            public void onRightClick(@Nonnull Player player) {
-                                info(player, "onRightClick");
-                            }
-                            
-                            @Override
-                            public void onShiftRightClick(@Nonnull Player player) {
-                                info(player, "onShiftRightClick");
-                            }
-                            
-                            @Override
-                            public void onWindowBorderLeftClick(@Nonnull Player player) {
-                                info(player, "onWindowBorderLeftClick");
-                            }
-                            
-                            @Override
-                            public void onWindowBorderRightClick(@Nonnull Player player) {
-                                info(player, "onWindowBorderRightClick");
-                            }
-                            
-                            @Override
-                            public void onMiddleClick(@Nonnull Player player) {
-                                info(player, "onMiddleClick");
-                            }
-                            
-                            @Override
-                            public void onNumberKeyClick(@Nonnull Player player) {
-                                info(player, "onNumberKeyClick");
-                            }
-                            
-                            @Override
-                            public void onDoubleClick(@Nonnull Player player) {
-                                info(player, "onDoubleClick");
-                            }
-                            
-                            @Override
-                            public void onDropClick(@Nonnull Player player) {
-                                info(player, "onDropClick");
-                            }
-                            
-                            @Override
-                            public void onControlDropClick(@Nonnull Player player) {
-                                info(player, "onControlDropClick");
-                            }
-                            
-                            @Override
-                            public void onCreativeDropClick(@Nonnull Player player) {
-                                info(player, "onCreativeDropClick");
-                            }
-                            
-                            @Override
-                            public void onSwapOffhandClick(@Nonnull Player player) {
-                                info(player, "onSwapOffhandClick");
-                            }
-                            
-                            @Override
-                            public void onUnknownClick(@Nonnull Player player) {
-                                info(player, "onUnknownClick");
-                            }
-                        }
-                );
-                
-                later(
-                        () -> {
-                            info(player, "Renamed");
-                            gui.rename("Hello world!");
-                        }, 60
-                );
-                
-                gui.setCloseEvent(pp -> {
-                    assertTestPassed();
-                });
                 gui.setCancelType(CancelType.NEITHER);
                 gui.openInventory();
                 return false;
@@ -650,10 +669,12 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("autoGUI") {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final PlayerAutoGUI gui = new PlayerAutoGUI(player, "My Menu", 5);
+                final PlayerAutoGUI gui = new PlayerAutoGUI(player, "My Menu", 5) {
+                };
                 
                 for (int i = 0; i < 16; i++) {
                     int finalI = i;
+                    
                     gui.addItem(
                             new ItemBuilder(Material.APPLE).setAmount(i + 1).build(), click -> {
                                 click.sendMessage("You clicked %sth apple.".formatted(finalI + 1));
@@ -661,36 +682,43 @@ public final class EternaRuntimeTest {
                     );
                 }
                 
-                gui.setCloseEvent(pp -> {
-                    assertTestPassed();
-                });
                 gui.setPattern(SlotPattern.DEFAULT);
                 gui.openInventory();
-                
                 return false;
             }
         });
         
         addTest(new EternaTest("pageGUI") {
+            class TestGUI extends PlayerPageGUI<String> implements GUIEventListener {
+                
+                public TestGUI(Player player, String name, int rows) {
+                    super(player, name, rows);
+                }
+                
+                @Override
+                @Nonnull
+                public ItemStack asItem(@Nonnull Player player, String content, int index, int page) {
+                    return new ItemBuilder(Material.STONE)
+                            .setName(content)
+                            .setAmount((index + 1) + (maxItemsPerPage() * page))
+                            .toItemStack();
+                }
+                
+                @Override
+                public void onClick(@Nonnull Player player, @Nonnull String content, int index, int page, @Nonnull org.bukkit.event.inventory.ClickType clickType) {
+                    player.sendMessage("You clicked " + content);
+                    player.sendMessage("Using " + clickType);
+                }
+                
+                @Override
+                public void onClose(@Nonnull InventoryCloseEvent event) {
+                    assertTestPassed();
+                }
+            }
+            
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final PlayerPageGUI<String> gui = new PlayerPageGUI<>(player, "Player Page GUI Test", 5) {
-                    @Override
-                    @Nonnull
-                    public ItemStack asItem(@Nonnull Player player, String content, int index, int page) {
-                        return new ItemBuilder(Material.STONE)
-                                .setName(content)
-                                .setAmount((index + 1) + (maxItemsPerPage() * page))
-                                .toItemStack();
-                    }
-                    
-                    @Override
-                    public void onClick(@Nonnull Player player, @Nonnull String content, int index, int page, @Nonnull org.bukkit.event.inventory.ClickType clickType) {
-                        player.sendMessage("You clicked " + content);
-                        player.sendMessage("Using " + clickType);
-                    }
-                    
-                };
+                final TestGUI gui = new TestGUI(player, "Player Page GUI Test", 5);
                 
                 gui.setContents(List.of(
                         "a",
@@ -720,9 +748,7 @@ public final class EternaRuntimeTest {
                         "y",
                         "z"
                 ));
-                gui.setCloseEvent(pp -> {
-                    assertTestPassed();
-                });
+                
                 gui.setFit(PlayerPageGUI.Fit.SLIM);
                 gui.setEmptyContentsItem(null);
                 
@@ -1916,10 +1942,8 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("quest") {
             
             private QuestHandler registry;
-            private HumanNPC npc1;
-            private HumanNPC npc2;
-            private HumanNPC npc3;
             
+            private Set<QuestData> cachedQuestData;
             private List<Quest> completedQuests = Lists.newArrayList();
             
             @Override
@@ -1930,12 +1954,13 @@ public final class EternaRuntimeTest {
                     registry = new QuestHandler(EternaPlugin.getPlugin()) {
                         @Override
                         public void saveQuests(@Nonnull Player player, @Nonnull Set<QuestData> questDataSet) {
+                            cachedQuestData = questDataSet;
                         }
                         
                         @Nonnull
                         @Override
                         public Set<QuestData> loadQuests(@Nonnull Player player) {
-                            return Set.of();
+                            return cachedQuestData;
                         }
                         
                         @Override
@@ -1948,83 +1973,36 @@ public final class EternaRuntimeTest {
                             completedQuests.add(quest);
                         }
                     };
-                    
-                    final Location location = player.getLocation();
-                    
-                    npc1 = new HumanNPC(location, "Test Npc", "hapyl");
-                    npc1.show(player);
-                    
-                    npc2 = new HumanNPC(location.add(1, 0, 0), "Test Npc 2", "DiDenPro");
-                    npc2.show(player);
-                    
-                    npc3 = new HumanNPC(location.add(-2, 0, 0), "Test Npc 3", "sdimas74");
-                    npc3.show(player);
-                    
-                    final QuestChain questChain = new QuestChain(Key.ofString("test_chain"));
-                    
-                    final Quest quest1 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest1"));
-                    quest1.addObjective(new JumpQuestObjective(1));
-                    quest1.addStartBehaviour(QuestStartBehaviour.onJoin());
-                    
-                    final Quest quest2 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest2"));
-                    quest2.addObjective(new JumpQuestObjective(2));
-                    quest2.addStartBehaviour(QuestStartBehaviour.talkToNpc(
-                            npc1,
-                            new Dialog() {
-                                @Override
-                                public void onDialogTick(@Nonnull Player player) {
-                                    player.sendMessage("You're currently ticking in a dialog!");
-                                }
-                            }.addEntry(DialogEntry.of(npc1, "Yes talk to me!"))
-                             .addEntry(new DialogOptionEntry().setOption(1, DialogOptionEntry.builder("hello").advanceDialog(true)))
-                    ));
-                    
-                    final Quest quest3 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest3"));
-                    quest3.addObjective(new JumpQuestObjective(3));
-                    quest3.addStartBehaviour(QuestStartBehaviour.talkToNpc(
-                            npc2,
-                            new Dialog().addEntry(DialogEntry.of(npc2, "Oh yes do talk to me next quest will automatically start!"))
-                    ));
-                    
-                    final Quest quest4 = new Quest(EternaPlugin.getPlugin(), Key.ofString("quest4"));
-                    quest4.addObjective(new JumpQuestObjective(4));
-                    
-                    questChain.addQuests(quest1, quest2, quest3, quest4);
-                    registry.register(questChain);
-                }
-                else {
-                    final String argument = args.getString(0);
-                    
-                    switch (argument.toLowerCase()) {
-                        case "clear" -> {
-                            completedQuests.clear();
-                        }
-                        case "npc" -> {
-                            npc1.show(player);
-                            npc2.show(player);
-                            npc3.show(player);
-                        }
-                        default -> {
-                            final QuestDataList questData = Eterna.getManagers().quest.get(player);
-                            
-                            if (questData != null) {
-                                questData.forEach(data -> {
-                                    EternaLogger.debug(data.toString());
-                                    
-                                    final QuestObjective objective = data.getCurrentObjective();
-                                    if (objective != null) {
-                                        EternaLogger.debug("Current Objective: " + objective.toString());
-                                        EternaLogger.debug("Progress: %s/%s".formatted(data.getCurrentStageProgress(), objective.getGoal()));
-                                    }
-                                });
-                            }
-                            else {
-                                EternaLogger.debug("No quest data!");
-                            }
-                        }
-                    }
                 }
                 
+                final Location location = player.getLocation();
+                
+                final QuestChain questChain = new QuestChain(Key.ofString("test_quest_chain"));
+                final HumanNPC npc = new HumanNPC(location, "&6Quest Giver");
+                npc.setSkin(
+                        "ewogICJ0aW1lc3RhbXAiIDogMTc1MTM1OTc2MTM3OCwKICAicHJvZmlsZUlkIiA6ICIwNTAzNzZmZjAxY2I0OGVjOTUwM2NhMjhjMWU2MzlkMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJKb25haDU1OTAiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2YzMTNhNjMyODIxMDA0YzIxM2VlYjE5N2QyNzU3NDI2OTU0NzBkNThhYjE3MWZlNzIwZTgyZDg5Y2I5M2JlIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=",
+                        "Sawpa4MpYiv/TJIrOCfP7PvjNJRrQF/9gYxMwmN3LpyDSlK5ONkSSonU/+AqIJ3atYyAhD+6lGitaVd9R7a3/Y7fitg3WYbQGihVL6HlJDKU+sy5ztHXaSKP+mdncWkFEGylE8JWjUFnflP4zCylDNalCSNtKTQXKmOqWx6Wipmqdfqk0efzWozDJnH9Y+uUvc7wNPjcvSJiBDglP8Qjfk/5SdbKGBzRnL16Fx0RSjkWVDBHxWGMZ8lhczC9kFacMdDnGzqeP9zMVpFd3HifLNBVkDDm1HJQ41h2q46sVsR6oKxVD5B6/vTjHoAhZcY5X3NjMXU8KyDVSojFyEgjn2nvbYs81SdZeERRRom5VT0aQRAw7sWxiluWZ94tOW5jxo+BfvBkKET4kzGf7EusaFQq2ETxa+8N4w+9v4KfVY3X5waP6VUATnrBNI78WlBG4nJ74Nm21PG20PZT/Orc362rqrHcgt8rbD5Olc5hRUWCvWO+IpcAYKXFx6zhi/1JObfOb5gW1EpZn7mN+tBQ5cgCjK/hwNF3zUfLWSBssM5ooSeXT7RG2parEPloxPXTV9eZZWc44JS05CJRyt5yXb6oIEeUrxI19/NefWvGiW7IitfWVCbCcnPNdwkk4QvlASpfOa/wzNxGVDmbMagcOxWAVR84aJafUoRHYvIzcQk="
+                );
+                
+                npc.show(player);
+                
+                questChain.addQuest(
+                        new Quest(Eterna.getPlugin(), Key.ofString("quest_1"))
+                                .addObjective(new TalkToNpcQuestObjective(
+                                        npc, new Dialog()
+                                        .addEntry(npc, "Hello, I'm a test npc!")
+                                        .addEntry(npc, "And yeah this is the end of a dialog!")
+                                ))
+                );
+                
+                questChain.addQuest(
+                        new Quest(Eterna.getPlugin(), Key.ofString("quest_2"))
+                                .addObjective(new JumpQuestObjective(3))
+                                .addObjective(new GiveItemToNpcQuestObjective(npc, Material.DIAMOND, 16))
+                );
+                
+                registry.register(questChain);
+                questChain.startNextQuest(player);
                 return false;
             }
         });
@@ -2137,61 +2115,6 @@ public final class EternaRuntimeTest {
                 
                 display.show(player);
                 
-                return true;
-            }
-        });
-        
-        addTest(new EternaTest("nbtwrapper") {
-            private static final String key = "z_test";
-            private static final String key1 = "z_test1";
-            private static final String key2 = "z_test2";
-            private static final String key3 = "z_test3";
-            
-            @Override
-            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final NbtWrapper wrapper = NbtWrapper.of(player);
-                
-                wrapper.put(key, false);
-                wrapper.put(key1, 123);
-                wrapper.put(key2, "hello world");
-                wrapper.put(key3, new int[] { 1, 2, 3 });
-                player.sendMessage(wrapper.toString());
-                
-                final boolean value = wrapper.getBoolean(key);
-                final int value1 = wrapper.getInteger(key1);
-                final String value2 = wrapper.getString(key2);
-                final int[] value3 = wrapper.getIntegerArray(key3);
-                
-                assertEquals(value, false);
-                assertEquals(value1, 123);
-                assertEquals(value2, "hello world");
-                assertTrue(Arrays.equals(value3, new int[] { 1, 2, 3 }));
-                
-                wrapper.remove(key);
-                wrapper.remove(key1);
-                wrapper.remove(key2);
-                wrapper.remove(key3);
-                
-                assertFalse(wrapper.contains(key), "tag is still present!");
-                assertFalse(wrapper.contains(key1), "tag is still present!");
-                assertFalse(wrapper.contains(key2), "tag is still present!");
-                assertFalse(wrapper.contains(key3), "tag is still present!");
-                
-                player.sendMessage(wrapper.toString());
-                
-                // Check raw
-                final Map<String, Tag> map = wrapper.originalMap();
-                NbtTag.DOUBLE.to(map, "z_raw", 1.0d);
-                
-                final double rawIntValue = NbtTag.DOUBLE.from(map, "z_raw");
-                
-                assertEquals(rawIntValue, 1.0d);
-                
-                player.sendMessage(wrapper.toString());
-                assertTrue(wrapper.contains("z_raw"));
-                wrapper.remove("z_raw");
-                
-                assertFalse(wrapper.contains("z_raw"));
                 return true;
             }
         });
@@ -2469,6 +2392,31 @@ public final class EternaRuntimeTest {
             }
         });
         
+        
+        addTest(new EternaTest("gui_fill") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final PlayerGUI playerGUI = new PlayerGUI(player, "test_gui", 6) {
+                    @Override
+                    public void onUpdate() {
+                        final boolean b = args.getString(0).equalsIgnoreCase("outer");
+                        
+                        if (b) {
+                            fillOuter(new ItemStack(Material.SNOW));
+                        }
+                        else {
+                            fillInner(new ItemStack(Material.SNOW));
+                        }
+                        
+                        info(player, "Filled %s!".formatted(b ? "outer" : "inner"));
+                    }
+                };
+                
+                playerGUI.openInventory();
+                return false;
+            }
+        });
+        
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override
@@ -2558,7 +2506,7 @@ public final class EternaRuntimeTest {
     
     static void handleTestFail(EternaTest test, Exception ex) {
         if (test.doShowFeedback()) {
-            EternaLogger.test("&4Test '%s' failed! &c%s:%s".formatted(test, ex.getClass().getSimpleName(), ex.getMessage()));
+            EternaLogger.test("&4Test '%s' failed! &c%s".formatted(test, ex.toString()));
             ex.printStackTrace();
         }
     }

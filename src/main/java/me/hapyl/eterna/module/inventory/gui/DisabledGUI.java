@@ -1,8 +1,20 @@
 package me.hapyl.eterna.module.inventory.gui;
 
+import javax.annotation.Nonnull;
+
 /**
- * Interface to mark a GUI as disabled.
- * If player tries to open a disabled GUI, a message will be sent to them.
+ * {@link PlayerGUI} annotated with this annotation will not be opened.
  */
 public interface DisabledGUI {
+    
+    /**
+     * Gets the message that will be sent to the player once they try to open the GUI.
+     *
+     * @return the message that will be sent to the player once they try to open the GUI.
+     */
+    @Nonnull
+    default String message() {
+        return "&4This GUI is currently disabled!";
+    }
+    
 }

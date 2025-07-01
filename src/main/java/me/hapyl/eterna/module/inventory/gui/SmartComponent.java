@@ -1,11 +1,13 @@
 package me.hapyl.eterna.module.inventory.gui;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
+import java.util.function.Consumer;
 
 /**
  * Stores a list of items and their actions.
@@ -13,35 +15,35 @@ import java.util.LinkedHashMap;
  * @author hapyl
  */
 public class SmartComponent {
-
-    private final LinkedHashMap<ItemStack, GUIClick> map;
-
+    
+    private final LinkedHashMap<ItemStack, ActionList> map;
+    
     public SmartComponent() {
         this.map = new LinkedHashMap<>();
     }
-
+    
     /**
      * Adds an item to the component with a click action.
      *
      * @param item   Item.
      * @param action Action to perform when clicked.
      */
-    public SmartComponent add(@Nonnull ItemStack item, @Nonnull GUIClick action) {
+    public SmartComponent add(@Nonnull ItemStack item, @Nullable ActionList action) {
         this.map.put(item, action);
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action.
      *
      * @param item   Item.
      * @param action Action to perform when clicked.
      */
-    public SmartComponent add(@Nonnull ItemStack item, @Nullable Action action) {
-        this.map.put(item, action != null ? new GUIClick(action) : null);
+    public SmartComponent add(@Nonnull ItemStack item, @Nullable Consumer<Player> action) {
+        this.map.put(item, action != null ? new ActionList(action) : null);
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action.
      *
@@ -50,10 +52,10 @@ public class SmartComponent {
      * @see StrictAction
      */
     public SmartComponent add(@Nonnull ItemStack item, @Nonnull StrictAction action) {
-        this.map.put(item, action.makeGUIClick());
+        this.map.put(item, action.makeAction());
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action with multiple click types.
      *
@@ -61,16 +63,16 @@ public class SmartComponent {
      * @param action     Action to perform when clicked.
      * @param clickTypes Click types.
      */
-    public SmartComponent add(@Nonnull ItemStack item, @Nonnull Action action, @Nonnull ClickType... clickTypes) {
-        final GUIClick guiClick = this.map.computeIfAbsent(item, a -> new GUIClick(action));
-
+    public SmartComponent add(@Nonnull ItemStack item, @Nonnull Consumer<Player> action, @Nonnull ClickType... clickTypes) {
+        final ActionList guiClick = this.map.computeIfAbsent(item, a -> new ActionList(action));
+        
         for (ClickType click : clickTypes) {
             guiClick.setAction(click, action);
         }
-
+        
         return this.add(item, guiClick);
     }
-
+    
     /**
      * Sets the action for the given item.
      * <br>
@@ -81,29 +83,31 @@ public class SmartComponent {
      * @param action - Action.
      * @param types  - Types.
      */
-    public SmartComponent set(@Nonnull ItemStack item, @Nonnull Action action, @Nonnull ClickType... types) {
-        this.map.compute(item, (i, click) -> {
-            click = click != null ? click : new GUIClick();
-
-            for (ClickType type : types) {
-                click.setAction(type, action);
-            }
-
-            return click;
-        });
-
+    public SmartComponent set(@Nonnull ItemStack item, @Nonnull Consumer<Player> action, @Nonnull ClickType... types) {
+        this.map.compute(
+                item, (i, click) -> {
+                    click = click != null ? click : new ActionList();
+                    
+                    for (ClickType type : types) {
+                        click.setAction(type, action);
+                    }
+                    
+                    return click;
+                }
+        );
+        
         return this;
     }
-
+    
     /**
      * Adds an item to the component with a click action with multiple click types.
      *
      * @param item Item.
      */
     public SmartComponent add(@Nonnull ItemStack item) {
-        return this.add(item, (Action) null);
+        return this.add(item, (ActionList) null);
     }
-
+    
     /**
      * Applies the component to a GUI.
      *
@@ -111,35 +115,32 @@ public class SmartComponent {
      * @param pattern  Pattern to apply.
      * @param startRow Row to start from.
      */
-    public void apply(@Nonnull GUI gui, @Nonnull SlotPattern pattern, int startRow) {
-        pattern.apply(gui, getMap(), startRow);
+    public void apply(@Nonnull PlayerGUI gui, @Nonnull SlotPattern pattern, int startRow) {
+        pattern.apply(gui, map, startRow);
     }
-
+    
+    /**
+     * @deprecated {@link SmartComponent#apply(PlayerGUI, SlotPattern, int)}
+     */
     @Deprecated
-    public void fillItems(GUI gui) {
-        SlotPattern.DEFAULT.apply(gui, getMap(), 1);
-        //        fillItems(gui, SlotPattern.DEFAULT);
+    public void fillItems(PlayerGUI gui) {
+        SlotPattern.DEFAULT.apply(gui, map, 1);
     }
-
+    
+    /**
+     * @deprecated {@link SmartComponent#apply(PlayerGUI, SlotPattern, int)}
+     */
     @Deprecated
-    public void fillItems(GUI gui, SlotPattern pattern) {
-        pattern.apply(gui, getMap(), 1);
-        //        gui.fillItems(getMap(), pattern, 1);
+    public void fillItems(PlayerGUI gui, SlotPattern pattern) {
+        pattern.apply(gui, map, 1);
     }
-
+    
+    /**
+     * @deprecated {@link SmartComponent#apply(PlayerGUI, SlotPattern, int)}
+     */
     @Deprecated
-    public void fillItems(GUI gui, SlotPattern pattern, int startLine) {
-        pattern.apply(gui, getMap(), startLine);
-        //        gui.fillItems(getMap(), pattern, startLine);
+    public void fillItems(PlayerGUI gui, SlotPattern pattern, int startLine) {
+        pattern.apply(gui, map, startLine);
     }
-
-    public int getMenuSize() {
-        return GUI.getSmartMenuSize(map.keySet());
-    }
-
-    @Nonnull
-    protected LinkedHashMap<ItemStack, GUIClick> getMap() {
-        return this.map;
-    }
-
+    
 }

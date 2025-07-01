@@ -73,6 +73,7 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
      * @deprecated <h2>It's a bad practice to reload servers, only use this for testing/development.</h2>
      */
     @Deprecated
+    @ApiStatus.Internal
     public void simulateOnJoin(@Nonnull Player player) {
         // Already has data, don't care
         if (managing.containsKey(player)) {
@@ -94,8 +95,9 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
                     if (!(behaviour instanceof QuestStartBehaviour.OnJoin onJoin)) {
                         continue;
                     }
-
-                    if (!canStartQuest(player, quest, false).isOk()) {
+                    
+                    final StartResponse startResponse = canStartQuest(player, quest, false);
+                    if (!startResponse.isOk()) {
                         return;
                     }
 
@@ -482,8 +484,21 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
         final QuestDataList questData = managing.get(player);
 
         // nullable because the quest should create data, not us
-        if (questData != null) {
-            questData.forEach(data -> data.tryIncrementProgress(clazz, consumer, objects));
+        if (questData == null) {
+            return;
+        }
+        
+        final Iterator<QuestData> iterator = questData.iterator();
+        
+        while (iterator.hasNext()) {
+            final QuestData quest = iterator.next();
+            
+            quest.tryIncrementProgress(clazz, consumer, objects);
+            
+            // Remove via iterator if the quest is not complete
+            if (quest.isComplete()) {
+                iterator.remove();
+            }
         }
     }
 

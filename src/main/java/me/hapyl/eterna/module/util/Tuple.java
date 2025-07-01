@@ -1,7 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.FactoryMethod;
-
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
@@ -98,7 +96,6 @@ public class Tuple<A, B> {
     }
 
     @Nonnull
-    @FactoryMethod(Tuple.class)
     public static <A, B> Tuple<A, B> of(@Nonnull A a, @Nonnull B b) {
         return new Tuple<>(a, b);
     }

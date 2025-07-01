@@ -9,9 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-/**
- *
- */
 public class EternaTagVisitor implements TagVisitor {
     
     private final StringBuilder builder;
@@ -184,7 +181,4 @@ public class EternaTagVisitor implements TagVisitor {
         return builder.toString();
     }
     
-    public final String toString(@Nonnull NbtWrapper wrapper) {
-        return this.toString(wrapper.tag());
-    }
 }

@@ -242,8 +242,9 @@ public class Quest implements Keyed, Described {
      *
      * @param objective - Objective to add.
      */
-    public void addObjective(@Nonnull QuestObjective objective) {
+    public Quest addObjective(@Nonnull QuestObjective objective) {
         this.objectives.add(objective);
+        return this;
     }
 
     /**

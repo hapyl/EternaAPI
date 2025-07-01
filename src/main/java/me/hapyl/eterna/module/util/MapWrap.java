@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.FactoryMethod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -26,13 +25,11 @@ public interface MapWrap<K, V> extends Wrap {
     String keyToValue(K key, V value);
 
     @Nonnull
-    @FactoryMethod(MapWrap.class)
     static <K, V> MapWrap<K, V> ofDefault() {
         return of("{", ", ", "}", (k, v) -> k + "=" + v); // annoying generics have to use a method
     }
 
     @Nonnull
-    @FactoryMethod(MapWrap.class)
     static <K, V> MapWrap<K, V> of(
             @Nonnull String start,
             @Nonnull String between,

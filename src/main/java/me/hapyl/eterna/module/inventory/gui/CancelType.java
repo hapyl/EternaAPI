@@ -1,24 +1,26 @@
 package me.hapyl.eterna.module.inventory.gui;
 
 /**
- * Note that cancel type only cancels {@link org.bukkit.event.inventory.InventoryClickEvent}.
- * Click Event will still fire.
+ * Denotes how to cancel clicks in the {@link PlayerGUI}.
  */
 public enum CancelType {
     /**
-     * Cancel only clicks inside GUI.
+     * Cancel only clicks inside {@link PlayerGUI}.
      */
     GUI,
+    
     /**
-     * Cancel only clicks outside GUI.
+     * Cancel only clicks outside {@link PlayerGUI}.
      */
     INVENTORY,
+    
     /**
-     * Cancel both clicks inside and outside of GUI.
+     * Cancel both clicks inside and outside of {@link PlayerGUI}.
      */
     EITHER,
+    
     /**
-     * Doesn't cancel any clicks.
+     * Don't cancel any clicks.
      */
     NEITHER
 }

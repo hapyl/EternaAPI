@@ -146,10 +146,10 @@ public class EternaPlayer extends ServerPlayer {
                     Reflect.getMinecraftServer(),
                     new NullConnection(),
                     this,
-                    new CommonListenerCookie(getProfile(), 0, clientInformation(), true)
+                    CommonListenerCookie.createInitial(getProfile(), false)
             );
         } catch (Exception e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
     }
 

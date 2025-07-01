@@ -68,7 +68,7 @@ public class CompleterHandler {
 
         // Custom checker
         if (checker != null) {
-            final String check = checker instanceof Checker2 ? ((Checker2) checker).check(player, arg, args) : checker.check(player, arg);
+            final String check = checker.check(player, arg, args);
 
             if (check != null) {
                 list.add(format(check, arg));

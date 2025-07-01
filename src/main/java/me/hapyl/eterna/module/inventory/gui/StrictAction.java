@@ -4,14 +4,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 /**
- * A strict, statically typed impl of {@link Action}.
+ * A strict, statically typed impl of {@link ActionList}.
  * <br>
  * The methods are only called when the appropriate click is used.
  */
 public interface StrictAction {
-
+    
     /**
      * Called when a player clicked via {@link ClickType#LEFT}.
      *
@@ -19,7 +20,7 @@ public interface StrictAction {
      */
     default void onLeftClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#SHIFT_LEFT}.
      *
@@ -27,7 +28,7 @@ public interface StrictAction {
      */
     default void onShiftLeftClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#RIGHT}.
      *
@@ -35,7 +36,7 @@ public interface StrictAction {
      */
     default void onRightClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#SHIFT_RIGHT}.
      *
@@ -43,7 +44,7 @@ public interface StrictAction {
      */
     default void onShiftRightClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#WINDOW_BORDER_LEFT}.
      *
@@ -51,7 +52,7 @@ public interface StrictAction {
      */
     default void onWindowBorderLeftClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#WINDOW_BORDER_RIGHT}.
      *
@@ -59,7 +60,7 @@ public interface StrictAction {
      */
     default void onWindowBorderRightClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#MIDDLE}.
      *
@@ -67,7 +68,7 @@ public interface StrictAction {
      */
     default void onMiddleClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#NUMBER_KEY}.
      *
@@ -75,7 +76,7 @@ public interface StrictAction {
      */
     default void onNumberKeyClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#DOUBLE_CLICK}.
      *
@@ -83,7 +84,7 @@ public interface StrictAction {
      */
     default void onDoubleClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#DROP}.
      *
@@ -91,7 +92,7 @@ public interface StrictAction {
      */
     default void onDropClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#CONTROL_DROP}.
      *
@@ -99,7 +100,7 @@ public interface StrictAction {
      */
     default void onControlDropClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#CREATIVE}.
      *
@@ -107,7 +108,7 @@ public interface StrictAction {
      */
     default void onCreativeDropClick(@Nonnull Player player) {
     }
-
+    
     /**
      * Called when a player clicked via {@link ClickType#SWAP_OFFHAND}.
      *
@@ -115,26 +116,19 @@ public interface StrictAction {
      */
     default void onSwapOffhandClick(@Nonnull Player player) {
     }
-
+    
     /**
-     * Called when a player clicked via {@link ClickType#UNKNOWN}.
-     *
-     * @param player - Player, who clicked.
-     */
-    default void onUnknownClick(@Nonnull Player player) {
-    }
-
-    /**
-     * Creates {@link GUIClick}.
+     * Creates {@link ActionList}.
      * <br>
      * Don't override this, duh.
      *
      * @return a new gui click.
      */
     @Nonnull
-    default GUIClick makeGUIClick() {
-        final GUIClick click = new GUIClick();
-
+    @OverridingMethodsMustInvokeSuper
+    default ActionList makeAction() {
+        final ActionList click = new ActionList();
+        
         click.setAction(ClickType.LEFT, this::onLeftClick);
         click.setAction(ClickType.SHIFT_LEFT, this::onShiftLeftClick);
         click.setAction(ClickType.RIGHT, this::onRightClick);
@@ -148,9 +142,8 @@ public interface StrictAction {
         click.setAction(ClickType.CONTROL_DROP, this::onControlDropClick);
         click.setAction(ClickType.CREATIVE, this::onCreativeDropClick);
         click.setAction(ClickType.SWAP_OFFHAND, this::onSwapOffhandClick);
-        click.setAction(ClickType.UNKNOWN, this::onUnknownClick);
-
+        
         return click;
     }
-
+    
 }

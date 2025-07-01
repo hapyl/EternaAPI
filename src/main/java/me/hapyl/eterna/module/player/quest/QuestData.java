@@ -6,6 +6,7 @@ import me.hapyl.eterna.builtin.manager.QuestManager;
 import me.hapyl.eterna.module.util.Consumers;
 import me.hapyl.eterna.module.util.Runnables;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,6 +16,7 @@ import java.util.function.BiConsumer;
 /**
  * Represents the runtime quest data for the given player.
  */
+@ApiStatus.Internal
 public class QuestData implements Debuggable {
 
     private final Player player;
@@ -99,6 +101,7 @@ public class QuestData implements Debuggable {
      * @param objects  - Object parameters if needed.
      *                 Will be wrapped with {@link QuestObjectArray} before passing it to the objective.
      */
+    @ApiStatus.Internal // Do not call this method manually
     public <T extends QuestObjective> void tryIncrementProgress(@Nonnull Class<T> clazz, @Nonnull BiConsumer<T, QuestObjective.Response> consumer, @Nullable Object[] objects) {
         final QuestObjective currentObjective = quest.getObjective(currentStage);
         final QuestFormatter formatter = quest.getFormatter();
@@ -129,21 +132,26 @@ public class QuestData implements Debuggable {
             currentStageProgress += increment;
         }
 
-        // Progress to the next objective
+        // Objective complete, go next
         if (currentStageProgress >= objective.getGoal()) {
             // Calling nextObjective() forces the next objective, call onComplete() here
             objective.onComplete(player);
+            
             nextObjective();
         }
     }
-
+    
+    public boolean isComplete() {
+        return quest.getObjective(currentStage) == null;
+    }
+    
     /**
      * Forcefully skips to the next objective.
      *
      * @return the next objective, or {@code null} if the quest is now 'completed'.
      */
     @Nullable
-    public QuestObjective nextObjective() {
+    protected QuestObjective nextObjective() {
         final QuestFormatter formatter = quest.getFormatter();
         final QuestObjective currentObjective = quest.getObjective(currentStage);
 
@@ -156,7 +164,7 @@ public class QuestData implements Debuggable {
 
         // Display the complete objective
         formatter.sendObjectiveComplete(player, currentObjective);
-
+        
         final QuestObjective nextObjective = quest.getObjective(currentStage);
 
         // Quest complete
@@ -164,9 +172,6 @@ public class QuestData implements Debuggable {
             final QuestManager questManager = Eterna.getManagers().quest;
 
             quest.onComplete(player, this);
-
-            // Remove data
-            questManager.get(player).data.remove(quest, this);
 
             // Call handler if not repeatable
             if (!quest.isRepeatable()) {
@@ -190,7 +195,7 @@ public class QuestData implements Debuggable {
             return null;
         }
 
-        // Cal onStart() right away
+        // Call onStart() right away
         nextObjective.onStart(player);
 
         // Display the objective complete message and then the next objective with a little delay

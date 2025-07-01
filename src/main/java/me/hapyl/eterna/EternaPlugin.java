@@ -12,7 +12,6 @@ import me.hapyl.eterna.module.hologram.HologramRunnable;
 import me.hapyl.eterna.module.inventory.ItemBuilderListener;
 import me.hapyl.eterna.module.inventory.SignListener;
 import me.hapyl.eterna.module.inventory.gui.GUIListener;
-import me.hapyl.eterna.module.inventory.item.CustomItemListener;
 import me.hapyl.eterna.module.parkour.ParkourListener;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
 import me.hapyl.eterna.module.record.ReplayListener;
@@ -60,7 +59,6 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         final PluginManager manager = this.getServer().getPluginManager();
         
         manager.registerEvents(new ItemBuilderListener(), this);
-        manager.registerEvents(new CustomItemListener(), this);
         manager.registerEvents(new GUIListener(), this);
         manager.registerEvents(new ParkourListener(), this);
         manager.registerEvents(new ReplayListener(), this);

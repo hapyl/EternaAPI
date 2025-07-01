@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.command.completer.Checker;
-import me.hapyl.eterna.module.command.completer.Checker2;
+import me.hapyl.eterna.module.command.completer.CheckerNoArgs;
 import me.hapyl.eterna.module.command.completer.CompleterHandler;
 import me.hapyl.eterna.module.util.Handle;
 import me.hapyl.eterna.module.util.TypeConverter;
@@ -23,11 +23,11 @@ import java.util.function.Function;
  * @author hapyl
  */
 public abstract class SimpleCommand implements Handle<Command> {
-
+    
     private final String name;
     private final Map<Integer, List<String>> completerValues;
     private final Map<Integer, CompleterHandler> completerHandlers;
-
+    
     private String permission;
     private String description;
     private String usage;
@@ -38,11 +38,11 @@ public abstract class SimpleCommand implements Handle<Command> {
     private CommandCooldown cooldown;
     private CommandHandle handle;
     private CommandFormatter formatter;
-
+    
     private SimpleCommand() {
         throw new NullPointerException();
     }
-
+    
     /**
      * Creates a new simple command
      *
@@ -50,7 +50,7 @@ public abstract class SimpleCommand implements Handle<Command> {
      */
     public SimpleCommand(@Nonnull String name) {
         this.name = name.toLowerCase();
-        this.aliases = new String[] {};
+        this.aliases = new String[] { };
         this.permission = "";
         this.usage = "/" + name;
         this.description = "Made using SimpleCommand by EternaAPI.";
@@ -62,17 +62,17 @@ public abstract class SimpleCommand implements Handle<Command> {
         this.completerHandlers = Maps.newHashMap();
         this.formatter = CommandFormatter.DEFAULT;
     }
-
+    
     @Nonnull
     @Override
     public Command getHandle() {
         if (handle == null) {
             throw new IllegalStateException("Command is not registered yet! (%s)".formatted(getName()));
         }
-
+        
         return handle;
     }
-
+    
     /**
      * Adds a new completer handler.
      *
@@ -81,7 +81,17 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void addCompleterHandler(CompleterHandler handler) {
         this.completerHandlers.put(handler.getIndex(), handler);
     }
-
+    
+    /**
+     * Adds a new completer handler.
+     *
+     * @param index   - Index of the argument.
+     * @param checker - Checker to use.
+     */
+    public void addCompleterHandler(int index, CheckerNoArgs checker) {
+        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    }
+    
     /**
      * Adds a new completer handler.
      *
@@ -91,17 +101,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void addCompleterHandler(int index, Checker checker) {
         this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
     }
-
-    /**
-     * Adds a new completer handler.
-     *
-     * @param index   - Index of the argument.
-     * @param checker - Checker to use.
-     */
-    public void addCompleterHandler(int index, Checker2 checker) {
-        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
-    }
-
+    
     /**
      * Adds a new completer handler.
      *
@@ -112,7 +112,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void addCompleterHandler(int index, String ifValid, String ifInvalid) {
         this.completerHandlers.put(index, CompleterHandler.of(index).ifValidValue(ifValid).ifInvalidValue(ifInvalid));
     }
-
+    
     /**
      * Adds a value to index of tab completer.
      * Note that completer values will be automatically sorted
@@ -125,7 +125,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void addCompleterValue(int index, String value) {
         addCompleterValues(index, value);
     }
-
+    
     /**
      * Adds values to index of tab completer.
      *
@@ -140,7 +140,7 @@ public abstract class SimpleCommand implements Handle<Command> {
         }
         completerValues.put(index, list);
     }
-
+    
     /**
      * Adds values to index of tab completer.
      *
@@ -149,15 +149,17 @@ public abstract class SimpleCommand implements Handle<Command> {
      * @param <T>    - Type of the values.
      */
     public <T> void addCompleterValues(int index, @Nonnull Collection<T> values) {
-        addCompleterValues(index, values, str -> {
-            if (str instanceof Enum) {
-                return ((Enum<?>) str).name();
-            }
-
-            return str.toString();
-        });
+        addCompleterValues(
+                index, values, str -> {
+                    if (str instanceof Enum) {
+                        return ((Enum<?>) str).name();
+                    }
+                    
+                    return str.toString();
+                }
+        );
     }
-
+    
     /**
      * Adds values to index of tab completer.
      *
@@ -168,15 +170,15 @@ public abstract class SimpleCommand implements Handle<Command> {
      */
     public <T> void addCompleterValues(int index, @Nonnull Collection<T> values, @Nonnull Function<T, String> toString) {
         final String[] strings = new String[values.size()];
-
+        
         int i = 0;
         for (T value : values) {
             strings[i++] = toString.apply(value);
         }
-
+        
         addCompleterValues(index, strings);
     }
-
+    
     /**
      * Adds values to index of tab completer.
      *
@@ -189,7 +191,7 @@ public abstract class SimpleCommand implements Handle<Command> {
             addCompleterValue(index, tEnum.name());
         }
     }
-
+    
     /**
      * Returns a list of strings of tab completer if present or empty list is not.
      *
@@ -199,7 +201,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public List<String> getCompleterValues(int index) {
         return completerValues.computeIfAbsent(index, (s) -> Lists.newArrayList());
     }
-
+    
     /**
      * Returns true if completer values are present on index.
      *
@@ -209,7 +211,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public boolean hasCompleterValues(int index) {
         return completerValues.get(index) != null;
     }
-
+    
     /**
      * Sets if command can only be executed by a player.
      *
@@ -218,7 +220,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void setAllowOnlyPlayer(boolean flag) {
         this.allowOnlyPlayer = flag;
     }
-
+    
     /**
      * If command has cooldown.
      *
@@ -227,11 +229,11 @@ public abstract class SimpleCommand implements Handle<Command> {
     public boolean hasCooldown() {
         return this.cooldownTick > 0 && this.cooldown != null;
     }
-
+    
     public CommandCooldown getCooldown() {
         return cooldown;
     }
-
+    
     /**
      * Returns cooldown in ticks or 0 if no cooldown.
      *
@@ -240,7 +242,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public int getCooldownTick() {
         return cooldownTick;
     }
-
+    
     /**
      * Sets cooldown of command in ticks.
      *
@@ -250,7 +252,7 @@ public abstract class SimpleCommand implements Handle<Command> {
         this.cooldownTick = cooldownTick;
         this.cooldown = new CommandCooldown(this);
     }
-
+    
     /**
      * Returns true if this command can only be called by players, false otherwise.
      *
@@ -259,7 +261,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public boolean isOnlyForPlayers() {
         return allowOnlyPlayer;
     }
-
+    
     /**
      * Returns description of this command if present, <code>Made using SimpleCommand by EternaAPI.</code> otherwise.
      *
@@ -269,7 +271,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public String getDescription() {
         return description;
     }
-
+    
     /**
      * Sets a description of the command.
      *
@@ -278,7 +280,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void setDescription(String info) {
         this.description = info;
     }
-
+    
     /**
      * Returns name of this command, aka the actual command.
      *
@@ -288,7 +290,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public String getName() {
         return name;
     }
-
+    
     /**
      * Returns permission for this command.
      *
@@ -298,7 +300,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public String getPermission() {
         return permission;
     }
-
+    
     /**
      * Sets a command permission
      *
@@ -307,7 +309,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void setPermission(String permission) {
         this.permission = permission;
     }
-
+    
     /**
      * Returns aliases of this command.
      *
@@ -317,7 +319,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public String[] getAliases() {
         return aliases;
     }
-
+    
     /**
      * Sets a command aliases.
      *
@@ -325,12 +327,12 @@ public abstract class SimpleCommand implements Handle<Command> {
      */
     public void setAliases(String... aliases) {
         this.aliases = new String[aliases.length];
-
+        
         for (int i = 0; i < aliases.length; i++) {
             this.aliases[i] = aliases[i].toLowerCase();
         }
     }
-
+    
     /**
      * Returns true if this command can only be used by sever operators, false otherwise.
      *
@@ -339,7 +341,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public boolean isAllowOnlyOp() {
         return allowOnlyOp;
     }
-
+    
     /**
      * Sets if this command is only allowed to be run by sever operators.
      *
@@ -348,7 +350,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void setAllowOnlyOp(boolean bool) {
         this.allowOnlyOp = bool;
     }
-
+    
     /**
      * Returns usage of this command, which is '/(CommandName)' by default.
      *
@@ -357,9 +359,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public String getUsage() {
         return usage;
     }
-
-    // Some useful utilities for ya.
-
+    
     /**
      * Sets command usage.
      *
@@ -371,16 +371,16 @@ public abstract class SimpleCommand implements Handle<Command> {
         }
         this.usage = "/" + usage;
     }
-
+    
     @Nonnull
     public final Command createCommand() {
         if (handle == null) {
             handle = new CommandHandle(this);
         }
-
+        
         return handle;
     }
-
+    
     /**
      * Gets the formatter for this command.
      *
@@ -390,7 +390,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public CommandFormatter getFormatter() {
         return formatter;
     }
-
+    
     /**
      * Sets the formatter for this command.
      *
@@ -399,7 +399,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     public void setFormatter(@Nonnull CommandFormatter formatter) {
         this.formatter = formatter;
     }
-
+    
     /**
      * Returns mapped index-value completer values.
      *
@@ -408,7 +408,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected Map<Integer, List<String>> getCompleterValues() {
         return completerValues;
     }
-
+    
     /**
      * Executes the command
      *
@@ -416,7 +416,7 @@ public abstract class SimpleCommand implements Handle<Command> {
      * @param args   - Arguments of the command
      */
     protected abstract void execute(CommandSender sender, String[] args);
-
+    
     /**
      * Tab-Completes the command
      *
@@ -428,7 +428,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected List<String> tabComplete(CommandSender sender, String[] args) {
         return Lists.newArrayList();
     }
-
+    
     /**
      * Pre-tab complete, called before {@link SimpleCommand#tabComplete(CommandSender, String[])}.
      *
@@ -440,7 +440,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected List<String> preTabComplete(CommandSender sender, String[] args) {
         return Lists.newArrayList();
     }
-
+    
     /**
      * Post-tab complete, called after {@link SimpleCommand#tabComplete(CommandSender, String[])}.
      *
@@ -452,7 +452,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected List<String> postTabComplete(CommandSender sender, String[] args) {
         return Lists.newArrayList();
     }
-
+    
     /**
      * Sort input lists so there are only strings that can finish the string you are typing.
      *
@@ -463,31 +463,31 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected List<String> completerSort(List<String> list, String[] args, boolean forceLowerCase) {
         return Chat.tabCompleterSort(list, args, forceLowerCase);
     }
-
+    
     protected List<String> completerSort(List<String> list, String[] args) {
         return completerSort(list, args, true);
     }
-
+    
     protected <E> List<String> completerSort(E[] array, String[] args) {
         return completerSort(arrayToList(array), args);
     }
-
+    
     protected <E> List<String> completerSort(Collection<E> list, String[] args) {
         return Chat.tabCompleterSort(eToString(list), args);
     }
-
+    
     protected List<String> completerSort2(List<String> list, String[] args, boolean forceLowerCase) {
         return Chat.tabCompleterSort0(list, args, forceLowerCase, false);
     }
-
+    
     protected List<String> completerSort2(List<String> list, String[] args) {
         return completerSort2(list, args, true);
     }
-
+    
     protected <E> List<String> completerSort2(E[] array, String[] args) {
         return completerSort2(arrayToList(array), args);
     }
-
+    
     /**
      * Returns true if argument of provided index is present and is equals to string.
      *
@@ -499,26 +499,26 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected boolean matchArgs(@Nonnull String[] args, int index, @Nonnull String string) {
         return index < args.length && args[index].equalsIgnoreCase(string);
     }
-
+    
     protected boolean matchArgs(@Nonnull String[] args, @Nonnull String... strings) {
         for (int i = 0; i < strings.length; i++) {
             if (i >= args.length) {
                 return false;
             }
-
+            
             if (!args[i].equalsIgnoreCase(strings[i])) {
                 return false;
             }
         }
-
+        
         return true;
     }
-
+    
     @Nonnull
     protected TypeConverter getArgument(String[] args, int index) {
         return TypeConverter.from(index >= args.length ? "" : args[index]);
     }
-
+    
     /**
      * Converts a set of strings to list of strings.
      *
@@ -528,7 +528,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected List<String> setToList(Set<String> set) {
         return new ArrayList<>(set);
     }
-
+    
     /**
      * Converts an array to a list of strings.
      *
@@ -538,7 +538,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected <T> List<String> arrayToList(T[] array) {
         return Chat.arrayToList(array);
     }
-
+    
     /**
      * Sends <code>Invalid Usage!</code> message with the correct usage of this command
      * to the sender.
@@ -548,7 +548,7 @@ public abstract class SimpleCommand implements Handle<Command> {
     protected void sendInvalidUsageMessage(CommandSender sender) {
         Chat.sendMessage(sender, "&cInvalid Usage! &e%s.".formatted(this.usage));
     }
-
+    
     private <E> List<String> eToString(Collection<E> list) {
         List<String> str = new ArrayList<>();
         for (final E e : list) {
@@ -556,16 +556,16 @@ public abstract class SimpleCommand implements Handle<Command> {
         }
         return str;
     }
-
+    
     protected void completerHandler(Player player, int index, String[] array, List<String> list) {
         final CompleterHandler handler = completerHandlers.get(index);
         if (handler == null) {
             return;
         }
-
+        
         handler.handle(player, array, list);
     }
-
+    
     /**
      * Returns true if this command has permissions; false otherwise.
      *
@@ -574,5 +574,5 @@ public abstract class SimpleCommand implements Handle<Command> {
     public boolean hasPermission() {
         return permission != null && !permission.isEmpty();
     }
-
+    
 }
