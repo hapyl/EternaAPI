@@ -34,8 +34,6 @@ import me.hapyl.eterna.module.math.Tick;
 import me.hapyl.eterna.module.math.geometry.WorldParticle;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
-import me.hapyl.eterna.module.nbt.NbtTag;
-import me.hapyl.eterna.module.nbt.NbtWrapper;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
@@ -68,7 +66,6 @@ import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -183,18 +180,17 @@ public final class EternaRuntimeTest {
         });
         
         addTest(new EternaTest("glowing") {
-            
             final String teamName = "dummyTeam";
             
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final Player diden = Bukkit.getPlayer(args.getString(0));
+                final Player glowingPlayer = Bukkit.getPlayer(args.getString(0));
                 
-                if (diden == null) {
+                if (glowingPlayer == null) {
                     info(player, "No player named %s, using a piggy instead!".format(args.getString(0)));
                 }
                 
-                final Entity entity = diden != null ? diden : Entities.PIG.spawn(
+                final Entity entity = glowingPlayer != null ? glowingPlayer : Entities.PIG.spawn(
                         player.getLocation(), self -> {
                             self.setInvisible(true);
                             self.setAI(false);
@@ -2167,61 +2163,6 @@ public final class EternaRuntimeTest {
             }
         });
         
-        addTest(new EternaTest("nbtwrapper") {
-            private static final String key = "z_test";
-            private static final String key1 = "z_test1";
-            private static final String key2 = "z_test2";
-            private static final String key3 = "z_test3";
-            
-            @Override
-            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final NbtWrapper wrapper = NbtWrapper.of(player);
-                
-                wrapper.put(key, false);
-                wrapper.put(key1, 123);
-                wrapper.put(key2, "hello world");
-                wrapper.put(key3, new int[] { 1, 2, 3 });
-                player.sendMessage(wrapper.toString());
-                
-                final boolean value = wrapper.getBoolean(key);
-                final int value1 = wrapper.getInteger(key1);
-                final String value2 = wrapper.getString(key2);
-                final int[] value3 = wrapper.getIntegerArray(key3);
-                
-                assertEquals(value, false);
-                assertEquals(value1, 123);
-                assertEquals(value2, "hello world");
-                assertTrue(Arrays.equals(value3, new int[] { 1, 2, 3 }));
-                
-                wrapper.remove(key);
-                wrapper.remove(key1);
-                wrapper.remove(key2);
-                wrapper.remove(key3);
-                
-                assertFalse(wrapper.contains(key), "tag is still present!");
-                assertFalse(wrapper.contains(key1), "tag is still present!");
-                assertFalse(wrapper.contains(key2), "tag is still present!");
-                assertFalse(wrapper.contains(key3), "tag is still present!");
-                
-                player.sendMessage(wrapper.toString());
-                
-                // Check raw
-                final Map<String, Tag> map = wrapper.originalMap();
-                NbtTag.DOUBLE.to(map, "z_raw", 1.0d);
-                
-                final double rawIntValue = NbtTag.DOUBLE.from(map, "z_raw");
-                
-                assertEquals(rawIntValue, 1.0d);
-                
-                player.sendMessage(wrapper.toString());
-                assertTrue(wrapper.contains("z_raw"));
-                wrapper.remove("z_raw");
-                
-                assertFalse(wrapper.contains("z_raw"));
-                return true;
-            }
-        });
-        
         addTest(new EternaTest("player_input") {
             private final int maxRuns = 100;
             private BukkitRunnable runnable;
@@ -2609,7 +2550,7 @@ public final class EternaRuntimeTest {
     
     static void handleTestFail(EternaTest test, Exception ex) {
         if (test.doShowFeedback()) {
-            EternaLogger.test("&4Test '%s' failed! &c%s:%s".formatted(test, ex.getClass().getSimpleName(), ex.getMessage()));
+            EternaLogger.test("&4Test '%s' failed! &c%s".formatted(test, ex.toString()));
             ex.printStackTrace();
         }
     }

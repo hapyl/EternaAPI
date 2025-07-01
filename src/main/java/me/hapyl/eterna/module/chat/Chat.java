@@ -122,6 +122,7 @@ public final class Chat {
      * @param string  - String to format.
      * @param objects - Replacements.
      */
+    @Deprecated
     public static void sendFormat(@Nonnull Player player, @Nonnull String string, @Nonnull Object... objects) {
         player.sendMessage(bformat(string, objects));
     }

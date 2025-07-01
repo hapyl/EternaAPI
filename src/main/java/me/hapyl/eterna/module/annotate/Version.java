@@ -1,5 +1,7 @@
 package me.hapyl.eterna.module.annotate;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents a major Minecraft version.
  * <p>If annotated by {@link TestedOn}, promises that that module was tested and should work as intended on the specified version.</p>
@@ -7,7 +9,8 @@ package me.hapyl.eterna.module.annotate;
  * @see TestedOn
  */
 public enum Version {
-    V1_21_5,
+    V1_21_7,
+    @Deprecated V1_21_5,
     @Deprecated V1_21_4,
     @Deprecated V1_21_3,
     @Deprecated V1_21,
@@ -33,6 +36,16 @@ public enum Version {
      */
     public boolean isOutdated() {
         return this.ordinal() != 0;
+    }
+    
+    /**
+     * Gets the latest supported {@link Version}.
+     *
+     * @return the latest supported version.
+     */
+    @Nonnull
+    public static Version latest() {
+        return values()[0];
     }
     
 }

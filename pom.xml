@@ -6,7 +6,7 @@
 
     <groupId>io.github.hapyl</groupId>
     <artifactId>eternaapi</artifactId>
-    <version>4.12.0</version>
+    <version>4.13.0</version>
     <packaging>jar</packaging>
 
     <name>EternaAPI</name>
@@ -209,7 +209,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.5-R0.1-SNAPSHOT</version>
+            <version>1.21.7-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -217,7 +217,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.21.5-R0.1-SNAPSHOT</version>
+            <version>1.21.7-R0.1-SNAPSHOT</version>
             <classifier>remapped-mojang</classifier>
             <scope>provided</scope>
         </dependency>

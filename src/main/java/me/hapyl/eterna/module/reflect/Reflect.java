@@ -10,7 +10,6 @@ import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.packet.Packets;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -26,10 +25,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import org.apache.commons.lang.reflect.FieldUtils;
@@ -57,20 +60,34 @@ import java.util.*;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_21_5)
+@TestedOn(version = Version.V1_21_7)
 public final class Reflect {
-
+    
     private static final String mcVersion;
-    private static final String getHandleMethodName = "getHandle";
-
+    private static final String getHandleMethodName;
+    private static final ProblemReporter problemReporter;
+    
     static {
         final String name = Bukkit.getServer().getClass().getPackage().getName();
+        
         mcVersion = name.substring(name.lastIndexOf(".") + 1);
+        getHandleMethodName = "getHandle";
+        problemReporter = new ProblemReporter() {
+            @Override
+            public ProblemReporter forChild(PathElement pathElement) {
+                return this;
+            }
+            
+            @Override
+            public void report(Problem problem) {
+                throw EternaLogger.exception(new RuntimeException("Error in Reflect! " + problem.description()));
+            }
+        };
     }
-
+    
     private Reflect() {
     }
-
+    
     /**
      * Returns a 'net.minecraft.server' class.
      * Note that you <b>must</b> include the full path the class.
@@ -83,12 +100,13 @@ public final class Reflect {
     public static Class<?> getNetClass(@Nonnull String path) {
         try {
             return Class.forName("net.minecraft.server." + path);
-        } catch (ClassNotFoundException e) {
+        }
+        catch (ClassNotFoundException e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Returns a 'org.bukkit.craftbukkit' class.
      * Note that you <b>must</b> include the full path the class.
@@ -100,12 +118,13 @@ public final class Reflect {
     public static Class<?> getCraftClass(@Nonnull String path) {
         try {
             return Class.forName("org.bukkit.craftbukkit." + path);
-        } catch (ClassNotFoundException e) {
+        }
+        catch (ClassNotFoundException e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Sends a {@link ClientboundTeleportEntityPacket} packet to player.
      *
@@ -115,7 +134,7 @@ public final class Reflect {
     public static void updateEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
         Packets.Clientbound.teleportEntity(entity).send(player);
     }
-
+    
     /**
      * Changes entity's location.
      * <br>
@@ -127,7 +146,7 @@ public final class Reflect {
     public static void setEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Location location) {
         entity.absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
-
+    
     /**
      * Sends a {@link ClientboundRemoveEntitiesPacket} packet to player.
      *
@@ -137,7 +156,7 @@ public final class Reflect {
     public static void destroyEntity(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
         Packets.Clientbound.destroyEntity(entity).send(player);
     }
-
+    
     /**
      * Changes DataWatcher value.
      * Please follow <a href="https://wiki.vg/Entity_metadata#Entity_Metadata_Format">https://wiki.vg/Entity_metadata#Entity_Metadata_Format</a> format.
@@ -153,10 +172,10 @@ public final class Reflect {
      */
     public static <T> void setDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key, @Nullable T value) {
         final SynchedEntityData dataWatcher = getDataWatcher(entity);
-
+        
         setDataWatcherValue0(dataWatcher, type.get().createAccessor(key), value);
     }
-
+    
     /**
      * Gets the value from entity data watcher.
      *
@@ -170,7 +189,7 @@ public final class Reflect {
         final SynchedEntityData dataWatcher = getDataWatcher(entity);
         return dataWatcher.get(type.get().createAccessor(key));
     }
-
+    
     /**
      * Sets entity's DataWatcher byte value.
      * <p>
@@ -184,7 +203,7 @@ public final class Reflect {
     public static void setDataWatcherByteValue(@Nonnull net.minecraft.world.entity.Entity entity, int key, byte value) {
         setDataWatcherValue(entity, DataWatcherType.BYTE, key, value);
     }
-
+    
     /**
      * Sets entity's DataWatcher value.
      *
@@ -197,11 +216,12 @@ public final class Reflect {
     public static <T> void setDataWatcherValue0(@Nonnull SynchedEntityData dataWatcher, @Nonnull EntityDataAccessor<T> type, T value) {
         try {
             dataWatcher.set(type, value);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
         }
     }
-
+    
     /**
      * Updates entity's metadata for player.
      *
@@ -212,7 +232,7 @@ public final class Reflect {
     public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull SynchedEntityData watcher, @Nonnull Player player) {
         sendPacket(player, new ClientboundSetEntityDataPacket(getEntityId(entity), watcher.getNonDefaultValues()));
     }
-
+    
     /**
      * Updates the metadata for the given entity for the given players.
      * <br>
@@ -224,7 +244,7 @@ public final class Reflect {
     public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
         sendPacket(player, new ClientboundSetEntityDataPacket(getEntityId(entity), getDataWatcher(entity).getNonDefaultValues()));
     }
-
+    
     /**
      * Returns entity's ID.
      *
@@ -234,7 +254,7 @@ public final class Reflect {
     public static int getEntityId(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getId();
     }
-
+    
     /**
      * Gets the NMS world border from a bukkit world border.
      *
@@ -245,12 +265,13 @@ public final class Reflect {
     public static WorldBorder getNetWorldBorder(@Nonnull org.bukkit.WorldBorder bukkitWorldBorder) {
         try {
             return (WorldBorder) MethodUtils.invokeMethod(bukkitWorldBorder, "getHandle", null);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        }
+        catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Returns a string of current bukkit version.
      *
@@ -260,7 +281,7 @@ public final class Reflect {
     public static String getVersion() {
         return mcVersion;
     }
-
+    
     /**
      * Returns NMS constructor.
      *
@@ -273,18 +294,19 @@ public final class Reflect {
     public static Constructor<?> getNetConstructor(@Nonnull String className, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = getNetClass(className);
-
+            
             if (clazz == null) {
                 return null;
             }
-
+            
             return clazz.getConstructor(params);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Gets a constructor for a given class with the given params.
      *
@@ -297,12 +319,13 @@ public final class Reflect {
         try {
             final Class<?> clazz = Class.forName(className);
             return clazz.getDeclaredConstructor(params);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Returns CraftBukkit constructor.
      *
@@ -314,18 +337,19 @@ public final class Reflect {
     public static Constructor<?> getCraftConstructor(@Nonnull String className, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = getCraftClass(className);
-
+            
             if (clazz == null) {
                 return null;
             }
-
+            
             return clazz.getConstructor(params);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Invokes a method.
      *
@@ -338,12 +362,13 @@ public final class Reflect {
     public static Object invokeMethod(@Nonnull Method method, @Nullable Object instance, @Nullable Object... params) {
         try {
             return method.invoke(instance, params);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Creates a new instance from the constructor with the given parameters.
      *
@@ -355,12 +380,13 @@ public final class Reflect {
     public static <T> T newInstance(@Nonnull Constructor<T> constructor, @Nullable Object... parameters) {
         try {
             return constructor.newInstance(parameters);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Craft a 'craftbukkit' field from the given class.
      *
@@ -372,18 +398,19 @@ public final class Reflect {
     public static Field getCraftField(@Nonnull String className, @Nonnull String fieldName) {
         try {
             final Class<?> clazz = getCraftClass(className);
-
+            
             if (clazz == null) {
                 return null;
             }
-
+            
             return clazz.getField(fieldName);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Gets an 'nms' field from the given class.
      *
@@ -396,18 +423,19 @@ public final class Reflect {
     public static Field getNetField(@Nonnull String className, @Nonnull String fieldName) {
         try {
             final Class<?> clazz = getNetClass(className);
-
+            
             if (clazz == null) {
                 return null;
             }
-
+            
             return clazz.getField(fieldName);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Gets the field value.
      *
@@ -420,12 +448,13 @@ public final class Reflect {
     public static Object getFieldValue(@Nonnull Field field, @Nonnull Object instance) {
         try {
             return field.get(instance);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             return null;
         }
     }
-
+    
     /**
      * Reads the <b>declared</b> field value from the given instance.
      *
@@ -438,7 +467,7 @@ public final class Reflect {
     public static <T> T getDeclaredFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull Class<T> valueType) {
         return getFieldValue0(instance, fieldName, valueType, true);
     }
-
+    
     /**
      * Reads the field value from the given instance.
      *
@@ -451,7 +480,7 @@ public final class Reflect {
     public static <T> T getFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull Class<T> valueType) {
         return getFieldValue0(instance, fieldName, valueType, false);
     }
-
+    
     /**
      * Sets the <b>declared</b> field value for the given instance.
      *
@@ -462,7 +491,7 @@ public final class Reflect {
     public static <T> void setDeclaredFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull T value) {
         setDeclaredFieldValue0(instance, fieldName, value, true);
     }
-
+    
     /**
      * Sets the field value for the given instance.
      *
@@ -473,7 +502,7 @@ public final class Reflect {
     public static <T> void setFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull T value) {
         setDeclaredFieldValue0(instance, fieldName, value, false);
     }
-
+    
     public static <T> void setDeclaredFieldValue0(Object instance, String fieldName, T value, boolean isDeclared) {
         try {
             final Class<?> clazz = instance.getClass();
@@ -482,14 +511,15 @@ public final class Reflect {
                     fieldName,
                     true
             );
-
+            
             field.setAccessible(true);
             field.set(instance, value);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
         }
     }
-
+    
     /**
      * Returns BlockPosition of provided block.
      *
@@ -501,7 +531,7 @@ public final class Reflect {
         final Location location = block.getLocation();
         return new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
-
+    
     /**
      * Hides entity for viewers.
      *
@@ -513,7 +543,7 @@ public final class Reflect {
             hideEntity(entity, viewer);
         }
     }
-
+    
     /**
      * Hides entity for every online player.
      *
@@ -522,7 +552,7 @@ public final class Reflect {
     public static void hideEntity(@Nonnull Entity entity) {
         Bukkit.getOnlinePlayers().forEach(player -> hideEntity(entity, player));
     }
-
+    
     /**
      * Hides an entity for certain player.
      *
@@ -532,7 +562,7 @@ public final class Reflect {
     public static void hideEntity(@Nonnull Entity entity, @Nonnull Player player) {
         sendPacket(player, new ClientboundRemoveEntitiesPacket(entity.getEntityId()));
     }
-
+    
     /**
      * Shows the given entity to players.
      *
@@ -542,7 +572,7 @@ public final class Reflect {
     public static void createEntity(@Nonnull net.minecraft.world.entity.Entity netEntity, @Nonnull Player player) {
         sendPacket(player, new ClientboundAddEntityPacket(netEntity, netEntity.getId(), getEntityBlockPosition(netEntity)));
     }
-
+    
     /**
      * Gets entity's {@link SynchedEntityData}.
      *
@@ -553,7 +583,7 @@ public final class Reflect {
     public static SynchedEntityData getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
         return Objects.requireNonNull(entity.getEntityData(), "DataWatcher cannot be null."); // getEntityData()
     }
-
+    
     /**
      * Gets the non-default values from the {@link SynchedEntityData}.
      *
@@ -563,10 +593,10 @@ public final class Reflect {
     @Nonnull
     public static List<SynchedEntityData.DataValue<?>> getDataWatcherNonDefaultValues(@Nonnull SynchedEntityData dataWatcher) {
         final List<SynchedEntityData.DataValue<?>> values = dataWatcher.getNonDefaultValues();
-
+        
         return values == null ? Lists.newArrayList() : values;
     }
-
+    
     /**
      * Gets the non-default values from the entity's {@link SynchedEntityData}.
      *
@@ -577,7 +607,7 @@ public final class Reflect {
     public static List<SynchedEntityData.DataValue<?>> getDataWatcherNonDefaultValues(@Nonnull net.minecraft.world.entity.Entity entity) {
         return getDataWatcherNonDefaultValues(getDataWatcher(entity));
     }
-
+    
     /**
      * Shows hidden entity for viewers.
      *
@@ -589,7 +619,7 @@ public final class Reflect {
             showEntity(entity, viewer);
         }
     }
-
+    
     /**
      * Shows hidden entity for every online player.
      *
@@ -598,7 +628,7 @@ public final class Reflect {
     public static void showEntity(@Nonnull Entity entity) {
         Bukkit.getOnlinePlayers().forEach(player -> showEntity(entity, player));
     }
-
+    
     /**
      * Shows hidden entity.
      *
@@ -607,10 +637,10 @@ public final class Reflect {
      */
     public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
         final net.minecraft.world.entity.Entity netEntity = getMinecraftEntity(entity);
-
+        
         createEntity(netEntity, player);
     }
-
+    
     /**
      * Sends a packet to a player.
      *
@@ -621,10 +651,10 @@ public final class Reflect {
         if (HumanNPC.isNPC(player.getEntityId())) {
             return;
         }
-
+        
         getPlayerConnection(player).send(packet);
     }
-
+    
     /**
      * Gets a {@link Connection} for the given {@link Player}.
      *
@@ -635,7 +665,7 @@ public final class Reflect {
     public static ServerGamePacketListenerImpl getPlayerConnection(@Nonnull Player player) {
         return getMinecraftPlayer(player).connection;
     }
-
+    
     /**
      * Gets the {@link Channel} associated with the given {@link Player}.
      *
@@ -646,7 +676,7 @@ public final class Reflect {
     public static Channel getNettyChannel(@Nonnull Player player) {
         return getNetworkManager(player).channel;
     }
-
+    
     /**
      * Gets a {@link Connection} for the given {@link Player}.
      *
@@ -656,18 +686,19 @@ public final class Reflect {
     @Nonnull
     public static Connection getNetworkManager(@Nonnull Player player) {
         final ServerGamePacketListenerImpl playerConnection = getPlayerConnection(player);
-
+        
         try {
             final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "connection", true);
-
+            
             return (Connection) field.get(playerConnection);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
         }
-
+        
         throw new IllegalStateException("Couldn't get NetworkManager! Report this!");
     }
-
+    
     /**
      * Gets player's {@link GameProfile}.
      *
@@ -678,7 +709,7 @@ public final class Reflect {
     public static GameProfile getGameProfile(@Nonnull Player player) {
         return getGameProfile(getMinecraftPlayer(player));
     }
-
+    
     /**
      * Gets player's {@link GameProfile}.
      *
@@ -689,7 +720,7 @@ public final class Reflect {
     public static GameProfile getGameProfile(@Nonnull ServerPlayer player) {
         return player.getGameProfile();
     }
-
+    
     /**
      * @deprecated player#getPing()
      */
@@ -697,7 +728,7 @@ public final class Reflect {
     public static int getPing(Player player) {
         return player.getPing();
     }
-
+    
     /**
      * Returns CraftBukkit method.
      *
@@ -711,18 +742,19 @@ public final class Reflect {
     public static Method getCraftMethod(@Nonnull String className, @Nonnull String methodName, @Nullable Class<?>... params) {
         try {
             final Class<?> clazz = getCraftClass(className);
-
+            
             if (clazz == null) {
                 throw new IllegalArgumentException("Could not find class '%s'!".formatted(className));
             }
-
+            
             return clazz.getMethod(methodName, params);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
             throw new IllegalArgumentException(e);
         }
     }
-
+    
     /**
      * Gets the {@link MinecraftServer}.
      *
@@ -732,7 +764,7 @@ public final class Reflect {
     public static MinecraftServer getMinecraftServer() {
         return Objects.requireNonNull(MinecraftServer.getServer(), "MinecraftServer cannot be null.");
     }
-
+    
     /**
      * Gets the {@link DedicatedPlayerList}.
      *
@@ -742,12 +774,13 @@ public final class Reflect {
     public static DedicatedPlayerList getMinecraftPlayerList() {
         try {
             return (DedicatedPlayerList) MethodUtils.invokeMethod(Bukkit.getServer(), "getHandle", null);
-        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+        }
+        catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
             e.printStackTrace();
             return null;
         }
     }
-
+    
     /**
      * Gets the NMS entity from the bukkit entity.
      *
@@ -757,7 +790,7 @@ public final class Reflect {
     public static net.minecraft.world.entity.Entity getMinecraftEntity(@Nonnull Entity bukkitEntity) {
         return getHandle(bukkitEntity, net.minecraft.world.entity.Entity.class);
     }
-
+    
     /**
      * Gets the NMS player from the bukkit entity.
      *
@@ -767,7 +800,7 @@ public final class Reflect {
     public static ServerPlayer getMinecraftPlayer(@Nonnull Player player) {
         return getHandle(player, ServerPlayer.class);
     }
-
+    
     /**
      * Gets the NMS world for the bukkit world.
      *
@@ -777,7 +810,7 @@ public final class Reflect {
     public static ServerLevel getMinecraftWorld(@Nonnull World bukkitWorld) {
         return getHandle(bukkitWorld, ServerLevel.class);
     }
-
+    
     /**
      * Returns the NMS itemstack from a bukkit itemstack.
      *
@@ -791,7 +824,7 @@ public final class Reflect {
                 bukkitItem
         );
     }
-
+    
     /**
      * Returns the NMS scoreboard from a bukkit scoreboard.
      *
@@ -802,7 +835,7 @@ public final class Reflect {
     public static net.minecraft.world.scores.Scoreboard getNetScoreboard(@Nonnull Scoreboard scoreboard) {
         return getHandle(scoreboard, net.minecraft.world.scores.Scoreboard.class);
     }
-
+    
     /**
      * Returns the NMS scoreboard team from a bukkit scoreboard.
      *
@@ -814,7 +847,7 @@ public final class Reflect {
     public static PlayerTeam getNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
         return getNetScoreboard(scoreboard).getPlayerTeam(teamName);
     }
-
+    
     /**
      * Gets a NMS team from the bukkit team.
      *
@@ -826,24 +859,25 @@ public final class Reflect {
     public static PlayerTeam getNetTeam(@Nonnull Team team) throws IllegalArgumentException {
         try {
             final Object object = FieldUtils.readDeclaredField(team, "team", true);
-
+            
             return castOrThrow(object, PlayerTeam.class);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             EternaLogger.exception(e);
         }
-
+        
         throw new IllegalArgumentException("Could not parse getNetTeam() for some reason!");
     }
-
+    
     @Nonnull
     public static <T> T castOrThrow(@Nonnull Object object, @Nonnull Class<T> clazz) {
         if (clazz.isInstance(object)) {
             return clazz.cast(object);
         }
-
+        
         throw new IllegalArgumentException("%s cannot be cast to %s".formatted(object.toString(), clazz.getSimpleName()));
     }
-
+    
     /**
      * Attempts to retrieve a tile entity for the given {@link Block}.
      *
@@ -853,10 +887,10 @@ public final class Reflect {
     @Nullable
     public static BlockEntity getTileEntity(@Nonnull Block block) {
         final ServerLevel world = getMinecraftWorld(block.getWorld());
-
+        
         return world.getBlockEntity(new BlockPos(block.getX(), block.getY(), block.getZ()));
     }
-
+    
     /**
      * Gets the NMS team from the give scoreboard.
      *
@@ -869,10 +903,10 @@ public final class Reflect {
         if (team == null) {
             return null;
         }
-
+        
         return getNetTeam(scoreboard, team.getName());
     }
-
+    
     /**
      * Creates a new NMS scoreboard team.
      *
@@ -883,7 +917,7 @@ public final class Reflect {
     public static net.minecraft.world.scores.Team createNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
         return getNetScoreboard(scoreboard).addPlayerTeam(teamName);
     }
-
+    
     /**
      * Deletes the NMS scoreboard team.
      *
@@ -892,14 +926,14 @@ public final class Reflect {
      */
     public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
         final PlayerTeam team = getNetTeam(scoreboard, teamName);
-
+        
         if (team == null) {
             return;
         }
-
+        
         getNetScoreboard(scoreboard).removePlayerTeam(team);
     }
-
+    
     /**
      * Deletes the NMS scoreboard team.
      *
@@ -909,7 +943,7 @@ public final class Reflect {
     public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull PlayerTeam netTeam) {
         getNetScoreboard(scoreboard).removePlayerTeam(netTeam);
     }
-
+    
     /**
      * Gets the bukkit world from a minecraft world.
      *
@@ -920,7 +954,7 @@ public final class Reflect {
     public static World getBukkitWorld(@Nonnull ServerLevel worldServer) {
         return Objects.requireNonNull(Bukkit.getWorld(worldServer.uuid), "Server level must not be null!");
     }
-
+    
     /**
      * Gets a NMS handle of the craft object.
      * <br>
@@ -937,26 +971,27 @@ public final class Reflect {
                     .orElseThrow(() -> {
                         return makeIllegalArgumentHandle("Provided object is not a CraftBukkit object! (%s)".formatted(craftObject));
                     });
-
+            
             method.setAccessible(true);
             final Object object = method.invoke(craftObject);
-
+            
             if (object == null) {
                 throw makeIllegalArgumentHandle("CraftBukkit object returned null!");
             }
-
+            
             if (!handleClass.isInstance(object)) {
                 throw makeIllegalArgumentHandle("CraftBukkit object is not an instance of %s!".formatted(handleClass.getSimpleName()));
             }
-
+            
             return handleClass.cast(object);
-        } catch (InvocationTargetException | IllegalAccessException e) {
+        }
+        catch (InvocationTargetException | IllegalAccessException e) {
             EternaLogger.exception(e);
         }
-
+        
         throw makeIllegalArgumentHandle("Something unexpected occurred.");
     }
-
+    
     /**
      * Gets a {@link Optional} of a {@link Method} from the given class or it's superclasses,
      * or empty {@link Optional} if there is no method in the given class nor in any of the superclasses.
@@ -970,18 +1005,19 @@ public final class Reflect {
     public static Optional<Method> getDeclaredMethodInHierarchy(@Nonnull Class<?> clazz, @Nonnull String name) {
         try {
             return Optional.of(clazz.getDeclaredMethod(name));
-        } catch (NoSuchMethodException noSuchMethodException) {
+        }
+        catch (NoSuchMethodException noSuchMethodException) {
             final Class<?> superClass = clazz.getSuperclass();
-
+            
             // No such method
             if (superClass == Object.class) {
                 return Optional.empty();
             }
-
+            
             return getDeclaredMethodInHierarchy(superClass, name);
         }
     }
-
+    
     /**
      * Gets the scoreboard name for the given entity.
      * <br>
@@ -994,7 +1030,7 @@ public final class Reflect {
     public static String getScoreboardEntityName(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getScoreboardName();
     }
-
+    
     /**
      * Gets the {@link ServerConnectionListener} for the server.
      *
@@ -1004,7 +1040,7 @@ public final class Reflect {
     public static ServerConnectionListener getServerConnection() {
         return getMinecraftServer().getConnection();
     }
-
+    
     /**
      * Gets a {@link Class} by name, or throws an exception if class is not found.
      *
@@ -1015,26 +1051,27 @@ public final class Reflect {
     public static Class<?> getClass(@Nonnull String className) {
         try {
             return Class.forName(className);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new IllegalArgumentException("Cannot find class named '%s'!".formatted(className));
         }
     }
-
+    
     @Nullable
     public static Field getDeclaredField(@Nonnull Object instance, @Nonnull String fieldName) {
         return getField0(instance, fieldName, true);
     }
-
+    
     @Nullable
     public static Field getField(@Nonnull Object instance, @Nonnull String fieldName) {
         return getField0(instance, fieldName, false);
     }
-
+    
     @Nullable
     public static <T> T cast(@Nonnull Object value, @Nonnull Class<T> clazz) {
         return clazz.isInstance(value) ? clazz.cast(value) : null;
     }
-
+    
     /**
      * Gets a new {@link BlockPos} of entity's position.
      * <br>
@@ -1047,7 +1084,7 @@ public final class Reflect {
     public static BlockPos getEntityBlockPosition(@Nonnull net.minecraft.world.entity.Entity entity) {
         return new BlockPos((int) entity.xo, (int) entity.yo, (int) entity.zo);
     }
-
+    
     /**
      * Gets the given {@link net.minecraft.world.entity.Entity} {@link UUID}.
      *
@@ -1058,7 +1095,7 @@ public final class Reflect {
     public static UUID getEntityUuid(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getUUID();
     }
-
+    
     /**
      * Converts NMS {@link net.minecraft.world.entity.Entity} position into {@link Location}.
      *
@@ -1070,7 +1107,7 @@ public final class Reflect {
     public static Location locationFromPosition(@Nonnull World world, @Nonnull Vec3 position) {
         return new Location(world, position.x, position.y, position.z);
     }
-
+    
     /**
      * Gets {@link net.minecraft.world.entity.Entity} position as {@link Location}.
      *
@@ -1081,7 +1118,7 @@ public final class Reflect {
     public static Location getEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
         return locationFromPosition(getBukkitWorld(entity.level()), entity.position());
     }
-
+    
     /**
      * Gets the bukkit world from the given {@link Level}.
      *
@@ -1093,54 +1130,45 @@ public final class Reflect {
         if (level instanceof ServerLevel serverLevel) {
             return getBukkitWorld(serverLevel);
         }
-
+        
         throw new IllegalArgumentException("Cannot get world from non-server level!");
     }
-
+    
     /**
-     * Creates a new {@link CompoundTag} for the given {@link net.minecraft.world.entity.Entity}, with all the Nbt fields of that entity.
+     * Creates a new {@link ValueOutput} for the given {@link net.minecraft.world.entity.Entity}, with all the Nbt fields of that entity.
      *
      * @param entity - The entity to get the nbt for.
-     * @return a new {@link CompoundTag}.
+     * @return a new {@link ValueOutput}.
      */
     @Nonnull
-    public static CompoundTag getEntityNbt(@Nonnull net.minecraft.world.entity.Entity entity) {
-        final CompoundTag tag = new CompoundTag();
+    public static ValueOutput getEntityNbt(@Nonnull net.minecraft.world.entity.Entity entity) {
+        final TagValueOutput tag = TagValueOutput.createWithoutContext(problemReporter);
         entity.saveWithoutId(tag);
-
+        
         return tag;
     }
-
+    
     /**
-     * Sets the given {@link CompoundTag} to the given {@link net.minecraft.world.entity.Entity}.
+     * Sets the given {@link ValueInput} to the given {@link net.minecraft.world.entity.Entity}.
      *
-     * @param tag      - The nbt to set.
-     * @param entity   - The entity to set the nbt to.
-     * @param override - If true, the given nbt will completely override the existing entity's nbt; it will be merged otherwise.
+     * @param tag    - The nbt to set.
+     * @param entity - The entity to set the nbt to.
      */
-    public static void setEntityNbt(@Nonnull CompoundTag tag, @Nonnull net.minecraft.world.entity.Entity entity, boolean override) {
-        if (override) {
-            entity.load(tag);
-        }
-        else {
-            final CompoundTag existingNbt = new CompoundTag();
-            entity.saveWithoutId(existingNbt);
-
-            existingNbt.merge(tag);
-            entity.load(existingNbt);
-        }
+    public static void setEntityNbt(@Nonnull ValueInput tag, @Nonnull net.minecraft.world.entity.Entity entity) {
+        entity.load(tag);
     }
-
+    
     private static Field getField0(Object instance, String name, boolean isDeclared) {
         try {
             final Class<?> clazz = instance.getClass();
-
+            
             return isDeclared ? clazz.getDeclaredField(name) : clazz.getField(name);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return null;
         }
     }
-
+    
     private static <T> T getFieldValue0(Object instance, String name, Class<T> type, boolean isDeclared) {
         try {
             final Object object = isDeclared ? FieldUtils.readDeclaredField(instance, name, true) : FieldUtils.readField(
@@ -1148,23 +1176,24 @@ public final class Reflect {
                     name,
                     true
             );
-
+            
             if (object == null) {
                 return null;
             }
-
+            
             if (type.isInstance(object)) {
                 return type.cast(object);
             }
-        } catch (Exception e) {
-            EternaLogger.exception(e);
         }
-
+        catch (Exception e) {
+            throw EternaLogger.exception(e);
+        }
+        
         return null;
     }
-
+    
     private static IllegalArgumentException makeIllegalArgumentHandle(String msg) {
         return new IllegalArgumentException("Cannot get the handle! " + msg);
     }
-
+    
 }

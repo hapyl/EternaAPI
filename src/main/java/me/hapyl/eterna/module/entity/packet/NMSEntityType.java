@@ -50,7 +50,7 @@ import java.util.Map;
  * @see #fromNms(net.minecraft.world.entity.EntityType)
  */
 @SuppressWarnings("all")
-@TestedOn(version = Version.V1_21_5)
+@TestedOn(version = Version.V1_21_7)
 public final class NMSEntityType {
 
     public static final net.minecraft.world.entity.EntityType<Allay> ALLAY;

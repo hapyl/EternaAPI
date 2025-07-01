@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
  * Create a visual bounding box between two points.
  * A bounding box size cannot exceed 48 blocks.
  */
-@TestedOn(version = Version.V1_21_5)
+@TestedOn(version = Version.V1_21_7)
 public class BoundingBox {
 
     public static final net.minecraft.world.level.block.Block STRUCTURE_BLOCK = Blocks.STRUCTURE_BLOCK;

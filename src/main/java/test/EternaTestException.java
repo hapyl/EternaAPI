@@ -9,4 +9,9 @@ public class EternaTestException extends RuntimeException {
 
         this.test = test;
     }
+    
+    @Override
+    public String toString() {
+        return getMessage();
+    }
 }

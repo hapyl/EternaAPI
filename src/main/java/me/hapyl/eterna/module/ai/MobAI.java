@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 
-@TestedOn(version = Version.V1_21_5)
+@TestedOn(version = Version.V1_21_7)
 public class MobAI implements AI {
 
     private int lastPriority;
