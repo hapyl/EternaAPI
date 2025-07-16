@@ -149,14 +149,16 @@ public class DialogInstance extends BukkitRunnable {
             // Try to start the quest
             questManager.tryStartQuest(
                     player, quest -> {
-                        for (QuestStartBehaviour behaviour : quest.getStartBehaviours(player)) {
-                            if (behaviour instanceof QuestStartBehaviour.DialogStartBehaviour dialogStartBehaviour) {
-                                if (this.dialog != dialogStartBehaviour.dialog()) {
-                                    continue;
-                                }
-
-                                return true;
+                        for (QuestStartBehaviour startBehaviour : quest.getStartBehaviours()) {
+                            if (!(startBehaviour instanceof QuestStartBehaviour.DialogStartBehaviour dialogStartBehaviour)) {
+                                continue;
                             }
+                            
+                            if (this.dialog != dialogStartBehaviour.dialog()) {
+                                continue;
+                            }
+                            
+                            return true;
                         }
 
                         return false;

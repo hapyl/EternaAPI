@@ -42,7 +42,6 @@ import me.hapyl.eterna.module.player.dialog.DialogEntry;
 import me.hapyl.eterna.module.player.input.InputKey;
 import me.hapyl.eterna.module.player.input.PlayerInput;
 import me.hapyl.eterna.module.player.quest.Quest;
-import me.hapyl.eterna.module.player.quest.QuestChain;
 import me.hapyl.eterna.module.player.quest.QuestData;
 import me.hapyl.eterna.module.player.quest.QuestHandler;
 import me.hapyl.eterna.module.player.quest.objective.GiveItemToNpcQuestObjective;
@@ -1977,7 +1976,6 @@ public final class EternaRuntimeTest {
                 
                 final Location location = player.getLocation();
                 
-                final QuestChain questChain = new QuestChain(Key.ofString("test_quest_chain"));
                 final HumanNPC npc = new HumanNPC(location, "&6Quest Giver");
                 npc.setSkin(
                         "ewogICJ0aW1lc3RhbXAiIDogMTc1MTM1OTc2MTM3OCwKICAicHJvZmlsZUlkIiA6ICIwNTAzNzZmZjAxY2I0OGVjOTUwM2NhMjhjMWU2MzlkMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJKb25haDU1OTAiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2YzMTNhNjMyODIxMDA0YzIxM2VlYjE5N2QyNzU3NDI2OTU0NzBkNThhYjE3MWZlNzIwZTgyZDg5Y2I5M2JlIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=",
@@ -1986,23 +1984,16 @@ public final class EternaRuntimeTest {
                 
                 npc.show(player);
                 
-                questChain.addQuest(
-                        new Quest(Eterna.getPlugin(), Key.ofString("quest_1"))
-                                .addObjective(new TalkToNpcQuestObjective(
-                                        npc, new Dialog()
-                                        .addEntry(npc, "Hello, I'm a test npc!")
-                                        .addEntry(npc, "And yeah this is the end of a dialog!")
-                                ))
-                );
+                final Quest quest = new Quest(Eterna.getPlugin(), Key.ofString("testquest0"))
+                        .addObjective(new TalkToNpcQuestObjective(
+                                npc, new Dialog()
+                                .addEntry(npc, "Hello, I'm a test npc!")
+                                .addEntry(npc, "And yeah this is the end of a dialog!")
+                        ))
+                        .addObjective(new JumpQuestObjective(3))
+                        .addObjective(new GiveItemToNpcQuestObjective(npc, Material.DIAMOND, 16));
                 
-                questChain.addQuest(
-                        new Quest(Eterna.getPlugin(), Key.ofString("quest_2"))
-                                .addObjective(new JumpQuestObjective(3))
-                                .addObjective(new GiveItemToNpcQuestObjective(npc, Material.DIAMOND, 16))
-                );
-                
-                registry.register(questChain);
-                questChain.startNextQuest(player);
+                registry.register(quest);
                 return false;
             }
         });

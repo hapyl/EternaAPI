@@ -14,7 +14,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Set;
@@ -29,23 +28,21 @@ import java.util.Set;
  * </p>
  */
 public class Quest implements Keyed, Described {
-
+    
     private final JavaPlugin plugin;
     private final Key key;
     private final LinkedList<QuestObjective> objectives;
     private final Set<QuestStartBehaviour> startBehaviours;
-
-    QuestChain questChain;
-
+    
     private String name;
     private String description;
-
+    
     private boolean isRepeatable;
-
+    
     @Nonnull private QuestFormatter formatter;
-
+    
     @Nullable private QuestPreRequirement preRequirement;
-
+    
     public Quest(@Nonnull JavaPlugin plugin, @Nonnull Key key) {
         this.plugin = plugin;
         this.key = key;
@@ -57,59 +54,17 @@ public class Quest implements Keyed, Described {
         this.preRequirement = null;
         this.isRepeatable = false;
     }
-
+    
     /**
-     * Gets the {@link QuestChain} this quest belongs to, or {@code null} if it doesn't belong to any.
+     * Gets an immutable {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
      *
-     * @return the {@link QuestChain} this quest belongs to, or {@code null} if it doesn't belong to any.
-     */
-    @Nullable
-    public QuestChain getQuestChain() {
-        return this.questChain;
-    }
-
-    /**
-     * Returns {@code true} if this quest belongs to a chain, {@code false} otherwise.
-     *
-     * @return {@code true} if this quest belongs to a chain, {@code false} otherwise.
-     */
-    public boolean isChainedQuest() {
-        return this.questChain != null;
-    }
-
-    /**
-     * Gets a {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
-     *
-     * @return a {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
+     * @return an immutable {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
      */
     @Nonnull
     public Set<QuestStartBehaviour> getStartBehaviours() {
-        return new HashSet<>(startBehaviours);
+        return Set.copyOf(startBehaviours);
     }
-
-    /**
-     * Gets a {@link Set} of {@link QuestStartBehaviour} applicable to this quest
-     * if this is the next {@link Quest} in the {@link QuestChain} for the given {@link Player},
-     * an empty {@link Set} otherwise.
-     *
-     * @param player - The player to get the start behaviours for.
-     * @return - a {@link Set} of {@link QuestStartBehaviour} applicable to this quest
-     * if this is the next {@link Quest} in the {@link QuestChain} for the given {@link Player},
-     * an empty {@link Set} otherwise.
-     */
-    @Nonnull
-    public Set<QuestStartBehaviour> getStartBehaviours(@Nonnull Player player) {
-        if (questChain != null) {
-            final Quest nextQuest = questChain.getNextQuest(player);
-
-            if (!this.equals(nextQuest)) {
-                return Set.of();
-            }
-        }
-
-        return getStartBehaviours();
-    }
-
+    
     /**
      * Adds a {@link QuestStartBehaviour} to this quest.
      *
@@ -118,7 +73,7 @@ public class Quest implements Keyed, Described {
     public void addStartBehaviour(@Nonnull QuestStartBehaviour startBehaviour) {
         this.startBehaviours.add(startBehaviour);
     }
-
+    
     /**
      * Returns {@code true} if this quest has {@link QuestStartBehaviour}, {@code false} otherwise.
      *
@@ -127,7 +82,7 @@ public class Quest implements Keyed, Described {
     public boolean hasStartBehaviours() {
         return !startBehaviours.isEmpty();
     }
-
+    
     /**
      * Gets the pre-requirement that must be met before the {@link Quest} can be started, or {@code null} if none.
      *
@@ -137,7 +92,7 @@ public class Quest implements Keyed, Described {
     public QuestPreRequirement getPreRequirement() {
         return preRequirement;
     }
-
+    
     /**
      * Sets the {@link Quest} pre-requirement that must be met before the {@link Quest} can be started.
      *
@@ -146,7 +101,7 @@ public class Quest implements Keyed, Described {
     public void setPreRequirement(@Nullable QuestPreRequirement preRequirement) {
         this.preRequirement = preRequirement;
     }
-
+    
     /**
      * Returns {@code true} if this {@link Quest} is repeatable, false otherwise.
      * <p>
@@ -158,7 +113,7 @@ public class Quest implements Keyed, Described {
     public boolean isRepeatable() {
         return isRepeatable;
     }
-
+    
     /**
      * Sets if this {@link Quest} is repeatable.
      * <p>
@@ -170,7 +125,7 @@ public class Quest implements Keyed, Described {
     public void setRepeatable(boolean repeatable) {
         isRepeatable = repeatable;
     }
-
+    
     /**
      * Gets the {@link JavaPlugin} owning this {@link Quest}.
      *
@@ -180,7 +135,7 @@ public class Quest implements Keyed, Described {
     public final JavaPlugin getPlugin() {
         return plugin;
     }
-
+    
     /**
      * Gets the {@link Key} of this {@link Quest}.
      *
@@ -191,7 +146,7 @@ public class Quest implements Keyed, Described {
     public final Key getKey() {
         return this.key;
     }
-
+    
     /**
      * Gets the {@link QuestFormatter} for this {@link Quest}.
      *
@@ -201,7 +156,7 @@ public class Quest implements Keyed, Described {
     public QuestFormatter getFormatter() {
         return formatter;
     }
-
+    
     /**
      * Sets the {@link QuestFormatter} for this {@link Quest}.
      *
@@ -210,7 +165,7 @@ public class Quest implements Keyed, Described {
     public void setFormatter(@Nonnull QuestFormatter formatter) {
         this.formatter = Objects.requireNonNull(formatter, "QuestFormatter must not be null!");
     }
-
+    
     /**
      * Gets the {@link QuestObjective} at the given stage, or {@code null} if there is no objective at the given.
      *
@@ -221,7 +176,7 @@ public class Quest implements Keyed, Described {
     public QuestObjective getObjective(int stage) {
         return stage >= 0 && stage < objectives.size() ? objectives.get(stage) : null;
     }
-
+    
     /**
      * Gets the first {@link QuestObjective} of this {@link Quest}.
      *
@@ -233,10 +188,10 @@ public class Quest implements Keyed, Described {
         if (objectives.isEmpty()) {
             throw new IllegalStateException("Quest must contain at least one objective!");
         }
-
+        
         return objectives.getFirst();
     }
-
+    
     /**
      * Adds a {@link QuestObjective} to this {@link Quest}.
      *
@@ -246,7 +201,7 @@ public class Quest implements Keyed, Described {
         this.objectives.add(objective);
         return this;
     }
-
+    
     /**
      * Gets the name of this {@link Quest}.
      *
@@ -257,7 +212,7 @@ public class Quest implements Keyed, Described {
     public String getName() {
         return this.name;
     }
-
+    
     /**
      * Sets the name of this {@link Quest}.
      *
@@ -267,7 +222,7 @@ public class Quest implements Keyed, Described {
     public void setName(@Nonnull String name) {
         this.name = name;
     }
-
+    
     /**
      * Gets the description of this {@link Quest}.
      *
@@ -278,7 +233,7 @@ public class Quest implements Keyed, Described {
     public String getDescription() {
         return this.description;
     }
-
+    
     /**
      * Sets the description of this {@link Quest}.
      *
@@ -288,7 +243,7 @@ public class Quest implements Keyed, Described {
     public void setDescription(@Nonnull String description) {
         this.description = description;
     }
-
+    
     /**
      * Starts this {@link Quest} for the given {@link Player}.
      *
@@ -298,7 +253,7 @@ public class Quest implements Keyed, Described {
     public void start(@Nonnull Player player) {
         Eterna.getManagers().quest.startQuestIfPossible(player, this, true, true);
     }
-
+    
     /**
      * Returns {@code true} if the given {@link Player} has completed this {@link Quest}, {@code false} otherwise.
      *
@@ -308,7 +263,15 @@ public class Quest implements Keyed, Described {
     public boolean hasCompleted(@Nonnull Player player) {
         return Eterna.getManagers().quest.getHandler(getPlugin()).hasCompleted(player, this);
     }
-
+    
+    @EventLike
+    public void onStart(@Nonnull Player player, @Nonnull QuestData data) {
+    }
+    
+    @EventLike
+    public void onObjectiveComplete(@Nonnull Player player, @Nonnull QuestData data, @Nonnull QuestObjective objective) {
+    }
+    
     /**
      * Called whenever the {@link Player} completes this {@link Quest}.
      *
@@ -318,7 +281,7 @@ public class Quest implements Keyed, Described {
     @EventLike
     public void onComplete(@Nonnull Player player, @Nonnull QuestData data) {
     }
-
+    
     /**
      * Returns {@code true} if the given object is a {@link Quest} and it's {@link JavaPlugin} and {@link Key} matching this one,
      * {@code false} otherwise.
@@ -332,15 +295,15 @@ public class Quest implements Keyed, Described {
         if (this == object) {
             return true;
         }
-
+        
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-
+        
         final Quest that = (Quest) object;
         return Objects.equals(this.plugin, that.plugin) && Objects.equals(this.key, that.key);
     }
-
+    
     /**
      * Gets the hash code of this {@link Quest}.
      *
@@ -350,5 +313,4 @@ public class Quest implements Keyed, Described {
     public final int hashCode() {
         return Objects.hash(this.plugin, this.key);
     }
-
 }
