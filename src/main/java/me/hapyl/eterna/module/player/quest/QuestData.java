@@ -3,7 +3,6 @@ package me.hapyl.eterna.module.player.quest;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.builtin.Debuggable;
 import me.hapyl.eterna.builtin.manager.QuestManager;
-import me.hapyl.eterna.module.util.Consumers;
 import me.hapyl.eterna.module.util.Runnables;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -18,18 +17,18 @@ import java.util.function.BiConsumer;
  */
 @ApiStatus.Internal
 public class QuestData implements Debuggable {
-
+    
     private final Player player;
     private final Quest quest;
-
+    
     private int currentStage;
     private double currentStageProgress;
-
+    
     public QuestData(@Nonnull Player player, @Nonnull Quest quest) {
         this.player = player;
         this.quest = quest;
     }
-
+    
     /**
      * Gets the player of this data.
      *
@@ -39,7 +38,7 @@ public class QuestData implements Debuggable {
     public Player getPlayer() {
         return player;
     }
-
+    
     /**
      * Gets the quest of this data.
      *
@@ -49,7 +48,7 @@ public class QuestData implements Debuggable {
     public Quest getQuest() {
         return quest;
     }
-
+    
     /**
      * Gets the current objective, or {@code null} if there is no objective.
      * <p>Realistically this will never returns null.</p>
@@ -60,7 +59,7 @@ public class QuestData implements Debuggable {
     public QuestObjective getCurrentObjective() {
         return quest.getObjective(currentStage);
     }
-
+    
     /**
      * Gets the current stage of the quest.
      *
@@ -69,7 +68,7 @@ public class QuestData implements Debuggable {
     public int getCurrentStage() {
         return currentStage;
     }
-
+    
     /**
      * Gets the current progress of the objective.
      * <p>The objective is considered as 'complete' if player's progress {@code >=} than the goal.</p>
@@ -79,19 +78,7 @@ public class QuestData implements Debuggable {
     public double getCurrentStageProgress() {
         return currentStageProgress;
     }
-
-    /**
-     * Attempts to increment the progress for the current objective if the objective is {@code instanceof} the given {@link Class},
-     * and the {@link QuestObjective#test(QuestData, QuestObjectArray)} returns {@link QuestObjective.Response#testSucceeded()}.
-     *
-     * @param clazz   - Objective class.
-     * @param objects - Object parameters if needed.
-     *                Will be wrapped with {@link QuestObjectArray} before passing it to the objective.
-     */
-    public <T extends QuestObjective> void tryIncrementProgress(@Nonnull Class<T> clazz, @Nullable Object[] objects) {
-        tryIncrementProgress(clazz, Consumers.emptyBi(), objects);
-    }
-
+    
     /**
      * Attempts to increment the progress for the current objective if the objective is {@code instanceof} the given {@link Class},
      * and the {@link QuestObjective#test(QuestData, QuestObjectArray)} returns {@link QuestObjective.Response#testSucceeded()}.
@@ -105,19 +92,19 @@ public class QuestData implements Debuggable {
     public <T extends QuestObjective> void tryIncrementProgress(@Nonnull Class<T> clazz, @Nonnull BiConsumer<T, QuestObjective.Response> consumer, @Nullable Object[] objects) {
         final QuestObjective currentObjective = quest.getObjective(currentStage);
         final QuestFormatter formatter = quest.getFormatter();
-
+        
         if (!clazz.isInstance(currentObjective)) {
             return;
         }
-
+        
         final T objective = clazz.cast(currentObjective);
         final QuestObjective.Response response = objective.test(this, new QuestObjectArray(objects));
-
+        
         consumer.accept(objective, response);
-
+        
         if (response.isObjectiveFailed()) {
             currentStageProgress = 0.0d;
-
+            
             objective.onFail(player);
             formatter.sendObjectiveFailed(player, objective);
             return;
@@ -127,15 +114,16 @@ public class QuestData implements Debuggable {
         }
         else {
             final double increment = response.getMagicNumber();
-
+            
             objective.onIncrement(player, increment);
             currentStageProgress += increment;
         }
-
+        
         // Objective complete, go next
         if (currentStageProgress >= objective.getGoal()) {
             // Calling nextObjective() forces the next objective, call onComplete() here
             objective.onComplete(player);
+            quest.onObjectiveComplete(player, this, objective);
             
             nextObjective();
         }
@@ -145,65 +133,47 @@ public class QuestData implements Debuggable {
         return quest.getObjective(currentStage) == null;
     }
     
-    /**
-     * Forcefully skips to the next objective.
-     *
-     * @return the next objective, or {@code null} if the quest is now 'completed'.
-     */
-    @Nullable
-    protected QuestObjective nextObjective() {
+    @ApiStatus.Internal
+    protected void nextObjective() { // Should not call manually
         final QuestFormatter formatter = quest.getFormatter();
         final QuestObjective currentObjective = quest.getObjective(currentStage);
-
+        
         if (currentObjective == null) {
-            return null;
+            return;
         }
-
+        
         currentStage++;
         currentStageProgress = 0.0d;
-
+        
         // Display the complete objective
         formatter.sendObjectiveComplete(player, currentObjective);
         
         final QuestObjective nextObjective = quest.getObjective(currentStage);
-
+        
         // Quest complete
         if (nextObjective == null) {
             final QuestManager questManager = Eterna.getManagers().quest;
-
+            
             quest.onComplete(player, this);
-
+            
             // Call handler if not repeatable
             if (!quest.isRepeatable()) {
                 questManager.workHandlers(handler -> handler.completeQuest(player, quest));
             }
-
+            
             // Delay quest complete message
             Runnables.runLater(() -> formatter.sendQuestCompleteFormat(player, quest), 30);
-
-            // Start the next quest if it's a chained quest
-            final QuestChain questChain = quest.getQuestChain();
-
-            if (questChain != null) {
-                final Quest nextQuest = questChain.getNextQuest(player);
-
-                // Only auto-start if the next quest doesn't have any start behaviours
-                if (nextQuest != null && !nextQuest.hasStartBehaviours()) {
-                    Runnables.runLater(() -> nextQuest.start(player), 50);
-                }
-            }
-            return null;
+            return;
         }
-
+        
         // Call onStart() right away
         nextObjective.onStart(player);
-
+        
         // Display the objective complete message and then the next objective with a little delay
         Runnables.runLater(() -> formatter.sendObjectiveNew(player, nextObjective), 20);
-
-        return nextObjective;
+        
     }
-
+    
     @Nonnull
     @Override
     public String toDebugString() {
@@ -213,7 +183,7 @@ public class QuestData implements Debuggable {
                 ", currentStageProgress=" + currentStageProgress +
                 '}';
     }
-
+    
     /**
      * A factory method for loading {@link QuestData}.
      * <p>This method should <b>only</b> be used to load quest data!</p>
@@ -228,11 +198,11 @@ public class QuestData implements Debuggable {
     @Nonnull
     public static QuestData load(@Nonnull QuestHandler handler, @Nonnull Player player, @Nonnull Quest quest, int currentStage, double currentStageProgress) {
         Objects.requireNonNull(handler, "Handler must not be null!"); // ensure existing handler
-
+        
         final QuestData data = new QuestData(player, quest);
         data.currentStage = currentStage;
         data.currentStageProgress = currentStageProgress;
-
+        
         return data;
     }
 }

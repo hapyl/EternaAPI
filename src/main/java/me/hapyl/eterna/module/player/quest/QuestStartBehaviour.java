@@ -10,10 +10,9 @@ import javax.annotation.Nullable;
 
 /**
  * Represents a start behaviour of a {@link Quest}.
- * <p>For {@link QuestChain}, this behaviour is only applicable to the next quest in the chain.</p>
  */
 public interface QuestStartBehaviour {
-
+    
     /**
      * The quest will be started automatically whenever a player joins the server.
      */
@@ -21,7 +20,7 @@ public interface QuestStartBehaviour {
     static QuestStartBehaviour onJoin() {
         return onJoin(true);
     }
-
+    
     /**
      * The quest will be started automatically whenever a player joins the server.
      *
@@ -31,7 +30,7 @@ public interface QuestStartBehaviour {
     static QuestStartBehaviour onJoin(boolean shouldNotify) {
         return new OnJoin(shouldNotify);
     }
-
+    
     /**
      * The quest will be started whenever a player finished the given {@link Dialog}.
      * <p>The dialog will be automatically started whenever a player clicks at the given {@link HumanNPC}.</p>
@@ -43,7 +42,7 @@ public interface QuestStartBehaviour {
     static QuestStartBehaviour talkToNpc(@Nonnull HumanNPC npc, @Nonnull Dialog dialog) {
         return new TalkToNpc(npc, dialog);
     }
-
+    
     /**
      * The quest will be started whenever a player finished the given {@link Dialog}.
      *
@@ -53,7 +52,7 @@ public interface QuestStartBehaviour {
     static QuestStartBehaviour completeDialog(@Nonnull Dialog dialog) {
         return new CompleteDialog(dialog);
     }
-
+    
     /**
      * The quest will be started whenever a player is within the given {@link Position}.
      * <p>The quest will immediately start upon player reaching the given position.</p>
@@ -64,7 +63,7 @@ public interface QuestStartBehaviour {
     static QuestStartBehaviour goTo(@Nonnull Position position) {
         return goTo(position, null);
     }
-
+    
     /**
      * The quest will be started whenever a player is within the given {@link Position}.
      * <p>Whenever a player reaches the given position, the given dialog will be played and the quest will start after the dialog is finished.</p>
@@ -75,15 +74,15 @@ public interface QuestStartBehaviour {
     static QuestStartBehaviour goTo(@Nonnull Position position, @Nullable Dialog dialog) {
         return new GoTo(position, dialog);
     }
-
+    
     interface DialogStartBehaviour extends QuestStartBehaviour {
         @Nullable
         Dialog dialog();
     }
-
+    
     record OnJoin(boolean sendNotification) implements QuestStartBehaviour {
     }
-
+    
     record GoTo(@Nonnull Position position, @Nullable Dialog dialog) implements DialogStartBehaviour {
         @Nullable
         @Override
@@ -91,7 +90,7 @@ public interface QuestStartBehaviour {
             return this.dialog;
         }
     }
-
+    
     record TalkToNpc(@Nonnull HumanNPC npc, @Nonnull Dialog dialog) implements DialogStartBehaviour {
         @Nonnull
         @Override
@@ -99,7 +98,7 @@ public interface QuestStartBehaviour {
             return this.dialog;
         }
     }
-
+    
     record CompleteDialog(@Nonnull Dialog dialog) implements DialogStartBehaviour {
         @Nonnull
         @Override
@@ -107,5 +106,5 @@ public interface QuestStartBehaviour {
             return this.dialog;
         }
     }
-
+    
 }
