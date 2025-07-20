@@ -39,6 +39,7 @@ import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
+import me.hapyl.eterna.module.player.dialog.DialogInstance;
 import me.hapyl.eterna.module.player.input.InputKey;
 import me.hapyl.eterna.module.player.input.PlayerInput;
 import me.hapyl.eterna.module.player.quest.Quest;
@@ -2363,19 +2364,31 @@ public final class EternaRuntimeTest {
         });
         
         addTest(new EternaTest("dialog") {
-            
             private Dialog dialog;
             
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 if (dialog == null) {
-                    dialog = new Dialog();
+                    dialog = new Dialog("Test Dialog");
                     
                     dialog.addEntry(DialogEntry.of("Hello World!"));
                     dialog.addEntry(DialogEntry.of("Hello World 2!"));
                     dialog.addEntry(DialogEntry.of("Hello World 3!"));
                     dialog.addEntry(DialogEntry.of("Hello World 4!"));
                     dialog.addEntry(DialogEntry.of("Hello World 5!"));
+                    // dialog.summary("You hear the phrase \"Hello World\" five times and begin to wonder... what is life...?");
+                }
+                
+                if (args.getString(0).equals("skip")) {
+                    final DialogInstance instance = Eterna.getManagers().dialog.get(player);
+                    
+                    if (instance == null) {
+                        info(player, "Not in a dialog!");
+                        return false;
+                    }
+                    
+                    instance.skip();
+                    return false;
                 }
                 
                 dialog.startForcefully(player);
