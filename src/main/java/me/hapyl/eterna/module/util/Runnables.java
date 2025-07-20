@@ -7,54 +7,68 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 
 @ApiStatus.Internal
 public class Runnables {
-
+    
     private final static JavaPlugin ETERNA = EternaPlugin.getPlugin();
-
+    
     @ApiStatus.Internal
     public static void runLater(@Nonnull Runnable runnable, long delay) {
         newBukkitRunnable(runnable).runTaskLater(ETERNA, delay);
     }
-
+    
     @Asynchronous
     @ApiStatus.Internal
     public static void runAsync(@Nonnull Runnable runnable) {
         newBukkitRunnable(runnable).runTaskAsynchronously(ETERNA);
     }
-
+    
     @ApiStatus.Internal
     public static void runSync(@Nonnull Runnable runnable) {
         newBukkitRunnable(runnable).runTask(ETERNA);
     }
-
+    
     @Asynchronous
     @ApiStatus.Internal
     public static void runLaterAsync(@Nonnull Runnable runnable, long delay) {
         newBukkitRunnable(runnable).runTaskLaterAsynchronously(ETERNA, delay);
     }
-
+    
     @ApiStatus.Internal
     public static void runTimer(@Nonnull Runnable runnable, long delay, long period) {
         newBukkitRunnable(runnable).runTaskTimer(ETERNA, delay, period);
     }
-
+    
     @ApiStatus.Internal
     public static void runTimer(@Nonnull Runnable runnable, long period) {
         runTimer(runnable, 0, period);
     }
-
+    
     @ApiStatus.Internal
     public static void runTimerAsync(@Nonnull Runnable runnable, long delay, long period) {
         newBukkitRunnable(runnable).runTaskTimerAsynchronously(ETERNA, delay, period);
     }
-
+    
     @ApiStatus.Internal
     public static void runTimerAsync(@Nonnull Runnable runnable, long period) {
         runTimerAsync(runnable, 0, period);
     }
-
+    
+    @ApiStatus.Internal
+    public static BukkitRunnable makeTask(@Nonnull Runnable runnable, @Nonnull Consumer<BukkitRunnable> consumer) {
+        final BukkitRunnable bukkitRunnable = new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        };
+        
+        consumer.accept(bukkitRunnable);
+        return bukkitRunnable;
+    }
+    
     private static BukkitRunnable newBukkitRunnable(Runnable runnable) {
         return new BukkitRunnable() {
             @Override
@@ -63,5 +77,5 @@ public class Runnables {
             }
         };
     }
-
+    
 }

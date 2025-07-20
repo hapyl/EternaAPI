@@ -599,6 +599,10 @@ public abstract class PlayerGUI {
         player.openInventory(inventory);
     }
     
+    public void closeInventory() {
+        player.closeInventory();
+    }
+    
     /**
      * Gets the size of this GUI.
      *
