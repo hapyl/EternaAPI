@@ -5,24 +5,24 @@ import me.hapyl.eterna.builtin.manager.DialogManager;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
+import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Named;
+import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * Represents a {@link Dialog}, usually between an {@link HumanNPC} and a {@link Player}.
  */
 public class Dialog implements Named {
+    
+    private static final NamespacedKey attributeKey = BukkitUtils.createKey("eterna_dialog");
     
     protected final Queue<DialogEntry> entries;
     
@@ -199,12 +199,11 @@ public class Dialog implements Named {
      */
     @EventLike
     public void onDialogStart(@Nonnull Player player) {
-        final AttributeInstance attribute = player.getAttribute(Attribute.JUMP_STRENGTH);
+        final AttributeInstance speedAttribute = Objects.requireNonNull(player.getAttribute(Attribute.MOVEMENT_SPEED), "Players must have MOVEMENT_SPEED attribute!");
+        final AttributeInstance jumpAttribute = Objects.requireNonNull(player.getAttribute(Attribute.JUMP_STRENGTH), "Players must have JUMP_STRENGTH attribute!");
         
-        if (attribute != null) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, -1, 2, false, false, false));
-            attribute.setBaseValue(0.0f);
-        }
+        speedAttribute.addTransientModifier(new AttributeModifier(attributeKey, -0.4, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+        jumpAttribute.addTransientModifier(new AttributeModifier(attributeKey, -1, AttributeModifier.Operation.ADD_NUMBER));
     }
     
     /**
@@ -214,12 +213,11 @@ public class Dialog implements Named {
      */
     @EventLike
     public void onDialogFinish(@Nonnull Player player) {
-        final AttributeInstance attribute = player.getAttribute(Attribute.JUMP_STRENGTH);
+        final AttributeInstance speedAttribute = Objects.requireNonNull(player.getAttribute(Attribute.MOVEMENT_SPEED), "Players must have MOVEMENT_SPEED attribute!");
+        final AttributeInstance jumpAttribute = Objects.requireNonNull(player.getAttribute(Attribute.JUMP_STRENGTH), "Players must have JUMP_STRENGTH attribute!");
         
-        if (attribute != null) {
-            player.removePotionEffect(PotionEffectType.SLOWNESS);
-            attribute.setBaseValue(0.45f);
-        }
+        speedAttribute.removeModifier(attributeKey);
+        jumpAttribute.removeModifier(attributeKey);
     }
     
     /**
