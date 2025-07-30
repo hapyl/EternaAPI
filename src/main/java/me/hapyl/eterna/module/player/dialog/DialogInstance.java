@@ -71,7 +71,7 @@ public class DialogInstance extends BukkitRunnable {
     
     /**
      * Forcefully finished this dialog, and, if exists, displays the {@link Dialog#summary()}.
-     * <br>This method is equivalent to player finishing the dialog and it advanced
+     * <p>This method is equivalent to player finishing the dialog and it advanced quests.</p>
      */
     public void skip() {
         // Force dialog to pause, this won't actually activate the input
@@ -92,20 +92,28 @@ public class DialogInstance extends BukkitRunnable {
         final CompletableFuture<Boolean> response = handler.prompt(player);
         
         response.whenComplete((success, _t) -> {
-           if (success == null) {
-               throw new RuntimeException(_t);
-           }
-           
-           if (success) {
-               dialogFinished();
-           }
-           else {
-               tick = 15;
-               awaitInput = false;
-           }
-           
-           task.cancel();
+            if (success == null) {
+                throw new RuntimeException(_t);
+            }
+            
+            if (success) {
+                dialogFinished();
+            }
+            else {
+                tick = 15;
+                awaitInput = false;
+            }
+            
+            task.cancel();
         });
+    }
+    
+    /**
+     * Skips the current dialog without any prompts.
+     * <p>This method is equivalent to player finishing the dialog and it advanced quests.</p>
+     */
+    public void skipNoPrompt() {
+        dialogFinished();
     }
     
     /**

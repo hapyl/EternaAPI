@@ -1920,6 +1920,10 @@ public final class EternaRuntimeTest {
                 assertNotNull(testItem);
                 assertNull(invalidItem);
                 
+                final Optional<Integer> asOptional = TypeConverter.from("123")
+                                                                .asOptional(TypeConverter::toInt);
+                
+                assertEquals(asOptional.get(), 123);
                 return true;
             }
             
@@ -2418,6 +2422,25 @@ public final class EternaRuntimeTest {
                 
                 playerGUI.openInventory();
                 return false;
+            }
+        });
+        
+        addTest(new EternaTest("itemBuilderAmount") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final ItemStack item = new ItemBuilder(Material.DIAMOND)
+                        .setAmount(76)
+                        .addLore("test")
+                        .addTextBlockLore("""
+                                          text block lore
+                                          
+                                          123
+                                          123
+                                          """)
+                        .asIcon();
+                
+                player.getInventory().addItem(item);
+                return true;
             }
         });
         

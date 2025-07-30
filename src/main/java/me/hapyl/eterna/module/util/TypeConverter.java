@@ -6,12 +6,15 @@ import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.registry.Registry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.meta.When;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class TypeConverter {
     
@@ -260,6 +263,45 @@ public class TypeConverter {
     }
     
     /**
+     * Converts this object into a {@link Key}.
+     *
+     * @return the key, or {@code null} if key is malformed.
+     */
+    @Nullable
+    public Key toKey() {
+        return Key.ofStringOrNull(toString());
+    }
+    
+    /**
+     * Converts this object into a custom {@link TypeConvertible}.
+     *
+     * @param convertible - The convertible.
+     * @param <T>         - The convertible type.
+     * @return an {@code T}, or {@code null}.
+     */
+    @Nullable
+    public <T> T toConvertible(@Nonnull TypeConvertible<T> convertible) {
+        return convertible.convert(obj);
+    }
+    
+    /**
+     * Converts this object into a given object and wrap it in {@link Optional}.
+     * <p>To be used as follows:</p>
+     * <pre>{@code
+     * TypeConverter.from("123")
+     *              .asOptional(TypeConverter::toInt);
+     * }</pre>
+     *
+     * @param fn  - The function to convert the object.
+     * @param <T> - The object type.
+     * @return an optional wrapping the object.
+     */
+    @Nonnull
+    public <T> Optional<T> asOptional(@Nonnull Function<TypeConverter, T> fn) {
+        return Optional.ofNullable(fn.apply(this));
+    }
+    
+    /**
      * Creates a new instance of {@link TypeConverter}.
      *
      * @param any - Object to convert.
@@ -290,6 +332,7 @@ public class TypeConverter {
      * @param object - The object.
      * @return a new instance of {@link TypeConverter} from the given nullable object.
      */
+    @Nonnull
     public static TypeConverter fromNullable(@Nullable Object object) {
         return object != null ? new TypeConverter(object) : empty();
     }
@@ -301,6 +344,7 @@ public class TypeConverter {
      * @return a new empty instance of {@link TypeConverter}.
      */
     @Nonnull
+    @ApiStatus.Internal
     public static TypeConverter empty() {
         return new TypeConverter("");
     }
