@@ -1920,6 +1920,10 @@ public final class EternaRuntimeTest {
                 assertNotNull(testItem);
                 assertNull(invalidItem);
                 
+                final Optional<Integer> asOptional = TypeConverter.from("123")
+                                                                .asOptional(TypeConverter::toInt);
+                
+                assertEquals(asOptional.get(), 123);
                 return true;
             }
             

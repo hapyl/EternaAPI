@@ -12,7 +12,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.meta.When;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class TypeConverter {
     
@@ -280,6 +282,23 @@ public class TypeConverter {
     @Nullable
     public <T> T toConvertible(@Nonnull TypeConvertible<T> convertible) {
         return convertible.convert(obj);
+    }
+    
+    /**
+     * Converts this object into a given object and wrap it in {@link Optional}.
+     * <p>To be used as follows:</p>
+     * <pre>{@code
+     * TypeConverter.from("123")
+     *              .asOptional(TypeConverter::toInt);
+     * }</pre>
+     *
+     * @param fn  - The function to convert the object.
+     * @param <T> - The object type.
+     * @return an optional wrapping the object.
+     */
+    @Nonnull
+    public <T> Optional<T> asOptional(@Nonnull Function<TypeConverter, T> fn) {
+        return Optional.ofNullable(fn.apply(this));
     }
     
     /**
