@@ -2421,6 +2421,25 @@ public final class EternaRuntimeTest {
             }
         });
         
+        addTest(new EternaTest("itemBuilderAmount") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final ItemStack item = new ItemBuilder(Material.DIAMOND)
+                        .setAmount(76)
+                        .addLore("test")
+                        .addTextBlockLore("""
+                                          text block lore
+                                          
+                                          123
+                                          123
+                                          """)
+                        .asIcon();
+                
+                player.getInventory().addItem(item);
+                return true;
+            }
+        });
+        
         // *=* Internal *=* //
         addTest(new EternaTest("fail") {
             @Override

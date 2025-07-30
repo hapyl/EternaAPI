@@ -1,27 +1,19 @@
 package me.hapyl.eterna.module.player;
 
-import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import com.mojang.datafixers.util.Pair;
+import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.Nulls;
-import me.hapyl.eterna.module.util.Runnables;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.level.Level;
-import org.bukkit.*;
+import net.minecraft.server.players.PlayerList;
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -31,12 +23,12 @@ import java.util.List;
  * Allows storing minecraft textures and applying them to players.
  */
 public class PlayerSkin {
-
+    
     private static final PlayerSkin DEFAULT_SKIN = new PlayerSkin("", "");
-
+    
     private final String texture;
     private final String signature;
-
+    
     /**
      * Creates a new {@link PlayerSkin}.
      * <br>
@@ -49,7 +41,7 @@ public class PlayerSkin {
         this.texture = texture;
         this.signature = signature;
     }
-
+    
     /**
      * Gets the texture of this skin.
      *
@@ -59,17 +51,7 @@ public class PlayerSkin {
     public String getTexture() {
         return texture;
     }
-
-    /**
-     * Gets the texture and the signature of this skin as an array.
-     *
-     * @return the texture and the signature of this skin as an array.
-     */
-    @Nonnull
-    public String[] getTextures() {
-        return new String[] { texture, signature };
-    }
-
+    
     /**
      * Gets the signature of this skin.
      *
@@ -79,169 +61,86 @@ public class PlayerSkin {
     public String getSignature() {
         return signature;
     }
-
+    
     /**
-     * Applies this skin to the player and respawns them.
-     * <br>
-     * The player might see a little jitter as their skin updates.
-     * <br>
-     * Skins are <b>not</b> persistent, so if the player rejoins, the skin will be defaulted to their original skin.
+     * Gets the texture and the signature of this skin as an array.
+     *
+     * @return the texture and the signature of this skin as an array.
+     */
+    @Nonnull
+    public String[] getTextures() {
+        return new String[] { texture, signature };
+    }
+    
+    /**
+     * Applies this skin to the given {@link Player}.
+     * <p>In order to update the player's skin, we have to physically despawn them and respawn again, sending all the related packets.</p>
+     * <p>This might result in a jitter or screen blinking, because we're forced to load the chunks again.</p>
      *
      * @param player - Player to apply this skin to.
      */
     public void apply(@Nonnull Player player) {
         final GameProfile gameProfile = Reflect.getGameProfile(player);
         final PropertyMap properties = gameProfile.getProperties();
-
-        removePlayer(player);
-
+        
         properties.removeAll("textures");
         properties.put("textures", new Property("textures", texture, signature));
-
-        createPlayer(player);
-    }
-
-    private void removePlayer(@Nonnull Player player) {
-        final ClientboundPlayerInfoRemovePacket remove = new ClientboundPlayerInfoRemovePacket(List.of(player.getUniqueId()));
-
-        sendGlobalPacket(remove);
-    }
-
-    private void createPlayer(@Nonnull Player player) {
-        final Location location = player.getLocation();
-        final ServerPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
-        final ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(mcPlayer));
-
-        sendGlobalPacket(packet);
-
-        // Re-created for others
-        final ClientboundRemoveEntitiesPacket destroyPacket = new ClientboundRemoveEntitiesPacket(player.getEntityId());
-        final ClientboundAddEntityPacket spawnPacket = PacketFactory.makePacketPlayOutSpawnEntity(mcPlayer, location);
-
-        Bukkit.getOnlinePlayers().forEach(online -> {
-            if (online == player) {
+        
+        // Re-create for other by simply calling hide() and show()
+        Bukkit.getOnlinePlayers().forEach(other -> {
+            if (player == other || !other.canSee(player)) {
                 return;
             }
-
-            sendPacket(online, destroyPacket);
-            sendPacket(online, spawnPacket);
+            
+            other.hideEntity(Eterna.getPlugin(), player);
+            other.showEntity(Eterna.getPlugin(), player);
         });
-
-        // Respawn player
-        final World playerWorld = player.getWorld();
-        final PlayerInventory inventory = player.getInventory();
-        final int heldItemSlot = inventory.getHeldItemSlot();
-
-        final Level mcWorld = Reflect.getMinecraftWorld(playerWorld);
-
+        
+        // Re-create player for self
+        createPlayer(player);
+    }
+    
+    // New refresh code if from SkinsRestorer plugin
+    private void createPlayer(@Nonnull Player player) {
+        final ServerPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
+        final ServerLevel level = mcPlayer.level();
+        
+        final CommonPlayerSpawnInfo commonSpawnInfo = mcPlayer.createCommonSpawnInfo(level);
         final ClientboundRespawnPacket respawnPacket = new ClientboundRespawnPacket(
-                mcPlayer.createCommonSpawnInfo(mcWorld.getMinecraftWorld()), (byte) 0
+                commonSpawnInfo,
+                ClientboundRespawnPacket.KEEP_ALL_DATA
         );
-
-        sendPacket(player, respawnPacket);
+        
+        final ClientboundPlayerInfoRemovePacket tabPacketRemove = new ClientboundPlayerInfoRemovePacket(List.of(player.getUniqueId()));
+        final ClientboundPlayerInfoUpdatePacket tabPacketAdd = ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(mcPlayer));
+        
+        // Update skin in tab
+        mcPlayer.connection.send(tabPacketRemove);
+        mcPlayer.connection.send(tabPacketAdd);
+        
+        // Send respawn packet to the player
+        mcPlayer.connection.send(respawnPacket);
+        
+        // Refresh client-side data
         mcPlayer.onUpdateAbilities();
-
-        // Load chunk
-        final ClientboundGameEventPacket packetLoadChunk = new ClientboundGameEventPacket(
-                ClientboundGameEventPacket.LEVEL_CHUNKS_LOAD_START, // LEVEL_CHUNKS_LOAD_START
-                0.0f
-        );
-
-        sendPacket(player, packetLoadChunk);
-
-        // Update player position
-        final ClientboundPlayerPositionPacket positionPacket = new ClientboundPlayerPositionPacket(
-                player.getEntityId(),
-                PositionMoveRotation.of(mcPlayer),
-                Sets.newHashSet()
-        );
-
-        // Update EXP
-        final ClientboundSetExperiencePacket packetExp = new ClientboundSetExperiencePacket(
-                player.getExp(),
-                player.getTotalExperience(),
-                player.getLevel()
-        );
-
-        // Update 2nd layer
-        final Entity minecraftEntity = Reflect.getMinecraftEntity(player);
-
-        mcPlayer.respawn();
-
-        if (minecraftEntity != null) {
-            Bukkit.getOnlinePlayers().forEach(online -> {
-                Reflect.updateMetadata(minecraftEntity, online);
-            });
-        }
-
+        
+        // Sync player's location
+        mcPlayer.connection.teleport(player.getLocation());
+        
+        // Update health & exp
+        mcPlayer.resetSentInfo();
+        
+        // Fix "Unable to switch game mode; no permission" and other list data
+        final PlayerList playerList = level.getServer().getPlayerList(); // 'mcPlayer.server' seems to be private in paper, so we use getServer()
+        playerList.sendPlayerPermissionLevel(mcPlayer);
+        playerList.sendLevelInfo(mcPlayer, level);
+        playerList.sendAllPlayerInfo(mcPlayer);
+        
         // Update effects
-        final Collection<MobEffectInstance> activeEffects = mcPlayer.getActiveEffects();
-
-        activeEffects.forEach(effect -> {
-            final ClientboundUpdateMobEffectPacket packetEffect = new ClientboundUpdateMobEffectPacket(player.getEntityId(), effect, false);
-            sendPacket(player, packetEffect);
-        });
-
-        sendPacket(player, positionPacket);
-        sendPacket(player, packetExp);
-
-        inventory.setHeldItemSlot(heldItemSlot);
-
-        // Delayed updates
-        Runnables.runLater(() -> {
-            player.updateInventory();
-
-            // Update equipment
-            final ClientboundSetEquipmentPacket packetUpdateEquipment = new ClientboundSetEquipmentPacket(
-                    player.getEntityId(),
-                    List.of(
-                            getPair(player, EquipmentSlot.HAND),
-                            getPair(player, EquipmentSlot.OFF_HAND),
-                            getPair(player, EquipmentSlot.FEET),
-                            getPair(player, EquipmentSlot.LEGS),
-                            getPair(player, EquipmentSlot.CHEST),
-                            getPair(player, EquipmentSlot.HEAD)
-                    )
-            );
-
-            sendGlobalPacket(packetUpdateEquipment);
-
-            // Fix "Unable to switch game mode; no permission"
-            if (player.isOp()) {
-                player.setOp(false);
-                player.setOp(true);
-            }
-        }, 1);
+        mcPlayer.getActiveEffects()
+                .forEach(effect -> mcPlayer.connection.send(new ClientboundUpdateMobEffectPacket(mcPlayer.getId(), effect, false)));
     }
-
-    private net.minecraft.world.entity.EquipmentSlot getNmsItemSlot(EquipmentSlot slot) {
-        return switch (slot) {
-            case HAND -> net.minecraft.world.entity.EquipmentSlot.MAINHAND;
-            case OFF_HAND -> net.minecraft.world.entity.EquipmentSlot.OFFHAND;
-            case FEET -> net.minecraft.world.entity.EquipmentSlot.FEET;
-            case LEGS -> net.minecraft.world.entity.EquipmentSlot.LEGS;
-            case CHEST -> net.minecraft.world.entity.EquipmentSlot.CHEST;
-            case HEAD -> net.minecraft.world.entity.EquipmentSlot.HEAD;
-            case BODY, SADDLE -> throw new IllegalArgumentException("Equipment slot %s is not supported for players!".formatted(slot));
-        };
-    }
-
-    private Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack> getPair(Player player, EquipmentSlot slot) {
-        final ItemStack item = player.getInventory().getItem(slot);
-
-        return new Pair<>(getNmsItemSlot(slot), Reflect.bukkitItemToNMS(item != null ? item : new ItemStack(Material.AIR)));
-    }
-
-    private void sendPacket(@Nonnull Player player, @Nonnull Packet<?> packet) {
-        Reflect.sendPacket(player, packet);
-    }
-
-    private void sendGlobalPacket(@Nonnull Packet<?> packet) {
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            Reflect.sendPacket(player, packet);
-        });
-    }
-
+    
     /**
      * Gets the {@link PlayerSkin} from the given {@link Player}.
      *
@@ -253,15 +152,15 @@ public class PlayerSkin {
     public static PlayerSkin of(@Nonnull Player player) {
         final GameProfile profile = Reflect.getGameProfile(player);
         final Collection<Property> textures = profile.getProperties().get("textures");
-
+        
         for (Property property : textures) {
             return new PlayerSkin(property.value(), Nulls.getOrDefault(property.signature(), "null"));
         }
-
+        
         EternaLogger.warn("Could not get %s's textures, using default. (It the server is offline mode?)".formatted(player.getName()));
         return DEFAULT_SKIN;
     }
-
+    
     /**
      * Gets the {@link PlayerSkin} from the given texture and signature.
      * <br>
@@ -275,5 +174,5 @@ public class PlayerSkin {
     public static PlayerSkin of(@Nonnull String texture, @Nonnull String signature) {
         return new PlayerSkin(texture, signature);
     }
-
+    
 }

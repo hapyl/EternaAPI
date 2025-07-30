@@ -9,7 +9,6 @@ import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.player.PlayerLib;
@@ -1210,11 +1209,19 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     
     /**
      * Sets the item amount.
+     * <p>If the maximum amount is less than the given amount, it will automatically be adjusted.</p>
      *
-     * @param amount - New amount.
+     * @param amount - New amount to set, will be clamped between 1-99. (Minecraft hardcored limit)
      */
     public ItemBuilder setAmount(int amount) {
-        item.setAmount(Numbers.clamp(amount, 0, Byte.MAX_VALUE));
+        final int maxStackSize = item.getMaxStackSize();
+        final int amountClamped = Math.clamp(amount, 1, 99);
+        
+        if (amount > maxStackSize) {
+            item.setData(DataComponentTypes.MAX_STACK_SIZE, amountClamped);
+        }
+        
+        item.setAmount(amountClamped);
         return this;
     }
     
@@ -2248,7 +2255,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     
     private static boolean isManualSplit(char[] chars, int index) {
         return (index < chars.length && index + 1 < chars.length)
-                && (chars[index] == MANUAL_SPLIT_CHAR && chars[index + 1] == MANUAL_SPLIT_CHAR);
+               && (chars[index] == MANUAL_SPLIT_CHAR && chars[index + 1] == MANUAL_SPLIT_CHAR);
     }
     
     private static boolean isIdRegistered(@Nonnull Key key) {
