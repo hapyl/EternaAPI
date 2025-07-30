@@ -80,6 +80,18 @@ public class PlayerSkin {
      * @param player - Player to apply this skin to.
      */
     public void apply(@Nonnull Player player) {
+        apply(player, true);
+    }
+    
+    /**
+     * Applies this skin to the given {@link Player}.
+     *
+     * @param player            - The player to apply this skin to.
+     * @param sendRespawnPacket - Whether to send a {@link ClientboundRespawnPacket} to the player.
+     *                          Sending the packet is <b>required</b> for the player to see their own skin change, but it will "flicker" with {@code Loading terrain...} and reset all momentum.
+     *                          If this behaviour is unwanted, the packet may be skipped, but the player will not see their skin change unless they respawn/change dimensions.
+     */
+    public void apply(@Nonnull Player player, boolean sendRespawnPacket) {
         final GameProfile gameProfile = Reflect.getGameProfile(player);
         final PropertyMap properties = gameProfile.getProperties();
         
@@ -97,19 +109,13 @@ public class PlayerSkin {
         });
         
         // Re-create player for self
-        createPlayer(player);
+        createPlayer(player, sendRespawnPacket);
     }
     
     // New refresh code if from SkinsRestorer plugin
-    private void createPlayer(@Nonnull Player player) {
+    protected void createPlayer(@Nonnull Player player, boolean sendRespawnPacket) {
         final ServerPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
         final ServerLevel level = mcPlayer.level();
-        
-        final CommonPlayerSpawnInfo commonSpawnInfo = mcPlayer.createCommonSpawnInfo(level);
-        final ClientboundRespawnPacket respawnPacket = new ClientboundRespawnPacket(
-                commonSpawnInfo,
-                ClientboundRespawnPacket.KEEP_ALL_DATA
-        );
         
         final ClientboundPlayerInfoRemovePacket tabPacketRemove = new ClientboundPlayerInfoRemovePacket(List.of(player.getUniqueId()));
         final ClientboundPlayerInfoUpdatePacket tabPacketAdd = ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(mcPlayer));
@@ -119,7 +125,15 @@ public class PlayerSkin {
         mcPlayer.connection.send(tabPacketAdd);
         
         // Send respawn packet to the player
-        mcPlayer.connection.send(respawnPacket);
+        if (sendRespawnPacket) {
+            final CommonPlayerSpawnInfo commonSpawnInfo = mcPlayer.createCommonSpawnInfo(level);
+            final ClientboundRespawnPacket respawnPacket = new ClientboundRespawnPacket(
+                    commonSpawnInfo,
+                    ClientboundRespawnPacket.KEEP_ALL_DATA
+            );
+            
+            mcPlayer.connection.send(respawnPacket);
+        }
         
         // Refresh client-side data
         mcPlayer.onUpdateAbilities();
