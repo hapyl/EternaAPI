@@ -86,12 +86,14 @@ public class PlayerSkin {
     /**
      * Applies this skin to the given {@link Player}.
      *
-     * @param player            - The player to apply this skin to.
-     * @param sendRespawnPacket - Whether to send a {@link ClientboundRespawnPacket} to the player.
-     *                          Sending the packet is <b>required</b> for the player to see their own skin change, but it will "flicker" with {@code Loading terrain...} and reset all momentum.
-     *                          If this behaviour is unwanted, the packet may be skipped, but the player will not see their skin change unless they respawn/change dimensions.
+     * @param player         - The player to apply this skin to.
+     * @param refreshForSelf - Whether to refresh the skin for the player.
+     *                       <p>You have to physically tell the client to "respawn" in order to update the player's own skin, which includes sending {@link ClientboundRespawnPacket}.
+     *                       <p>But doing so causes a "Loading terrain..." flicker and also resets the movement to fix the "moved to quickly..." message, which can be annoying for some.
+     *                       If this behaviour is unwanted, refresh may be skipped, which leads to players <b>not</b> seeing their own skin change until they normally respawn or change dimensions.</p>
+     *                       <p>This has no effect on other players, they <b>will</b> see the skin change.</p>
      */
-    public void apply(@Nonnull Player player, boolean sendRespawnPacket) {
+    public void apply(@Nonnull Player player, boolean refreshForSelf) {
         final GameProfile gameProfile = Reflect.getGameProfile(player);
         final PropertyMap properties = gameProfile.getProperties();
         
@@ -109,11 +111,13 @@ public class PlayerSkin {
         });
         
         // Re-create player for self
-        createPlayer(player, sendRespawnPacket);
+        if (refreshForSelf) {
+            createPlayer(player);
+        }
     }
     
     // New refresh code if from SkinsRestorer plugin
-    protected void createPlayer(@Nonnull Player player, boolean sendRespawnPacket) {
+    protected void createPlayer(@Nonnull Player player) {
         final ServerPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
         final ServerLevel level = mcPlayer.level();
         
@@ -125,15 +129,13 @@ public class PlayerSkin {
         mcPlayer.connection.send(tabPacketAdd);
         
         // Send respawn packet to the player
-        if (sendRespawnPacket) {
-            final CommonPlayerSpawnInfo commonSpawnInfo = mcPlayer.createCommonSpawnInfo(level);
-            final ClientboundRespawnPacket respawnPacket = new ClientboundRespawnPacket(
-                    commonSpawnInfo,
-                    ClientboundRespawnPacket.KEEP_ALL_DATA
-            );
-            
-            mcPlayer.connection.send(respawnPacket);
-        }
+        final CommonPlayerSpawnInfo commonSpawnInfo = mcPlayer.createCommonSpawnInfo(level);
+        final ClientboundRespawnPacket respawnPacket = new ClientboundRespawnPacket(
+                commonSpawnInfo,
+                ClientboundRespawnPacket.KEEP_ALL_DATA
+        );
+        
+        mcPlayer.connection.send(respawnPacket);
         
         // Refresh client-side data
         mcPlayer.onUpdateAbilities();
