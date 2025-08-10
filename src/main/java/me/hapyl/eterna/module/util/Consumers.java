@@ -10,7 +10,7 @@ import java.util.function.Consumer;
  * Note: {@link Consumer} and {@link BiConsumer} should be used for single and dual parameter cases respectively.
  */
 public interface Consumers {
-
+    
     /**
      * Gets an empty {@link Consumer}.
      *
@@ -21,7 +21,7 @@ public interface Consumers {
         return t -> {
         };
     }
-
+    
     /**
      * Gets an empty {@link BiConsumer}.
      *
@@ -32,15 +32,32 @@ public interface Consumers {
         return (t, u) -> {
         };
     }
-
+    
     /**
-     * @deprecated Use {@link Consumer} instead.
+     * A functional interface for accepting one parameter.
+     *
+     * @param <A> - The type of the first parameter.
+     * @see Consumer
      */
-    @Deprecated
-    interface ConsumerA<A> extends Consumer<A> {
-        void accept(@Nonnull A a);
+    @FunctionalInterface
+    interface Consumer1<A> extends Consumer<A> {
+        @Override
+        void accept(A a);
     }
-
+    
+    /**
+     * A functional interface for accepting two parameters.
+     *
+     * @param <A> - The type of the first parameter.
+     * @param <B> - The type of the second parameter.
+     * @see BiConsumer
+     */
+    @FunctionalInterface
+    interface Consumer2<A, B> extends BiConsumer<A, B> {
+        @Override
+        void accept(A a, B b);
+    }
+    
     /**
      * A functional interface for accepting three parameters.
      *
@@ -49,7 +66,7 @@ public interface Consumers {
      * @param <C> - The type of the third parameter.
      */
     @FunctionalInterface
-    interface ConsumerABC<A, B, C> {
+    interface Consumer3<A, B, C> {
         /**
          * Accepts three parameters.
          *
@@ -59,7 +76,7 @@ public interface Consumers {
          */
         void accept(@Nonnull A a, @Nonnull B b, @Nonnull C c);
     }
-
+    
     /**
      * A functional interface for accepting four parameters.
      *
@@ -69,7 +86,7 @@ public interface Consumers {
      * @param <D> - The type of the fourth parameter.
      */
     @FunctionalInterface
-    interface ConsumerABCD<A, B, C, D> {
+    interface Consumer4<A, B, C, D> {
         /**
          * Accepts four parameters.
          *
@@ -80,7 +97,7 @@ public interface Consumers {
          */
         void accept(@Nonnull A a, @Nonnull B b, @Nonnull C c, @Nonnull D d);
     }
-
+    
     /**
      * A functional interface for accepting five parameters.
      *
@@ -91,7 +108,7 @@ public interface Consumers {
      * @param <E> - The type of the fifth parameter.
      */
     @FunctionalInterface
-    interface ConsumerABCDE<A, B, C, D, E> {
+    interface Consumer5<A, B, C, D, E> {
         /**
          * Accepts five parameters.
          *
@@ -103,7 +120,7 @@ public interface Consumers {
          */
         void accept(@Nonnull A a, @Nonnull B b, @Nonnull C c, @Nonnull D d, @Nonnull E e);
     }
-
+    
     /**
      * A functional interface for accepting six parameters.
      *
@@ -115,7 +132,7 @@ public interface Consumers {
      * @param <F> - The type of the sixth parameter.
      */
     @FunctionalInterface
-    interface ConsumerABCDEF<A, B, C, D, E, F> {
+    interface Consumer6<A, B, C, D, E, F> {
         /**
          * Accepts six parameters.
          *
@@ -128,7 +145,7 @@ public interface Consumers {
          */
         void accept(@Nonnull A a, @Nonnull B b, @Nonnull C c, @Nonnull D d, @Nonnull E e, @Nonnull F f);
     }
-
+    
     /**
      * A functional interface for accepting seven parameters.
      *
@@ -141,7 +158,7 @@ public interface Consumers {
      * @param <G> - The type of the seventh parameter.
      */
     @FunctionalInterface
-    interface ConsumerABCDEFG<A, B, C, D, E, F, G> {
+    interface Consumer7<A, B, C, D, E, F, G> {
         /**
          * Accepts seven parameters.
          *
@@ -155,7 +172,7 @@ public interface Consumers {
          */
         void accept(@Nonnull A a, @Nonnull B b, @Nonnull C c, @Nonnull D d, @Nonnull E e, @Nonnull F f, @Nonnull G g);
     }
-
+    
     /**
      * A functional interface for accepting eight parameters.
      *
@@ -169,7 +186,7 @@ public interface Consumers {
      * @param <H> - The type of the eighth parameter.
      */
     @FunctionalInterface
-    interface ConsumerABCDEFGH<A, B, C, D, E, F, G, H> {
+    interface Consumer8<A, B, C, D, E, F, G, H> {
         /**
          * Accepts eight parameters.
          *
@@ -184,7 +201,7 @@ public interface Consumers {
          */
         void accept(@Nonnull A a, @Nonnull B b, @Nonnull C c, @Nonnull D d, @Nonnull E e, @Nonnull F f, @Nonnull G g, @Nonnull H h);
     }
-
+    
     /**
      * A functional interface for accepting nine parameters.
      *
@@ -199,7 +216,7 @@ public interface Consumers {
      * @param <I> - The type of the ninth parameter.
      */
     @FunctionalInterface
-    interface ConsumerABCDEFGHI<A, B, C, D, E, F, G, H, I> {
+    interface Consumer9<A, B, C, D, E, F, G, H, I> {
         /**
          * Accepts nine parameters.
          *
@@ -215,7 +232,7 @@ public interface Consumers {
          */
         void accept(@Nonnull A a, @Nonnull B b, @Nonnull C c, @Nonnull D d, @Nonnull E e, @Nonnull F f, @Nonnull G g, @Nonnull H h, @Nonnull I i);
     }
-
+    
     /**
      * A functional interface for accepting ten parameters.
      *
@@ -231,7 +248,7 @@ public interface Consumers {
      * @param <J> - The type of the tenth parameter.
      */
     @FunctionalInterface
-    interface ConsumerABCDEFGHIJ<A, B, C, D, E, F, G, H, I, J> {
+    interface Consumer10<A, B, C, D, E, F, G, H, I, J> {
         /**
          * Accepts ten parameters.
          *

@@ -1,7 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.NullabilityBasedOnParameter;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
@@ -267,7 +265,6 @@ public abstract class Buffer<E> implements List<E> {
      * @param def   - Default element.
      * @return the element or default.
      */
-    @NullabilityBasedOnParameter("def")
     public E getOrDefault(int index, E def) {
         return index < 0 || index >= linkedList.size() ? def : get(index);
     }

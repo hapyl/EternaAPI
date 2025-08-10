@@ -4,6 +4,9 @@ import javax.annotation.Nonnull;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Used to track a value... I guess?
+ */
 public abstract class TrackedValue<T, C> {
     
     protected Supplier<T> supplier;

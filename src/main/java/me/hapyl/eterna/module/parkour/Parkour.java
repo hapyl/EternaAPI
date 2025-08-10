@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.hologram.Hologram;
+import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,13 +20,18 @@ public class Parkour {
 
     private static final Location DEFAULT_QUIT_LOCATION;
 
+    static {
+        final World world = BukkitUtils.defWorld();
+        
+        DEFAULT_QUIT_LOCATION = BukkitUtils.defLocation(0, world.getHighestBlockYAt(0, 0) + 1, 0);
+    }
+
     private final Set<Hologram> holograms;
     private final String name;
     private final ParkourPosition start;
     private final ParkourPosition finish;
     private final List<ParkourPosition> checkpoints;
     private final Set<FailType> allowedFails;
-
     @Nonnull private ParkourFormatter formatter;
     private Difficulty difficulty;
     private Location quitLocation;
@@ -59,16 +65,6 @@ public class Parkour {
     }
 
     /**
-     * Changes parkour formatter.
-     *
-     * @param formatter - New formatter. Use {@link ParkourFormatter#EMPTY} to clear formatter.
-     */
-    public void setFormatter(@Nonnull ParkourFormatter formatter) {
-        Validate.notNull(formatter, "formatter cannot be null, use ParkourFormatter.EMPTY to remove formatter");
-        this.formatter = formatter;
-    }
-
-    /**
      * Gets current parkour formatter.
      *
      * @return current parkour formatter.
@@ -81,6 +77,16 @@ public class Parkour {
     }
 
     /**
+     * Changes parkour formatter.
+     *
+     * @param formatter - New formatter. Use {@link ParkourFormatter#EMPTY} to clear formatter.
+     */
+    public void setFormatter(@Nonnull ParkourFormatter formatter) {
+        Validate.notNull(formatter, "formatter cannot be null, use ParkourFormatter.EMPTY to remove formatter");
+        this.formatter = formatter;
+    }
+
+    /**
      * Gets quit location of this parkour. Quit location is used to teleport
      * player upon finishing or quitting the parkour.
      *
@@ -88,6 +94,16 @@ public class Parkour {
      */
     public Location getQuitLocation() {
         return quitLocation;
+    }
+
+    /**
+     * Sets new quit location for this parkour. Quit location is used
+     * to teleport player upon quit or finish.
+     *
+     * @param quitLocation - New quit location.
+     */
+    public void setQuitLocation(@Nonnull Location quitLocation) {
+        this.quitLocation = quitLocation;
     }
 
     /**
@@ -110,21 +126,21 @@ public class Parkour {
     }
 
     /**
-     * Changes if parkour should summon holograms upon load.
-     *
-     * @param spawnHolograms - true if parkour should summon holograms.
-     */
-    public void setSpawnHolograms(boolean spawnHolograms) {
-        this.spawnHolograms = spawnHolograms;
-    }
-
-    /**
      * Returns if parkour should summon holograms upon load.
      *
      * @return if parkour should summon holograms upon load.
      */
     public boolean isSpawnHolograms() {
         return spawnHolograms;
+    }
+
+    /**
+     * Changes if parkour should summon holograms upon load.
+     *
+     * @param spawnHolograms - true if parkour should summon holograms.
+     */
+    public void setSpawnHolograms(boolean spawnHolograms) {
+        this.spawnHolograms = spawnHolograms;
     }
 
     /**
@@ -144,16 +160,6 @@ public class Parkour {
      */
     public void removeAllowedFail(FailType type) {
         allowedFails.remove(type);
-    }
-
-    /**
-     * Sets new quit location for this parkour. Quit location is used
-     * to teleport player upon quit or finish.
-     *
-     * @param quitLocation - New quit location.
-     */
-    public void setQuitLocation(@Nonnull Location quitLocation) {
-        this.quitLocation = quitLocation;
     }
 
     /**
@@ -352,18 +358,13 @@ public class Parkour {
         return Objects.hash(name, start, finish, difficulty, checkpoints);
     }
 
+    public Set<Hologram> getHolograms() {
+        return holograms;
+    }
+
     protected Hologram createHologram(String... strings) {
         final Hologram hologram = new Hologram().addLines(strings);
         this.holograms.add(hologram);
         return hologram;
-    }
-
-    static {
-        final World world = Bukkit.getWorlds().get(0);
-        DEFAULT_QUIT_LOCATION = new Location(world, 0, world.getHighestBlockYAt(0, 0) + 1, 0);
-    }
-
-    public Set<Hologram> getHolograms() {
-        return holograms;
     }
 }

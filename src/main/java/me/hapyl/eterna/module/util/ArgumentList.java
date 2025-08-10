@@ -4,6 +4,9 @@ import me.hapyl.eterna.module.chat.Chat;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Represents a list of arguments, with access to each element via {@link TypeConverter}.
+ */
 public class ArgumentList {
     
     public final String[] array;

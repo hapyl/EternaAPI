@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Useful utility class for anything specifically unrelated.
@@ -306,7 +307,7 @@ public class BukkitUtils {
      * @return spawn location of a default world.
      */
     public static Location getSpawnLocation() {
-        return getSpawnLocation(Bukkit.getWorlds().get(0));
+        return getSpawnLocation(Bukkit.getWorlds().getFirst());
     }
     
     /**
@@ -443,12 +444,12 @@ public class BukkitUtils {
     }
     
     /**
-     * Returns a random double between 0.0d-1.0d.
+     * Returns a random double between 0 - 1 (exclusive).
      *
-     * @return a random double between 0.0d-1.0d.
+     * @return a random double between 0 - 1 (exclusive).
      */
     public static double random() {
-        return ThreadRandom.nextDouble();
+        return ThreadLocalRandom.current().nextDouble();
     }
     
     /**
@@ -472,7 +473,7 @@ public class BukkitUtils {
      * @return new location in the default world.
      */
     public static Location defLocation(double x, double y, double z) {
-        return new Location(Bukkit.getWorlds().get(0), x, y, z);
+        return new Location(Bukkit.getWorlds().getFirst(), x, y, z);
     }
     
     /**

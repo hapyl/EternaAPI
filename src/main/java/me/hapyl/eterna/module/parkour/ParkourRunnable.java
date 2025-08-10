@@ -10,9 +10,9 @@ public class ParkourRunnable implements Runnable {
     @Override
     public void run() {
         final ParkourManager manager = Eterna.getManagers().parkour;
-        final Map<Player, Data> hashMap = manager.getParkourData();
+        final Map<Player, ParkourData> hashMap = manager.getParkourData();
 
-        for (Data data : hashMap.values()) {
+        for (ParkourData data : hashMap.values()) {
             final Parkour parkour = data.getParkour();
 
             parkour.getFormatter().sendTickActionbar(data);

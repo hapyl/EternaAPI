@@ -13,15 +13,13 @@ import java.util.Arrays;
 
 /**
  * This uses {@link PersistentDataContainer}, <b><i>NOT</i></b> vanilla {@link CompoundTag}!
- * <br>
- * For {@link CompoundTag} wrapper, see {@link NbtWrapper}.
  */
 public class NBT {
-
+    
     private NBT() {
         // don't allow creating instances
     }
-
+    
     /**
      * Gets the integer from a given path, or 0 if missing.
      *
@@ -32,7 +30,7 @@ public class NBT {
     public static int getInt(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
         return getInt(holder, path, 0);
     }
-
+    
     /**
      * Gets the integer from a given path, or def if the value is not present.
      *
@@ -44,7 +42,7 @@ public class NBT {
         final Integer nullable = holder.getPersistentDataContainer().get(createKey(path), PersistentDataType.INTEGER);
         return nullable == null ? def : nullable;
     }
-
+    
     /**
      * Sets the integer to a given path.
      *
@@ -55,7 +53,7 @@ public class NBT {
     public static void setInt(@Nonnull PersistentDataHolder holder, @Nonnull String path, int value) {
         holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.INTEGER, value);
     }
-
+    
     /**
      * Gets the boolean from a given path, default to false.
      *
@@ -66,7 +64,7 @@ public class NBT {
     public static boolean getBool(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
         return Boolean.TRUE.equals(holder.getPersistentDataContainer().get(createKey(path), PersistentDataType.BOOLEAN));
     }
-
+    
     /**
      * Sets the boolean to a given path.
      *
@@ -77,7 +75,7 @@ public class NBT {
     public static void setBool(@Nonnull PersistentDataHolder holder, @Nonnull String path, boolean value) {
         holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.BOOLEAN, value);
     }
-
+    
     /**
      * Gets the string from a given path, or empty string if the value is not present.
      *
@@ -89,7 +87,7 @@ public class NBT {
     public static String getString(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
         return getString(holder, path, "");
     }
-
+    
     /**
      * Gets the string from a given path, or def if the value is not present.
      *
@@ -102,7 +100,7 @@ public class NBT {
         final String nullable = holder.getPersistentDataContainer().get(createKey(path), PersistentDataType.STRING);
         return nullable == null ? def : nullable;
     }
-
+    
     /**
      * Sets the string to a given path.
      *
@@ -113,7 +111,7 @@ public class NBT {
     public static void setString(@Nonnull PersistentDataHolder holder, @Nonnull String path, @Nonnull String value) {
         holder.getPersistentDataContainer().set(createKey(path), PersistentDataType.STRING, value);
     }
-
+    
     /**
      * Sets the value to a given path.
      *
@@ -125,7 +123,7 @@ public class NBT {
     public static <A, T> void setValue(@Nonnull PersistentDataHolder holder, @Nonnull String path, @Nonnull NBTType<A, T> type, @Nonnull T value) {
         holder.getPersistentDataContainer().set(createKey(path), type.getType(), value);
     }
-
+    
     /**
      * Gets the value from a given path, or null if the value is not present.
      *
@@ -138,7 +136,7 @@ public class NBT {
     public static <A, T> T getValue(@Nonnull PersistentDataHolder holder, @Nonnull String path, @Nonnull NBTType<A, T> type) {
         return holder.getPersistentDataContainer().get(createKey(path), type.getType());
     }
-
+    
     /**
      * Gets the value from a given path, or null if the value is not present.
      *
@@ -153,7 +151,7 @@ public class NBT {
     public static <A, T> T getNbt(@Nonnull PersistentDataHolder holder, @Nonnull String path, @Nonnull NBTType<A, T> type) {
         return getValue(holder, path, type);
     }
-
+    
     /**
      * Gets the compound from a given path, or null if there is no compound.
      *
@@ -165,7 +163,7 @@ public class NBT {
     public static PersistentDataContainer getCompound(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
         return holder.getPersistentDataContainer().get(createKey(path), NBTType.CONTAINER.getType());
     }
-
+    
     /**
      * Gets the compound from a given path, or creates it if not present.
      *
@@ -176,15 +174,15 @@ public class NBT {
     @Nonnull
     public static PersistentDataContainer getOrCreateCompound(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
         PersistentDataContainer compound = getCompound(holder, path);
-
+        
         if (compound == null) {
             compound = holder.getPersistentDataContainer().getAdapterContext().newPersistentDataContainer();
             holder.getPersistentDataContainer().set(createKey(path), NBTType.CONTAINER.getType(), compound);
         }
-
+        
         return compound;
     }
-
+    
     /**
      * Sets the compound value for the given path.
      * <p>
@@ -209,17 +207,17 @@ public class NBT {
      */
     public static <A, T> void setCompoundValue(@Nonnull PersistentDataHolder holder, @Nonnull String path, @Nonnull NBTType<A, T> type, @Nonnull T value) {
         final String[] split = path.split("\\.");
-
+        
         if (split.length != 2) {
             throw new IllegalArgumentException("Path must contain only one '.': %s".formatted(Arrays.toString(split)));
         }
-
+        
         final PersistentDataContainer compound = getOrCreateCompound(holder, split[0]);
         compound.set(createKey(split[1]), type.getType(), value);
         holder.getPersistentDataContainer().set(createKey(split[0]), NBTType.CONTAINER.getType(), compound);
     }
-
-
+    
+    
     /**
      * Gets the data type for a given path, or null is there is no value.
      *
@@ -231,7 +229,7 @@ public class NBT {
     public static PersistentDataType<?, ?> getDataType(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
         final NamespacedKey key = createKey(path);
         final PersistentDataContainer data = holder.getPersistentDataContainer();
-
+        
         if (data.has(key, NBTType.BYTE.getType())) {
             return NBTType.BYTE.getType();
         }
@@ -243,8 +241,8 @@ public class NBT {
         }
         return null;
     }
-
-
+    
+    
     /**
      * Returns true if this persistent data holder has a value for a given path.
      *
@@ -256,7 +254,7 @@ public class NBT {
     public static boolean hasNbt(PersistentDataHolder holder, String path, PersistentDataType<?, ?> type) {
         return holder.getPersistentDataContainer().has(createKey(path), type);
     }
-
+    
     /**
      * Removes the element from the given path.
      *
@@ -266,7 +264,7 @@ public class NBT {
     public static void remove(@Nonnull PersistentDataHolder holder, @Nonnull String path) {
         holder.getPersistentDataContainer().remove(createKey(path));
     }
-
+    
     /**
      * Returns true if this persistent data holder has a value for a given path.
      *
@@ -278,10 +276,10 @@ public class NBT {
     public static <A, T> boolean hasNbt(@Nonnull PersistentDataHolder holder, @Nonnull String path, @Nonnull NBTType<A, T> type) {
         return hasNbt(holder, path, type.getType());
     }
-
+    
     private static NamespacedKey createKey(String path) {
         return new NamespacedKey(EternaPlugin.getPlugin(), path);
     }
-
-
+    
+    
 }

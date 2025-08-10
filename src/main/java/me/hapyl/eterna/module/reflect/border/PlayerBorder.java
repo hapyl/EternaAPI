@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.reflect.border;
 
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.util.Holder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
@@ -12,12 +11,14 @@ import org.bukkit.entity.Player;
  * Note that this client is only change, and it will
  * be reset after player re-logins.
  */
-public class PlayerBorder extends Holder<Player> {
+public class PlayerBorder {
 
+    private final Player player;
     private final WorldBorder border;
 
     public PlayerBorder(Player player) {
-        super(player);
+        this.player = player;
+        
         border = Bukkit.createWorldBorder();
         border.setWarningTime(0);
     }
@@ -85,7 +86,7 @@ public class PlayerBorder extends Holder<Player> {
     }
 
     public Player getPlayer() {
-        return this.get();
+        return player;
     }
 
     public enum Operation {

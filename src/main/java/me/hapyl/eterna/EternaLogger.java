@@ -1,6 +1,5 @@
 package me.hapyl.eterna;
 
-import me.hapyl.eterna.module.annotate.ReturnValueOfThisMethodIsAnExceptionAndItMustBeThrown;
 import me.hapyl.eterna.module.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -52,8 +51,7 @@ public final class EternaLogger {
     }
     
     @Nonnull
-    @ApiStatus.Internal
-    @ReturnValueOfThisMethodIsAnExceptionAndItMustBeThrown
+    @ApiStatus.Internal // Please don't forget you HAVE to throw the returned exception, not just do Eternalogger#exception() !!!
     public static RuntimeException exception(@Nonnull Exception e) {
         if (EternaPlugin.getPlugin().getConfig().getBoolean("dev.print-stack-traces")) {
             severe("An exception has occurred!");

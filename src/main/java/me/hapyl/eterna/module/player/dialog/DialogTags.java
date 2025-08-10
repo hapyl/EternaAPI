@@ -1,11 +1,11 @@
 package me.hapyl.eterna.module.player.dialog;
 
 import me.hapyl.eterna.module.annotate.ForceLowercase;
-import me.hapyl.eterna.module.util.LazyReference;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
  */
 public final class DialogTags {
 
-    private static final LazyReference<DialogTags> EMPTY = new LazyReference<>();
-
+    private static final Supplier<DialogTags> EMPTY = () -> new DialogTags(Set.of());
+    
     private final Set<String> tags;
 
     private DialogTags(Set<String> tags) {
@@ -52,6 +52,6 @@ public final class DialogTags {
      */
     @Nonnull
     public static DialogTags empty() {
-        return EMPTY.get(() -> new DialogTags(Set.of()));
+        return EMPTY.get();
     }
 }

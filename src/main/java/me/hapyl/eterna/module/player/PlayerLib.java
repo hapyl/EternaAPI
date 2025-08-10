@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.player;
 
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
-import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.reflect.access.ReflectAccess;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
@@ -49,7 +48,7 @@ public final class PlayerLib {
      * @param pitch  - Pitch of the sound. Will be clamped between 0.0f-2.0f.
      */
     public static void playSound(@Nonnull Player player, @Nonnull Sound sound, float pitch) {
-        player.playSound(player.getLocation(), sound, SOUND_CATEGORY, PLAYER_SOUND_VOLUME, Numbers.clamp(pitch, 0.0f, 2.0f));
+        player.playSound(player.getLocation(), sound, SOUND_CATEGORY, PLAYER_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
     }
 
     /**
@@ -65,7 +64,7 @@ public final class PlayerLib {
         final World world = location.getWorld();
 
         if (world != null) {
-            world.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Numbers.clamp(pitch, 0.0f, 2.0f));
+            world.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
         }
     }
 
@@ -83,7 +82,7 @@ public final class PlayerLib {
         final World world = location.getWorld();
 
         if (world != null) {
-            player.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Numbers.clamp(pitch, 0.0f, 2.0f));
+            player.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
         }
     }
 
@@ -232,28 +231,6 @@ public final class PlayerLib {
         if (world != null) {
             world.spawnParticle(particle, location, amount, 0.0d, 0.0d, 0.0d, 0.0f);
         }
-    }
-
-    /**
-     * Adds potion effect to a player.
-     *
-     * @param player    - Player.
-     * @param type      - Effect type.
-     * @param duration  - Duration of the effect in ticks.
-     * @param amplifier - Level of the effect; Starts at 0.
-     */
-    public static void addEffect(@Nonnull Player player, @Nonnull EffectType type, int duration, int amplifier) {
-        addEffect(player, type.getType(), duration, amplifier);
-    }
-
-    /**
-     * Removes potion effect from a player.
-     *
-     * @param player - Player.
-     * @param type   - Effect Type.
-     */
-    public static void removeEffect(@Nonnull Player player, @Nonnull EffectType type) {
-        removeEffect(player, type.getType());
     }
 
     /**

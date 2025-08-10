@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.reflect.npc;
 
 import net.minecraft.world.entity.Pose;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +43,7 @@ public enum NPCPose {
      * <br>
      * This is only used as a 'fix' for {@link #STANDING} pose not working.
      */
-    @Deprecated
+    @ApiStatus.Internal
     LONG_JUMPING(Pose.LONG_JUMPING),
 
     /**

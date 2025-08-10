@@ -23,7 +23,6 @@ import me.hapyl.eterna.module.entity.Entities;
 import me.hapyl.eterna.module.entity.Rope;
 import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.entity.packet.PacketItem;
-import me.hapyl.eterna.module.hologram.DisplayHologram;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.inventory.*;
@@ -68,10 +67,12 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.SimpleRegistry;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
+import me.hapyl.eterna.module.util.array.Array;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.*;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -149,37 +150,6 @@ public final class EternaRuntimeTest {
                 assertNotEquals(dMat, List.of(Material.GRASS_BLOCK, Material.DIRT, Material.DIRT_PATH, Material.PODZOL));
                 
                 return true;
-            }
-        });
-        
-        addTest(new EternaTest("displayHolo") {
-            @Override
-            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final DisplayHologram hologram = new DisplayHologram(player.getLocation());
-                
-                hologram.setBackground(false);
-                hologram.showAll();
-                
-                hologram.setLines(
-                        "Hello",
-                        "World",
-                        "My name",
-                        "is",
-                        "&6Color!"
-                );
-                
-                info(player, "Spawned");
-                
-                later(
-                        () -> {
-                            info(player, "Removed");
-                            
-                            hologram.remove();
-                            assertTestPassed();
-                        }, 60
-                );
-                
-                return false;
             }
         });
         
@@ -1523,16 +1493,6 @@ public final class EternaRuntimeTest {
             }
         });
         
-        addTest(new EternaTest("bformat") {
-            @Override
-            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
-                final String format = BFormat.format("%s $$ {} :?", "$");
-                
-                Chat.sendMessage(player, format);
-                return true;
-            }
-        });
-        
         addTest(new EternaTest("mapWrap") {
             @Override
             public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
@@ -2180,7 +2140,7 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("packetItem") {
             
             private final ItemStack item1 = new ItemStack(Material.STONE);
-            private final ItemStack item2 = new ItemBuilder(Material.DIAMOND_SWORD).addEnchant(Enchant.SWEEPING_EDGE, 1).build();
+            private final ItemStack item2 = new ItemBuilder(Material.DIAMOND_SWORD).addEnchant(Enchantment.SWEEPING_EDGE, 1).build();
             
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
@@ -2440,6 +2400,32 @@ public final class EternaRuntimeTest {
                         .asIcon();
                 
                 player.getInventory().addItem(item);
+                return true;
+            }
+        });
+        
+        addTest(new EternaTest("array") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final Array<Object> empty = Array.of(0);
+                
+                assertTrue(empty.isEmpty());
+                
+                final Array<Integer> array = Array.of(1, 2, 3, 4, 5, 6);
+                
+                assertEquals(array.get(1), 2);
+                assertFalse(array.isEmpty());
+                
+                final Array<String> immutable = Array.ofImmutable("a", "b", "c", "d", "e", "f");
+                
+                assertThrows(() -> {
+                    immutable.set(0, null);
+                });
+                
+                for (String imtStr : immutable) {
+                    info(player, imtStr);
+                }
+                
                 return true;
             }
         });

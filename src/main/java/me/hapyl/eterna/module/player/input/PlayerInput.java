@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
  * A helper class that allows testing whether a player is <b>holding</b> a certain key.
  */
 @UtilityClass
-@SuppressWarnings("UnstableApiUsage")
 public final class PlayerInput {
 
     private PlayerInput() {

@@ -793,16 +793,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     /**
      * Adds an enchantment to the item.
      *
-     * @param enchant - Enchantment to add.
-     * @param lvl     - Level of the enchantment.
-     */
-    public ItemBuilder addEnchant(@Nonnull Enchant enchant, int lvl) {
-        return addEnchant(enchant.getAsBukkit(), lvl);
-    }
-    
-    /**
-     * Adds an enchantment to the item.
-     *
      * @param enchantment - Enchantment to add.
      * @param lvl         - Level of the enchantment.
      */

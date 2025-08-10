@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.parkour;
 
-import me.hapyl.eterna.module.util.Holder;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -12,21 +11,21 @@ import java.util.Collection;
 /**
  * Stores all player info BEFORE starting the parkour to restore later.
  */
-public class PlayerInfo extends Holder<Player> {
+public class PlayerInfo {
 
+    private final Player player;
     private final GameMode gamemode;
     private final Collection<PotionEffect> effects;
     private final ItemStack[] inventory;
 
     public PlayerInfo(Player player) {
-        super(player);
+        this.player = player;
         this.gamemode = player.getGameMode();
         this.effects = new ArrayList<>(player.getActivePotionEffects());
         this.inventory = player.getInventory().getContents();
     }
 
     public void restore() {
-        final Player player = get();
         player.setGameMode(gamemode);
 
         for (PotionEffect effect : player.getActivePotionEffects()) {

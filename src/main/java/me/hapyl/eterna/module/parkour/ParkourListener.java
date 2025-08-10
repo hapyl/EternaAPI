@@ -38,7 +38,7 @@ public class ParkourListener implements Listener {
     @EventHandler
     public void handlePlayerQuit(PlayerQuitEvent ev) {
         final Player player = ev.getPlayer();
-        final Data data = manager().getData(player);
+        final ParkourData data = manager().getData(player);
 
         if (data == null) {
             return;
@@ -59,7 +59,7 @@ public class ParkourListener implements Listener {
             return;
         }
 
-        final Data data = manager().getData(player);
+        final ParkourData data = manager().getData(player);
         final Material clickedBlockType = clickedBlock.getType();
         final Location clickedBlockLocation = clickedBlock.getLocation();
 
@@ -187,7 +187,7 @@ public class ParkourListener implements Listener {
             return;
         }
 
-        final Data data = manager().getData(player);
+        final ParkourData data = manager().getData(player);
 
         if (ev.getNewEffect() == null || !manager().isInParkour(player) || data == null) {
             return;
@@ -204,13 +204,13 @@ public class ParkourListener implements Listener {
     @EventHandler()
     public void handleJumpStatistic(PlayerStatisticIncrementEvent ev) {
         final Player player = ev.getPlayer();
-        final Data data = manager().getData(player);
+        final ParkourData data = manager().getData(player);
 
         if (data == null || ev.getStatistic() != Statistic.JUMP) {
             return;
         }
 
-        data.getStats().increment(Stats.Type.JUMP, 1);
+        data.getStats().increment(ParkourStatistics.Type.JUMP, 1);
     }
 
     private ParkourManager manager() {
@@ -218,7 +218,7 @@ public class ParkourListener implements Listener {
     }
 
     private void testFail(Player player, FailType type) {
-        final Data data = manager().getData(player);
+        final ParkourData data = manager().getData(player);
 
         if (data == null || data.getParkour().isFailAllowed(type)) {
             return;

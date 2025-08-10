@@ -96,14 +96,13 @@ public final class Reflect {
      * @return net.minecraft.server class if exists, null otherwise
      */
     @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable
+    @Nonnull
     public static Class<?> getNetClass(@Nonnull String path) {
         try {
             return Class.forName("net.minecraft.server." + path);
         }
         catch (ClassNotFoundException e) {
-            EternaLogger.exception(e);
-            return null;
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -114,14 +113,13 @@ public final class Reflect {
      * @param path - Path of the class.
      * @return org.bukkit.craftbukkit class if exists, null otherwise
      */
-    @Nullable
+    @Nonnull
     public static Class<?> getCraftClass(@Nonnull String path) {
         try {
             return Class.forName("org.bukkit.craftbukkit." + path);
         }
         catch (ClassNotFoundException e) {
-            EternaLogger.exception(e);
-            return null;
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -283,74 +281,6 @@ public final class Reflect {
     }
     
     /**
-     * Returns NMS constructor.
-     *
-     * @param className - Class name.
-     * @param params    - Constructor parameters.
-     * @return NMS constructor if exists, null otherwise.
-     */
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable
-    public static Constructor<?> getNetConstructor(@Nonnull String className, @Nullable Class<?>... params) {
-        try {
-            final Class<?> clazz = getNetClass(className);
-            
-            if (clazz == null) {
-                return null;
-            }
-            
-            return clazz.getConstructor(params);
-        }
-        catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
-        }
-    }
-    
-    /**
-     * Gets a constructor for a given class with the given params.
-     *
-     * @param className - Class name.
-     * @param params    - Params.
-     * @return a constructor or null.
-     */
-    @Nullable
-    public static Constructor<?> getConstructor(@Nonnull String className, @Nullable Class<?>... params) {
-        try {
-            final Class<?> clazz = Class.forName(className);
-            return clazz.getDeclaredConstructor(params);
-        }
-        catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
-        }
-    }
-    
-    /**
-     * Returns CraftBukkit constructor.
-     *
-     * @param className - Class name.
-     * @param params    - Constructor parameters.
-     * @return CraftBukkit constructor if exists, null otherwise.
-     */
-    @Nullable
-    public static Constructor<?> getCraftConstructor(@Nonnull String className, @Nullable Class<?>... params) {
-        try {
-            final Class<?> clazz = getCraftClass(className);
-            
-            if (clazz == null) {
-                return null;
-            }
-            
-            return clazz.getConstructor(params);
-        }
-        catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
-        }
-    }
-    
-    /**
      * Invokes a method.
      *
      * @param method   - Method to invoke.
@@ -364,8 +294,7 @@ public final class Reflect {
             return method.invoke(instance, params);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -376,63 +305,13 @@ public final class Reflect {
      * @param parameters  - Parameters.
      * @return a new object.
      */
-    @Nullable
+    @Nonnull
     public static <T> T newInstance(@Nonnull Constructor<T> constructor, @Nullable Object... parameters) {
         try {
             return constructor.newInstance(parameters);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
-        }
-    }
-    
-    /**
-     * Craft a 'craftbukkit' field from the given class.
-     *
-     * @param className - Class name.
-     * @param fieldName - Field name.
-     * @return the field or null.
-     */
-    @Nullable
-    public static Field getCraftField(@Nonnull String className, @Nonnull String fieldName) {
-        try {
-            final Class<?> clazz = getCraftClass(className);
-            
-            if (clazz == null) {
-                return null;
-            }
-            
-            return clazz.getField(fieldName);
-        }
-        catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
-        }
-    }
-    
-    /**
-     * Gets an 'nms' field from the given class.
-     *
-     * @param className - Class name.
-     * @param fieldName - Field name.
-     * @return the field or null.
-     */
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable
-    public static Field getNetField(@Nonnull String className, @Nonnull String fieldName) {
-        try {
-            final Class<?> clazz = getNetClass(className);
-            
-            if (clazz == null) {
-                return null;
-            }
-            
-            return clazz.getField(fieldName);
-        }
-        catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -450,8 +329,7 @@ public final class Reflect {
             return field.get(instance);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
-            return null;
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -516,7 +394,7 @@ public final class Reflect {
             field.set(instance, value);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -693,10 +571,8 @@ public final class Reflect {
             return (Connection) field.get(playerConnection);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
-        
-        throw new IllegalStateException("Couldn't get NetworkManager! Report this!");
     }
     
     /**
@@ -743,15 +619,10 @@ public final class Reflect {
         try {
             final Class<?> clazz = getCraftClass(className);
             
-            if (clazz == null) {
-                throw new IllegalArgumentException("Could not find class '%s'!".formatted(className));
-            }
-            
             return clazz.getMethod(methodName, params);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
-            throw new IllegalArgumentException(e);
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -776,8 +647,7 @@ public final class Reflect {
             return (DedicatedPlayerList) MethodUtils.invokeMethod(Bukkit.getServer(), "getHandle", null);
         }
         catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            e.printStackTrace();
-            return null;
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -863,10 +733,8 @@ public final class Reflect {
             return castOrThrow(object, PlayerTeam.class);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
-        
-        throw new IllegalArgumentException("Could not parse getNetTeam() for some reason!");
     }
     
     @Nonnull
@@ -968,9 +836,7 @@ public final class Reflect {
     public static <T> T getHandle(@Nonnull Object craftObject, @Nonnull Class<T> handleClass) {
         try {
             final Method method = getDeclaredMethodInHierarchy(craftObject.getClass(), getHandleMethodName)
-                    .orElseThrow(() -> {
-                        return makeIllegalArgumentHandle("Provided object is not a CraftBukkit object! (%s)".formatted(craftObject));
-                    });
+                    .orElseThrow(() -> makeIllegalArgumentHandle("Provided object is not a CraftBukkit object! (%s)".formatted(craftObject)));
             
             method.setAccessible(true);
             final Object object = method.invoke(craftObject);
@@ -986,10 +852,8 @@ public final class Reflect {
             return handleClass.cast(object);
         }
         catch (InvocationTargetException | IllegalAccessException e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
-        
-        throw makeIllegalArgumentHandle("Something unexpected occurred.");
     }
     
     /**

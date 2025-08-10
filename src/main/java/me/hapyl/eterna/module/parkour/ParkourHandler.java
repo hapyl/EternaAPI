@@ -7,16 +7,16 @@ import javax.annotation.Nullable;
 public interface ParkourHandler {
 
     @Nullable
-    Response onStart(Player player, Data data);
+    Response onStart(Player player, ParkourData data);
 
     @Nullable
-    Response onFinish(Player player, Data data);
+    Response onFinish(Player player, ParkourData data);
 
     @Nullable
-    Response onFail(Player player, Data data, FailType failType);
+    Response onFail(Player player, ParkourData data, FailType failType);
 
     @Nullable
-    Response onCheckpoint(Player player, Data data, ParkourPosition position, Type type);
+    Response onCheckpoint(Player player, ParkourData data, ParkourPosition position, Type type);
 
     enum Type {
         TELEPORT_TO, // player teleported to checkpoint using an item or command.

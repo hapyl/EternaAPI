@@ -3,17 +3,11 @@ package me.hapyl.eterna.module.command;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.annotate.TestedOn;
-import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.util.Compute;
-import org.apache.commons.lang.reflect.FieldUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
-import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
@@ -31,7 +25,7 @@ public class CommandProcessor {
      * Creates a CommandProcessor with plugin owner of EternaAPI.
      */
     @Deprecated(forRemoval = true, since = "4.2.1")
-    public CommandProcessor() {
+    private CommandProcessor() {
         throw new IllegalArgumentException("Don't delegate commands to Eterna!");
     }
 

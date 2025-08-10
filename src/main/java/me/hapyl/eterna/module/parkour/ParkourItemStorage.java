@@ -4,19 +4,17 @@ import me.hapyl.eterna.builtin.manager.ParkourManager;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.inventory.ItemFunction;
 import me.hapyl.eterna.module.registry.Key;
-import me.hapyl.eterna.module.util.Holder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class ParkourItemStorage extends Holder<ParkourManager> {
+public class ParkourItemStorage {
     
     private final ItemStack itemTeleport;
     private final ItemStack itemReset;
     private final ItemStack itemQuit;
     
     public ParkourItemStorage(ParkourManager parkourManager) {
-        super(parkourManager);
         
         this.itemTeleport = new ItemBuilder(Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Key.ofString("eterna_parkour_teleport"))
                 .setName("&aTeleport to Checkpoint")
@@ -46,12 +44,5 @@ public class ParkourItemStorage extends Holder<ParkourManager> {
         player.closeInventory();
         player.getInventory().setHeldItemSlot(4);
     }
-    
-    public void revokeItems(Player player) {
-        player.getInventory().setItem(3, new ItemStack(Material.AIR));
-        player.getInventory().setItem(5, new ItemStack(Material.AIR));
-        player.getInventory().setItem(8, new ItemStack(Material.AIR));
-    }
-    
     
 }

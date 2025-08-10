@@ -7,7 +7,6 @@ import me.hapyl.eterna.builtin.manager.EternaManagers;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.command.CommandProcessor;
 import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
-import me.hapyl.eterna.module.hologram.HologramListener;
 import me.hapyl.eterna.module.hologram.HologramRunnable;
 import me.hapyl.eterna.module.inventory.ItemBuilderListener;
 import me.hapyl.eterna.module.inventory.SignListener;
@@ -62,7 +61,6 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new GUIListener(), this);
         manager.registerEvents(new ParkourListener(), this);
         manager.registerEvents(new ReplayListener(), this);
-        manager.registerEvents(new HologramListener(), this);
         manager.registerEvents(new SignListener(), this);
         manager.registerEvents(new HumanNPCListener(), this);
         manager.registerEvents(new GlowingProtocolMetadataListener(), this);

@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.annotate.NullabilityBasedOnParameter;
 import me.hapyl.eterna.module.math.Numbers;
 
 import javax.annotation.Nonnull;
@@ -444,7 +443,6 @@ public class CollectionUtils {
      * @param <E>        - type of the set.
      * @return a random element.
      */
-    @NullabilityBasedOnParameter("def")
     public static <E> E randomElement(@Nonnull Collection<E> collection, E def) {
         if (collection.isEmpty()) {
             return def;
@@ -484,13 +482,12 @@ public class CollectionUtils {
      * @param <E>   - type of the array.
      * @return a random element.
      */
-    @NullabilityBasedOnParameter("def")
     public static <E> E randomElement(@Nonnull E[] array, E def) {
         if (array.length == 0) {
             return def;
         }
 
-        return array[ThreadRandom.nextInt(array.length)];
+        return array[ThreadLocalRandom.current().nextInt(array.length)];
     }
 
     /**

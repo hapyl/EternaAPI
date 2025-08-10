@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.block.display.animation;
 
-import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
 import me.hapyl.eterna.module.util.Consumers;
 import me.hapyl.eterna.module.util.Validate;
@@ -94,7 +93,7 @@ public abstract class AnimationFrame {
         private double threshold;
         private double increment;
         private int speed;
-        private Consumers.ConsumerABC<AnimationFrame, DisplayEntity, Double> tick;
+        private Consumers.Consumer3<AnimationFrame, DisplayEntity, Double> tick;
 
         private Builder() {
             this.threshold = 0.0d;
@@ -136,9 +135,9 @@ public abstract class AnimationFrame {
         /**
          * Sets the tick consumer for the {@link AnimationFrame}.
          *
-         * @param tick - The {@link Consumers.ConsumerABC} that defines the tick behavior.
+         * @param tick - The {@link Consumers.Consumer3} that defines the tick behavior.
          */
-        public Builder tick(@Nonnull Consumers.ConsumerABC<AnimationFrame, DisplayEntity, Double> tick) {
+        public Builder tick(@Nonnull Consumers.Consumer3<AnimationFrame, DisplayEntity, Double> tick) {
             this.tick = tick;
             return this;
         }

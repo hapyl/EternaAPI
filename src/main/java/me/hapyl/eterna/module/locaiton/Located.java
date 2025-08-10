@@ -1,4 +1,4 @@
-package me.hapyl.eterna.module.util;
+package me.hapyl.eterna.module.locaiton;
 
 import org.bukkit.Location;
 import org.bukkit.World;
