@@ -1,7 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import com.google.common.collect.Maps;
-
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,7 +86,7 @@ public final class MapMaker<K, V, M extends Map<K, V>> {
      * @return a mapmaker of tree map.
      */
     @Nonnull
-    public static <K, V> MapMaker<K, V, TreeMap<K, V>> ofTreeNap() {
+    public static <K extends Comparable<K>, V> MapMaker<K, V, TreeMap<K, V>> ofTreeMap() {
         return new MapMaker<>(new TreeMap<>());
     }
 
