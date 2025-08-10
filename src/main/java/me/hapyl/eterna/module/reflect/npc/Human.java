@@ -76,15 +76,7 @@ public interface Human {
      * @param shaking - Enable or disable shaking.
      */
     void setShaking(boolean shaking);
-
-    /**
-     * Changes NPC's should entity.
-     *
-     * @param shoulder - Shoulder.
-     * @param status   - Enable or disable entity.
-     */
-    void setShoulderEntity(Shoulder shoulder, boolean status);
-
+    
     /**
      * Returns true if NPC is created, false otherwise.
      *
@@ -462,7 +454,6 @@ public interface Human {
      *
      * @param flag - true if the NPC should collide with players.
      */
-    @InvokePolicy(Policy.ANYTIME)
     HumanNPC setCollision(boolean flag);
 
     /**

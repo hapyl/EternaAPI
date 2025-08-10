@@ -232,11 +232,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         updateDataWatcher();
     }
     
-    @Override
-    public void setShoulderEntity(Shoulder shoulder, boolean status) throws NotImplementedException {
-        throw new NotImplementedException("setShoulderEntity not yet implemented");
-    }
-    
     @Nonnull
     @Override
     public PlayerHologram getHologram() {
@@ -958,7 +953,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
     
     @Override
-    @InvokePolicy(Policy.ANYTIME)
     public HumanNPC setCollision(boolean flag) {
         collision = flag;
         updateCollision();

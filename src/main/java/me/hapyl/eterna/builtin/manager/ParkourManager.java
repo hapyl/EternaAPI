@@ -19,7 +19,7 @@ import java.util.Map;
 public final class ParkourManager extends EternaManager<ParkourPosition, Parkour> implements Disposable {
 
     private final ParkourItemStorage parkourItemStorage;
-    private final Map<Player, Data> parkourData;
+    private final Map<Player, ParkourData> parkourData;
 
     ParkourManager(@Nonnull EternaPlugin eterna) {
         super(eterna);
@@ -31,7 +31,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
     public void start(@Nonnull Player player, @Nonnull Parkour parkour) {
         // Already doing parkour
         if (isInParkour(player)) {
-            final Data data = getData(player);
+            final ParkourData data = getData(player);
             if (data == null) {
                 return;
             }
@@ -46,7 +46,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
         }
         else {
             // Else start a new instance
-            final Data newData = new Data(player, parkour);
+            final ParkourData newData = new ParkourData(player, parkour);
 
             if (parkour instanceof ParkourHandler handler && handler.onStart(player, newData) == ParkourHandler.Response.CANCEL) {
                 return;
@@ -68,7 +68,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
     }
 
     public void finish(@Nonnull Player player) {
-        final Data data = getData(player);
+        final ParkourData data = getData(player);
 
         if (data == null) {
             return;
@@ -91,7 +91,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
     }
 
     public void fail(@Nonnull Player player, @Nonnull FailType type) {
-        final Data data = getData(player);
+        final ParkourData data = getData(player);
 
         if (data == null) {
             return;
@@ -113,7 +113,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
     }
 
     public void checkpoint(@Nonnull Player player) {
-        final Data data = getData(player);
+        final ParkourData data = getData(player);
 
         if (data == null) {
             return;
@@ -132,13 +132,13 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
             }
 
             player.teleport(checkpoint.toLocationCentered(), PlayerTeleportEvent.TeleportCause.UNKNOWN);
-            data.getStats().increment(Stats.Type.CHECKPOINT_TELEPORT, 1);
+            data.getStats().increment(ParkourStatistics.Type.CHECKPOINT_TELEPORT, 1);
             parkour.getFormatter().sendCheckpointTeleport(data);
         }
     }
 
     public void reset(@Nonnull Player player) {
-        final Data data = getData(player);
+        final ParkourData data = getData(player);
 
         if (data == null) {
             return;
@@ -152,7 +152,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
     }
 
     public void quit(@Nonnull Player player) {
-        final Data data = getData(player);
+        final ParkourData data = getData(player);
 
         if (data == null) {
             return;
@@ -239,7 +239,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
     }
 
     @Nullable
-    public Data getData(@Nonnull Player player) {
+    public ParkourData getData(@Nonnull Player player) {
         return parkourData.get(player);
     }
 
@@ -250,7 +250,7 @@ public final class ParkourManager extends EternaManager<ParkourPosition, Parkour
     }
 
     @Nonnull
-    public Map<Player, Data> getParkourData() {
+    public Map<Player, ParkourData> getParkourData() {
         return parkourData;
     }
 }

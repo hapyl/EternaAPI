@@ -258,17 +258,6 @@ public final class Validate {
     }
 
     /**
-     * Gets the {@link ObjectType} of the given {@link Object}.
-     *
-     * @param object - Object to get the type of.
-     * @return the {@link ObjectType} of the given {@link Object}.
-     */
-    @Nonnull
-    public static ObjectType getType(@Nullable Object object) {
-        return ObjectType.testSamples(object);
-    }
-
-    /**
      * Gets the given {@link ItemStack} display name, or an empty string is it doesn't have a name.
      *
      * @param itemStack - {@link ItemStack} to get the display name for.

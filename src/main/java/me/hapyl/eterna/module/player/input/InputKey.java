@@ -15,7 +15,6 @@ import java.util.function.Predicate;
  * @implNote The keys are named as keys, instead of "jump", "sprint", etc. is
  * because I'm sure that Mojang will add any key detection in the future.
  */
-@SuppressWarnings("UnstableApiUsage")
 public enum InputKey {
     /**
      * Represents the {@code W} key, or {@link Input#isForward}.

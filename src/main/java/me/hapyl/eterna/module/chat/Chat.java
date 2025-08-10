@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.chat;
 
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.util.BFormat;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -116,18 +115,6 @@ public final class Chat {
     }
     
     /**
-     * Sends a {@link Chat#bformat(String, Object...)} formatted message to a player.
-     *
-     * @param player  - Player to send to.
-     * @param string  - String to format.
-     * @param objects - Replacements.
-     */
-    @Deprecated
-    public static void sendFormat(@Nonnull Player player, @Nonnull String string, @Nonnull Object... objects) {
-        player.sendMessage(bformat(string, objects));
-    }
-    
-    /**
      * Sends a formatted message to a sender.
      *
      * @param sender  - Receiver actually.
@@ -145,19 +132,6 @@ public final class Chat {
      */
     public static void sendMessage(@Nonnull Player player, @Nonnull Object message) {
         sendMessage((CommandSender) player, message);
-    }
-    
-    /**
-     * Performs a 'bformat' to a string.
-     *
-     * @param input   - String to format.
-     * @param objects - Replacements.
-     * @return formatted String.
-     * @see BFormat
-     */
-    @Nonnull
-    public static String bformat(@Nonnull String input, @Nonnull Object... objects) {
-        return Chat.format(BFormat.format(input, objects));
     }
     
     /**

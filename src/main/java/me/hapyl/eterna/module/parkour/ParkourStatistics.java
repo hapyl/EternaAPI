@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.parkour;
 
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.module.util.Holder;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
@@ -9,12 +8,13 @@ import java.util.Map;
 /**
  * Holds stats of parkour.
  */
-public class Stats extends Holder<Player> {
+public class ParkourStatistics {
 
+    private final Player player;
     private final Map<Type, Long> valueMap;
 
-    public Stats(Player player) {
-        super(player);
+    public ParkourStatistics(Player player) {
+        this.player = player;
         valueMap = Maps.newHashMap();
     }
 

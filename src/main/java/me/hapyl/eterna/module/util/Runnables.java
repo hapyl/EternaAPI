@@ -10,9 +10,12 @@ import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
 @ApiStatus.Internal
-public class Runnables {
+public final class Runnables {
     
     private final static JavaPlugin ETERNA = EternaPlugin.getPlugin();
+    
+    private Runnables() {
+    }
     
     @ApiStatus.Internal
     public static void runLater(@Nonnull Runnable runnable, long delay) {

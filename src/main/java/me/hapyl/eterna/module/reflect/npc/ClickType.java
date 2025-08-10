@@ -9,5 +9,5 @@ public enum ClickType {
     /**
      * Right click at NPC.
      */
-    INTERACT;
+    INTERACT
 }

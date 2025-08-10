@@ -1,9 +1,9 @@
 package me.hapyl.eterna.module.parkour;
 
-import me.hapyl.eterna.module.util.Holder;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,10 +13,11 @@ import java.util.Objects;
 /**
  * Stored all player's parkour-related data.
  */
-public class Data extends Holder<Player> {
+public class ParkourData {
 
+    private final Player player;
     private final Parkour parkour;
-    private final Stats stats;
+    private final ParkourStatistics stats;
 
     private final PlayerInfo info;
     private List<ParkourPosition> checkpoints;
@@ -24,23 +25,28 @@ public class Data extends Holder<Player> {
     private long startedAt;
     private long finishedAt = -1;
 
-    public Data(Player player, Parkour parkour) {
-        super(player);
+    public ParkourData(Player player, Parkour parkour) {
+        this.player = player;
         this.parkour = parkour;
-        this.stats = new Stats(player);
+        this.stats = new ParkourStatistics(player);
         this.startedAt = System.currentTimeMillis();
         this.info = new PlayerInfo(player);
         resetCheckpoints();
     }
-
+    
+    @Nonnull
+    public Player getPlayer() {
+        return player;
+    }
+    
     @Nullable // if last checkpoint
     public ParkourPosition getNextCheckpoint() {
-        return checkpoints.size() > 0 ? checkpoints.get(0) : null;
+        return !checkpoints.isEmpty() ? checkpoints.getFirst() : null;
     }
 
     @Nullable
     public ParkourPosition getCurrentCheckpoint() {
-        return this.checkpoints.get(0);
+        return this.checkpoints.getFirst();
     }
 
     public void resetTime() {
@@ -127,7 +133,7 @@ public class Data extends Holder<Player> {
         this.previousCheckpoint = previousCheckpoint;
     }
 
-    public Stats getStats() {
+    public ParkourStatistics getStats() {
         return stats;
     }
 
