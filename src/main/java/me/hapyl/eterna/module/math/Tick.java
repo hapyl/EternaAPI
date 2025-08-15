@@ -10,6 +10,8 @@ import javax.annotation.Nonnull;
 @UtilityClass
 public final class Tick {
     
+    public static final String INFINITY_CHAR = "∞";
+    
     private Tick() {
     }
     
@@ -27,7 +29,7 @@ public final class Tick {
      */
     @Nonnull
     public static String format(int tick) {
-        return "%.1fs".formatted((double) tick / 20);
+        return tick < 0 ? INFINITY_CHAR : "%.1fs".formatted((double) tick / 20);
     }
     
     /**
@@ -44,8 +46,13 @@ public final class Tick {
      */
     @Nonnull
     public static String round(int tick) {
-        final double d = (double) tick / 20;
-        return tick % 20 == 0 ? "%.0fs".formatted(d) : "%.1fs".formatted(d);
+        if (tick < 0) {
+            return INFINITY_CHAR;
+        }
+        
+        final double decimal = (double) tick / 20;
+        
+        return tick % 20 == 0 ? "%.0fs".formatted(decimal) : "%.1fs".formatted(decimal);
     }
     
     /**
@@ -134,5 +141,9 @@ public final class Tick {
      */
     public static float toMillis(int ticks) {
         return ticks * 50f;
+    }
+    
+    private static String thatOrInf(int value, String that) {
+        return value < 0 ? INFINITY_CHAR : that;
     }
 }
