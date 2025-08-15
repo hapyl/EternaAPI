@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Creates a laser ({@link Guardian} beam) between start and end.
  */
-@TestedOn(version = Version.V1_21_7)
+@TestedOn(version = Version.V1_21_8)
 public class Laser implements EternaEntity {
 
     private final Location start;

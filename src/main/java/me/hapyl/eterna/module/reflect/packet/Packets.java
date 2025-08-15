@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * A static utility class that allows creating and sending packets easily.
  */
-@TestedOn(version = Version.V1_21_7)
+@TestedOn(version = Version.V1_21_8)
 @UtilityClass
 public final class Packets {
 
