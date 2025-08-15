@@ -60,7 +60,7 @@ import java.util.*;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_21_7)
+@TestedOn(version = Version.V1_21_8)
 public final class Reflect {
     
     private static final String mcVersion;

@@ -12,6 +12,7 @@ import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.player.PlayerLib;
+import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.registry.CloneableKeyed;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.net.URI;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -82,6 +82,8 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     private static final char MANUAL_SPLIT_CHAR = '_';
     
     private static final java.util.regex.Pattern BASE64_DECODE_PATTERN = java.util.regex.Pattern.compile("\"url\"\\s*:\\s*\"(http[^\"]+)\"");
+    private static final java.util.regex.Pattern TEXTURE_PATTERN = java.util.regex.Pattern.compile("https?://textures\\.minecraft\\.net/texture/");
+    
     private static final String PLUGIN_PATH = "item_key";
     private static final String URL_TEXTURE_LINK = "https://textures.minecraft.net/texture/";
     
@@ -874,6 +876,15 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     /**
+     * Sets the item texture form the given {@link PlayerSkin}.
+     *
+     * @param playerSkin - The player skin to apply as the head texture for this item.
+     */
+    public ItemBuilder setHeadTexture(@Nonnull PlayerSkin playerSkin) {
+        return setHeadTextureBase64(playerSkin.getTexture());
+    }
+    
+    /**
      * Sets a head texture from a minecraft url link.
      * <p>
      * If copying from <a href="https://minecraft-heads.com/custom-heads">Minecraft-Heads</a>, use <code>Other -> Minecraft-URL</code> value,
@@ -885,13 +896,13 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         final PlayerTextures textures = profile.getTextures();
         
         try {
-            textures.setSkin(new URI(URL_TEXTURE_LINK + url).toURL());
+            textures.setSkin(BukkitUtils.url(URL_TEXTURE_LINK + url));
             profile.setTextures(textures);
             
             modifyMeta(SkullMeta.class, meta -> meta.setPlayerProfile(profile));
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
         
         return this;
@@ -2181,7 +2192,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         if (matcher.find()) {
             final String texture = matcher.group(1);
             
-            return texture.replace(URL_TEXTURE_LINK, "");
+            return TEXTURE_PATTERN.matcher(texture).replaceFirst("");
         }
         
         return "";

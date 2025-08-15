@@ -6,6 +6,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.PaperWorkaround;
 import me.hapyl.eterna.module.chat.Chat;
@@ -27,6 +28,9 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -892,4 +896,20 @@ public class BukkitUtils {
         return condition == null ? "" : condition ? (ChatColor.GREEN + "✔") : (ChatColor.RED + "❌");
     }
     
+    /**
+     * Creates a {@link URL} from the given string.
+     *
+     * @param url - The string to create {@link URL} from.
+     * @return A new URL instance from the given String.
+     * @throws MalformedURLException if the provided URL is malformed.
+     */
+    @Nonnull
+    public static URL url(@Nonnull String url) {
+        try {
+            return URI.create(url).toURL();
+        }
+        catch (MalformedURLException e) {
+            throw EternaLogger.exception(e);
+        }
+    }
 }
