@@ -4,311 +4,337 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.hologram.Hologram;
+import me.hapyl.eterna.module.hologram.StringArray;
+import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.util.Named;
+import me.hapyl.eterna.module.util.Ticking;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.text.SimpleDateFormat;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class Parkour {
-
-    private static final Location DEFAULT_QUIT_LOCATION;
-
+/**
+ * Represents a parkour course.
+ * <p>Remember to register the parkour!</p>
+ *
+ * @see me.hapyl.eterna.builtin.manager.ParkourManager#register(Parkour)
+ */
+public class Parkour implements Keyed, Named, Ticking {
+    
+    public static final Material blockStartFinish;
+    public static final Material blockCheckpoint;
+    
+    public static final PlayerTeleportEvent.TeleportCause reversedTeleportCauseForCheckpoint;
+    
+    private static final Location defaultQuitLocation;
+    private static final int hologramViewDistance = 576;
+    
     static {
-        final World world = BukkitUtils.defWorld();
+        blockStartFinish = Material.LIGHT_WEIGHTED_PRESSURE_PLATE;
+        blockCheckpoint = Material.HEAVY_WEIGHTED_PRESSURE_PLATE;
         
-        DEFAULT_QUIT_LOCATION = BukkitUtils.defLocation(0, world.getHighestBlockYAt(0, 0) + 1, 0);
+        reversedTeleportCauseForCheckpoint = PlayerTeleportEvent.TeleportCause.UNKNOWN;
+        
+        defaultQuitLocation = BukkitUtils.defLocation(0, BukkitUtils.defWorld().getHighestBlockYAt(0, 0) + 1, 0);
     }
-
-    private final Set<Hologram> holograms;
+    
+    private final Key key;
     private final String name;
     private final ParkourPosition start;
     private final ParkourPosition finish;
+    
     private final List<ParkourPosition> checkpoints;
+    private final Set<Hologram> holograms;
     private final Set<FailType> allowedFails;
-    @Nonnull private ParkourFormatter formatter;
+    
+    private ParkourFormatter formatter;
     private Difficulty difficulty;
     private Location quitLocation;
-    private boolean spawnHolograms;
-
-    public Parkour(String name, ParkourPosition start, ParkourPosition finish) {
-        Validate.isTrue(start.isStartOrFinish(), "must be start, not checkpoint!");
-        Validate.isTrue(finish.isStartOrFinish(), "must be finish, not checkpoint!");
+    
+    private int lifeTicks;
+    
+    public Parkour(@Nonnull Key key, @Nonnull String name, @Nonnull ParkourPosition start, @Nonnull ParkourPosition finish) {
+        this.key = key;
         this.name = name;
         this.start = start;
         this.finish = finish;
+        this.checkpoints = Lists.newLinkedList();
         this.holograms = Sets.newHashSet();
-        this.difficulty = Difficulty.NORMAL;
-        this.quitLocation = DEFAULT_QUIT_LOCATION;
-        this.checkpoints = Lists.newArrayList();
         this.allowedFails = Sets.newHashSet();
         this.formatter = ParkourFormatter.DEFAULT;
-        this.spawnHolograms = true;
+        this.difficulty = Difficulty.NORMAL;
+        this.quitLocation = defaultQuitLocation;
     }
-
-    public Parkour(String name, Location start, Location finish) {
-        this(name, new ParkourPosition(ParkourPosition.Type.START_OR_FINISH, start), new ParkourPosition(ParkourPosition.Type.START_OR_FINISH, finish));
-    }
-
+    
+    /**
+     * Starts this parkour for the given player.
+     *
+     * @param player - The player who starts the parkour.
+     */
     public void start(@Nonnull Player player) {
         Eterna.getManagers().parkour.start(player, this);
     }
-
-    public void finish(@Nonnull Player player) {
-        Eterna.getManagers().parkour.finish(player);
-    }
-
+    
     /**
-     * Gets current parkour formatter.
+     * Gets the current {@link ParkourFormatter}.
      *
-     * @return current parkour formatter.
-     * @throws NullPointerException if formatter is null.
+     * @return the current {@link ParkourFormatter}.
      */
     @Nonnull
     public ParkourFormatter getFormatter() {
-        Validate.notNull(formatter, "formatter cannot be null");
         return formatter;
     }
-
+    
     /**
-     * Changes parkour formatter.
+     * Sets the {@link ParkourFormatter}.
      *
-     * @param formatter - New formatter. Use {@link ParkourFormatter#EMPTY} to clear formatter.
+     * @param formatter - The new formatter.
      */
     public void setFormatter(@Nonnull ParkourFormatter formatter) {
-        Validate.notNull(formatter, "formatter cannot be null, use ParkourFormatter.EMPTY to remove formatter");
-        this.formatter = formatter;
+        this.formatter = Objects.requireNonNull(formatter, "Formatter must not be null!");
     }
-
+    
     /**
-     * Gets quit location of this parkour. Quit location is used to teleport
-     * player upon finishing or quitting the parkour.
+     * Gets the quit location of this parkour.
+     * <p>The location is used to teleport player upon quitting/finishing the parkour.</p>
      *
-     * @return quit the location of this parkour.
+     * @return the quit location of this parkour.
      */
+    @Nonnull
     public Location getQuitLocation() {
         return quitLocation;
     }
-
+    
     /**
-     * Sets new quit location for this parkour. Quit location is used
-     * to teleport player upon quit or finish.
+     * Sets the quit location of this parkour.
+     * <p>The location is used to teleport player upon quitting/finishing the parkour.</p>
      *
-     * @param quitLocation - New quit location.
+     * @param quitLocation - The new quit location.
      */
     public void setQuitLocation(@Nonnull Location quitLocation) {
         this.quitLocation = quitLocation;
     }
-
+    
     /**
-     * Returns true, if specific fail is allows for this parkour.
+     * Gets whether the given {@link FailType} is allowed by this parkour.
+     * <p>This is really only useful for {@link FailType#EFFECT_CHANGE} when you want to add something along the lines of Jump Boost parkour.</p>
      *
-     * @param type - Fail type.
-     * @return true, if specific fail is allows for this parkour.
+     * @param type - The fail type to check.
+     * @return {@code true} if the given {@link FailType} is permitted; {@code false} otherwise.
      */
-    public boolean isFailAllowed(FailType type) {
+    public boolean isFailAllowed(@Nonnull FailType type) {
         return allowedFails.contains(type);
     }
-
+    
     /**
-     * Makes this parkour use empty formatter.
+     * Sets the {@link FailType} that are permissted by this parkour.
      *
-     * @param silent - redundant.
+     * @param fails - The fails to set.
      */
-    public void setSilent(boolean silent) {
-        setFormatter(ParkourFormatter.EMPTY);
+    public void setAllowedFails(@Nonnull FailType... fails) {
+        Validate.isTrue(fails.length > 0, "There must be at least one fail type!");
+        
+        allowedFails.clear();
+        allowedFails.addAll(List.of(fails));
     }
-
+    
     /**
-     * Returns if parkour should summon holograms upon load.
+     * Gets the text of the 'start' hologram.
      *
-     * @return if parkour should summon holograms upon load.
+     * @return the text of the 'start' hologram.
      */
-    public boolean isSpawnHolograms() {
-        return spawnHolograms;
+    @Nonnull
+    public StringArray hologramTextStart() {
+        return StringArray.of("&6&l" + name, "&aStart");
     }
-
+    
     /**
-     * Changes if parkour should summon holograms upon load.
+     * Gets the text of the 'finish' hologram.
      *
-     * @param spawnHolograms - true if parkour should summon holograms.
+     * @return the text of the 'finish' hologram.
      */
-    public void setSpawnHolograms(boolean spawnHolograms) {
-        this.spawnHolograms = spawnHolograms;
+    @Nonnull
+    public StringArray hologramTextFinish() {
+        return StringArray.of("&6&l" + name, "&aFinish");
     }
-
+    
     /**
-     * Adds a fail type to be allowed for this parkour.
-     * Note that plugin must implement custom FailType.
+     * Gets the text of the 'checkpoint' hologram.
      *
-     * @param type - fail type.
+     * @param nth - The index of the checkpoint, starting at {@code 1}.
+     * @param max - The max number of checkpoint.
+     * @return the text of the 'checkpoint' hologram.
      */
-    public void addAllowedFail(FailType type) {
-        allowedFails.add(type);
+    @Nonnull
+    public StringArray hologramTextCheckpoint(int nth, int max) {
+        return StringArray.of("&aCheckpoint &7(%s/%s)".formatted(nth, max));
     }
-
+    
     /**
-     * Removes a fail type from allowed for this parkour.
-     *
-     * @param type - fail type.
-     */
-    public void removeAllowedFail(FailType type) {
-        allowedFails.remove(type);
-    }
-
-    /**
-     * Removes all holograms if spawned.
-     */
-    public void removeHolograms() {
-        this.holograms.forEach(Hologram::destroy);
-        this.holograms.clear();
-    }
-
-    /**
-     * Creates holograms for this parkour. This is called
-     * automatically on a load if {@link this#isSpawnHolograms()} is true.
+     * Creates the holograms for 'start', 'finish' and checkpoints.
      */
     public void createHolograms() {
-        createHologram("&6&l" + name, "&aStart").create(this.getStart().toLocation(0.5d, 0.0d, 0.5d));
-        createHologram("&6&l" + name, "&aFinish").create(this.getFinish().toLocation(0.5d, 0.0d, 0.5d));
-
-        for (int i = 0; i < checkpoints.size(); i++) {
+        makeHologram(start.getLocationCentered(), hologramTextStart());
+        makeHologram(finish.getLocationCentered(), hologramTextFinish());
+        
+        final int checkpointsSize = checkpoints.size();
+        
+        for (int i = 0; i < checkpointsSize; i++) {
             final ParkourPosition current = checkpoints.get(i);
-            createHologram("&aCheckpoint (%s/%s)".formatted(i + 1, checkpoints.size())).create(current.toLocation(0.5d, 0.0d, 0.5d));
+            
+            makeHologram(current.getLocationCentered(), hologramTextCheckpoint(i + 1, checkpointsSize));
         }
-
-        showHolograms();
     }
-
+    
     /**
-     * Shows spawned holograms for player.
+     * Shows the holograms for the given player.
      *
-     * @param player - Player to show to.
+     * @param player - The player to show for.
      */
-    public void showHolograms(Player player) {
-        this.holograms.forEach(holo -> {
-            holo.show(player);
-        });
+    public void showHolograms(@Nonnull Player player) {
+        this.holograms.forEach(holo -> holo.show(player));
     }
-
+    
     /**
-     * Hides spawned holograms from player.
+     * Hides the holograms for the given player.
      *
-     * @param player - Player to hide for.
+     * @param player - The player to hide for.
      */
-    public void hideHolograms(Player player) {
-        this.holograms.forEach(holo -> {
-            holo.hide(player);
-        });
+    public void hideHolograms(@Nonnull Player player) {
+        this.holograms.forEach(holo -> holo.hide(player));
     }
-
+    
     /**
-     * Shows spawned holograms for each online player.
-     */
-    public void showHolograms() {
-        this.holograms.forEach(Hologram::showAll);
-    }
-
-    /**
-     * Hides spawned holograms for each online player.
-     */
-    public void hideHolograms() {
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            this.holograms.forEach(hologram -> hologram.hide(player));
-        });
-    }
-
-    /**
-     * Returns difficulty of this parkour.
+     * Gets the {@link Difficulty} of this parkour.
      *
-     * @return difficulty of this parkour.
+     * @return the {@link Difficulty} of this parkour.
      */
+    @Nonnull
     public Difficulty getDifficulty() {
         return difficulty;
     }
-
+    
+    
     /**
-     * Sets new difficulty for this parkour.
+     * Sets the {@link Difficulty} of this parkour.
      *
-     * @param difficulty - Difficulty.
+     * @param difficulty - The new difficulty.
      */
-    public void setDifficulty(Difficulty difficulty) {
+    public void setDifficulty(@Nonnull Difficulty difficulty) {
         this.difficulty = difficulty;
     }
-
+    
     /**
-     * Returns name of parkour.
+     * Gets the name of this parkour.
      *
-     * @return name of parkour.
+     * @return the name of this parkour.
      */
+    @Nonnull
+    @Override
     public String getName() {
         return name;
     }
-
+    
     /**
-     * Adds a checkpoint for parkour using bukkit location.
+     * Adds a checkpoint for this parkour.
      *
-     * @param location - location.
+     * @param position - The checkpoint position.
      */
-    public void addCheckpoint(Location location) {
-        this.checkpoints.add(new ParkourPosition(ParkourPosition.Type.CHECKPOINT, location));
+    public void addCheckpoint(@Nonnull ParkourPosition position) {
+        this.checkpoints.stream()
+                        .filter(position::equals)
+                        .findFirst()
+                        .ifPresent(e -> {
+                            throw new IllegalArgumentException("Parkour already exists on position: %s!".formatted(position));
+                        });
+        
+        this.checkpoints.add(position);
     }
-
+    
     /**
-     * Adds a checkpoint for parkour using raw coordinates.
+     * Adds a checkpoint for this parkour.
      *
-     * @param world - World.
-     * @param x     - X.
-     * @param y     - Y.
-     * @param z     - Z.
-     * @param yaw   - Yaw.
-     * @param pitch - Pitch.
+     * @param location - The location of the checkpoint.
      */
-    public void addCheckpoint(World world, int x, int y, int z, float yaw, float pitch) {
-        this.checkpoints.add(new ParkourPosition(ParkourPosition.Type.CHECKPOINT, world, x, y, z, yaw, pitch));
+    public void addCheckpoint(@Nonnull Location location) {
+        this.addCheckpoint(ParkourPosition.of(location));
     }
-
+    
     /**
-     * Returns start position of parkour.
+     * Adds a checkpoint for this parkour.
      *
-     * @return start position of parkour.
+     * @param world - The world.
+     * @param x     - The {@code X} coordinate.
+     * @param y     - The {@code Y} coordinate.
+     * @param z     - The {@code Z} coordinate.
+     * @param yaw   - The yaw.
+     * @param pitch - The pitch.
      */
+    public void addCheckpoint(@Nonnull World world, int x, int y, int z, float yaw, float pitch) {
+        this.addCheckpoint(ParkourPosition.of(world, x, y, z, yaw, pitch));
+    }
+    
+    /**
+     * Adds a checkpoint for this parkour.
+     * <p>This method uses the <i>default</i> world.</p>
+     *
+     * @param x     - The {@code X} coordinate.
+     * @param y     - The {@code Y} coordinate.
+     * @param z     - The {@code Z} coordinate.
+     * @param yaw   - The yaw.
+     * @param pitch - The pitch.
+     */
+    public void addCheckpoint(int x, int y, int z, float yaw, float pitch) {
+        this.addCheckpoint(ParkourPosition.of(BukkitUtils.defWorld(), x, y, z, yaw, pitch));
+    }
+    
+    /**
+     * Gets the 'start' of this parkour.
+     *
+     * @return the 'start' of this parkour.
+     */
+    @Nonnull
     public ParkourPosition getStart() {
         return start;
     }
-
+    
     /**
-     * Returns finish position of parkour.
+     * Gets the 'finish' of this parkour.
      *
-     * @return finish position of parkour.
+     * @return the 'finish' of this parkour.
      */
+    @Nonnull
     public ParkourPosition getFinish() {
         return finish;
     }
-
+    
     /**
-     * Returns all checkpoint of parkour.
-     * Might be empty.
+     * Gets a <b>mutable</b> copy of all the checkpoints.
      *
-     * @return all checkpoints of parkour.
+     * @return a <b>mutable</b> copy of all the checkpoints.
      */
     @Nonnull
-    public List<ParkourPosition> getCheckpoints() {
-        return checkpoints;
+    public LinkedList<ParkourPosition> getCheckpoints() {
+        return Lists.newLinkedList(checkpoints);
     }
-
-    /**
-     * Checks if specific location is parkour checkpoint.
-     *
-     * @param location - Location.
-     * @return if specific location is parkour checkpoint.
-     */
+    
+    public int checkpointCount() {
+        return checkpoints.size();
+    }
+    
     public boolean isCheckpoint(Location location) {
         for (ParkourPosition checkpoint : getCheckpoints()) {
             if (checkpoint.compare(location)) {
@@ -317,54 +343,95 @@ public class Parkour {
         }
         return false;
     }
-
+    
     /**
      * Spawns all world entities, which includes pressure plates and holograms.
      */
-    public void spawnWorldEntities() {
-        this.start.setBlock();
-        this.finish.setBlock();
-        this.checkpoints.forEach(ParkourPosition::setBlock);
-        if (spawnHolograms) {
-            createHolograms();
-        }
+    public void createWorldEntities() {
+        this.start.setBlock(blockStartFinish);
+        this.finish.setBlock(blockStartFinish);
+        
+        this.checkpoints.forEach(position -> position.setBlock(blockCheckpoint));
+        
+        this.createHolograms();
     }
-
+    
     /**
      * Removes all world entities, which includes pressure plates and holograms.
      */
     public void removeWorldEntities() {
         this.start.restoreBlock();
         this.finish.restoreBlock();
+        
         this.checkpoints.forEach(ParkourPosition::restoreBlock);
-        removeHolograms();
+        
+        this.holograms.forEach(Hologram::destroy);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    
+    @Nonnull
+    public String formatTime(long millis) {
+        if (millis >= 3600000) {
+            return new SimpleDateFormat("HH:mm:ss.SSS").format(millis);
         }
+        else if (millis >= 60000) {
+            return new SimpleDateFormat("mm:ss.SSS").format(millis);
+        }
+        else {
+            return new SimpleDateFormat("ss.SSS").format(millis);
+        }
+    }
+    
+    @Nonnull
+    @Override
+    public final Key getKey() {
+        return key;
+    }
+    
+    @Override
+    public final boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Parkour parkour = (Parkour) o;
-        return Objects.equals(name, parkour.name) && start.compare(parkour.start) && Objects.equals(finish, parkour.finish) &&
-                Objects.equals(difficulty, parkour.difficulty) && Objects.equals(checkpoints, parkour.checkpoints);
+        
+        final Parkour that = (Parkour) o;
+        return Objects.equals(this.key, that.key);
     }
-
+    
     @Override
-    public int hashCode() {
-        return Objects.hash(name, start, finish, difficulty, checkpoints);
+    public final int hashCode() {
+        return Objects.hashCode(this.key);
     }
-
-    public Set<Hologram> getHolograms() {
-        return holograms;
+    
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public void tick() {
+        // Update holograms every second
+        if (lifeTicks++ % 20 != 0) {
+            return;
+        }
+        
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            final Location location = player.getLocation();
+            
+            for (Hologram hologram : holograms) {
+                final double distanceSquared = hologram.getLocation().distanceSquared(location);
+                final boolean canBeSeen = distanceSquared <= hologramViewDistance;
+                final boolean showingTo = hologram.isShowingTo(player);
+                
+                if (canBeSeen && !showingTo) {
+                    hologram.show(player);
+                }
+                else if (!canBeSeen && showingTo) {
+                    hologram.hide(player);
+                }
+            }
+        });
     }
-
-    protected Hologram createHologram(String... strings) {
-        final Hologram hologram = new Hologram().addLines(strings);
+    
+    private void makeHologram(Location location, StringArray text) {
+        final Hologram hologram = Hologram.ofArmorStand(location);
+        hologram.setLines(text);
+        
         this.holograms.add(hologram);
-        return hologram;
     }
 }

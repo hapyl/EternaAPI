@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.entity.EntityUtils;
-import me.hapyl.eterna.module.reflect.packet.Packets;
 import me.hapyl.eterna.module.util.EternaEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -60,9 +59,9 @@ public class Laser implements EternaEntity {
     public void spawn(@Nonnull Player player) {
         create();
 
-        // spawn entity
-        Packets.Clientbound.spawnEntity(guardian).send(player);
-        Packets.Clientbound.spawnEntity(squid).send(player);
+        // Spawn entities
+        Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(guardian));
+        Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(squid));
 
         // guardian-squid collision
         guardian.collidableExemptions.add(squid.getBukkitEntity().getUniqueId());

@@ -1,19 +1,22 @@
 package me.hapyl.eterna.module.parkour;
 
-public class FailType {
+import javax.annotation.Nonnull;
 
-    public static final FailType TELEPORT = new FailType("do not teleport");
-    public static final FailType FLIGHT = new FailType("do not fly");
-    public static final FailType GAMEMODE_CHANGE = new FailType("do not change your gamemode");
-    public static final FailType EFFECT_CHANGE = new FailType("do not use potions");
-
+public enum FailType {
+    
+    TELEPORT("do not teleport"),
+    FLIGHT("do no fly"),
+    GAME_MODE_CHANGE("do not change your gamemode"),
+    EFFECT_CHANGE("do not use potions");
+    
     private final String reason;
-
-    public FailType(String name) {
-        this.reason = name;
+    
+    FailType(@Nonnull String reason) {
+        this.reason = reason;
     }
-
-    public String getReason() {
-        return reason;
+    
+    @Nonnull
+    public String reason() {
+        return this.reason;
     }
 }

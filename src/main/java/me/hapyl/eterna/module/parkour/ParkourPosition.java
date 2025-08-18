@@ -3,119 +3,99 @@ package me.hapyl.eterna.module.parkour;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 
+import javax.annotation.Nonnull;
+import java.util.Objects;
+
+/**
+ * Represents a {@link Parkour} position.
+ */
 public class ParkourPosition {
-
-    private final Type type;
+    
     private final World world;
     private final int x;
     private final int y;
     private final int z;
     private final float yaw;
     private final float pitch;
-
-    private Material oldBlock;
-
-    public ParkourPosition(Type type, World world, int x, int y, int z, float yaw, float pitch) {
-        this.type = type;
+    
+    private final BlockData restoreBlock;
+    
+    public ParkourPosition(@Nonnull World world, int x, int y, int z, float yaw, float pitch) {
         this.world = world;
         this.x = x;
         this.y = y;
         this.z = z;
         this.yaw = yaw;
         this.pitch = pitch;
+        this.restoreBlock = getLocation().getBlock().getBlockData();
     }
-
-    public ParkourPosition(World world, int x, int y, int z, float yaw, float pitch) {
-        this(Type.START_OR_FINISH, world, x, y, z, yaw, pitch);
-    }
-
-    public ParkourPosition(Type type, World world, int x, int y, int z) {
-        this(type, world, x, y, z, 0.0f, 0.0f);
-    }
-
-    public ParkourPosition(World world, int x, int y, int z) {
-        this(Type.START_OR_FINISH, world, x, y, z, 0.0f, 0.0f);
-    }
-
-    public ParkourPosition(Type type, Location location) {
-        this(
-                type,
-                location.getWorld(),
-                location.getBlockX(),
-                location.getBlockY(),
-                location.getBlockZ(),
-                location.getYaw(),
-                location.getPitch()
-        );
-    }
-
-    public ParkourPosition(Location location) {
-        this(
-                Type.START_OR_FINISH,
-                location.getWorld(),
-                location.getBlockX(),
-                location.getBlockY(),
-                location.getBlockZ(),
-                location.getYaw(),
-                location.getPitch()
-        );
-    }
-
-    public boolean isStartOrFinish() {
-        return !isCheckpoint();
-    }
-
-    public boolean isCheckpoint() {
-        return this.type == Type.CHECKPOINT;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
+    
+    @Nonnull
     public Location getLocation() {
         return new Location(world, x, y, z, yaw, pitch);
     }
-
-    public Location toLocationCentered() {
-        return toLocation(0.5d, 0.0d, 0.5d);
+    
+    @Nonnull
+    public Location getLocationCentered() {
+        return getLocation().add(0.5, 0.0, 0.5);
     }
-
-    public Location toLocation(double x, double y, double z) {
-        final Location location = getLocation();
-        location.add(x, y, z);
-        return location;
+    
+    public boolean compare(@Nonnull Location location) {
+        return location.getBlockX() == this.x
+               && location.getBlockY() == this.y
+               && location.getBlockZ() == this.z;
     }
-
+    
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        final ParkourPosition that = (ParkourPosition) o;
+        return this.x == that.x && this.y == that.y && this.z == that.z && Objects.equals(this.world, that.world);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.world, this.x, this.y, this.z);
+    }
+    
+    public void setBlock(@Nonnull Material material) {
+        getLocation().getBlock().setType(material, false);
+    }
+    
     public void restoreBlock() {
-        if (oldBlock == null) {
-            return;
-        }
-        getLocation().getBlock().setType(oldBlock, false);
+        getLocation().getBlock().setBlockData(restoreBlock, false);
     }
-
-    public void setBlock() {
-        final Location location = getLocation();
-        oldBlock = location.getBlock().getType();
-        location.getBlock().setType(this.type.material(), false);
+    
+    @Override
+    public String toString() {
+        return "ParkourPosition{" +
+               "world=" + world +
+               ", x=" + x +
+               ", y=" + y +
+               ", z=" + z +
+               ", yaw=" + yaw +
+               ", pitch=" + pitch +
+               '}';
     }
-
-    public boolean compare(Location location) {
-        return location.getBlockX() == this.x && location.getBlockY() == this.y && location.getBlockZ() == this.z;
+    
+    @Nonnull
+    public static ParkourPosition of(@Nonnull World world, int x, int y, int z) {
+        return new ParkourPosition(world, x, y, z, 0, 0);
     }
-
-    public boolean compare(ParkourPosition position) {
-        return position.x == this.x && position.y == this.y && position.z == this.z;
+    
+    @Nonnull
+    public static ParkourPosition of(@Nonnull World world, int x, int y, int z, float yaw, float pitch) {
+        return new ParkourPosition(world, x, y, z, yaw, pitch);
     }
-
-    public enum Type {
-        START_OR_FINISH, CHECKPOINT;
-
-        public Material material() {
-            return this == CHECKPOINT ? Material.HEAVY_WEIGHTED_PRESSURE_PLATE : Material.LIGHT_WEIGHTED_PRESSURE_PLATE;
-        }
-
+    
+    @Nonnull
+    public static ParkourPosition of(@Nonnull Location location) {
+        return new ParkourPosition(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getYaw(), location.getPitch());
     }
-
+    
 }

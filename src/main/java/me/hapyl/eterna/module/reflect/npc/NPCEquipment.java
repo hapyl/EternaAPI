@@ -6,12 +6,12 @@ import org.bukkit.inventory.ItemStack;
 
 public class NPCEquipment {
 
-    private ItemStack helmet = notNullItem();
-    private ItemStack chestplate = notNullItem();
-    private ItemStack leggings = notNullItem();
-    private ItemStack boots = notNullItem();
-    private ItemStack hand = notNullItem();
-    private ItemStack offhand = notNullItem();
+    private ItemStack helmet;
+    private ItemStack chestplate;
+    private ItemStack leggings;
+    private ItemStack boots;
+    private ItemStack hand;
+    private ItemStack offhand;
 
     public NPCEquipment() {
     }

@@ -145,7 +145,7 @@ public interface Array<T> extends Iterable<T> {
      */
     @SafeVarargs
     @Nonnull
-    static <T> Array<T> ofImmutable(@Nonnull T... array) {
+    static <T> ImmutableArray<T> ofImmutable(@Nonnull T... array) {
         return new ImmutableArray<>(Arrays.copyOf(array, array.length));
     }
     

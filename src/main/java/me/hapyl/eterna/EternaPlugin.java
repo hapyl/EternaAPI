@@ -7,14 +7,13 @@ import me.hapyl.eterna.builtin.manager.EternaManagers;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.command.CommandProcessor;
 import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
-import me.hapyl.eterna.module.hologram.HologramRunnable;
 import me.hapyl.eterna.module.inventory.ItemBuilderListener;
 import me.hapyl.eterna.module.inventory.SignListener;
 import me.hapyl.eterna.module.inventory.gui.GUIListener;
 import me.hapyl.eterna.module.parkour.ParkourListener;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
 import me.hapyl.eterna.module.record.ReplayListener;
-import me.hapyl.eterna.module.reflect.NPCRunnable;
+import me.hapyl.eterna.module.reflect.npc.NPCRunnable;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolEntitySpawnListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolMetadataListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingRunnable;
@@ -79,7 +78,6 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         
         // Schedule tasks
         scheduler.runTaskTimer(this, new NPCRunnable(), 0, config.getInt("tick-time.npc", 2));
-        scheduler.runTaskTimer(this, new HologramRunnable(), 0, config.getInt("tick-time.hologram", 2));
         scheduler.runTaskTimer(this, new ParkourRunnable(), 0, config.getInt("tick-time.parkour", 2));
         scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1); // Don't allow config the glowing we have to tick every tick
         

@@ -1,10 +1,12 @@
 package me.hapyl.eterna.module.reflect.npc;
 
-import me.hapyl.eterna.module.hologram.HologramFunction;
-import me.hapyl.eterna.module.hologram.PlayerHologram;
+import me.hapyl.eterna.module.entity.Showable;
+import me.hapyl.eterna.module.hologram.Hologram;
+import me.hapyl.eterna.module.hologram.LineSupplier;
+import me.hapyl.eterna.module.locaiton.Located;
+import me.hapyl.eterna.module.player.PlayerSkin;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
-import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -14,568 +16,472 @@ import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Set;
 
-public interface Human {
-
+/**
+ * Represents an interface for a {@link HumanNPC}.
+ */
+public interface Human extends Showable, Located {
+    
     /**
-     * Gets the {@link NPCFormat} for this NPC.
+     * Gets the current {@link NPCFormat}.
      *
-     * @return the npc format for this NPC.
+     * @return the current {@link NPCFormat}
      * @see NPCFormat
      */
     @Nonnull
     NPCFormat getFormat();
-
+    
     /**
-     * Sets the {@link NPCFormat} for this NPC.
+     * Sets the {@link NPCFormat}.
      *
-     * @param format - New format.
+     * @param format - The new {@link NPCFormat}.
      */
     void setFormat(@Nonnull NPCFormat format);
-
+    
     /**
-     * Gets the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
+     * Gets the interaction delay, in ticks.
      *
-     * @return the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
+     * @return the interaction delay, in ticks.
      */
     int getInteractionDelay();
-
+    
     /**
-     * Sets the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
+     * Sets the interaction delay, in ticks.
      *
-     * @param interactionDelay - New delay, in ticks.
+     * @param interactionDelay - The new interaction delay.
      */
-    HumanNPC setInteractionDelay(@Range(from = 0, to = Integer.MAX_VALUE) int interactionDelay);
-
+    void setInteractionDelay(@Range(from = 0, to = Integer.MAX_VALUE) int interactionDelay);
+    
     /**
-     * Sets the interaction delay before a {@link Player} can click on the {@link HumanNPC} again.
-     * <p>The default implementation is as follows:</p>
-     * <pre>{@code
-     *     default void setInteractionDelaySec(float interactionDelaySec) {
-     *         setInteractionDelay((int) (interactionDelaySec * 20));
-     *     }
-     * }</pre>
+     * sets the interaction delay, in seconds.
      *
-     * @param interactionDelaySec - New delay, in seconds.
+     * @param interactionDelaySec - The new interaction delay.
      */
-    default HumanNPC setInteractionDelaySec(@Range(from = 0, to = Integer.MAX_VALUE) float interactionDelaySec) {
-        return setInteractionDelay((int) (interactionDelaySec * 20));
+    default void setInteractionDelaySec(@Range(from = 0, to = Integer.MAX_VALUE) float interactionDelaySec) {
+        setInteractionDelay((int) (interactionDelaySec * 20));
     }
-
+    
     /**
-     * Returns true if NPC is shaking of cold.
+     * Gets whether this {@link Human} is shaking because of cold.
      *
-     * @return true if NPC is shaking of cold.
+     * @return whether this {@link Human} is shaking because of cold.
      */
     boolean isShaking();
-
+    
     /**
-     * Set if NPC is shaking of cold.
+     * Sets whether this {@link Human} should be shaking because of cold.
      *
-     * @param shaking - Enable or disable shaking.
+     * @param shaking - {@code true} to start shaking; {@code false} to stop shaking.
      */
     void setShaking(boolean shaking);
     
     /**
-     * Returns true if NPC is created, false otherwise.
+     * Gets a copy of this {@link Human} location.
      *
-     * @return true if NPC is created, false otherwise.
+     * @return a copy of this {@link Human} location.
      */
-    boolean isAlive();
-
-    /**
-     * Returns set of players that can see this NPC.
-     *
-     * @return set of players that can see this NPC.
-     */
-    Set<Player> getViewers();
-
-    /**
-     * Returns copy of NPC's location.
-     *
-     * @return copy of NPC's location.
-     */
+    @Nonnull
+    @Override
     Location getLocation();
-
+    
     /**
-     * Changes NPC's actual location.
+     * Gets whether this {@link Human} is sitting.
      *
-     * @param location - New location.
-     */
-    void setLocation(Location location);
-
-    /**
-     * Returns true if NPC is currently sitting.
-     *
-     * @return true if NPC is currently sitting, false otherwise.
+     * @return {@code true} if sitting, {@code false} otherwise.
      */
     boolean isSitting();
-
+    
     /**
-     * Sets if NPC is sitting.
+     * Sets whether this {@link Human} should be sitting.
      *
-     * @param sitting - Is NPC sitting.
+     * @param sitting - {@code true} to start sitting; {@code false} to stop sitting.
      */
     void setSitting(boolean sitting);
-
+    
     /**
-     * Sets the rest head position for this NPC.
-     * NPC will rotate its head whenever it's not looking at a player.
+     * Sets the rest position of this {@link Human}.
+     * <p>Rest position defines the {@code yaw} and {@code pitch} of the {@link Human} head, while it isn't looking at the closest player.</p>
      *
-     * @param yaw   - Yaw.
-     * @param pitch - Pitch.
+     * @param yaw   - The rest yaw.
+     * @param pitch - The rest pitch.
      */
     void setRestPosition(float yaw, float pitch);
-
+    
     /**
-     * Gets the current rest head position if present; null otherwise.
+     * Gets the rest position of this {@link Human}.
      *
-     * @return the current rest head position if present; null otherwise.
+     * @return the rest position of this {@link Human}.
      */
     @Nullable
     RestPosition getRestPosition();
-
+    
     /**
-     * Resets the rest head position for this NPC.
+     * Resets the rest position of this {@link Human}.
      */
     void resetRestPotion();
-
+    
     /**
-     * Returns true if NPC can be seen by the player.
+     * Gets whether this {@link Human} exists.
+     * <p>By existing, it means that the {@link Human} has not been {@link #remove()}.</p>
      *
-     * @param player - The player.
-     * @return true if NPC can be seen by the player.
-     */
-    boolean isShowingTo(Player player);
-
-    /**
-     * Returns true if NPC's is registered, false otherwise.
-     *
-     * @return true if NPC's is registered, false otherwise.
+     * @return {@code true} if this {@link Human} exists; {@code false} otherwise.
      */
     boolean exists();
-
+    
     /**
-     * Returns NPC's name.
+     * Gets the <i>default</i> name of this {@link Human}.
      *
-     * @return NPC's name.
-     * @deprecated NPC names are now per-player, this is considered to be a 'default' name.
+     * @return the <i>default</i> name of this {@link Human}
+     * @see #getName(Player)
+     * @deprecated The names are per-player, and this is only used as backwards compatibility.
      */
     @Nonnull
     @Deprecated
     String getName();
-
+    
     /**
-     * Sets the NPC name.
+     * Sets the <i>default</i> name of this {@link Human}.
      *
-     * @param newName - New name to set.
-     * @deprecated NPC names are not per-player, this is considered to be a 'default' name.
+     * @param newName - The new default name.
+     * @see #getName(Player)
+     * @deprecated The names are per-player, and this is only used as backwards compatibility.
      */
     @Deprecated
     void setName(@Nullable String newName);
-
+    
     /**
-     * Gets the NPC name for the given {@link Player}.
-     * <p>The default implementation is as follows:</p>
-     * <pre>{@code
-     *     @Nonnull
-     *     default String getName(@Nonnull Player player) {
-     *         return getName();
-     *     }
-     * }</pre>
+     * Gets whether this {@link Human} has a <i>default</i> name.
      *
-     * @param player - The {@link Player} to get the name for.
-     * @return the NPC name for the given {@link Player}.
+     * @return {@code true} if this {@link Human} has a <i>default</i> name; {@code false} otherwise.
+     */
+    default boolean hasName() {
+        return !getName().isEmpty();
+    }
+    
+    /**
+     * Gets the name of this {@link Human} for the given {@link Player}.
+     *
+     * @param player - The player to get the name for.
+     * @return the name of this {@link Human} for the given {@link Player}.
+     * @implNote It is expected for the implementation to override this method in order to archive per-player names.
      */
     @Nonnull
     default String getName(@Nonnull Player player) {
         return getName();
     }
-
-    /**
-     * Returns {@code true} if this {@link Human} has a name, {@code false} otherwise.
-     *
-     * @return {@code true} if this {@link Human} has a name, {@code false} otherwise.
-     */
-    default boolean hasName() {
-        return !getName().isEmpty();
-    }
-
-    /**
-     * Returns maximum distance to the nearest player that NPC will look at.
-     *
-     * @return maximum distance to the nearest player that NPC will look at.
-     */
-    int getLookAtCloseDist();
-
-    /**
-     * Set the distance at which the NPC will look at the player
-     *
-     * @param lookAtCloseDist the distance.
-     */
-    HumanNPC setLookAtCloseDist(int lookAtCloseDist);
-
-    /**
-     * Changes NPC pose.
-     *
-     * @param pose - New pose.
-     */
-    HumanNPC setPose(NPCPose pose);
-
-    /**
-     * Returns NPC's pose.
-     *
-     * @return NPC's pose.
-     */
-    NPCPose getPose();
-
-    /**
-     * Gets if this NPC is showing to anyone.
-     *
-     * @return true if this NPC is showing to anyone; false otherwise.
-     */
-    boolean isShowing();
-
-    /**
-     * Changes NPC's head position to look at entity.
-     *
-     * @param entity - Entity to look at.
-     */
-    void lookAt(Entity entity);
-
-    /**
-     * Changes NPC's head position to look at location.
-     *
-     * @param location - Location to look at.
-     */
-    void lookAt(Location location);
-
-    /**
-     * Teleports the NPC to the given location.
-     *
-     * @param x     - X coordinate.
-     * @param y     - Y coordinate.
-     * @param z     - Z coordinate.
-     * @param yaw   - Yaw.
-     * @param pitch - Pitch.
-     */
-    void teleport(double x, double y, double z, float yaw, float pitch);
-
-    /**
-     * Teleports the NPC to the given location.
-     *
-     * @param location - Location.
-     */
-    void teleport(Location location);
-
-    /**
-     * Simulates movement of the  NPC to the given location.
-     *
-     * @param location - Location.
-     * @param speed    - Speed in blocks/s.
-     */
-    void move(Location location, float speed);
-
-    /**
-     * Simulates movement of the NPC to the given location.
-     *
-     * @param x     - X coordinate.
-     * @param y     - Y coordinate.
-     * @param z     - Z coordinate.
-     * @param speed - Speed in blocks/s.
-     */
-    void move(double x, double y, double z, float speed);
-
-    void jump(double height) throws NotImplementedException;
-
-    /**
-     * Returns true if entity is presumably on ground.
-     *
-     * @return true if entity is presumably on ground.
-     */
-    boolean isOnGround();
-
-    /**
-     * Stops moving NPC.
-     *
-     * @return true if stopped, false if it wasn't moving.
-     */
-    boolean stopMoving();
-
-    /**
-     * Changes NPC's head rotation.
-     * This method modifies NPCs actual location.
-     *
-     * @param yaw   - Yaw.
-     * @param pitch - Pitch.
-     */
-    void setHeadRotation(float yaw, float pitch);
-
-    /**
-     * Changes NPC's head rotation.
-     *
-     * @param yaw - Yaw.
-     */
-    void setHeadRotation(float yaw);
-
-    /**
-     * Forces NPC to play swing animation with its main hand.
-     */
-    void swingMainHand();
-
-    /**
-     * Forces NPC to play swing animation with its offhand.
-     */
-    void swingOffHand();
-
-    /**
-     * Sets NPC's skin to the given texture and signature.
-     * Get the texture and signature from <a href="https://mineskin.org">MineSkin</a>
-     *
-     * @param texture   - Texture.
-     * @param signature - Signature.
-     */
-    HumanNPC setSkin(String texture, String signature);
     
     /**
-     * Ignores NPC's equipment and sends a "ghost" item to provided players.
-     * {@link Human#updateEquipment()} will reset NPC's "ghost" equipment.
+     * Returns the distance, in blocks, that a {@link Player} must be within for this {@link Human} to start looking at them.
      *
-     * @param slot   - Slot to put items on.
-     * @param item   - Item.
-     * @param player - Player, who will see the change.
+     * @return the required distance in blocks
      */
-    void setGhostItem(ItemSlot slot, ItemStack item, @Nullable Player player);
-
+    double getLookAtCloseDist();
+    
     /**
-     * Changed actual equipment of the NPC, which is the same for every player.
+     * Sets the distance, in blocks, that a {@link Player} must be within for this {@link Human} to start looking at them.
      *
-     * @param slot - Slot to put items on.
-     * @param item - Item.
+     * @param lookAtCloseDist - The new distance.
      */
-    void setItem(ItemSlot slot, ItemStack item);
-
+    void setLookAtCloseDist(double lookAtCloseDist);
+    
     /**
-     * Updates NPC's equipment and shows it to players.
-     */
-    void updateEquipment();
-
-    /**
-     * Shows NPC to all online players.
-     */
-    void showAll();
-
-    /**
-     * Shows this NPC to players.
+     * Sets the pose of this {@link Human}.
      *
-     * @param player - Player, who NPC will be shown to.
+     * @param pose - The new pose.
      */
-    void show(@Nonnull Player player);
-
+    void setPose(@Nonnull NPCPose pose);
+    
     /**
-     * Reloads (respawn) NPC to update its textures.
-     */
-    void reloadNpcData();
-
-    /**
-     * Changes NPC's actual equipment.
+     * Gets the current pose of this {@link Human}.
      *
-     * @param equipment - Equipment to change to.
+     * @return the current pose of this {@link Human}.
      */
-    void setEquipment(EntityEquipment equipment);
-
+    @Nonnull
+    NPCPose getPose();
+    
     /**
-     * Changes byte data watcher of this NPC.
+     * Makes this {@link Human} look towards the given {@link Location}.
      *
-     * @param key   - Index.
-     * @param value - Value.
+     * @param location - The location to look at.
      */
-    void setDataWatcherByteValue(int key, byte value);
-
+    void lookAt(@Nonnull Location location);
+    
     /**
-     * Returns the byte value of the data watcher.
+     * Makes this {@link Human} look towards the given {@link Entity}.
      *
-     * @param key - the key of the data watcher.
-     * @return The byte value of the data watcher.
+     * @param entity - The entity to look at.
      */
-    byte getDataWatcherByteValue(int key);
-
+    default void lookAt(@Nonnull Entity entity) {
+        lookAt(entity.getLocation());
+    }
+    
     /**
-     * Returns the data watcher of the NPC.
+     * Teleports this {@link Human} to the desired {@link Location}.
+     * <p>The provided location will be defensively copied.</p>
      *
-     * @return The data watcher of the NPC.
+     * @param location - The location to teleport to.
      */
-    SynchedEntityData getDataWatcher();
-
+    void teleport(@Nonnull Location location);
+    
     /**
-     * Updates skins layers of this NPC.
+     * Teleports this {@link Human} to the desired coordinates.
+     *
+     * @param x     - The desired {@code X} coordinate.
+     * @param y     - The desired {@code Y} coordinate.
+     * @param z     - The desired {@code Z} coordinate.
+     * @param yaw   - The desired {@code yaw}.
+     * @param pitch - The desired {@code pitch}.
+     */
+    default void teleport(double x, double y, double z, float yaw, float pitch) {
+        teleport(new Location(getWorld(), x, y, z, yaw, pitch));
+    }
+    
+    /**
+     * Gets whether this {@link Human} is standing on the ground.
+     *
+     * @return {@code true} if this {@link Human} is standing on the ground; {@code false} otherwise.
+     */
+    boolean isOnGround();
+    
+    /**
+     * Sets the head rotation of this {@link Human}.
+     *
+     * @param yaw   - The desired {@code yaw}.
+     * @param pitch - The desired {@code pitch}.
+     */
+    void setHeadRotation(float yaw, float pitch);
+    
+    /**
+     * Sets the head rotation of this {@link Human}.
+     *
+     * @param yaw - The desired {@code yaw}.
+     */
+    void setHeadRotation(float yaw);
+    
+    /**
+     * Makes this {@link Human} swing their hand.
+     */
+    void swingMainHand();
+    
+    /**
+     * Makes this {@link Human} swing their offhand.
+     */
+    void swingOffHand();
+    
+    /**
+     * Sets the skin of this {@link Human}.
+     *
+     * @param skin - The new skin.
+     */
+    void setSkin(@Nonnull PlayerSkin skin);
+    
+    /**
+     * Sets the skin of this {@link Human}.
+     *
+     * @param texture   - The texture of the skin.
+     * @param signature - The signature of the skin.
+     */
+    default void setSkin(@Nonnull String texture, @Nonnull String signature) {
+        setSkin(PlayerSkin.of(texture, signature));
+    }
+    
+    /**
+     * Updates the skin with all the default parts.
      */
     void updateSkin();
-
+    
     /**
-     * Updates the skin of the NPC with provided Skin Parts.
+     * Updates the skin with the given {@link SkinPart}.
      *
-     * @param parts - Enabled parts.
+     * @param parts - The parts of skin to update.
      */
-    void updateSkin(SkinPart... parts);
-
+    void updateSkin(@Nonnull SkinPart... parts);
+    
     /**
-     * Plays provided animation to players.
+     * Sends a <i>ghost</i> item change to the given {@link Player}.
+     * <p>This will ignore the current equipment of this {@link Human}, but will not affect it in any way.</p>
      *
-     * @param animation - Animation to play.
+     * @param player - The player to will see the change.
+     * @param slot   - The slot to change the item at.
+     * @param item   - The item to change; or {@code null} to remove item.
      */
-    void playAnimation(NPCAnimation animation);
-
+    void sendItemChange(@Nonnull Player player, @Nonnull ItemSlot slot, @Nullable ItemStack item);
+    
     /**
-     * Updates NPC's DataWatcher. Used after calling {@link HumanNPC#setDataWatcherByteValue(int, byte)}
+     * Changes the item on a given {@link ItemSlot}.
+     *
+     * @param slot - The slot to change the item at.
+     * @param item - The item to change to.
+     */
+    void setItem(@Nonnull ItemSlot slot, @Nullable ItemStack item);
+    
+    /**
+     * Changes this {@link Human} equipment.
+     *
+     * @param equipment - The new equipment.
+     */
+    void setEquipment(@Nonnull EntityEquipment equipment);
+    
+    /**
+     * Updates this {@link Human} equipment.
+     * <p>This is automatically called on {@link #setEquipment(EntityEquipment)}, but may be used to <i>synchronize</i>
+     * equipment across players, especially after using {@link #sendItemChange(Player, ItemSlot, ItemStack)}.</p>
+     */
+    void updateEquipment();
+    
+    /**
+     * Shows this {@link Human} for the given player.
+     *
+     * @param player - The player for whom this entity should be shown.
+     */
+    @Override
+    void show(@Nonnull Player player);
+    
+    /**
+     * Hides this {@link Human} for this given player.
+     *
+     * @param player - The player for whom this entity should be hidden.
+     */
+    @Override
+    void hide(@Nonnull Player player);
+    
+    /**
+     * Gets whether this {@link Human} is shown for the given player.
+     *
+     * @param player - The player to check.
+     * @return {@code true} of ths {@link Human} is shown for the given player.
+     */
+    @Override
+    boolean isShowingTo(@Nonnull Player player);
+    
+    /**
+     * Reloads the {@link Human}, by hidding and showing it again for all players who can see it.
+     */
+    void reloadNpcData();
+    
+    /**
+     * Sets the {@link SynchedEntityData} byte value.
+     * <p>This is an advanced operation, see <a href="https://minecraft.wiki/w/Java_Edition_protocol/Entity_metadata">Entity Metadata</a> on wiki for help.</p>
+     *
+     * @param index - The index of the value.
+     * @param value - The value.
+     */
+    void setDataWatcherByteValue(int index, byte value);
+    
+    /**
+     * Gets the {@link SynchedEntityData} byte value.
+     *
+     * @param key - The index of the value.
+     * @return the {@code byte} value at the given index.
+     */
+    byte getDataWatcherByteValue(int key);
+    
+    /**
+     * Gets the {@link SynchedEntityData} of this {@link Human}.
+     *
+     * @return the {@link SynchedEntityData} of this {@link Human}.
+     */
+    @Nonnull
+    SynchedEntityData getDataWatcher();
+    
+    /**
+     * Updates this {@link Human} metadata to all players who it's shown for.
      */
     void updateDataWatcher();
-
+    
     /**
-     * Completely removes NPC and unregisters it.
+     * Plays a given animation.
+     *
+     * @param animation - The animation to play.
+     */
+    void playAnimation(@Nonnull NPCAnimation animation);
+    
+    /**
+     * Completely removes this {@link Human} and unregisters it.
+     * <p>Is it prohibited to continue using this {@link Human} instance after removing it, since it can lead to exceptions and unexpected behaviours.</p>
      */
     void remove();
-
+    
     /**
-     * Hides NPC for players.
-     */
-    void hide();
-
-    /**
-     * Hides the NPC from the specified player.
+     * Gets the visibility of this {@link Human} for the given player; or {@code null} if the {@link Human} isn't shown for the player.
      *
-     * @param player - The player to hide the NPC from.
+     * @param player - The player to check.
+     * @return the visibility.
+     * @see Visibility
      */
-    void hide(@Nonnull Player player);
-
+    @Nullable
+    Visibility visibility(@Nonnull Player player);
+    
     /**
-     * Sets the collision of the NPC.
-     *
-     * @param flag - true if the NPC should collide with players.
+     * Hides this {@link Human}, but does <b>not</b> unregister it, for all players who it's shown for.
      */
-    HumanNPC setCollision(boolean flag);
-
+    void hideAll();
+    
     /**
-     * Gets the NPC's minecraft ID.
+     * Sets the collision of this {@link Human}.
      *
-     * @return NPC's minecraft ID.
+     * @param flag - {@code true} to enable collision; {@code false} to disable collision.
+     */
+    void setCollision(boolean flag);
+    
+    /**
+     * Gets the minecraft protocol id for this {@link Human}.
+     *
+     * @return the minecraft protocol id for this {@link Human}.
      */
     int getId();
-
+    
     /**
-     * Returns the human entity.
+     * Gets the {@code nms} instance of this {@link Human}.
      *
-     * @return the human entity
+     * @return the {@code nms} instance of this {@link Human}.
      */
     @Nonnull
     ServerPlayer getHuman();
-
+    
     /**
-     * Gets the {@link PlayerHologram} associated with this {@link Human}.
-     * <p>
-     * The aboveHead, NPC name, and belowHead is handled using this {@link PlayerHologram}.
-     * </p>
-     * <p>
-     * It is recommended to use build-in {@link #setAboveHead(HologramFunction)}, and {@link #setBelowHead(HologramFunction)}
-     * methods, rather than manually updating the hologram.
-     * </p>
+     * Gets the bukkit wrapped {@link Player} of this {@link Human}.
+     * <p>Note that most bukkit-related methods may not work.</p>
      *
-     * @return the {@link PlayerHologram} associated with this NPC.
+     * @return the bukkit wrapped {@link Player} of this {@link Human}.
      */
     @Nonnull
-    PlayerHologram getHologram();
-
+    Player bukkitEntity();
+    
     /**
-     * Sets the text above this {@link Human}'s head.
+     * Gets the hologram of this {@link Human}.
+     * <p>The hologram is used to display text about this {@link Human}.</p>
      *
-     * @param function - How to set the text.
-     * @see HologramFunction
-     * @see #updateHologram()
+     * @return the hologram of this {@link Human}.
      */
-    void setAboveHead(@Nullable HologramFunction function);
-
+    @Nonnull
+    Hologram getHologram();
+    
     /**
-     * Sets the text below this {@link Human}'s head.
+     * Sets the above text of this {@link Human} name.
      *
-     * @param function - How to set the text.
-     * @see HologramFunction
-     * @see #updateHologram()
+     * @param aboveHead - The text to set above name.
      */
-    void setBelowHead(@Nullable HologramFunction function);
-
+    void setAboveHead(@Nullable LineSupplier aboveHead);
+    
     /**
-     * Updates the lines of the {@link PlayerHologram}.
-     * <p>Ths update is done is the specific order</p>
-     * <ul>
-     *     <li>The hologram lines are cleared.
-     *     <li>If aboveHead is not null, it's applied.
-     *     <li>If the NPC has a name, it's applied.
-     *     <li>If belowHead is not null, it's applied.
-     * </ul>
+     * Sets the below text of this {@link Human} name tag.
      *
-     * @see PlayerHologram
+     * @param belowHead - The text to set below name tag.
+     */
+    void setBelowHead(@Nullable LineSupplier belowHead);
+    
+    /**
+     * Forcefully updates the hologram text.
      */
     void updateHologram();
-
+    
     /**
-     * Returns Bukkit entity of this NPC.
+     * Gets whether this {@link Human} has a <i>dynamic</i> name tag.
+     * <p>Dynamic tag will change the {@code Y} offset based on {@link Human} position.</p>
      *
-     * @return Bukkit entity of this NPC.
-     */
-    Player bukkitEntity();
-
-    default HumanNPC handle() {
-        return (HumanNPC) this;
-    }
-
-    /**
-     * Gets if this NPC name tag is dynamic.
-     * <br>
-     * Dynamic name tag will change its height based on NPCs state.
-     *
-     * @return true if this NPCs name tag is dynamic.
+     * @return {@code true} if this {@link Human} has <i>dynamic</i> name tag; {@code false} otherwise.
      */
     boolean isDynamicNameTag();
-
-    /**
-     * Returns players that can see this NPC.
-     *
-     * @return players that can see this NPC.
-     */
-    @Nonnull
-    Player[] getPlayers();
-
-    /**
-     * Static access to creating NPC.
-     *
-     * @param location - Location to create at.
-     */
-    @Nonnull
-    static Human create(@Nonnull Location location) {
-        return HumanNPC.create(location);
-    }
-
-    /**
-     * Static access to creating NPC.
-     *
-     * @param location - Location to create at.
-     * @param name     - NPC name.
-     */
-    @Nonnull
-    static Human create(@Nonnull Location location, @Nonnull String name) {
-        return HumanNPC.create(location, name);
-    }
-
-    /**
-     * Static access to creating NPC.
-     *
-     * @param location - Location to create at.
-     * @param name     - NPC name.
-     * @param skin     - Skin owner username.
-     */
-    @Nonnull
-    static Human create(@Nonnull Location location, @Nonnull String name, @Nonnull String skin) {
-        return HumanNPC.create(location, name, skin);
-    }
+    
 }
