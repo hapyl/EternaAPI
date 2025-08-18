@@ -1,8 +1,9 @@
 package me.hapyl.eterna.module.parkour;
 
 import com.google.common.collect.Maps;
-import org.bukkit.entity.Player;
+import me.hapyl.eterna.module.util.Compute;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -10,40 +11,27 @@ import java.util.Map;
  */
 public class ParkourStatistics {
 
-    private final Player player;
     private final Map<Type, Long> valueMap;
 
-    public ParkourStatistics(Player player) {
-        this.player = player;
-        valueMap = Maps.newHashMap();
+    ParkourStatistics() {
+        this.valueMap = Maps.newHashMap();
     }
 
-    public void increment(Type type, long value) {
-        valueMap.put(type, getStat(type) + value);
+    public void increment(@Nonnull Type type, long value) {
+        this.valueMap.compute(type, Compute.longAdd(value));
     }
 
-    public void decrement(Type type, long value) {
-        valueMap.put(type, getStat(type) - value);
-    }
-
-    public long getStat(Type type) {
+    public long getStat(@Nonnull Type type) {
         return valueMap.getOrDefault(type, 0L);
     }
 
-    public void reset(Type type) {
-        valueMap.put(type, 0L);
-    }
-
-    public void resetAll() {
-        for (Type value : Type.values()) {
-            reset(value);
-        }
+    public void reset() {
+        this.valueMap.clear();
     }
 
     public enum Type {
         JUMP,
         CHECKPOINT_TELEPORT
-        // More to come. Maybe
     }
 
 }

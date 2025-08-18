@@ -21,6 +21,6 @@ public final class HologramManager extends EternaManager<Hologram, Boolean> impl
 
     @Override
     public void dispose() {
-        managing.keySet().forEach(Hologram::dispose);
+        managing.keySet().forEach(Hologram::destroy);
     }
 }

@@ -53,7 +53,7 @@ public class ReplayData {
 
     public final void use(@Nonnull HumanNPC human) {
         // Location
-        human.setLocation(location);
+        human.teleport(location);
 
         // Equipment
         human.setEquipment(equipment);

@@ -8,7 +8,6 @@ import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.reflect.npc.HumanNPC;
-import me.hapyl.eterna.module.reflect.packet.Packets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
@@ -130,7 +129,7 @@ public final class Reflect {
      * @param player - Player to update location for.
      */
     public static void updateEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        Packets.Clientbound.teleportEntity(entity).send(player);
+        sendPacket(player, PacketFactory.makePacketTeleportEntity(entity));
     }
     
     /**
@@ -152,7 +151,7 @@ public final class Reflect {
      * @param player - Player to remove this entity for.
      */
     public static void destroyEntity(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        Packets.Clientbound.destroyEntity(entity).send(player);
+        sendPacket(player, PacketFactory.makePacketRemoveEntity(entity));
     }
     
     /**
@@ -240,7 +239,7 @@ public final class Reflect {
      * @param player - Player, who will see the change.
      */
     public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        sendPacket(player, new ClientboundSetEntityDataPacket(getEntityId(entity), getDataWatcher(entity).getNonDefaultValues()));
+        sendPacket(player, PacketFactory.makePacketSetEntityData(entity));
     }
     
     /**
@@ -687,7 +686,7 @@ public final class Reflect {
      * @param bukkitItem - Bukkit itemstack.
      * @return NMS itemstack.
      */
-    public static ItemStack bukkitItemToNMS(@Nonnull org.bukkit.inventory.ItemStack bukkitItem) {
+    public static ItemStack bukkitItemToNMS(@Nullable org.bukkit.inventory.ItemStack bukkitItem) {
         return (ItemStack) invokeMethod(
                 getCraftMethod("inventory.CraftItemStack", "asNMSCopy", org.bukkit.inventory.ItemStack.class),
                 null,

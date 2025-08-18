@@ -4,7 +4,6 @@ import net.minecraft.world.entity.Pose;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public enum NPCPose {
 
@@ -65,7 +64,7 @@ public enum NPCPose {
         return this.nms;
     }
 
-    @Nullable
+    @Nonnull
     public static NPCPose fromNMS(@Nonnull Pose nms) {
         for (NPCPose value : values()) {
             if (value.nms == nms) {
@@ -73,7 +72,7 @@ public enum NPCPose {
             }
         }
 
-        return null;
+        throw new IllegalArgumentException("Illegal pose: " + nms);
     }
 
     @Nonnull

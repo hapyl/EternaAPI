@@ -5,33 +5,33 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * Stored all player's parkour-related data.
+ * Stores player-related {@link Parkour} data.
  */
 public class ParkourData {
-
+    
     private final Player player;
     private final Parkour parkour;
     private final ParkourStatistics stats;
-
     private final PlayerInfo info;
-    private List<ParkourPosition> checkpoints;
+    
+    private LinkedList<ParkourPosition> checkpoints;
     private ParkourPosition previousCheckpoint;
+    
     private long startedAt;
-    private long finishedAt = -1;
-
-    public ParkourData(Player player, Parkour parkour) {
+    private long finishedAt;
+    
+    public ParkourData(@Nonnull Player player, @Nonnull Parkour parkour) {
         this.player = player;
         this.parkour = parkour;
-        this.stats = new ParkourStatistics(player);
+        this.stats = new ParkourStatistics();
         this.startedAt = System.currentTimeMillis();
         this.info = new PlayerInfo(player);
-        resetCheckpoints();
+        
+        this.reset();
     }
     
     @Nonnull
@@ -39,166 +39,118 @@ public class ParkourData {
         return player;
     }
     
-    @Nullable // if last checkpoint
-    public ParkourPosition getNextCheckpoint() {
-        return !checkpoints.isEmpty() ? checkpoints.getFirst() : null;
-    }
-
     @Nullable
-    public ParkourPosition getCurrentCheckpoint() {
-        return this.checkpoints.getFirst();
+    public ParkourPosition getNextCheckpoint() {
+        return checkpoints.peekFirst();
     }
-
-    public void resetTime() {
+    
+    public void reset() {
         this.startedAt = System.currentTimeMillis();
-        this.stats.resetAll();
+        this.finishedAt = -1L;
+        this.stats.reset();
+        
+        this.checkpoints = this.parkour.getCheckpoints();
+        this.previousCheckpoint = null;
     }
-
-    public PlayerInfo getPlayerInfo() {
-        return info;
-    }
-
-    public void resetCheckpoints() {
-        this.checkpoints = new ArrayList<>(this.parkour.getCheckpoints());
-        previousCheckpoint = null;
-    }
-
-    public boolean hasNextCheckpoint() {
-        return getNextCheckpoint() != null;
-    }
-
-    public boolean hasLastCheckpoint() {
-        return previousCheckpoint != null;
-    }
-
-    public boolean isNextCheckpoint(ParkourPosition position) {
-        if (!hasNextCheckpoint()) {
-            return false;
-        }
-        return Objects.requireNonNull(getNextCheckpoint()).compare(position);
-    }
-
-    public List<ParkourPosition> getCheckpoints() {
-        return checkpoints;
-    }
-
+    
+    @Nonnull
     public Parkour getParkour() {
         return parkour;
     }
-
-    public long getStartedAt() {
-        return startedAt;
+    
+    @Nonnull
+    public PlayerInfo getPlayerInfo() {
+        return info;
     }
-
-    public long getFinishedAt() {
-        return finishedAt;
+    
+    @Nonnull
+    public ParkourStatistics getStats() {
+        return stats;
     }
-
-    public void setFinishedAt(long finishedAt) {
-        this.finishedAt = finishedAt;
+    
+    public long startedAt() {
+        return this.startedAt;
     }
-
-    public boolean isPreviousCheckpoint(Location location) {
-        return previousCheckpoint != null && previousCheckpoint.compare(location);
+    
+    public long finishedAt() {
+        return this.finishedAt;
     }
-
-    public void nextCheckpoint(boolean sendMessage) {
-        if (!hasNextCheckpoint()) {
-            return;
-        }
-
-        final ParkourPosition currentCheckpoint = getCurrentCheckpoint();
-        previousCheckpoint = currentCheckpoint;
-        checkpoints.remove(currentCheckpoint);
-
-        if (sendMessage) {
-            getParkour().getFormatter().sendCheckpointPassed(this);
+    
+    public void nextCheckpoint() {
+        final ParkourPosition checkpoint = checkpoints.pollFirst();
+        
+        // No more checkpoints
+        if (checkpoint != null) {
+            this.previousCheckpoint = checkpoint;
+            this.parkour.getFormatter().sendCheckpointPassed(this);
         }
     }
-
+    
     public int passedCheckpointsCount() {
-        return (checkpoints.size() - parkour.getCheckpoints().size()) * -1;
+        return parkour.checkpointCount() - checkpoints.size();
     }
-
+    
     public int missedCheckpointsCount() {
-        return parkour.getCheckpoints().size() - passedCheckpointsCount();
+        return parkour.checkpointCount() - passedCheckpointsCount();
     }
-
+    
     @Nullable
     public ParkourPosition getPreviousCheckpoint() {
         return previousCheckpoint;
     }
-
-    public void setPreviousCheckpoint(ParkourPosition previousCheckpoint) {
-        this.previousCheckpoint = previousCheckpoint;
-    }
-
-    public ParkourStatistics getStats() {
-        return stats;
-    }
-
+    
     public void resetFinished() {
-        this.finishedAt = -1;
+        this.finishedAt = -1L;
     }
-
+    
     public void setFinished() {
         if (isFinished()) {
             return;
         }
-
-        finishedAt = System.currentTimeMillis();
+        
+        this.finishedAt = System.currentTimeMillis();
     }
-
+    
     public boolean isFinished() {
-        return finishedAt != -1;
+        return finishedAt != -1L;
     }
-
+    
     public long getTimePassed() {
         return System.currentTimeMillis() - this.startedAt;
     }
-
+    
     public long getCompletionTime() {
         return this.finishedAt - this.startedAt;
     }
-
+    
+    @Nonnull
     public String formatTime(long millis) {
-        if (millis >= 3600000) {
-            return new SimpleDateFormat("HH:mm:ss.SSS").format(millis);
-        }
-        else if (millis >= 60000) {
-            return new SimpleDateFormat("mm:ss.SSS").format(millis);
-        }
-        else {
-            return new SimpleDateFormat("ss.SSS").format(millis);
-        }
+        return parkour.formatTime(millis);
     }
-
+    
+    @Nonnull
     public String getTimePassedFormatted() {
         return formatTime(getTimePassed());
     }
-
+    
+    @Nonnull
     public String getCompletionTimeFormatted() {
         return formatTime(getCompletionTime());
     }
-
+    
     @Override
     public String toString() {
         return "Data{" +
-                "parkour=" + parkour.getName() +
-                ", stats=" + stats.toString() +
-                ", info=" + info.toString() +
-                ", passedCheckpoints=" + checkpoints +
-                ", lastCheckpoint=" + previousCheckpoint +
-                ", startedAt=" + startedAt +
-                ", finishedAt=" + finishedAt +
-                '}';
+               "parkour=" + parkour.getName() +
+               ", stats=" + stats.toString() +
+               ", info=" + info.toString() +
+               ", passedCheckpoints=" + checkpoints +
+               ", lastCheckpoint=" + previousCheckpoint +
+               ", startedAt=" + startedAt +
+               ", finishedAt=" + finishedAt +
+               '}';
     }
-
-    public boolean compareParkour(Parkour parkour) {
-        return this.parkour != null && this.parkour.equals(parkour);
-    }
-
-    // Checks if location is a valid checkpoint
+    
     public boolean isFutureCheckpoint(Location clickedBlockLocation) {
         for (ParkourPosition checkpoint : checkpoints) {
             if (checkpoint.compare(clickedBlockLocation)) {
@@ -206,5 +158,10 @@ public class ParkourData {
             }
         }
         return false;
+    }
+    
+    @Nonnull
+    protected List<ParkourPosition> getCheckpoints() {
+        return checkpoints;
     }
 }

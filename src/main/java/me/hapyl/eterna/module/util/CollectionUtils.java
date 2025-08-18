@@ -756,7 +756,7 @@ public class CollectionUtils {
             consumer.accept(iterator, next);
         }
     }
-
+    
     private static <E, S> E getFromIndexed(int index, S s, Function<S, Integer> fnSize, BiFunction<S, Integer, E> fnGet) {
         final Integer size = fnSize.apply(s);
 

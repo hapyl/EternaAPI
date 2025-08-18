@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.reflect.npc;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,49 +10,50 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.entity.LimitedVisibility;
+import me.hapyl.eterna.module.entity.ViewDistance;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
-import me.hapyl.eterna.module.hologram.HologramFunction;
-import me.hapyl.eterna.module.hologram.PlayerHologram;
+import me.hapyl.eterna.module.hologram.Hologram;
+import me.hapyl.eterna.module.hologram.LineSupplier;
 import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
 import me.hapyl.eterna.module.reflect.JsonHelper;
+import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Placeholder;
 import me.hapyl.eterna.module.util.Runnables;
+import me.hapyl.eterna.module.util.Ticking;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
+import net.minecraft.network.protocol.game.ClientboundHurtAnimationPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
+import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.AreaEffectCloud;
-import net.minecraft.world.entity.EquipmentSlot;
-import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
 
@@ -64,7 +64,7 @@ import java.util.function.Function;
  */
 @SuppressWarnings("unused")
 @TestedOn(version = Version.V1_21_8)
-public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
+public class HumanNPC implements Human, NPCListener, ViewDistance, Ticking {
     
     public static final double CHAIR_LOCATION_Y_OFFSET = 0.39d;
     public static final double CROUCH_LOCATION_Y_OFFSET = 0.3d;
@@ -72,10 +72,12 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     
     public static final double HOLOGRAM_Y_OFFSET = 1.75d;
     
+    public static final int defaultViewDistance = 48;
+    
     private static final String nameToUuidRequest = "https://api.mojang.com/users/profiles/minecraft/%s";
     private static final String uuidToProfileRequest = "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false";
     
-    protected final Set<Player> showingTo = Sets.newHashSet();
+    protected final Map<Player, Visibility> showingTo = Maps.newHashMap();
     protected final Map<Player, InteractionDelay> interactedAt = Maps.newHashMap();
     
     protected final PacketTeam team;
@@ -83,25 +85,24 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     private final UUID uuid;
     private final String hexName;
     private final EternaPlayer human;
-    private final PlayerHologram hologram;
+    private final Hologram hologram;
     
     private final NPCEquipment equipment;
     private final int id;
     
     private String defaultName;
-    private Location location;
     
     @Nonnull private NPCFormat format;
     
     private int interactionDelay;
-    private int lookAtCloseDist;
+    private double lookAtCloseDist;
+    private double viewDistance;
     
     private boolean collision;
-    private boolean alive;
     
     @Nullable private Dialog dialog;
-    @Nullable private HologramFunction aboveHead;
-    @Nullable private HologramFunction belowHead;
+    @Nullable private LineSupplier aboveHead;
+    @Nullable private LineSupplier belowHead;
     
     private BukkitTask moveTask;
     private AreaEffectCloud chair;
@@ -127,7 +128,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      *                    NPCs support per-player names: {@link #getName(Player)}
      * @param skinOwner   - The skin owner.
      *                    I strongly recommend against setting a skin using the owner, unless you
-     *                    specifically want to set a skin for a given player, otherwise, prefer {@link #setSkin(String, String)}
+     *                    specifically want to set a skin for a given player, otherwise, prefer {@link #setSkin(PlayerSkin)}
      */
     public HumanNPC(@Nonnull Location location, @Range(from = 0, to = 32) @Nullable String defaultName, @Nullable String skinOwner) {
         this(location, defaultName, skinOwner, uuid -> ("§8[NPC] " + uuid.toString().replace("-", "")).substring(0, 16));
@@ -142,7 +143,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      *                    NPCs support per-player names: {@link #getName(Player)}
      * @param skinOwner   - The skin owner.
      *                    I strongly recommend against setting a skin using the owner, unless you
-     *                    specifically want to set a skin for a given player, otherwise, prefer {@link #setSkin(String, String)}
+     *                    specifically want to set a skin for a given player, otherwise, prefer {@link #setSkin(PlayerSkin)}
      * @param hexNameFn   - A {@link Function} on how to create a hex name for the {@link HumanNPC}.
      *                    Hex name is the actual entity name, used for team collision and name tag visibility.
      */
@@ -157,7 +158,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         this.human = new EternaPlayer(location, hexName);
         this.human.setLocation(location);
         
-        this.hologram = new PlayerHologram(BukkitUtils.newLocation(location).subtract(0, HOLOGRAM_Y_OFFSET, 0));
+        this.hologram = Hologram.ofArmorStand(BukkitUtils.newLocation(location).subtract(0, HOLOGRAM_Y_OFFSET, 0));
         updateHologram();
         
         this.equipment = new NPCEquipment();
@@ -170,8 +171,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         this.id = human.getEntityId();
         
         this.defaultName = defaultName;
-        this.location = BukkitUtils.newLocation(location);
-        
         this.format = NPCFormat.DEFAULT;
         
         this.interactionDelay = 10;
@@ -183,14 +182,13 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
         
         // Default visibility to 40 blocks
-        setVisibility(40);
+        viewDistance = defaultViewDistance;
         
         // Register NPC
         Eterna.getManagers().npc.register(this);
         
-        // Set collision and mark as 'alive'
+        // Set collision
         this.collision = true;
-        this.alive = true;
     }
     
     @Nonnull
@@ -210,9 +208,8 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
     
     @Override
-    public HumanNPC setInteractionDelay(int interactionDelay) {
+    public void setInteractionDelay(int interactionDelay) {
         this.interactionDelay = interactionDelay;
-        return this;
     }
     
     @Override
@@ -222,32 +219,15 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     
     @Override
     public void setShaking(boolean shaking) {
-        showingTo.forEach(player -> Reflect.setDataWatcherValue(
-                human,
-                DataWatcherType.INT,
-                7,
-                shaking ? Integer.MAX_VALUE : -100
-        ));
+        showingTo.keySet()
+                 .forEach(player -> Reflect.setDataWatcherValue(
+                         human,
+                         DataWatcherType.INT,
+                         7,
+                         shaking ? Integer.MAX_VALUE : -100
+                 ));
         
         updateDataWatcher();
-    }
-    
-    @Nonnull
-    @Override
-    public PlayerHologram getHologram() {
-        return hologram;
-    }
-    
-    @Override
-    public void setAboveHead(@Nullable HologramFunction function) {
-        this.aboveHead = function;
-        updateHologram();
-    }
-    
-    @Override
-    public void setBelowHead(@Nullable HologramFunction function) {
-        this.belowHead = function;
-        updateHologram();
     }
     
     @Override
@@ -256,7 +236,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             final StringArray array = StringArray.empty();
             
             if (aboveHead != null) {
-                array.append(aboveHead.apply(player));
+                array.append(aboveHead.supply(player));
             }
             
             if (hasName()) {
@@ -264,49 +244,39 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             }
             
             if (belowHead != null) {
-                array.append(belowHead.apply(player));
+                array.append(belowHead.supply(player));
             }
             
             return array;
         });
     }
     
+    @Nonnull
     @Override
     public Player bukkitEntity() {
         return this.human.getBukkitEntity();
     }
     
+    @Nonnull
     @Override
-    public boolean isAlive() {
-        return alive;
-    }
-    
-    public void setAlive(boolean alive) {
-        this.alive = alive;
+    public Hologram getHologram() {
+        return hologram;
     }
     
     @Override
-    public Set<Player> getViewers() {
-        return showingTo;
+    public void setAboveHead(@Nullable LineSupplier abovehead) {
+        this.aboveHead = abovehead;
+    }
+    
+    @Override
+    public void setBelowHead(@Nullable LineSupplier belowHead) {
+        this.belowHead = belowHead;
     }
     
     @Nonnull
     @Override
     public Location getLocation() {
-        return BukkitUtils.newLocation(location);
-    }
-    
-    @Override
-    public void setLocation(Location location) {
-        this.location = location;
-        this.human.setLocation(location);
-        this.setHeadRotation(this.location.getYaw());
-        
-        sendPacket(human.packetFactory.getPacketTeleport());
-        syncText();
-        
-        // Call "event"
-        showingTo.forEach(player -> onTeleport(player, location));
+        return human.getLocation();
     }
     
     @Override
@@ -342,7 +312,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             removeChair();
             
             // Fix chair offset
-            setLocation(getLocation());
+            teleport(getLocation());
         }
     }
     
@@ -362,35 +332,16 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         restPosition = null;
     }
     
+    
+    @Nonnull
     @Override
-    public void hideVisibility(@Nonnull Player player) {
-        human.hide(player);
+    public Set<Player> showingTo() {
+        return Set.copyOf(showingTo.keySet());
     }
     
     @Override
-    public void showVisibility(@Nonnull Player player) {
-        // Fetch team
-        team.create(player);
-        team.entry(player, hexName);
-        
-        human.show(player);
-        
-        setLocation(location);
-        
-        updateEquipment();
-        updateCollision();
-        updateSkin();
-        
-        updateDataWatcher();
-        updateSitting();
-        
-        // Hide tab name
-        Runnables.runLater(() -> human.hideTabName(player), 5);
-    }
-    
-    @Override
-    public boolean isShowingTo(Player player) {
-        return this.showingTo.contains(player);
+    public boolean isShowingTo(@Nonnull Player player) {
+        return this.showingTo.containsKey(player);
     }
     
     @Nonnull
@@ -482,27 +433,23 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
     
     @Override
-    public int getLookAtCloseDist() {
+    public double getLookAtCloseDist() {
         return lookAtCloseDist;
     }
     
     @Override
-    public HumanNPC setLookAtCloseDist(int lookAtCloseDist) {
+    public void setLookAtCloseDist(double lookAtCloseDist) {
         this.lookAtCloseDist = lookAtCloseDist;
-        return this;
     }
     
+    @Nonnull
     @Override
     public NPCPose getPose() {
         return human.getNPCPose();
     }
     
     @Override
-    public HumanNPC setPose(@Nonnull NPCPose pose) {
-        if (!isShowing()) { // don't care, plugins should not call this unless NPC is showing to someone
-            return this;
-        }
-        
+    public void setPose(@Nonnull NPCPose pose) {
         // STANDING pose handled differently because fuck me
         if (pose == NPCPose.STANDING) {
             human.setPose(NPCPose.fakeStandingPoseForNPCBecauseActualStandingPoseDoesNotWorkForSomeReason());
@@ -517,114 +464,38 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         }
         
         syncText();
-        return this;
     }
     
     @Override
-    public boolean isShowing() {
-        showingTo.removeIf(player -> !player.isOnline());
+    public void lookAt(@Nonnull Location lookAt) {
+        final Location location = getLocation();
+        location.setDirection(lookAt.clone().subtract(location).toVector());
         
-        return !showingTo.isEmpty();
-    }
-    
-    @Override
-    public void lookAt(Entity entity) {
-        lookAt(entity.getLocation());
-    }
-    
-    @Override
-    public void lookAt(Location location) {
-        this.location.setDirection(location.clone().subtract(this.location).toVector());
-        this.setHeadRotation(this.location.getYaw());
+        this.setHeadRotation(location.getYaw());
         
-        sendPacket(new ClientboundMoveEntityPacket.Rot(
-                this.getId(),
-                (byte) (this.location.getYaw() * 256 / 360),
-                (byte) (this.location.getPitch() * 256 / 360),
-                true
-        ));
+        sendPacketToAll(PacketFactory.makePacketMoveEntityRot(human, location.getYaw(), location.getPitch()));
     }
     
     @Override
     public void teleport(double x, double y, double z, float yaw, float pitch) {
-        teleport(new Location(this.location.getWorld(), x, y, z, yaw, pitch));
+        teleport(new Location(this.human.getLocation().getWorld(), x, y, z, yaw, pitch));
     }
     
     @Override
-    public void teleport(Location location) {
-        this.location.setX(location.getX());
-        this.location.setY(location.getY());
-        this.location.setZ(location.getZ());
-        this.location.setYaw(location.getYaw());
-        this.location.setPitch(location.getPitch());
-        this.setLocation(this.location);
+    public void teleport(@Nonnull Location location) {
+        this.human.setLocation(location);
+        
+        this.setHeadRotation(location.getYaw());
+        
+        sendPacketToAll(human.packetFactory.getPacketTeleport());
         syncText();
-    }
-    
-    @Override
-    public void move(Location location, float speed) {
-        stopMoving();
-        lookAt(location);
         
-        location.setYaw(this.location.getYaw());
-        location.setPitch(this.location.getPitch());
-        
-        moveTask = new BukkitRunnable() {
-            
-            private Location npcLocation = getLocation();
-            private final double distanceToMove = npcLocation.distance(location);
-            private final double speedScaled = distanceToMove / speed;
-            private double deltaX = (location.getX() - npcLocation.getX()) / speedScaled;
-            private double deltaY = (location.getY() - npcLocation.getY()) / speedScaled;
-            private double deltaZ = (location.getZ() - npcLocation.getZ()) / speedScaled;
-            private int distance = 0;
-            
-            @Override
-            public void run() {
-                if (distance >= speedScaled) {
-                    teleport(location);
-                    stopMoving();
-                    cancel();
-                    return;
-                }
-                
-                double newX = npcLocation.getX() + deltaX;
-                double newY = npcLocation.getY() + deltaY;
-                double newZ = npcLocation.getZ() + deltaZ;
-                
-                // Handle Gravity
-                boolean onGround = isOnGround();
-                
-                // Handle climbing on stairs and slabs
-                final World world = getWorld();
-                final Block block = world.getBlockAt((int) newX, (int) newY, (int) newZ);
-                
-                if (!onGround) {
-                    newY -= 0.08 * distance;
-                }
-                
-                // Finally, simulate movement.
-                teleport(newX, newY, newZ, location.getYaw(), location.getPitch());
-                
-                npcLocation = getLocation();
-                deltaX = (location.getX() - npcLocation.getX()) / (speedScaled - distance);
-                deltaY = (location.getY() - npcLocation.getY()) / (speedScaled - distance);
-                deltaZ = (location.getZ() - npcLocation.getZ()) / (speedScaled - distance);
-                
-                distance++;
-            }
-        }.runTaskTimer(EternaPlugin.getPlugin(), 0L, 1L);
+        showingTo.keySet().forEach(player -> onTeleport(player, location));
     }
     
     @Nonnull
     public World getWorld() {
-        final World world = location.getWorld();
-        
-        if (world == null) {
-            throw new IllegalStateException("Cannot move NPC in unloaded world.");
-        }
-        
-        return world;
+        return getLocation().getWorld();
     }
     
     @Override
@@ -650,38 +521,21 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
     
     @Override
-    public void move(double x, double y, double z, float speed) {
-        move(new Location(getLocation().getWorld(), x, y, z), speed);
-    }
-    
-    @Override
-    public boolean stopMoving() {
-        if (moveTask == null || moveTask.isCancelled()) {
-            return false;
-        }
-        
-        moveTask.cancel();
-        return true;
-    }
-    
-    @Override
-    public void jump(double height) {
-        throw new NotImplementedException();
-    }
-    
-    @Override
     public void setHeadRotation(float yaw, float pitch) {
+        final Location location = getLocation();
         location.setYaw(yaw);
         location.setPitch(pitch);
+        
+        human.setLocation(location);
         human.setYawPitch(yaw, pitch);
         
         setHeadRotation(yaw);
-        sendPacket(human.packetFactory.getPacketTeleport());
+        sendPacketToAll(human.packetFactory.getPacketTeleport());
     }
     
     @Override
     public void setHeadRotation(float yaw) {
-        sendPacket(human.packetFactory.getPacketEntityHeadRotation(yaw));
+        sendPacketToAll(human.packetFactory.getPacketEntityHeadRotation(yaw));
     }
     
     @Override
@@ -694,15 +548,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         swingArm(false);
     }
     
-    @Override
-    public HumanNPC setSkin(@Nonnull String texture, @Nonnull String signature) {
-        final GameProfile profile = human.getProfile();
-        
-        profile.getProperties().removeAll("textures");
-        profile.getProperties().put("textures", new Property("textures", texture, signature));
-        return this;
-    }
-    
     public boolean hasSkin() {
         final Collection<Property> skin = getSkin();
         return skin != null && !skin.isEmpty();
@@ -712,8 +557,12 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return this.human.getProfile().getProperties().get("textures");
     }
     
+    @Override
     public void setSkin(@Nonnull PlayerSkin skin) {
-        setSkin(skin.getTexture(), skin.getSignature());
+        final GameProfile profile = human.getProfile();
+        
+        profile.getProperties().removeAll("textures");
+        profile.getProperties().put("textures", new Property("textures", skin.getTexture(), skin.getSignature()));
     }
     
     /**
@@ -723,7 +572,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      * NPC will reload, resetting all per-player packet changes
      * applied before this.
      * <p>
-     * I recommend use {@link HumanNPC#setSkin(String, String)}
+     * I recommend use {@link HumanNPC#setSkin(PlayerSkin)}
      * to apply textures and signature manually, instead of grabbing
      * it from API.
      * <p>
@@ -750,63 +599,60 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
                 
                 final String signature = textures.signature();
                 
-                setSkin(textures.value(), signature != null ? signature : "");
-                refresh();
+                setSkin(PlayerSkin.of(textures.value(), signature != null ? signature : ""));
+                reloadNpcData();
                 
             }
             catch (Exception e) {
-                EternaLogger.exception(e);
+                throw EternaLogger.exception(e);
             }
             
             return;
         }
         
         // Fetch from API if the player is not online
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                final JsonObject uuidJson = JsonHelper.getJson(nameToUuidRequest.formatted(username));
-                
-                if (uuidJson == null) {
-                    return;
-                }
-                
-                final JsonElement uuid = uuidJson.get("id");
-                
-                if (uuid == null) {
-                    return;
-                }
-                
-                final JsonObject profileObject = JsonHelper.getJson(uuidToProfileRequest.formatted(uuid.getAsString()));
-                
-                if (profileObject == null) {
-                    return;
-                }
-                
-                final JsonArray jsonArray = profileObject.get("properties").getAsJsonArray();
-                
-                if (jsonArray.isEmpty()) {
-                    return;
-                }
-                
-                final JsonObject textures = jsonArray.get(0).getAsJsonObject();
-                
-                final String value = textures.get("value").getAsString();
-                final String signature = textures.get("signature").getAsString();
-                
-                setSkin(value, signature);
-                refresh();
+        Runnables.runAsync(() -> {
+            final JsonObject uuidJson = JsonHelper.getJson(nameToUuidRequest.formatted(username));
+            
+            if (uuidJson == null) {
+                return;
             }
-        }.runTaskAsynchronously(EternaPlugin.getPlugin());
+            
+            final JsonElement uuid = uuidJson.get("id");
+            
+            if (uuid == null) {
+                return;
+            }
+            
+            final JsonObject profileObject = JsonHelper.getJson(uuidToProfileRequest.formatted(uuid.getAsString()));
+            
+            if (profileObject == null) {
+                return;
+            }
+            
+            final JsonArray jsonArray = profileObject.get("properties").getAsJsonArray();
+            
+            if (jsonArray.isEmpty()) {
+                return;
+            }
+            
+            final JsonObject textures = jsonArray.get(0).getAsJsonObject();
+            
+            final String value = textures.get("value").getAsString();
+            final String signature = textures.get("signature").getAsString();
+            
+            setSkin(PlayerSkin.of(value, signature));
+            reloadNpcData();
+        });
     }
     
     @Override
-    public void setGhostItem(ItemSlot slot, ItemStack item, Player player) {
-        sendEquipmentChange(slot, item, player);
+    public void sendItemChange(@Nonnull Player player, @Nonnull ItemSlot slot, @Nullable ItemStack item) {
+        Reflect.sendPacket(player, PacketFactory.makePacketSetEquipment(human, List.of(new Pair<>(slot.getSlot(), Reflect.bukkitItemToNMS(item)))));
     }
     
     @Override
-    public void setItem(ItemSlot slot, ItemStack item) {
+    public void setItem(@Nonnull ItemSlot slot, @Nullable ItemStack item) {
         equipment.setItem(slot, item);
         updateEquipment();
     }
@@ -814,14 +660,18 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public void updateEquipment() {
         if (this.equipment != null) {
-            showingTo.forEach(player -> {
-                sendEquipmentChange(ItemSlot.HEAD, equipment.getHelmet(), player);
-                sendEquipmentChange(ItemSlot.CHEST, equipment.getChestplate(), player);
-                sendEquipmentChange(ItemSlot.LEGS, equipment.getLeggings(), player);
-                sendEquipmentChange(ItemSlot.FEET, equipment.getBoots(), player);
-                sendEquipmentChange(ItemSlot.MAINHAND, equipment.getHand(), player);
-                sendEquipmentChange(ItemSlot.OFFHAND, equipment.getOffhand(), player);
-            });
+            final ClientboundSetEquipmentPacket packet = PacketFactory.makePacketSetEquipment(
+                    human, List.of(
+                            new Pair<>(ItemSlot.HEAD.getSlot(), Reflect.bukkitItemToNMS(equipment.getHelmet())),
+                            new Pair<>(ItemSlot.CHEST.getSlot(), Reflect.bukkitItemToNMS(equipment.getChestplate())),
+                            new Pair<>(ItemSlot.LEGS.getSlot(), Reflect.bukkitItemToNMS(equipment.getLeggings())),
+                            new Pair<>(ItemSlot.FEET.getSlot(), Reflect.bukkitItemToNMS(equipment.getBoots())),
+                            new Pair<>(ItemSlot.MAINHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getHand())),
+                            new Pair<>(ItemSlot.OFFHAND.getSlot(), Reflect.bukkitItemToNMS(equipment.getOffhand()))
+                    )
+            );
+            
+            showingTo.keySet().forEach(player -> Reflect.sendPacket(player, packet));
         }
     }
     
@@ -830,38 +680,23 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
     
     @Override
-    public void setEquipment(EntityEquipment equipment) {
+    public void setEquipment(@Nonnull EntityEquipment equipment) {
         this.equipment.setEquipment(equipment);
         updateEquipment();
     }
     
     @Override
-    public void showAll() {
-        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            this.show(onlinePlayer);
-        }
-    }
-    
-    @Override
-    public void show(@Nonnull Player player) {
-        showingTo.add(player);
-        hologram.create(player);
-        
-        onSpawn(player);
-        showVisibility(player);
-    }
-    
-    @Override
     public void reloadNpcData() {
-        showingTo.forEach(player -> {
-            hideVisibility(player);
-            showVisibility(player);
-        });
+        showingTo.keySet()
+                 .forEach(player -> {
+                     hide0(player);
+                     show0(player);
+                 });
     }
     
     @Override
-    public void setDataWatcherByteValue(int key, byte value) {
-        human.setDataWatcherByteValue(key, value);
+    public void setDataWatcherByteValue(int index, byte value) {
+        human.setDataWatcherByteValue(index, value);
         
         updateDataWatcher();
     }
@@ -877,6 +712,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return human.getDataWatcherByteValue(key);
     }
     
+    @Nonnull
     @Override
     public SynchedEntityData getDataWatcher() {
         return human.getDataWatcher();
@@ -888,23 +724,23 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
     
     @Override
-    public void updateSkin(SkinPart... parts) {
+    public void updateSkin(@Nonnull SkinPart... parts) {
         setDataWatcherByteValue(17, SkinPart.mask(parts));
     }
     
     @Override
-    public void playAnimation(NPCAnimation animation) {
+    public void playAnimation(@Nonnull NPCAnimation animation) {
         if (animation == NPCAnimation.TAKE_DAMAGE) {
-            sendPacket(new ClientboundHurtAnimationPacket(human));
+            sendPacketToAll(new ClientboundHurtAnimationPacket(human));
             return;
         }
         
-        sendPacket(new ClientboundAnimatePacket(this.human, animation.getPos()));
+        sendPacketToAll(new ClientboundAnimatePacket(this.human, animation.getPos()));
     }
     
     @Override
     public void updateDataWatcher() {
-        human.updateMetadata(showingTo);
+        human.updateMetadata(showingTo.keySet());
     }
     
     @Override
@@ -913,37 +749,63 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         Eterna.getManagers().npc.unregister(getId());
     }
     
-    /**
-     * Removes the NPC without unregistering it.
-     */
+    @ApiStatus.Internal
     public final void remove0() {
-        this.alive = false;
-        
         if (this.chair != null) {
-            showingTo.forEach(player -> Reflect.destroyEntity(this.chair, player));
+            showingTo.keySet().forEach(player -> Reflect.destroyEntity(this.chair, player));
         }
         
-        this.hide();
+        this.hideAll();
         this.deleteTeam();
         this.showingTo.clear();
     }
     
     @Override
-    public void hide() {
-        showingTo.forEach(this::hide0);
-        showingTo.clear();
+    @OverridingMethodsMustInvokeSuper
+    public void show(@Nonnull Player player) {
+        show0(player);
+        showingTo.put(player, Visibility.VISIBLE);
+    }
+    
+    @ApiStatus.Internal
+    public final void show0(@Nonnull Player player) {
+        // Make holograms
+        hologram.show(player);
+        
+        onSpawn(player);
+        
+        // Prepare teams
+        team.create(player);
+        team.entry(player, hexName);
+        
+        // Show the actual entity
+        human.show(player);
+        
+        // Sync location & text
+        Reflect.sendPacket(player, human.packetFactory.getPacketTeleport());
+        syncText();
+        
+        updateEquipment();
+        updateCollision();
+        updateSkin();
+        
+        updateDataWatcher();
+        updateSitting();
+        
+        // Hide tab name
+        Runnables.runLater(() -> human.hideTabName(player), 5);
     }
     
     @Override
     public void hide(@Nonnull Player player) {
         hide0(player);
-        
         showingTo.remove(player);
     }
     
-    public void hide0(@Nonnull Player player) {
+    @ApiStatus.Internal
+    public final void hide0(@Nonnull Player player) {
         human.hide(player);
-        hologram.destroy(player);
+        hologram.hide(player);
         
         if (chair != null) {
             Reflect.destroyEntity(chair, player);
@@ -952,11 +814,22 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         onDespawn(player);
     }
     
+    @Nullable
     @Override
-    public HumanNPC setCollision(boolean flag) {
+    public Visibility visibility(@Nonnull Player player) {
+        return showingTo.get(player);
+    }
+    
+    @Override
+    public void hideAll() {
+        showingTo.keySet().forEach(this::hide0);
+        showingTo.clear();
+    }
+    
+    @Override
+    public void setCollision(boolean flag) {
         collision = flag;
         updateCollision();
-        return this;
     }
     
     @Override
@@ -974,10 +847,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
      * Syncs the text above the NPCs head.
      */
     public void syncText() {
-        if (this.hologram == null) {
-            return;
-        }
-        
         final Location location = getLocation();
         
         location.add(0.0d, hologramYOffset(), 0.0d);
@@ -994,7 +863,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             }
         }
         
-        this.hologram.move(location);
+        this.hologram.teleport(location);
     }
     
     /**
@@ -1009,12 +878,6 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     @Override
     public boolean isDynamicNameTag() {
         return true;
-    }
-    
-    @Override
-    @Nonnull
-    public Player[] getPlayers() {
-        return showingTo.toArray(new Player[0]);
     }
     
     @Override
@@ -1041,12 +904,78 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         return DialogEntry.of(this, entries);
     }
     
-    protected void sendPacket(@Nonnull Packet<?> packet) {
+    @Override
+    public double viewDistance() {
+        return viewDistance;
+    }
+    
+    @Override
+    public void viewDistance(@Range(from = 0, to = Long.MAX_VALUE) double viewDistance) {
+        this.viewDistance = viewDistance;
+    }
+    
+    @Override
+    public boolean canBeSeenBy(@Nonnull Player player) {
+        if (viewDistance() > 0) {
+            final double distance = player.getLocation().distance(getLocation());
+            
+            return distance <= viewDistance;
+        }
+        
+        return false;
+    }
+    
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public void tick() {
+        // Check for view distance
+        if (hasViewDistance()) {
+            showingTo.entrySet().forEach(entry -> {
+                final Player player = entry.getKey();
+                final Visibility visibility = entry.getValue();
+                
+                final boolean canBeSeen = canBeSeenBy(player);
+                
+                if (canBeSeen && visibility == Visibility.NOT_VISIBLE) {
+                    show0(player);
+                    entry.setValue(Visibility.VISIBLE);
+                }
+                else if (!canBeSeen && visibility == Visibility.VISIBLE) {
+                    hide0(player);
+                    entry.setValue(Visibility.NOT_VISIBLE);
+                }
+            });
+        }
+        
+        // Look at the closest player
+        if (lookAtCloseDist > 0) {
+            final Location location = getLocation();
+            final Player nearest = BukkitUtils.getNearestEntity(location, lookAtCloseDist, lookAtCloseDist, lookAtCloseDist, Player.class);
+            
+            if (nearest != null && nearest.isOnline()) {
+                this.lookAt(nearest);
+            }
+            else {
+                if (restPosition != null) {
+                    final float yaw = location.getYaw();
+                    final float pitch = location.getPitch();
+                    
+                    if (yaw == restPosition.yaw() && pitch == restPosition.pitch()) {
+                        return;
+                    }
+                    
+                    this.setHeadRotation(restPosition.yaw(), restPosition.pitch());
+                }
+            }
+        }
+    }
+    
+    protected void sendPacketToAll(@Nonnull Packet<?> packet) {
         if (showingTo.isEmpty()) {
             return;
         }
         
-        showingTo.forEach(player -> Reflect.sendPacket(player, packet));
+        showingTo.keySet().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
     protected boolean canInteract(@Nonnull Player player) {
@@ -1068,21 +997,14 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             return;
         }
         
-        showingTo.forEach(player -> Reflect.destroyEntity(chair, player));
+        showingTo.keySet().forEach(player -> Reflect.destroyEntity(chair, player));
         chair = null;
-    }
-    
-    private void refresh() {
-        showingTo.forEach(player -> {
-            hideVisibility(player);
-            showVisibility(player);
-        });
     }
     
     private String urlStringToString(String url) {
         StringBuilder text = new StringBuilder();
         try {
-            Scanner scanner = new Scanner(new URL(url).openStream());
+            Scanner scanner = new Scanner(BukkitUtils.url(url).openStream());
             while (scanner.hasNext()) {
                 String line = scanner.nextLine();
                 while (line.startsWith(" ")) {
@@ -1093,7 +1015,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
             scanner.close();
         }
         catch (IOException exception) {
-            EternaLogger.exception(exception);
+            throw EternaLogger.exception(exception);
         }
         return text.toString();
     }
@@ -1105,7 +1027,7 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
         
         final ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(chair);
         
-        showingTo.forEach(player -> {
+        showingTo.keySet().forEach(player -> {
             // Remove old chair even if it didn't exist
             Reflect.destroyEntity(chair, player);
             
@@ -1132,44 +1054,15 @@ public class HumanNPC extends LimitedVisibility implements Human, NPCListener {
     }
     
     private void swingArm(boolean b) {
-        sendPacket(new ClientboundAnimatePacket(this.human, b ? 0 : 3));
-    }
-    
-    private void sendEquipmentChange(ItemSlot slot, ItemStack stack, Player player) {
-        final List<Pair<EquipmentSlot, net.minecraft.world.item.ItemStack>> list = new ArrayList<>();
-        list.add(new Pair<>(slot.getSlot(), toNMSItemStack(stack)));
-        
-        final ClientboundSetEquipmentPacket packet = new ClientboundSetEquipmentPacket(this.getId(), list);
-        
-        Reflect.sendPacket(player, packet);
+        sendPacketToAll(new ClientboundAnimatePacket(this.human, b ? 0 : 3));
     }
     
     private void updateCollision() {
-        for (Player player : getPlayers()) {
-            team.option(player, Team.Option.COLLISION_RULE, collision ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
-        }
+        showingTo.keySet().forEach(player -> team.option(player, Team.Option.COLLISION_RULE, collision ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER));
     }
     
     private void deleteTeam() {
-        for (Player viewer : getViewers()) {
-            team.destroy(viewer);
-        }
-    }
-    
-    private net.minecraft.world.item.ItemStack toNMSItemStack(ItemStack stack) {
-        return Reflect.bukkitItemToNMS(stack);
-    }
-    
-    public static Human create(Location location) {
-        return create(location, "", "");
-    }
-    
-    public static Human create(Location location, String name) {
-        return create(location, name, "");
-    }
-    
-    public static Human create(Location location, String name, String skin) {
-        return new HumanNPC(location, name, skin);
+        showingTo.keySet().forEach(team::destroy);
     }
     
     public static boolean isNPC(int entityId) {

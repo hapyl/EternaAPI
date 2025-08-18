@@ -8,6 +8,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+
 public class ParkourItemStorage {
     
     private final ItemStack itemTeleport;
@@ -15,28 +17,33 @@ public class ParkourItemStorage {
     private final ItemStack itemQuit;
     
     public ParkourItemStorage(ParkourManager parkourManager) {
-        
         this.itemTeleport = new ItemBuilder(Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Key.ofString("eterna_parkour_teleport"))
                 .setName("&aTeleport to Checkpoint")
-                .addLore("Teleport to previous checkpoint.")
+                .addTextBlockLore("""
+                                  Teleports to the previous checkpoint.
+                                  """)
                 .addFunction(ItemFunction.of(parkourManager::checkpoint).cooldown(20))
                 .build();
         
         this.itemReset = new ItemBuilder(Material.REDSTONE, Key.ofString("eterna_parkour_reset"))
                 .setName("&aReset Time")
-                .addSmartLore("Reset parkour time and teleport to the start.")
+                .addSmartLore("""
+                              Reset parkour time and teleport to the start.
+                              """)
                 .addFunction(ItemFunction.of(parkourManager::reset).cooldown(20))
                 .build();
         
         this.itemQuit = new ItemBuilder(Material.REDSTONE_BLOCK, Key.ofString("eterna_parkour_quit"))
                 .setName("&cQuit Parkour")
-                .addSmartLore("Reset parkour time and teleport to the start.")
+                .addSmartLore("""
+                              Abandons this parkour and teleport to the quit location.
+                              """)
                 .addFunction(ItemFunction.of(parkourManager::quit).cooldown(20))
                 .build();
         
     }
     
-    public void giveItems(Player player) {
+    public void giveItems(@Nonnull Player player) {
         player.getInventory().setItem(3, itemTeleport);
         player.getInventory().setItem(5, itemReset);
         player.getInventory().setItem(8, itemQuit);

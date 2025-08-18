@@ -2,12 +2,13 @@ package me.hapyl.eterna.module.reflect.npc;
 
 import com.mojang.authlib.GameProfile;
 import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.player.tablist.PingBars;
 import me.hapyl.eterna.module.reflect.DataWatcherType;
+import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.nulls.NullConnection;
 import me.hapyl.eterna.module.reflect.nulls.NullPacketListener;
-import me.hapyl.eterna.module.reflect.packet.Packets;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -23,9 +24,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public class EternaPlayer extends ServerPlayer {
+public class EternaPlayer extends ServerPlayer implements Showable {
 
-    public final PacketFactory packetFactory;
+    public final EternaPlayerPacketFactory packetFactory;
 
     private Location location;
 
@@ -37,7 +38,7 @@ public class EternaPlayer extends ServerPlayer {
                 ClientInformation.createDefault()
         );
 
-        this.packetFactory = new PacketFactory();
+        this.packetFactory = new EternaPlayerPacketFactory();
         this.location = location;
 
         setConnection();
@@ -101,6 +102,7 @@ public class EternaPlayer extends ServerPlayer {
         absSnapTo(location.getX(), location.getY(), location.getZ(), yaw, pitch);
     }
 
+    @Nonnull
     public NPCPose getNPCPose() {
         return NPCPose.fromNMS(getPose());
     }
@@ -135,6 +137,41 @@ public class EternaPlayer extends ServerPlayer {
     public void updateMetadata(@Nonnull Player player) {
         Reflect.updateMetadata(this, getDataWatcher(), player);
     }
+    
+    @Override
+    public void show(@Nonnull Player player) {
+        final ClientboundPlayerInfoUpdatePacket packetAddPlayer = packetFactory.getPacketAddPlayer();
+        final ClientboundAddEntityPacket packetEntitySpawn = packetFactory.getPacketEntitySpawn();
+        
+        Reflect.sendPacket(player, packetAddPlayer);
+        Reflect.sendPacket(player, packetEntitySpawn);
+    }
+    
+    @Override
+    public void hide(@Nonnull Player player) {
+        final ClientboundPlayerInfoRemovePacket packetRemovePlayer = packetFactory.getPacketRemovePlayer();
+        final ClientboundRemoveEntitiesPacket packetEntityDestroy = packetFactory.getPacketEntityDestroy();
+
+        Reflect.sendPacket(player, packetRemovePlayer);
+        Reflect.sendPacket(player, packetEntityDestroy);
+    }
+    
+    @Nonnull
+    @Override
+    public Collection<Player> showingTo() {
+        return List.of();
+    }
+    
+    
+    public void hideTabName(@Nonnull Player player) {
+        final ClientboundPlayerInfoRemovePacket packet = packetFactory.getPacketRemovePlayer();
+
+        Reflect.sendPacket(player, packet);
+    }
+
+    public void updateLocation(@Nonnull Player player) {
+        Reflect.updateEntityLocation(this, player);
+    }
 
     void setConnection() {
         if (this.connection != null) {
@@ -153,76 +190,50 @@ public class EternaPlayer extends ServerPlayer {
         }
     }
 
-    public void hide(@Nonnull Player player) {
-        final ClientboundPlayerInfoRemovePacket packetRemovePlayer = packetFactory.getPacketRemovePlayer();
-        final ClientboundRemoveEntitiesPacket packetEntityDestroy = packetFactory.getPacketEntityDestroy();
-
-        Reflect.sendPacket(player, packetRemovePlayer);
-        Reflect.sendPacket(player, packetEntityDestroy);
-    }
-
-    public void show(@Nonnull Player player) {
-        final ClientboundPlayerInfoUpdatePacket packetAddPlayer = packetFactory.getPacketAddPlayer();
-        final ClientboundAddEntityPacket packetEntitySpawn = packetFactory.getPacketEntitySpawn();
-
-        Reflect.sendPacket(player, packetAddPlayer);
-        Reflect.sendPacket(player, packetEntitySpawn);
-    }
-
-    public void hideTabName(@Nonnull Player player) {
-        final ClientboundPlayerInfoRemovePacket packet = packetFactory.getPacketRemovePlayer();
-
-        Reflect.sendPacket(player, packet);
-    }
-
-    public void updateLocation(@Nonnull Player player) {
-        Reflect.updateEntityLocation(this, player);
-    }
-
-    public class PacketFactory {
+    public class EternaPlayerPacketFactory {
         @Nonnull
         public ClientboundTeleportEntityPacket getPacketTeleport() {
-            return Packets.Clientbound.teleportEntity(EternaPlayer.this).packet();
+            return PacketFactory.makePacketTeleportEntity(EternaPlayer.this);
         }
 
         @Nonnull
         public ClientboundRotateHeadPacket getPacketEntityHeadRotation(float yaw) {
-            return new ClientboundRotateHeadPacket(EternaPlayer.this, (byte) ((yaw * 256) / 360));
+            return PacketFactory.makePacketRotateHead(EternaPlayer.this, yaw);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketAddPlayer() {
-            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, EternaPlayer.this);
+            return PacketFactory.makePacketPlayerInfoUpdate(EternaPlayer.this, ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketInitPlayer() {
-            return net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(EternaPlayer.this));
+            return PacketFactory.makePacketPlayerInitialization(EternaPlayer.this);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketUpdatePing() {
-            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY, EternaPlayer.this);
+            return PacketFactory.makePacketPlayerInfoUpdate(EternaPlayer.this, ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY);
         }
 
         @Nonnull
         public ClientboundPlayerInfoUpdatePacket getPacketUpdatePlayer() {
-            return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, EternaPlayer.this);
+            return PacketFactory.makePacketPlayerInfoUpdate(EternaPlayer.this, ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME);
         }
 
         @Nonnull
         public ClientboundPlayerInfoRemovePacket getPacketRemovePlayer() {
-            return new ClientboundPlayerInfoRemovePacket(List.of(uuid));
+            return PacketFactory.makePacketPlayerInfoRemove(EternaPlayer.this);
         }
 
         @Nonnull
         public ClientboundAddEntityPacket getPacketEntitySpawn() {
-            return me.hapyl.eterna.module.reflect.PacketFactory.makePacketPlayOutSpawnEntity(EternaPlayer.this, location);
+            return PacketFactory.makePacketAddEntity(EternaPlayer.this, location);
         }
 
         @Nonnull
         public ClientboundRemoveEntitiesPacket getPacketEntityDestroy() {
-            return new ClientboundRemoveEntitiesPacket(getId());
+            return PacketFactory.makePacketRemoveEntity(EternaPlayer.this);
         }
 
     }

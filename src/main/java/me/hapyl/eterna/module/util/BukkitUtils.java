@@ -34,6 +34,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 
 /**
  * Useful utility class for anything specifically unrelated.
@@ -912,4 +913,33 @@ public class BukkitUtils {
             throw EternaLogger.exception(e);
         }
     }
+    
+    /**
+     * Tests the given predicate with the specified value, handling null values gracefully.
+     * <p>
+     * This method allows testing nullable 'optional' predicates without requiring explicit null checks.
+     * If either the predicate or the test value is {@code null}, the method returns {@code false}.
+     *
+     * @param predicate – The predicate to be tested, may be {@code null}.
+     * @param object    – The value to be tested against the predicate, may be {@code null}.
+     * @param <T>       – The type of the input to the predicate.
+     * @return {@code true} if the predicate is non-null, the test value is non-null, and the predicate evaluates to {@code true}; {@code false} otherwise.
+     */
+    public static <T> boolean testNullable(@Nullable Predicate<T> predicate, @Nullable T object) {
+        return predicate != null && object != null && predicate.test(object);
+    }
+    
+    /**
+     * Tests the given {@link Map.Entry} to not be {@code null}, including the entry itself, its {@link Map.Entry#getKey()} and {@link Map.Entry#getValue()}.
+     *
+     * @param entry - The entry to test.
+     * @param <K>   - The key type.
+     * @param <V>   - The value type.
+     * @return {@code true} if the given entry, its {@link Map.Entry#getKey()} and {@link Map.Entry#getValue()} are not {@code null}, {@code false} otherwise.
+     */
+    public static <K, V> boolean nonNullEntry(@Nullable Map.Entry<K, V> entry) {
+        return entry != null && entry.getKey() != null && entry.getValue() != null;
+    }
+    
+    
 }

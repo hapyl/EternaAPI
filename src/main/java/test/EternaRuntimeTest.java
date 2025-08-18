@@ -24,6 +24,7 @@ import me.hapyl.eterna.module.entity.Rope;
 import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.entity.packet.PacketItem;
 import me.hapyl.eterna.module.hologram.Hologram;
+import me.hapyl.eterna.module.hologram.HologramImplTextDisplay;
 import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.inventory.*;
 import me.hapyl.eterna.module.inventory.gui.*;
@@ -33,6 +34,8 @@ import me.hapyl.eterna.module.math.Tick;
 import me.hapyl.eterna.module.math.geometry.WorldParticle;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
+import me.hapyl.eterna.module.parkour.Parkour;
+import me.hapyl.eterna.module.parkour.ParkourPosition;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerSkin;
@@ -71,6 +74,7 @@ import me.hapyl.eterna.module.util.array.Array;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -199,36 +203,62 @@ public final class EternaRuntimeTest {
         addTest(new EternaTest("hologram") {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final Hologram hologram = new Hologram();
+                final Location location = player.getLocation();
+                final String arg0 = args.get(0).toString();
+                final boolean isTextDisplay = arg0.equalsIgnoreCase("text") || arg0.equalsIgnoreCase("display") || arg0.equalsIgnoreCase("td");
+                final Hologram hologram = isTextDisplay ? Hologram.ofTextDisplay(location) : Hologram.ofArmorStand(location);
                 hologram.setLines("1", "2", "3");
-                hologram.create(player.getLocation());
-                hologram.show(player);
+                hologram.showAll();
                 
-                info(player, "Created");
+                info(player, "Created %s Hologram!".formatted(isTextDisplay ? "Text Display" : "Armor Stand"));
                 
                 later(
                         () -> {
                             info(player, "Moved");
-                            
-                            hologram.move(player.getLocation());
+                            hologram.teleport(player.getLocation());
                             
                             later(
                                     () -> {
-                                        info(player, "Changed lines");
+                                        info(player, "Expand");
+                                        hologram.setLines("1", "2", null, "deez", "nuts");
                                         
-                                        hologram.setLinesAndUpdate("1", "2", "3", "deez", "nuts", "are", "very", "good");
+                                        if (hologram instanceof HologramImplTextDisplay textDisplay) {
+                                            textDisplay.opacity((byte) 50);
+                                            textDisplay.background(Color.fromARGB(50, 55, 55, 55));
+                                        }
                                         
                                         later(
                                                 () -> {
-                                                    info(player, "Removed");
+                                                    info(player, "Shrink");
+                                                    hologram.setLines("&cHello", "&bWorld!");
                                                     
-                                                    hologram.destroy();
-                                                    assertTestPassed();
-                                                }, 60
+                                                    later(
+                                                            () -> {
+                                                                info(player, "Per-player lines!");
+                                                                hologram.setLines(_player -> {
+                                                                    final String name = _player.getName();
+                                                                    final StringArray array = StringArray.of("&aYour name is " + name);
+                                                                    
+                                                                    if (name.equalsIgnoreCase("hapyl")) {
+                                                                        array.append("&6EXTRA LINE HAPYL EXCLUSIVE!!");
+                                                                    }
+                                                                    
+                                                                    return array;
+                                                                });
+                                                                
+                                                                later(
+                                                                        () -> {
+                                                                            hologram.destroy();
+                                                                            assertTestPassed();
+                                                                        }, 40
+                                                                );
+                                                            }, 40
+                                                    );
+                                                }, 40
                                         );
-                                    }, 60
+                                    }, 40
                             );
-                        }, 60
+                        }, 40
                 );
                 
                 return false;
@@ -445,7 +475,9 @@ public final class EternaRuntimeTest {
                     public void onTeleport(@Nonnull Player player, @Nonnull Location location) {
                         //step(player, "Teleported");
                     }
-                }.setInteractionDelay(20);
+                };
+                
+                npc.setInteractionDelay(20);
                 
                 npc.setAboveHead(p -> {
                     return StringArray.of("&athird line above head", "second line above head", "first line above head");
@@ -1304,7 +1336,7 @@ public final class EternaRuntimeTest {
                 final World world = player.getWorld();
                 
                 final ServerPlayer playerHandle = Reflect.getHandle(player, ServerPlayer.class);
-                final net.minecraft.world.level.Level worldHandle = Reflect.getHandle(world, net.minecraft.world.level.Level.class);
+                final Level worldHandle = Reflect.getHandle(world, Level.class);
                 
                 assertThrows(() -> {
                     Reflect.getHandle(player, Void.class);
@@ -1881,7 +1913,7 @@ public final class EternaRuntimeTest {
                 assertNull(invalidItem);
                 
                 final Optional<Integer> asOptional = TypeConverter.from("123")
-                                                                .asOptional(TypeConverter::toInt);
+                                                                  .asOptional(TypeConverter::toInt);
                 
                 assertEquals(asOptional.get(), 123);
                 return true;
@@ -2425,6 +2457,45 @@ public final class EternaRuntimeTest {
                 for (String imtStr : immutable) {
                     info(player, imtStr);
                 }
+                
+                return true;
+            }
+        });
+        
+        addTest(new EternaTest("parkour") {
+            private Parkour parkour;
+            
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                if (parkour == null) {
+                    final World world = BukkitUtils.defWorld();
+                    
+                    parkour = new Parkour(
+                            Key.ofString("test_parkour"),
+                            "My Test Parkour",
+                            ParkourPosition.of(world, -44, 74, 2),
+                            ParkourPosition.of(world, -37, 77, 5)
+                    );
+                    
+                    parkour.addCheckpoint(world, -41, 75, 2, 0, 0);
+                    parkour.addCheckpoint(world, -38, 76, 2, 0, 0);
+                    parkour.addCheckpoint(world, -40, 77, 5, 0, 0);
+                    
+                    Eterna.getManagers().parkour.register(parkour);
+                    
+                    info(player, "Created parkour!");
+                }
+                
+                return true;
+            }
+        });
+        
+        addTest(new EternaTest("npcViewDistance") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final HumanNPC distanceChecker = new HumanNPC(player.getLocation(), "distance checker");
+                distanceChecker.viewDistance(16);
+                distanceChecker.showAll();
                 
                 return true;
             }
