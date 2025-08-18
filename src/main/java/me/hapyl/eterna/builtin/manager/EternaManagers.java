@@ -10,7 +10,6 @@ public final class EternaManagers implements Disposable {
 
     public final ParkourManager parkour;
     public final HumanNPCManager npc;
-    public final HologramManager hologram;
     public final RopeManager rope;
     public final SongManager song;
     public final GlowingManager glowing;
@@ -24,7 +23,6 @@ public final class EternaManagers implements Disposable {
 
         this.parkour = new ParkourManager(eterna);
         this.npc = new HumanNPCManager(eterna);
-        this.hologram = new HologramManager(eterna);
         this.rope = new RopeManager(eterna);
         this.song = new SongManager(eterna);
         this.glowing = new GlowingManager(eterna);
@@ -41,7 +39,6 @@ public final class EternaManagers implements Disposable {
     public void dispose() {
         runSafe(parkour::dispose, "Restore Parkour");
         runSafe(npc::dispose, "Remove NPCs");
-        runSafe(hologram::dispose, "Remove Holograms");
     }
 
     private void runSafe(Runnable runnable, String name) {
