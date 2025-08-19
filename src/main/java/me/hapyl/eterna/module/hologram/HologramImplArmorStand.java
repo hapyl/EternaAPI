@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class HologramImplArmorStand extends AbstractHologram {
     
@@ -55,6 +56,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         super.setLines(supplier);
         
         // Update armor stands for all players
+        this.showingTo.keySet().removeIf(Predicate.not(Player::isOnline));
         this.showingTo.forEach((player, holograms) -> show(player));
     }
     

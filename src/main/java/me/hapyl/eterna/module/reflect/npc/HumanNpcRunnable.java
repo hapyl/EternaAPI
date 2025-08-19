@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.reflect.npc;
 
 import me.hapyl.eterna.Eterna;
 
-public class NPCRunnable implements Runnable {
+public class HumanNpcRunnable implements Runnable {
     
     @Override
     public void run() {
