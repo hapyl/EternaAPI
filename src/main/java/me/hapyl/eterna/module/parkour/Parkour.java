@@ -9,7 +9,6 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Named;
-import me.hapyl.eterna.module.util.Ticking;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import javax.annotation.Nonnull;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +30,7 @@ import java.util.Set;
  *
  * @see me.hapyl.eterna.builtin.manager.ParkourManager#register(Parkour)
  */
-public class Parkour implements Keyed, Named, Ticking {
+public class Parkour implements Keyed, Named {
     
     public static final Material blockStartFinish;
     public static final Material blockCheckpoint;
@@ -63,8 +61,6 @@ public class Parkour implements Keyed, Named, Ticking {
     private ParkourFormatter formatter;
     private Difficulty difficulty;
     private Location quitLocation;
-    
-    private int lifeTicks;
     
     public Parkour(@Nonnull Key key, @Nonnull String name, @Nonnull ParkourPosition start, @Nonnull ParkourPosition finish) {
         this.key = key;
@@ -401,15 +397,7 @@ public class Parkour implements Keyed, Named, Ticking {
     public final int hashCode() {
         return Objects.hashCode(this.key);
     }
-    
-    @Override
-    @OverridingMethodsMustInvokeSuper
-    public void tick() {
-        // Update holograms every second
-        if (lifeTicks++ % 20 != 0) {
-            return;
-        }
-        
+    public void tickHolograms() {
         Bukkit.getOnlinePlayers().forEach(player -> {
             final Location location = player.getLocation();
             

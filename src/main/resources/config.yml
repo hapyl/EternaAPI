@@ -1,19 +1,25 @@
-# Runnable tick times, the higher, the slower the runnable will work.
-# Requires server restart.
-tick-time:
-  # How fast to update NPC visibility checks and head rotation.
-  npc: 2
-  # How fast to update hologram visibility.
-  hologram: 2
-  # How fast to update parkour UI.
-  parkour: 2
+##################################
+## EternaAPI Configuration File ##
+##                              ##
+## Last Updated: 19.08.25       ##
+##################################
 
-# Whenever to check for updates upon the plugin load.
+# Check for plugin updates when the server starts.
+# If an update is found, operators and the console will be notified.
 check-for-updates: true
 
-# Developer settings.
-dev:
-  # Whenever to keep developer test commands.
-  keep-test-commands: true
-  # Print stack traces.
-  print-stack-traces: true
+# Keep development test commands enabled.
+# Recommended: false on production servers.
+keep-test-commands: true
+
+# Print full stack traces when errors occur.
+# Recommended: true, as this makes debugging and reporting issues easier.
+print-stack-traces: true
+
+# Tick rates for module updates.
+tick-rate:
+  # How often to update Npc visibility and head rotations.
+  npc: 2
+
+  # How often to update the Parkour UI.
+  parkour: 2

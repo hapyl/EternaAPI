@@ -13,15 +13,14 @@ import me.hapyl.eterna.module.inventory.gui.GUIListener;
 import me.hapyl.eterna.module.parkour.ParkourListener;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
 import me.hapyl.eterna.module.record.ReplayListener;
-import me.hapyl.eterna.module.reflect.npc.NPCRunnable;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolEntitySpawnListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolMetadataListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingRunnable;
 import me.hapyl.eterna.module.reflect.npc.HumanNPCListener;
+import me.hapyl.eterna.module.reflect.npc.HumanNpcRunnable;
 import me.hapyl.eterna.module.util.Runnables;
 import me.hapyl.eterna.protocol.EternaProtocol;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -69,17 +68,18 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         final BukkitScheduler scheduler = Bukkit.getScheduler();
         
         // Load config
-        final FileConfiguration config = getConfig();
-        
-        config.options().copyDefaults(true);
+        getConfig().options().copyDefaults(true);
         saveConfig();
         
-        this.config = new EternaConfig(this);
+        this.config = new EternaConfigImpl(this);
         
         // Schedule tasks
-        scheduler.runTaskTimer(this, new NPCRunnable(), 0, config.getInt("tick-time.npc", 2));
-        scheduler.runTaskTimer(this, new ParkourRunnable(), 0, config.getInt("tick-time.parkour", 2));
-        scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1); // Don't allow config the glowing we have to tick every tick
+        scheduler.runTaskTimer(this, new HumanNpcRunnable(), 0, config.tickRate().npc());
+        scheduler.runTaskTimer(this, new ParkourRunnable.Actionbar(), 0, config.tickRate().parkour());
+        
+        // The following tasks have hardcoded periods
+        scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
+        scheduler.runTaskTimer(this, new ParkourRunnable.Hologram(), 0, 20);
         
         // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);
@@ -90,8 +90,7 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         try {
             new File(this.getDataFolder() + "/songs").mkdir();
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (Exception ignored) {
         }
         
         // Load dependencies
@@ -100,7 +99,7 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         // Check for updates
         this.updater = new Updater();
         
-        if (this.config.isTrue(EternaConfigValue.CHECK_FOR_UPDATES)) {
+        if (this.config.checkForUpdates()) {
             Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
         }
     }

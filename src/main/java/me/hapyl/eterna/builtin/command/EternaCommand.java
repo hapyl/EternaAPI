@@ -78,7 +78,7 @@ public final class EternaCommand extends SimpleAdminCommand {
             }
             
             case "test" -> {
-                if (!Eterna.getConfig().isTrue(EternaConfigValue.KEEP_TESTS)) {
+                if (!Eterna.getConfig().keepTestCommands()) {
                     EternaLogger.sendMessage(sender, "&cTests are disabled on this server.");
                     return;
                 }
@@ -101,20 +101,6 @@ public final class EternaCommand extends SimpleAdminCommand {
                 }
                 
                 EternaRuntimeTest.test(player, testName, Arrays.copyOfRange(args, 2, args.length));
-            }
-            
-            case "testsq" -> {
-                if (!Eterna.getConfig().isTrue(EternaConfigValue.KEEP_TESTS)) {
-                    Chat.sendMessage(sender, "&cTests are disabled on this server.");
-                    return;
-                }
-                
-                if (!(sender instanceof Player player)) {
-                    Chat.sendMessage(sender, "&4You must be a player to use this!");
-                    return;
-                }
-                
-                EternaRuntimeTest.nextOrNewTestSq(player);
             }
             
             default -> {

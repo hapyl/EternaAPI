@@ -17,6 +17,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class HologramImplTextDisplay extends AbstractHologram {
     
@@ -76,6 +77,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
         super.setLines(supplier);
         
         // Update for all players
+        this.showingTo.removeIf(Predicate.not(Player::isOnline));
         this.showingTo.forEach(player -> textDisplay.text(player, supplier.supply(player)));
     }
     
