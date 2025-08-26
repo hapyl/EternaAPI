@@ -72,6 +72,16 @@ public class StringArray implements Iterable<String> {
         return list.toArray(String[]::new);
     }
     
+    /**
+     * Gets an immutable copy of the underlying array.
+     *
+     * @return an immutable copy of the underlying array.
+     */
+    @Nonnull
+    public final List<String> toList() {
+        return List.copyOf(list);
+    }
+    
     @Nonnull
     @Override
     public Iterator<String> iterator() {
