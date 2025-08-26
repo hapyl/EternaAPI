@@ -6,11 +6,9 @@
 
 # 🧾 Summary
 
-> The javadocs links are temporary broken!
-
 * Provides builders for:
-    * [Item Stacks](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/inventory/ItemBuilder.html)
-    * [Particles](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/particle/ParticleBuilder.html)
+    * [Item Stacks](https://github.com/hapyl/EternaAPI/wiki/ItemBuilder)
+    * [Particles]()
     * ...and more!
 
 
@@ -43,37 +41,43 @@ depend: [ "EternaAPI" ]
 * Instantiate the **API** at `onEnable()`
 
 ```java
-
 @Override
 public void onEnable() {
     new EternaAPI(this);
 }
 ```
 
-*As of now, it is <b>not necessary</b> to instantiate the API at onEnable(), and all tasks and registries delegete to
-Eterna. <br>
-But in the future, everything might migrate to per-plugin registries.*
+*You can also specify the minimum plugin version, without the -SNAPSHOT.*
+```java
+@Override
+public void onEnable() {
+    new EternaAPI(this, "4.16.0");
+}
+```
+
+> As of now, it is technically <b>not necessary</b> to instantiate the API at onEnable(), and all tasks and registries delegate to EternaAPI.
 
 ## Maven
-![Maven Central Version](https://img.shields.io/maven-central/v/io.github.hapyl/eternaapi?link=https%3A%2F%2Fcentral.sonatype.com%2Fartifact%2Fio.github.hapyl%2Feternaapi%2Foverview)
 
 * Add the dependency to your `pom.xml`:
 
-```maven
+```xml
+<repository>
+   <id>github</id>
+   <url>https://maven.pkg.github.com/hapyl/EternaAPI</url>
+</repository>
+
 <dependency>
-    <groupId>io.github.hapyl</groupId>
-    <artifactId>eternaapi</artifactId>
-    <version>VERSION</version>
+  <groupId>me.hapyl</groupId>
+  <artifactId>eternaapi</artifactId>
+  <version>VERSION</version>
 </dependency>
 ```
 
-For the latest version, see [Maven Central](https://central.sonatype.com/artifact/io.github.hapyl/eternaapi/overview)
-
-*Latest release and maven version may vary.*
+For the latest version, see [Packages](https://github.com/hapyl/EternaAPI/packages/2148832).
 
 ---
 
 # 🔗 Links
 
 * [Wiki](https://github.com/hapyl/EternaAPI/wiki)
-* [JavaDocs](https://hapyl.github.io/javadocs/eternaapi/)
