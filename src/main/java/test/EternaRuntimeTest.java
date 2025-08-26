@@ -26,7 +26,6 @@ import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.entity.packet.PacketItem;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.hologram.HologramImplTextDisplay;
-import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.inventory.*;
 import me.hapyl.eterna.module.inventory.gui.*;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
@@ -69,10 +68,16 @@ import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.reflect.npc.NPCPose;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.SimpleRegistry;
+import me.hapyl.eterna.module.scoreboard.ScoreboardBuilder;
 import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
 import me.hapyl.eterna.module.util.array.Array;
 import me.hapyl.eterna.module.util.collection.Cache;
+import me.hapyl.eterna.module.util.list.ComponentList;
+import me.hapyl.eterna.module.util.list.StringList;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -239,7 +244,7 @@ public final class EternaRuntimeTest implements Runnable {
                             info("Per-player lines!");
                             hologram.setLines(_player -> {
                                 final String name = _player.getName();
-                                final StringArray array = StringArray.of("&aYour name is " + name);
+                                final StringList array = StringList.of("&aYour name is " + name);
                                 
                                 if (name.equalsIgnoreCase("hapyl")) {
                                     array.append("&6EXTRA LINE HAPYL EXCLUSIVE!!");
@@ -472,10 +477,10 @@ public final class EternaRuntimeTest implements Runnable {
                 npc.setInteractionDelay(20);
                 
                 npc.setAboveHead(p -> {
-                    return StringArray.of("&athird line above head", "second line above head", "first line above head");
+                    return StringList.of("&athird line above head", "second line above head", "first line above head");
                 });
                 npc.setBelowHead(p -> {
-                    return StringArray.of("first line below head", "&csecond line below head", "third line below head");
+                    return StringList.of("first line below head", "&csecond line below head", "third line below head");
                 });
                 npc.show(player);
                 
@@ -2417,6 +2422,113 @@ public final class EternaRuntimeTest implements Runnable {
             }
         });
         
+        register(new EternaTest("score_new") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final ScoreboardBuilder builder = new ScoreboardBuilder(player, Component.text("Score 2", NamedTextColor.GOLD, TextDecoration.BOLD));
+                
+                builder.setLines(
+                        Component.text("line 1"),
+                        Component.text("line 2", NamedTextColor.GREEN),
+                        Component.text("line 3", NamedTextColor.GOLD),
+                        Component.text("line 4 + %s".formatted(player.getName()), NamedTextColor.YELLOW),
+                        Component.text("line 5", NamedTextColor.DARK_PURPLE)
+                );
+                
+                later(
+                        20,
+                        () -> {
+                            info("Shrink scoreboard!");
+                            
+                            builder.setLines(
+                                    Component.text("Test 1", NamedTextColor.RED),
+                                    Component.text("Test 2"),
+                                    Component.text("Test 3")
+                            );
+                        },
+                        () -> {
+                            info("Grew scoreboard!");
+                            
+                            builder.setLines(
+                                    Component.text("1"),
+                                    Component.text("2"),
+                                    Component.text("3"),
+                                    Component.text("4"),
+                                    Component.text("5")
+                            );
+                        },
+                        () -> {
+                            info("Overflowing lines");
+                            
+                            builder.setLines(
+                                    Component.text("1"),
+                                    Component.text("2"),
+                                    Component.text("3"),
+                                    Component.text("4"),
+                                    Component.text("5"),
+                                    Component.text("6"),
+                                    Component.text("7"),
+                                    Component.text("8"),
+                                    Component.text("9"),
+                                    Component.text("10"),
+                                    Component.text("11"),
+                                    Component.text("12"),
+                                    Component.text("13"),
+                                    Component.text("14"),
+                                    Component.text("15"),
+                                    Component.text("16"),
+                                    Component.text("17")
+                            );
+                            
+                        },
+                        () -> {
+                            info("Using legacy support.");
+                            
+                            builder.setLines(
+                                    "Legacy colors &bblue &cred &agreen",
+                                    "You are &6" + player.getName() + "&e!"
+                            );
+                        },
+                        () -> {
+                            info("Empty");
+                            
+                            builder.setLines(new Component[0]);
+                        },
+                        () -> {
+                            info("Conditional scoreboard");
+                            
+                            new BukkitRunnable() {
+                                private int tick = 0;
+                                
+                                @Override
+                                public void run() {
+                                    if (tick++ >= 60) {
+                                        assertTestPassed();
+                                        builder.hide();
+                                        cancel();
+                                        return;
+                                    }
+                                    
+                                    final ComponentList list = ComponentList.empty();
+                                    list.append(Component.text("Hello, you're " + player.getName()));
+                                    
+                                    if (player.isSneaking()) {
+                                        list.append(Component.text("You are sneaking!", NamedTextColor.BLUE));
+                                    }
+                                    
+                                    builder.setLines(list);
+                                    
+                                }
+                                
+                            }.runTaskTimer(EternaPlugin.getPlugin(), 0, 1);
+                        }
+                );
+                
+                
+                return false;
+            }
+        });
+        
         // *=* Internal *=* //
         register(new EternaTest("fail") {
             @Override
@@ -2438,12 +2550,12 @@ public final class EternaRuntimeTest implements Runnable {
         this.tester = tester;
         this.test = test;
         this.args = args;
-        
-        staticTest = this;
     }
     
     @Override
     public void run() {
+        staticTest = this;
+        
         try {
             if (test.doShowFeedback()) {
                 EternaLogger.test("&eTesting '%s'...".formatted(test.getKey()));
@@ -2467,13 +2579,11 @@ public final class EternaRuntimeTest implements Runnable {
             
             handleTestFail(e);
         }
-        finally {
-            staticTest = null;
-        }
     }
     
     void handleTestPassed() {
         wait = false;
+        staticTest = null;
         
         if (test.doShowFeedback()) {
             EternaLogger.test("&aTest '%s' passed!".formatted(test));

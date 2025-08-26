@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.hologram.Hologram;
-import me.hapyl.eterna.module.hologram.StringArray;
+import me.hapyl.eterna.module.util.list.StringList;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
@@ -153,8 +153,8 @@ public class Parkour implements Keyed, Named {
      * @return the text of the 'start' hologram.
      */
     @Nonnull
-    public StringArray hologramTextStart() {
-        return StringArray.of("&6&l" + name, "&aStart");
+    public StringList hologramTextStart() {
+        return StringList.of("&6&l" + name, "&aStart");
     }
     
     /**
@@ -163,8 +163,8 @@ public class Parkour implements Keyed, Named {
      * @return the text of the 'finish' hologram.
      */
     @Nonnull
-    public StringArray hologramTextFinish() {
-        return StringArray.of("&6&l" + name, "&aFinish");
+    public StringList hologramTextFinish() {
+        return StringList.of("&6&l" + name, "&aFinish");
     }
     
     /**
@@ -175,8 +175,8 @@ public class Parkour implements Keyed, Named {
      * @return the text of the 'checkpoint' hologram.
      */
     @Nonnull
-    public StringArray hologramTextCheckpoint(int nth, int max) {
-        return StringArray.of("&aCheckpoint &7(%s/%s)".formatted(nth, max));
+    public StringList hologramTextCheckpoint(int nth, int max) {
+        return StringList.of("&aCheckpoint &7(%s/%s)".formatted(nth, max));
     }
     
     /**
@@ -416,7 +416,7 @@ public class Parkour implements Keyed, Named {
         });
     }
     
-    private void makeHologram(Location location, StringArray text) {
+    private void makeHologram(Location location, StringList text) {
         final Hologram hologram = Hologram.ofArmorStand(location);
         hologram.setLines(text);
         

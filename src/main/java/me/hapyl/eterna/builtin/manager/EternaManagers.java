@@ -18,7 +18,7 @@ public final class EternaManagers implements Disposable {
 
     private final EternaPlugin plugin;
 
-    public EternaManagers(EternaPlugin eterna) {
+    public EternaManagers(@Nonnull EternaPlugin eterna) {
         this.plugin = eterna;
 
         this.parkour = new ParkourManager(eterna);
@@ -37,8 +37,8 @@ public final class EternaManagers implements Disposable {
 
     @Override
     public void dispose() {
-        runSafe(parkour::dispose, "Restore Parkour");
-        runSafe(npc::dispose, "Remove NPCs");
+        runSafe(parkour::dispose, "restore parkour");
+        runSafe(npc::dispose, "remove NPCs");
     }
 
     private void runSafe(Runnable runnable, String name) {
@@ -46,8 +46,6 @@ public final class EternaManagers implements Disposable {
             runnable.run();
         } catch (Exception exception) {
             EternaLogger.severe("Cannot %s! Did you /reload your server? (%s)".formatted(name, exception.getClass().getSimpleName()));
-            
-            throw EternaLogger.exception(exception);
         }
     }
 

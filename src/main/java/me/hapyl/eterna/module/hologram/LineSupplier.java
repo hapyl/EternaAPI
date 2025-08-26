@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.hologram;
 
+import me.hapyl.eterna.module.util.list.StringList;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -16,6 +17,6 @@ public interface LineSupplier {
      * @return the lines to display.
      */
     @Nonnull
-    StringArray supply(@Nonnull Player player);
+    StringList supply(@Nonnull Player player);
     
 }

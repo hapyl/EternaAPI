@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.hologram;
 
 import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.util.list.StringList;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -14,7 +15,7 @@ public abstract class AbstractHologram implements Hologram {
     
     public AbstractHologram(@Nonnull Location location) {
         this.location = BukkitUtils.newLocation(location);
-        this.supplier = player -> StringArray.empty();
+        this.supplier = player -> StringList.empty();
     }
     
     @Override

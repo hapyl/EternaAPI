@@ -7,6 +7,7 @@ import me.hapyl.eterna.module.locaiton.LocationHelper;
 import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.util.list.StringList;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -79,7 +80,7 @@ public class HologramImplArmorStand extends AbstractHologram {
     
     @Override
     public void show(@Nonnull Player player) {
-        final StringArray strings = supplier.supply(player);
+        final StringList strings = supplier.supply(player);
         final List<PacketArmorStand> existingLines = showingTo.computeIfAbsent(player, _player -> Lists.newArrayList());
         
         // If length matches, no need to re-create the stands, just update the names

@@ -2,9 +2,8 @@ package me.hapyl.eterna.module.scoreboard;
 
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.hologram.StringArray;
 import me.hapyl.eterna.module.util.EternaEntity;
-import net.kyori.adventure.text.Component;
+import me.hapyl.eterna.module.util.list.StringList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Criteria;
@@ -19,7 +18,11 @@ import java.util.*;
 
 /**
  * A {@link Scoreboard} builder.
+ *
+ * @see ScoreboardBuilder
+ * @deprecated Deprecated in favour of {@link ScoreboardBuilder}.
  */
+@Deprecated(since = "4.15.3", forRemoval = false) // explicit false
 public class Scoreboarder implements EternaEntity {
     
     public static final String DUMMY_TEAM_PREFIX = "%";
@@ -79,15 +82,6 @@ public class Scoreboarder implements EternaEntity {
     }
     
     /**
-     * Sets the new title for this scoreboard.
-     *
-     * @param component - The new title.
-     */
-    public void title(@Nonnull Component component) {
-        this.objective.displayName(component);
-    }
-    
-    /**
      * Sets the line at the given index to the given text.
      *
      * @param line - The index of the line; must be between 0-{@link #MAX_LINES}
@@ -121,7 +115,7 @@ public class Scoreboarder implements EternaEntity {
      *
      * @param stringArray - The string array.
      */
-    public void setLines(@Nonnull StringArray stringArray) {
+    public void setLines(@Nonnull StringList stringArray) {
         this.lines.clear();
         this.lines.addAll(stringArray.toList());
         

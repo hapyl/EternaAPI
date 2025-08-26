@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -42,6 +43,11 @@ public class EternaManager<K, V> {
     @Nullable
     public V get(@Nonnull K k) {
         return managing.get(k);
+    }
+    
+    @Nonnull
+    public V getOrThrow(@Nonnull K k) {
+        return Objects.requireNonNull(get(k), "value == null");
     }
     
     public void forEach(@Nonnull BiConsumer<K, V> consumer) {

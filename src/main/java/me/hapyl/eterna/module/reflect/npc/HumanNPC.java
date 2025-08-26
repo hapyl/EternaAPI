@@ -18,7 +18,7 @@ import me.hapyl.eterna.module.entity.ViewDistance;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.hologram.LineSupplier;
-import me.hapyl.eterna.module.hologram.StringArray;
+import me.hapyl.eterna.module.util.list.StringList;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
@@ -233,7 +233,7 @@ public class HumanNPC implements Human, NPCListener, ViewDistance, Ticking {
     @Override
     public final void updateHologram() {
         this.hologram.setLines(player -> {
-            final StringArray array = StringArray.empty();
+            final StringList array = StringList.empty();
             
             if (aboveHead != null) {
                 array.append(aboveHead.supply(player));

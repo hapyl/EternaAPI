@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.util.list.StringList;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import org.bukkit.Color;
@@ -151,7 +152,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
         }
         
         @SuppressWarnings("deprecation"/* fucking paper */)
-        protected void text(@Nonnull Player player, @Nonnull StringArray array) {
+        protected void text(@Nonnull Player player, @Nonnull StringList array) {
             final StringBuilder builder = new StringBuilder();
             
             int index = 0;
