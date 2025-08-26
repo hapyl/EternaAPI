@@ -1,31 +1,54 @@
 package test;
 
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.ArgumentList;
 import me.hapyl.eterna.module.util.Runnables;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.function.Function;
 
-public abstract class EternaTest {
+public abstract class EternaTest implements Keyed {
     
-    private final String name;
+    private final Key key;
     
     boolean skipFail = false;
     
-    EternaTest(String name) {
-        this.name = name;
+    EternaTest(@Nonnull String key) {
+        this.key = Key.ofString(key);
+    }
+    
+    @Nonnull
+    @Override
+    public final Key getKey() {
+        return key;
+    }
+    
+    @Override
+    public final boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        final EternaTest that = (EternaTest) o;
+        return Objects.equals(this.key, that.key);
+    }
+    
+    @Override
+    public final int hashCode() {
+        return Objects.hashCode(this.key);
+    }
+    
+    @Override
+    public final String toString() {
+        return key.toString();
     }
     
     public abstract boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException;
-    
-    @Override
-    public String toString() {
-        return name;
-    }
     
     protected boolean doShowFeedback() {
         return true;
@@ -33,22 +56,31 @@ public abstract class EternaTest {
     
     // *=* Helpers *=* //
     
-    protected void info(@Nonnull Player player, @Nonnull Object info) {
-        Chat.sendMessage(player, EternaLogger.TEST_PREFIX + "&7&o" + info);
+    protected void info(@Nonnull Object info) {
+        EternaLogger.test("&7&o " + info);
     }
     
-    protected void later(@Nonnull Runnable runnable, int i) {
-        Runnables.runLater(runnable, i);
+    protected void later(int delay, @Nonnull Runnable... runnables) {
+        try {
+            int total = 0;
+            
+            for (Runnable runnable : runnables) {
+                Runnables.runLater(runnable, total += delay);
+            }
+        }
+        catch (Exception ex) {
+            throw new EternaTestException(this, ex.getMessage());
+        }
     }
     
     // *=* Assertions *=* //
     
     protected void assertTestPassed() {
-        EternaRuntimeTest.handleTestPassed(this);
+        EternaRuntimeTest.staticTest.handleTestPassed();
     }
     
     protected void assertSkipFail() {
-        skipFail = true;
+        this.skipFail = true;
     }
     
     protected void assertFail(String reason) {
@@ -63,7 +95,7 @@ public abstract class EternaTest {
     
     protected void assertNotEquals(@Nonnull Object a, @Nullable Object b) {
         if (a.equals(b)) {
-            throw new EternaTestException(this, "Object '%s' and '%s' are the same!".formatted(a, b));
+            throw new EternaTestException(this, "Objects are the same! (Expected '%s' != '%s')".formatted(a, b));
         }
     }
     

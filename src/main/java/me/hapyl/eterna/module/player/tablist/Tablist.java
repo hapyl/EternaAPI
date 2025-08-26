@@ -20,7 +20,16 @@ public class Tablist {
     public static final int MAX_ENTRIES_PER_COLUMN = 20;
     
     private static final Map<Player, Tablist> PLAYER_TAB_LIST_MAP = Maps.newHashMap();
-    
+    private static final EnumSet<ClientboundPlayerInfoUpdatePacket.Action> ACTION_SET_INIT = EnumSet.of(
+            ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER,
+            ClientboundPlayerInfoUpdatePacket.Action.INITIALIZE_CHAT,
+            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE,
+            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LISTED,
+            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY,
+            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME,
+            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_HAT,
+            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LIST_ORDER
+    );
     protected final Player player;
     protected final Map<Integer, TablistEntry> entries;
     
@@ -44,7 +53,6 @@ public class Tablist {
     public TablistEntry getEntry(@Range(from = 0, to = MAX_ENTRIES) int index) {
         return this.entries.get(index);
     }
-    
     
     /**
      * Gets the {@link TablistEntry} at the given column and line.
@@ -122,17 +130,6 @@ public class Tablist {
         
         Reflect.sendPacket(player, new ClientboundPlayerInfoUpdatePacket(ACTION_SET_INIT, new HashSet<>(entries.values())));
     }
-    
-    private static final EnumSet<ClientboundPlayerInfoUpdatePacket.Action> ACTION_SET_INIT = EnumSet.of(
-            ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER,
-            ClientboundPlayerInfoUpdatePacket.Action.INITIALIZE_CHAT,
-            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE,
-            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LISTED,
-            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY,
-            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME,
-            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_HAT,
-            ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LIST_ORDER
-    );
     
     /**
      * Hides this {@link Tablist}.

@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.hologram;
 
 import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.locaiton.Located;
+import me.hapyl.eterna.module.util.list.StringList;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -32,12 +33,12 @@ public interface Hologram extends Showable, Located {
     /**
      * Sets static lines for this {@link Hologram}.
      * <p>
-     * This is a convenience method that wraps the given {@link StringArray} into a function,
+     * This is a convenience method that wraps the given {@link StringList} into a function,
      * so the same lines are shown to all players.
      *
      * @param lines the lines to display
      */
-    default void setLines(@Nonnull StringArray lines) {
+    default void setLines(@Nonnull StringList lines) {
         setLines(player -> lines);
     }
     
@@ -50,7 +51,7 @@ public interface Hologram extends Showable, Located {
      * @param lines the lines to display
      */
     default void setLines(@Nonnull String... lines) {
-        setLines(player -> StringArray.of(lines));
+        setLines(player -> StringList.of(lines));
     }
     
     /**

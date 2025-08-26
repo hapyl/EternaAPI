@@ -6,11 +6,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public final class ArrayImpl<T> implements Array<T> {
+public final class ArrayImpl<E> implements Array<E> {
     
-    private final T[] array;
+    private final E[] array;
     
-    ArrayImpl(@Nonnull T[] array) {
+    ArrayImpl(@Nonnull E[] array) {
         this.array = array;
     }
     
@@ -21,28 +21,28 @@ public final class ArrayImpl<T> implements Array<T> {
     
     @Nullable
     @Override
-    public T get(int index) {
+    public E get(int index) {
         return index < 0 || index >= array.length ? null : array[index];
     }
     
     @Override
-    public void set(int index, @Nullable T t) {
+    public void set(int index, @Nullable E e) {
         if (index < 0 || index >= array.length) {
             throw new ArrayIndexOutOfBoundsException(index);
         }
         
-        array[index] = t;
+        array[index] = e;
     }
     
     @Nonnull
     @Override
-    public List<T> asList() {
+    public List<E> asList() {
         return List.of(array);
     }
     
     @Nonnull
     @Override
-    public Stream<T> stream() {
+    public Stream<E> stream() {
         return Arrays.stream(array);
     }
     
@@ -51,4 +51,5 @@ public final class ArrayImpl<T> implements Array<T> {
     public String toString() {
         return Arrays.toString(array);
     }
+    
 }

@@ -6,6 +6,7 @@ import me.hapyl.eterna.builtin.updater.UpdateResult;
 import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.command.SimpleAdminCommand;
+import me.hapyl.eterna.module.util.ArgumentList;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import test.EternaRuntimeTest;
@@ -100,7 +101,7 @@ public final class EternaCommand extends SimpleAdminCommand {
                     return;
                 }
                 
-                EternaRuntimeTest.test(player, testName, Arrays.copyOfRange(args, 2, args.length));
+                EternaRuntimeTest.test(this, player, testName, new ArgumentList(Arrays.copyOfRange(args, 2, args.length)));
             }
             
             default -> {
