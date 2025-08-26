@@ -2458,6 +2458,17 @@ public final class EternaRuntimeTest {
                     info(player, imtStr);
                 }
                 
+                info(player, "iter:default");
+                
+                array.forEach(str -> {
+                    info(player, str);
+                });
+                
+                info(player, "iter:indexed");
+                array.forEach((index, str) -> {
+                    info(player, "%s:%s".formatted(index, str));
+                });
+                
                 return true;
             }
         });

@@ -11,11 +11,11 @@ import java.util.stream.Stream;
  * A generic wrapper around a standard Java array.
  * <p>Differs from {@link List} in a way being stricter and unresizable.</p>
  *
- * @param <T> - The array type.
+ * @param <E> - The array type.
  * @see #of(Object[])
  * @see #ofImmutable(Object[])
  */
-public interface Array<T> extends Iterable<T> {
+public interface Array<E> extends IndexingIterable<E> {
     
     /**
      * Retrieves the element at the given index.
@@ -25,16 +25,16 @@ public interface Array<T> extends Iterable<T> {
      * @implNote Implementations may perform explicit bounds checking or throw a {@link ArrayIndexOutOfBoundsException} if the index is out of range.
      */
     @Nullable
-    T get(int index);
+    E get(int index);
     
     /**
      * Sets the element at the specified index.
      *
      * @param index – The index of the element to set.
-     * @param t     – The element to set at the specified index; may be {@code null}.
+     * @param e     – The element to set at the specified index; may be {@code null}.
      * @implNote Implementations may perform explicit bounds checking or throw a {@link ArrayIndexOutOfBoundsException} if the index is out of range.
      */
-    void set(int index, @Nullable T t);
+    void set(int index, @Nullable E e);
     
     /**
      * Gets the length of this array.
@@ -59,7 +59,7 @@ public interface Array<T> extends Iterable<T> {
      * @param element - The element to check.
      * @return {@code true} if this array contains the given element, {@code false} otherwise.
      */
-    default boolean contains(@Nonnull T element) {
+    default boolean contains(@Nonnull E element) {
         if (isEmpty()) {
             return false;
         }
@@ -74,13 +74,13 @@ public interface Array<T> extends Iterable<T> {
     }
     
     /**
-     * Gets an iterator for this array.
+     * Gets an {@link IndexingIterable} for this array.
      *
-     * @return an iterator for this array.
+     * @return an {@link IndexingIterable} for this array.
      */
     @Nonnull
     @Override
-    default Iterator<T> iterator() {
+    default IndexingIterator<E> iterator() {
         return new ArrayIterator<>(this);
     }
     
@@ -90,7 +90,7 @@ public interface Array<T> extends Iterable<T> {
      * @return immutable {@link List} containing all the elements from this {@link Array}.
      */
     @Nonnull
-    List<T> asList();
+    List<E> asList();
     
     /**
      * Gets a {@link Stream} of the elements in this {@link Array}.
@@ -98,7 +98,7 @@ public interface Array<T> extends Iterable<T> {
      * @return {@link Stream} of the elements in this {@link Array}.
      */
     @Nonnull
-    Stream<T> stream();
+    Stream<E> stream();
     
     /**
      * Gets a string representation of the object.
@@ -150,18 +150,23 @@ public interface Array<T> extends Iterable<T> {
     }
     
     /**
-     * Represents an {@link Iterator} for the given {@link Array}.
+     * Represents an {@link IndexingIterator} with an underlying {@link Iterator} for the given {@link Array}.
      *
-     * @param <T> - The element type.
+     * @param <E> - The element type.
      */
-    final class ArrayIterator<T> implements Iterator<T> {
+    final class ArrayIterator<E> implements IndexingIterator<E> {
         
-        private final Array<T> array;
+        private final Array<E> array;
         private int index;
         
-        ArrayIterator(@Nonnull Array<T> array) {
+        ArrayIterator(@Nonnull Array<E> array) {
             this.array = array;
             this.index = 0;
+        }
+        
+        @Override
+        public int index() {
+            return index;
         }
         
         @Override
@@ -170,8 +175,9 @@ public interface Array<T> extends Iterable<T> {
         }
         
         @Override
-        public T next() {
+        public E next() {
             return array.get(index++);
         }
     }
+    
 }
