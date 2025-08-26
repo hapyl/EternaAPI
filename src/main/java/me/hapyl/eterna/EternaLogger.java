@@ -51,7 +51,7 @@ public final class EternaLogger {
     }
     
     @Nonnull
-    @ApiStatus.Internal // Please don't forget you HAVE to throw the returned exception, not just do Eternalogger#exception() !!!
+    @ApiStatus.Internal // Please don't forget you HAVE to throw the returned exception, not just do EternaLogger#exception() !!!
     public static RuntimeException exception(@Nonnull Exception e) {
         if (EternaPlugin.getPlugin().getConfig().getBoolean("dev.print-stack-traces")) {
             severe("An exception has occurred!");
