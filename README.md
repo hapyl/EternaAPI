@@ -8,22 +8,30 @@
 
 * Provides builders for:
     * [Item Stacks](https://github.com/hapyl/EternaAPI/wiki/ItemBuilder)
-    * [Particles]()
+    * [Particles](https://github.com/hapyl/EternaAPI/wiki)
     * ...and more!
 
 
 * Allows per-player:
-    * [Scoreboard](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/scoreboard/Scoreboarder.html)
-    * [NPCs](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/reflect/npc/HumanNPC.html)
-    * [Glowing](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/reflect/glow/Glowing.html)
-    * [World Border](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/reflect/border/PlayerBorder.html)
-    * [Holograms](https://hapyl.github.io/javadocs/eternaapi/me/hapyl/spigotutils/module/hologram/Hologram.html)
+    * [Scoreboard](https://github.com/hapyl/EternaAPI/wiki)
+    * [NPCs](https://github.com/hapyl/EternaAPI/wiki)
+    * [Glowing](https://github.com/hapyl/EternaAPI/wiki)
+    * [World Border](https://github.com/hapyl/EternaAPI/wiki)
+    * [Holograms](https://github.com/hapyl/EternaAPI/wiki)
     * ...and more!
 
-* Customizable **Parkour**, **Quest** systems.
-* A **ton** of utilities.
+* Very customizable:
+  * [Quests](https://github.com/hapyl/EternaAPI/wiki)
+  * [Dialog](https://github.com/hapyl/EternaAPI/wiki)
+  * [Parkour](https://github.com/hapyl/EternaAPI/wiki)
 
-> See [Wiki](https://github.com/hapyl/EternaAPI/wiki) for more.
+* A **ton** of utilities, including:
+  * [BukkitUtils](https://github.com/hapyl/EternaAPI/wiki)
+  * [CollectionUtils](https://github.com/hapyl/EternaAPI/wiki)
+  * [EntityUtils](https://github.com/hapyl/EternaAPI/wiki)
+  * ...and much more!
+
+For more information, see *incomplete* [Wiki](https://github.com/hapyl/EternaAPI/wiki).
 
 ---
 
@@ -75,9 +83,3 @@ public void onEnable() {
 ```
 
 For the latest version, see [Packages](https://github.com/hapyl/EternaAPI/packages/2148832).
-
----
-
-# 🔗 Links
-
-* [Wiki](https://github.com/hapyl/EternaAPI/wiki)
