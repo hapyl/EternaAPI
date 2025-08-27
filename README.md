@@ -74,7 +74,9 @@ public void onEnable() {
    <id>github</id>
    <url>https://maven.pkg.github.com/hapyl/EternaAPI</url>
 </repository>
+```
 
+```xml
 <dependency>
   <groupId>me.hapyl</groupId>
   <artifactId>eternaapi</artifactId>
