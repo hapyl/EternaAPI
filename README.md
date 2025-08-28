@@ -84,4 +84,10 @@ public void onEnable() {
 </dependency>
 ```
 
-For the latest version, see [Packages](https://github.com/hapyl/EternaAPI/packages/2148832).
+> [!IMPORTANT]
+> You must have PAT (Personal Access Token) set up with at least `read:packages` in order to access the package!
+
+# 🔗 Links
+
+* For help creating and configuring PAT, see the [Help Page](https://github.com/hapyl/EternaAPI/wiki/How-to-Add-PAT).
+* For the latest version see [Packages](https://github.com/hapyl/EternaAPI/packages/2148832). 
