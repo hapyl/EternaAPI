@@ -20,6 +20,14 @@ public class StringList extends GenericListImpl<String> {
         return this;
     }
     
+    /**
+     * Appends an empty {@link String} to this list.
+     */
+    @Nonnull
+    public StringList appendEmpty() {
+        return append("");
+    }
+    
     @Nonnull
     @Override
     public String[] toArray() {
