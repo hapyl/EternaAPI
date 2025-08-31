@@ -1,10 +1,15 @@
 package me.hapyl.eterna.module.util.array;
 
+import com.google.common.collect.Lists;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 /**
@@ -147,6 +152,32 @@ public interface Array<E> extends IndexingIterable<E> {
     @Nonnull
     static <T> ImmutableArray<T> ofImmutable(@Nonnull T... array) {
         return new ImmutableArray<>(Arrays.copyOf(array, array.length));
+    }
+    
+    /**
+     * Creates a {@link Collector} that collects stream elements into an {@link Array}
+     * using the provided array supplier and factory function.
+     *
+     * <p>This collector accumulates elements into a temporary {@link List}, then
+     * converts the list into an array using the given supplier, and finally applies
+     * the provided function to produce the target {@link Array}.</p>
+     *
+     * @param arrayFactory - The function to create an array of the desired type and length.
+     * @param arrayFn      - The function to construct an {@link Array} from the supplied array.
+     * @param <T>          - The element type.
+     * @param <A>          - The resulting {@link Array} subtype.
+     */
+    @Nonnull
+    static <T, A extends Array<T>> Collector<T, List<T>, A> collector(@Nonnull IntFunction<T[]> arrayFactory, @Nonnull Function<T[], A> arrayFn) {
+        return Collector.of(
+                Lists::newArrayList,
+                List::add,
+                (left, right) -> {
+                    left.addAll(right);
+                    return left;
+                },
+                list -> arrayFn.apply(list.toArray(arrayFactory))
+        );
     }
     
     /**
