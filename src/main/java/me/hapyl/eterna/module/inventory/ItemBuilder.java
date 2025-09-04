@@ -9,6 +9,7 @@ import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.nbt.NBT;
 import me.hapyl.eterna.module.nbt.NBTType;
 import me.hapyl.eterna.module.player.PlayerLib;
@@ -18,6 +19,10 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Nulls;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -69,15 +74,14 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public static final String NEW_LINE_SEPARATOR = "__";
     
     /**
-     * The default color of lore.
-     * Will replace the ugly vanilla purple.
+     * Defines the default color of name.
      */
-    public static final ChatColor DEFAULT_COLOR = ChatColor.GRAY;
+    public static final DefaultColor DEFAULT_NAME_COLOR = new DefaultColor(ChatColor.DARK_GREEN, NamedTextColor.DARK_GREEN);
     
     /**
-     * The default color of name.
+     * Defines the default color of lore, will replace the default ugly vanilla purple.
      */
-    public static final ChatColor DEFAULT_NAME_COLOR = ChatColor.DARK_GREEN;
+    public static final DefaultColor DEFAULT_LORE_COLOR = new DefaultColor(ChatColor.GRAY, NamedTextColor.GRAY);
     
     private static final char MANUAL_SPLIT_CHAR = '_';
     
@@ -431,7 +435,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      * @param limit - Char limit.
      */
     public ItemBuilder setSmartLore(@Nonnull String lore, final int limit) {
-        return setSmartLore(lore, DEFAULT_COLOR.toString(), limit);
+        return setSmartLore(lore, DEFAULT_LORE_COLOR.toString(), limit);
     }
     
     /**
@@ -549,6 +553,20 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     /**
+     * Appends a lore to this {@link ItemStack}.
+     *
+     * @param component - The lore to append.
+     */
+    public ItemBuilder addLore(@Nonnull Component component) {
+        return modifyMeta(meta -> {
+            final List<Component> existingLore = Nulls.getOrDefault(meta.lore(), Lists.newArrayList());
+            existingLore.add(defaultComponent(component, DEFAULT_LORE_COLOR));
+            
+            meta.lore(existingLore);
+        });
+    }
+    
+    /**
      * Gets the lore of this item; or empty list if none.
      *
      * @return the lore of this item; or empty list if none.
@@ -573,6 +591,19 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     public ItemBuilder setLore(@Nonnull List<String> lore) {
         return modifyMeta(meta -> meta.setLore(lore));
+    }
+    
+    /**
+     * Sets the lore of this {@link ItemStack}.
+     *
+     * @param lore - The lore to set.
+     */
+    public ItemBuilder setLore(@Nonnull ComponentList lore) {
+        return modifyMeta(meta -> meta.lore(
+                lore.stream()
+                    .map(component -> defaultComponent(component, DEFAULT_LORE_COLOR))
+                    .toList()
+        ));
     }
     
     /**
@@ -876,15 +907,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     /**
-     * Sets the item texture form the given {@link PlayerSkin}.
-     *
-     * @param playerSkin - The player skin to apply as the head texture for this item.
-     */
-    public ItemBuilder setHeadTexture(@Nonnull PlayerSkin playerSkin) {
-        return setHeadTextureBase64(playerSkin.getTexture());
-    }
-    
-    /**
      * Sets a head texture from a minecraft url link.
      * <p>
      * If copying from <a href="https://minecraft-heads.com/custom-heads">Minecraft-Heads</a>, use <code>Other -> Minecraft-URL</code> value,
@@ -1143,6 +1165,15 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     /**
+     * Sets the name of this {@link ItemStack}.
+     *
+     * @param component - The new name to set.
+     */
+    public ItemBuilder setName(@Nonnull Component component) {
+        return modifyMeta(meta -> meta.customName(defaultComponent(component, DEFAULT_NAME_COLOR)));
+    }
+    
+    /**
      * Gets a sublist of item's lore.
      *
      * @param start - start index
@@ -1332,6 +1363,15 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
             e.printStackTrace();
             return null;
         }
+    }
+    
+    /**
+     * Sets the item texture form the given {@link PlayerSkin}.
+     *
+     * @param playerSkin - The player skin to apply as the head texture for this item.
+     */
+    public ItemBuilder setHeadTexture(@Nonnull PlayerSkin playerSkin) {
+        return setHeadTextureBase64(playerSkin.getTexture());
     }
     
     /**
@@ -1784,6 +1824,21 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     @Nonnull
+    public static Component defaultComponent(@Nonnull Component component, @Nonnull DefaultColor defaultColor) {
+        // Remove italic unless set to italic
+        if (component.decoration(TextDecoration.ITALIC) == TextDecoration.State.NOT_SET) {
+            component = component.decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+        }
+        
+        // Apply default color unless set
+        if (component.color() == null) {
+            component = component.color(defaultColor.textColor);
+        }
+        
+        return component;
+    }
+    
+    @Nonnull
     public static EquipmentSlotGroup equipmentSlotGroupFromSlot(@Nullable EquipmentSlot slot) {
         if (slot == null) {
             return EquipmentSlotGroup.ANY;
@@ -1991,13 +2046,13 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public static List<String> splitString(@Nullable String prefix, @Nonnull String string, int limit) {
         // If the string is less than the limit, return it
         if (calculateStringLengthSkipColors(string) <= limit) {
-            return List.of(Chat.format((prefix != null ? prefix : DEFAULT_COLOR) + string));
+            return List.of(Chat.format((prefix != null ? prefix : DEFAULT_LORE_COLOR) + string));
         }
         
         final List<String> list = new ArrayList<>();
         final char[] chars = (string + " ").toCharArray();
         
-        StringBuilder lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR.toString() : prefix);
+        StringBuilder lastColor = new StringBuilder(prefix == null ? DEFAULT_LORE_COLOR.toString() : prefix);
         StringBuilder builder = new StringBuilder(lastColor);
         int counter = 0;
         
@@ -2022,7 +2077,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
                 
                 counter = 0;
                 builder = new StringBuilder(lastColor);
-                lastColor = new StringBuilder(prefix == null ? DEFAULT_COLOR.toString() : prefix);
+                lastColor = new StringBuilder(prefix == null ? DEFAULT_LORE_COLOR.toString() : prefix);
                 continue;
             }
             
@@ -2070,7 +2125,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     
     @Deprecated
     public static List<String> splitAfter(@Nonnull String text, int max) {
-        return splitAfter(DEFAULT_COLOR.toString(), text, max);
+        return splitAfter(DEFAULT_LORE_COLOR.toString(), text, max);
     }
     
     @Deprecated
@@ -2317,6 +2372,16 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         
         void modify(E e);
         
+    }
+    
+    /**
+     * Defines a default color via {@link ChatColor} (legacy) and {@link TextColor}.
+     *
+     * @param chatColor - The legacy {@link ChatColor}.
+     * @param textColor - The {@link TextColor}.
+     */
+    @SuppressWarnings("deprecation")
+    public record DefaultColor(@Nonnull ChatColor chatColor, @Nonnull TextColor textColor) {
     }
     
 }

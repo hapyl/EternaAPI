@@ -2,9 +2,8 @@ package me.hapyl.eterna.module.scoreboard;
 
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import me.hapyl.eterna.module.annotate.ScoreboardSensitive;
+import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.Components;
-import me.hapyl.eterna.module.util.list.ComponentList;
-import me.hapyl.eterna.module.util.list.StringList;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -12,7 +11,6 @@ import org.bukkit.scoreboard.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -120,32 +118,11 @@ public class ScoreboardBuilder {
     
     /**
      * Sets the lines of this scoreboard and updates them.
-     * <p>The lines are hard-limited by {@link #maxLines}, and any lines beyond that are stripped and will not be rendered.</p>
      *
-     * @param array - The new lines.
+     * @param components - The lines to set; each new {@link Component} is a new line.
      */
-    public void setLines(@Nonnull StringList array) {
-        setLines(array.stream().map(Components::ofLegacy).collect(ComponentList.collector()));
-    }
-    
-    /**
-     * Sets the lines of this scoreboard and updates them.
-     * <p>The lines are hard-limited by {@link #maxLines}, and any lines beyond that are stripped and will not be rendered.</p>
-     *
-     * @param lines - The new lines.
-     */
-    public void setLines(@Nonnull Component... lines) {
-        setLines(Arrays.stream(lines).collect(ComponentList.collector()));
-    }
-    
-    /**
-     * Sets the lines of this scoreboard and updates them.
-     * <p>The lines are hard-limited by {@link #maxLines}, and any lines beyond that are stripped and will not be rendered.</p>
-     *
-     * @param lines - The new lines.
-     */
-    public void setLines(@Nonnull String... lines) {
-        setLines(Arrays.stream(lines).map(Components::ofLegacy).collect(ComponentList.collector()));
+    public void setLines(@Nonnull Component... components) {
+        setLines(ComponentList.of(components));
     }
     
     /**

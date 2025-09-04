@@ -1,10 +1,12 @@
 package me.hapyl.eterna.module.hologram;
 
 import com.google.common.collect.Sets;
-import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.util.list.StringList;
+import me.hapyl.eterna.module.component.ComponentList;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import org.bukkit.Color;
@@ -38,7 +40,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
      * @return the opacity of this hologram.
      */
     public byte opacity() {
-        return textDisplay.textDisplay.getTextOpacity();
+        return textDisplay.entity.getTextOpacity();
     }
     
     /**
@@ -47,7 +49,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
      * @param opacity - The new opacity.
      */
     public void opacity(byte opacity) {
-        this.textDisplay.textDisplay.setTextOpacity(opacity);
+        this.textDisplay.entity.setTextOpacity(opacity);
         this.updateMetadataAll();
     }
     
@@ -58,7 +60,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
      */
     @Nullable
     public Color background() {
-        final int color = this.textDisplay.textDisplay.getBackgroundColor();
+        final int color = this.textDisplay.entity.getBackgroundColor();
         
         return color != -1 ? Color.fromARGB(color) : null;
     }
@@ -69,12 +71,12 @@ public class HologramImplTextDisplay extends AbstractHologram {
      * @param color - The color to set.
      */
     public void background(@Nullable Color color) {
-        this.textDisplay.textDisplay.getEntityData().set(Display.TextDisplay.DATA_BACKGROUND_COLOR_ID, color != null ? color.asARGB() : -1);
+        this.textDisplay.entity.getEntityData().set(Display.TextDisplay.DATA_BACKGROUND_COLOR_ID, color != null ? color.asARGB() : -1);
         this.updateMetadataAll();
     }
     
     @Override
-    public void setLines(@Nonnull LineSupplier supplier) {
+    public void setLines(@Nonnull ComponentSupplier supplier) {
         super.setLines(supplier);
         
         // Update for all players
@@ -85,18 +87,18 @@ public class HologramImplTextDisplay extends AbstractHologram {
     @Nonnull
     @Override
     public Location getLocation() {
-        return Reflect.getEntityLocation(textDisplay.textDisplay);
+        return Reflect.getEntityLocation(textDisplay.entity);
     }
     
     @Nonnull
     @Override
     public World getWorld() {
-        return Reflect.getBukkitWorld(textDisplay.textDisplay.level());
+        return Reflect.getBukkitWorld(textDisplay.entity.level());
     }
     
     @Override
     public void teleport(@Nonnull Location location) {
-        this.textDisplay.textDisplay.teleportTo(location.getX(), location.getY(), location.getZ());
+        this.textDisplay.entity.teleportTo(location.getX(), location.getY(), location.getZ());
         
         this.showingTo.forEach(textDisplay::teleport);
     }
@@ -134,60 +136,58 @@ public class HologramImplTextDisplay extends AbstractHologram {
     
     @ApiStatus.Internal
     public static class PacketTextDisplay {
-        private final Display.TextDisplay textDisplay;
+        private final Display.TextDisplay entity;
+        private final TextDisplay bukkitEntity;
         
         PacketTextDisplay(@Nonnull Location location) {
-            this.textDisplay = new Display.TextDisplay(EntityType.TEXT_DISPLAY, Reflect.getMinecraftWorld(location.getWorld()));
-            this.textDisplay.teleportTo(location.getX(), location.getY(), location.getZ());
+            this.entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, Reflect.getMinecraftWorld(location.getWorld()));
+            this.entity.teleportTo(location.getX(), location.getY(), location.getZ());
+            this.entity.setBillboardConstraints(Display.BillboardConstraints.CENTER);
             
-            this.textDisplay.setBillboardConstraints(Display.BillboardConstraints.VERTICAL);
+            this.bukkitEntity = (TextDisplay) entity.getBukkitEntity();
         }
         
         protected void hide(@Nonnull Player player) {
-            Reflect.sendPacket(player, PacketFactory.makePacketRemoveEntity(textDisplay));
+            Reflect.sendPacket(player, PacketFactory.makePacketRemoveEntity(entity));
         }
         
         protected void teleport(@Nonnull Player player) {
-            Reflect.updateEntityLocation(textDisplay, player);
+            Reflect.updateEntityLocation(entity, player);
         }
         
-        @SuppressWarnings("deprecation"/* fucking paper */)
-        protected void text(@Nonnull Player player, @Nonnull StringList array) {
-            final StringBuilder builder = new StringBuilder();
+        protected void text(@Nonnull Player player, @Nonnull ComponentList components) {
+            final TextComponent.Builder builder = Component.text();
             
             int index = 0;
-            for (String string : array) {
+            for (Component component : components) {
                 if (index++ != 0) {
-                    builder.append("\n");
+                    builder.appendNewline();
                 }
                 
                 // If the string is null or empty we append new line to mimic the armor stand look
-                if (string == null || string.isEmpty()) {
-                    builder.append("\n");
-                }
-                else {
-                    builder.append(Chat.format(string));
+                if (component != null && !Components.isEmptyOrNewLine(component)) {
+                    builder.append(component);
                 }
             }
             
             // Actually set the text
-            ((TextDisplay) textDisplay.getBukkitEntity()).setText(builder.toString());
+            bukkitEntity.text(builder.build());
             
             // Update metadata for the player
             updateMetadata(player);
         }
         
         protected void show(@Nonnull Player player) {
-            Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(textDisplay));
+            Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(entity));
         }
         
         protected void updateMetadata(@Nonnull Player player) {
-            Reflect.updateMetadata(textDisplay, player);
+            Reflect.updateMetadata(entity, player);
         }
         
         @Override
         public String toString() {
-            return ((TextDisplay) textDisplay.getBukkitEntity()).getText();
+            return Components.toString(bukkitEntity.text());
         }
     }
 }

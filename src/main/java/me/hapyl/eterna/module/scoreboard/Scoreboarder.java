@@ -3,7 +3,6 @@ package me.hapyl.eterna.module.scoreboard;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.util.EternaEntity;
-import me.hapyl.eterna.module.util.list.StringList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Criteria;
@@ -115,9 +114,9 @@ public class Scoreboarder implements EternaEntity {
      *
      * @param stringArray - The string array.
      */
-    public void setLines(@Nonnull StringList stringArray) {
+    public void setLines(@Nonnull List<String> stringArray) {
         this.lines.clear();
-        this.lines.addAll(stringArray.toList());
+        this.lines.addAll(stringArray);
         
         this.updateLines();
     }

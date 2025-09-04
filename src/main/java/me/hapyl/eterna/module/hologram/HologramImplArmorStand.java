@@ -2,13 +2,15 @@ package me.hapyl.eterna.module.hologram;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
 import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.util.list.StringList;
+import me.hapyl.eterna.module.component.ComponentList;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -53,7 +55,7 @@ public class HologramImplArmorStand extends AbstractHologram {
     }
     
     @Override
-    public void setLines(@Nonnull LineSupplier supplier) {
+    public void setLines(@Nonnull ComponentSupplier supplier) {
         super.setLines(supplier);
         
         // Update armor stands for all players
@@ -80,13 +82,13 @@ public class HologramImplArmorStand extends AbstractHologram {
     
     @Override
     public void show(@Nonnull Player player) {
-        final StringList strings = supplier.supply(player);
+        final ComponentList components = supplier.supply(player);
         final List<PacketArmorStand> existingLines = showingTo.computeIfAbsent(player, _player -> Lists.newArrayList());
         
         // If length matches, no need to re-create the stands, just update the names
-        if (strings.size() == existingLines.size()) {
-            for (int i = 0; i < strings.size(); i++) {
-                existingLines.get(i).text(strings.get(i));
+        if (components.size() == existingLines.size()) {
+            for (int i = 0; i < components.size(); i++) {
+                existingLines.get(i).text(components.get(i));
             }
         }
         // Otherwise, we need to re-create the armor stands
@@ -95,11 +97,11 @@ public class HologramImplArmorStand extends AbstractHologram {
             existingLines.forEach(PacketArmorStand::hide);
             existingLines.clear();
             
-            final int toCreate = strings.size();
+            final int toCreate = components.size();
             
             for (int i = 0; i < toCreate; i++) {
                 final double yOffset = (toCreate - i - 1) * armorStandOffset;
-                final String text = strings.get(i);
+                final Component text = components.get(i);
                 
                 LocationHelper.offset(
                         location, 0, yOffset, 0, () -> existingLines.add(new PacketArmorStand(player, location, text))
@@ -135,7 +137,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         private final Player player;
         private final net.minecraft.world.entity.decoration.ArmorStand armorStand;
         
-        PacketArmorStand(@Nonnull Player player, @Nonnull Location location, @Nullable String text) {
+        PacketArmorStand(@Nonnull Player player, @Nonnull Location location, @Nullable Component text) {
             this.player = player;
             this.armorStand = new net.minecraft.world.entity.decoration.ArmorStand(
                     Reflect.getMinecraftWorld(location.getWorld()),
@@ -174,14 +176,15 @@ public class HologramImplArmorStand extends AbstractHologram {
             Reflect.updateMetadata(armorStand, player);
         }
         
-        protected void text(@Nullable String name) {
-            final boolean isNotEmpty = name != null && !name.isEmpty();
+        protected void text(@Nullable Component name) {
+            final boolean isEmpty = name == null || Components.isEmptyOrNewLine(name);
             
-            // It's either reflection to convert color codes or calling on a bukkit entity ¯\_(ツ)_/¯
-            armorStand.getBukkitEntity().setCustomName(isNotEmpty ? Chat.format(name) : "");
+            final Entity bukkitEntity = armorStand.getBukkitEntity();
+            bukkitEntity.customName(!isEmpty ? name : Component.empty());
             
             // If the name is null, we actually hide the name of this armor stand to no see the | in the name
-            armorStand.setCustomNameVisible(isNotEmpty);
+            // FIXME @Sep 04, 2025 (xanyjl) -> This doesn't seem to work?
+            armorStand.setCustomNameVisible(!isEmpty);
             
             // Refresh name
             update();
