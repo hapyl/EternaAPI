@@ -3,13 +3,16 @@ package me.hapyl.eterna.module.parkour;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.hologram.Hologram;
-import me.hapyl.eterna.module.util.list.StringList;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Named;
 import me.hapyl.eterna.module.util.Validate;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -153,8 +156,11 @@ public class Parkour implements Keyed, Named {
      * @return the text of the 'start' hologram.
      */
     @Nonnull
-    public StringList hologramTextStart() {
-        return StringList.of("&6&l" + name, "&aStart");
+    public ComponentList hologramTextStart() {
+        return ComponentList.of(
+                Component.text(name, NamedTextColor.GOLD, TextDecoration.BOLD),
+                Component.text("Start", NamedTextColor.GREEN)
+        );
     }
     
     /**
@@ -163,8 +169,11 @@ public class Parkour implements Keyed, Named {
      * @return the text of the 'finish' hologram.
      */
     @Nonnull
-    public StringList hologramTextFinish() {
-        return StringList.of("&6&l" + name, "&aFinish");
+    public ComponentList hologramTextFinish() {
+        return ComponentList.of(
+                Component.text(name, NamedTextColor.GOLD, TextDecoration.BOLD),
+                Component.text("Finish", NamedTextColor.GREEN)
+        );
     }
     
     /**
@@ -175,8 +184,11 @@ public class Parkour implements Keyed, Named {
      * @return the text of the 'checkpoint' hologram.
      */
     @Nonnull
-    public StringList hologramTextCheckpoint(int nth, int max) {
-        return StringList.of("&aCheckpoint &7(%s/%s)".formatted(nth, max));
+    public ComponentList hologramTextCheckpoint(int nth, int max) {
+        return ComponentList.of(
+                Component.text("Checkpoint ", NamedTextColor.GREEN)
+                         .append(Component.text("(%s/%s)".formatted(nth, max), NamedTextColor.GRAY))
+        );
     }
     
     /**
@@ -397,6 +409,7 @@ public class Parkour implements Keyed, Named {
     public final int hashCode() {
         return Objects.hashCode(this.key);
     }
+    
     public void tickHolograms() {
         Bukkit.getOnlinePlayers().forEach(player -> {
             final Location location = player.getLocation();
@@ -416,9 +429,9 @@ public class Parkour implements Keyed, Named {
         });
     }
     
-    private void makeHologram(Location location, StringList text) {
+    private void makeHologram(Location location, ComponentList text) {
         final Hologram hologram = Hologram.ofArmorStand(location);
-        hologram.setLines(text);
+        hologram.setLines(p -> text);
         
         this.holograms.add(hologram);
     }

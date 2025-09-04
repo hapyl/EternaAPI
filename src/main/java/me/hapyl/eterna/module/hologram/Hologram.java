@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.hologram;
 
 import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.locaiton.Located;
-import me.hapyl.eterna.module.util.list.StringList;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -11,48 +10,17 @@ import javax.annotation.Nonnull;
 /**
  * Represents a hologram that can display multiple lines of text to players.
  * <p>
- * The lines are defined as a {@link LineSupplier}, allowing each player to see personalized content.
+ * The lines are defined as a {@link ComponentSupplier}, allowing each player to see personalized content.
  */
 public interface Hologram extends Showable, Located {
     
     /**
-     * Sets the lines of this {@link Hologram}.
-     * Each line is generated dynamically for each {@link Player} using the provided {@link LineSupplier}.
-     * <p>
-     * For example:
-     * <pre>{@code
-     * hologram.setLines(player -> StringArray.of("Hello, " + player.getName()));
-     * }</pre>
-     * This will show "Hello, PLAYER_NAME" for each player individually.
-     * </p>
+     * Sets the kines of this {@link Hologram}.
+     * Each line is generated dynamically for each {@link Player} using the provided {@link ComponentSupplier}.
      *
      * @param supplier - The supplier.
      */
-    void setLines(@Nonnull LineSupplier supplier);
-    
-    /**
-     * Sets static lines for this {@link Hologram}.
-     * <p>
-     * This is a convenience method that wraps the given {@link StringList} into a function,
-     * so the same lines are shown to all players.
-     *
-     * @param lines the lines to display
-     */
-    default void setLines(@Nonnull StringList lines) {
-        setLines(player -> lines);
-    }
-    
-    /**
-     * Sets static lines for this {@link Hologram}.
-     * <p>
-     * This is a convenience method that wraps the given varargs {@link String} into a function,
-     * so the same lines are shown to all players.
-     *
-     * @param lines the lines to display
-     */
-    default void setLines(@Nonnull String... lines) {
-        setLines(player -> StringList.of(lines));
-    }
+    void setLines(@Nonnull ComponentSupplier supplier);
     
     /**
      * Gets a copy of the location of this {@link Hologram}.

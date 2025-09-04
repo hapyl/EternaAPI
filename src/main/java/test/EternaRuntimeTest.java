@@ -19,6 +19,8 @@ import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.messagebuilder.Format;
 import me.hapyl.eterna.module.chat.messagebuilder.Keybind;
 import me.hapyl.eterna.module.chat.messagebuilder.MessageBuilder;
+import me.hapyl.eterna.module.component.ComponentList;
+import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.config.Config;
 import me.hapyl.eterna.module.entity.Entities;
 import me.hapyl.eterna.module.entity.Rope;
@@ -73,8 +75,6 @@ import me.hapyl.eterna.module.scoreboard.Scoreboarder;
 import me.hapyl.eterna.module.util.*;
 import me.hapyl.eterna.module.util.array.Array;
 import me.hapyl.eterna.module.util.collection.Cache;
-import me.hapyl.eterna.module.util.list.ComponentList;
-import me.hapyl.eterna.module.util.list.StringList;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -215,42 +215,50 @@ public final class EternaRuntimeTest implements Runnable {
                 final String arg0 = args.get(0).toString();
                 final boolean isTextDisplay = arg0.equalsIgnoreCase("text") || arg0.equalsIgnoreCase("display") || arg0.equalsIgnoreCase("td");
                 final Hologram hologram = isTextDisplay ? Hologram.ofTextDisplay(location) : Hologram.ofArmorStand(location);
-                hologram.setLines("1", "2", "3");
+                
+                hologram.setLines(p -> ComponentList.empty().append(
+                        Component.keybind()
+                                 .keybind("key.sprint")
+                                 .build()
+                ));
                 hologram.showAll();
                 
                 info("Created %s Hologram!".formatted(isTextDisplay ? "Text Display" : "Armor Stand"));
                 
-                
                 later(
-                        40,
-                        () -> {
-                            info("Moved");
-                            hologram.teleport(player.getLocation());
-                        },
+                        20,
                         () -> {
                             info("Expand");
-                            hologram.setLines("1", "2", null, "deez", "nuts");
+                            hologram.setLines(p -> {
+                                return ComponentList.of(
+                                        Component
+                                                .text(1, NamedTextColor.BLUE)
+                                                .append(Component.text(" Hello World", NamedTextColor.RED)),
+                                        Component.text(123),
+                                        null,
+                                        Component.text("no")
+                                );
+                            });
                             
                             if (hologram instanceof HologramImplTextDisplay textDisplay) {
-                                textDisplay.opacity((byte) 50);
-                                textDisplay.background(Color.fromARGB(50, 55, 55, 55));
+                                textDisplay.background(Color.fromARGB(0, 0, 0, 0));
                             }
                         },
                         () -> {
                             info("Shrink");
-                            hologram.setLines("&cHello", "&bWorld!");
+                            hologram.setLines(p -> ComponentList.ofLegacy("&cHello", "&bWorld!"));
                         },
                         () -> {
                             info("Per-player lines!");
-                            hologram.setLines(_player -> {
-                                final String name = _player.getName();
-                                final StringList array = StringList.of("&aYour name is " + name);
+                            hologram.setLines(p -> {
+                                final String name = p.getName();
+                                final ComponentList list = ComponentList.of(Component.text("Your name is %s".formatted(name), NamedTextColor.GREEN));
                                 
                                 if (name.equalsIgnoreCase("hapyl")) {
-                                    array.append("&6EXTRA LINE HAPYL EXCLUSIVE!!");
+                                    list.append(Component.text("EXTRA LINE HAPYL EXCLUSIVE!!", NamedTextColor.GOLD));
                                 }
                                 
-                                return array;
+                                return list;
                             });
                         },
                         () -> {
@@ -477,11 +485,18 @@ public final class EternaRuntimeTest implements Runnable {
                 npc.setInteractionDelay(20);
                 
                 npc.setAboveHead(p -> {
-                    return StringList.of("&athird line above head", "second line above head", "first line above head");
+                    return ComponentList.ofLegacy("&athird line above head", "second line above head", "first line above head");
                 });
+                
                 npc.setBelowHead(p -> {
-                    return StringList.of("first line below head", "&csecond line below head", "third line below head");
+                    return ComponentList.of(
+                            Components.join(
+                                    Component.text("Jump key is: "),
+                                    Component.keybind("key.jump")
+                            )
+                    );
                 });
+                
                 npc.show(player);
                 
                 later(
@@ -2485,8 +2500,10 @@ public final class EternaRuntimeTest implements Runnable {
                             info("Using legacy support.");
                             
                             builder.setLines(
-                                    "Legacy colors &bblue &cred &agreen",
-                                    "You are &6" + player.getName() + "&e!"
+                                    ComponentList.ofLegacy(
+                                            "Legacy colors &bblue &cred &agreen",
+                                            "You are &6" + player.getName() + "&e!"
+                                    )
                             );
                         },
                         () -> {
@@ -2525,6 +2542,24 @@ public final class EternaRuntimeTest implements Runnable {
                 );
                 
                 
+                return false;
+            }
+        });
+        
+        register(new EternaTest("item_builder_component") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                player.getInventory().addItem(
+                        new ItemBuilder(Material.DIAMOND)
+                                .setName(Component.text("Hello Components!", NamedTextColor.BLACK))
+                                .setLore(ComponentList.of(
+                                        Component.text("And this is the lore!"),
+                                        Component.text("Oh another thing, colored lore!", NamedTextColor.BLUE),
+                                        Components.join(Component.text("I know your jump key, its "), Component.keybind("key.jump"), Component.text("!"))
+                                ))
+                                .addLore(Component.text("addLore()???", NamedTextColor.GREEN))
+                                .build()
+                );
                 return false;
             }
         });

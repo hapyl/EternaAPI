@@ -1,8 +1,8 @@
 package me.hapyl.eterna.module.reflect.npc;
 
 import me.hapyl.eterna.module.entity.Showable;
+import me.hapyl.eterna.module.hologram.ComponentSupplier;
 import me.hapyl.eterna.module.hologram.Hologram;
-import me.hapyl.eterna.module.hologram.LineSupplier;
 import me.hapyl.eterna.module.locaiton.Located;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -462,14 +462,14 @@ public interface Human extends Showable, Located {
      *
      * @param aboveHead - The text to set above name.
      */
-    void setAboveHead(@Nullable LineSupplier aboveHead);
+    void setAboveHead(@Nullable ComponentSupplier aboveHead);
     
     /**
      * Sets the below text of this {@link Human} name tag.
      *
      * @param belowHead - The text to set below name tag.
      */
-    void setBelowHead(@Nullable LineSupplier belowHead);
+    void setBelowHead(@Nullable ComponentSupplier belowHead);
     
     /**
      * Forcefully updates the hologram text.

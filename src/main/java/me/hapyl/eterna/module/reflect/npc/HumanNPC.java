@@ -14,11 +14,11 @@ import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.entity.ViewDistance;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
+import me.hapyl.eterna.module.hologram.ComponentSupplier;
 import me.hapyl.eterna.module.hologram.Hologram;
-import me.hapyl.eterna.module.hologram.LineSupplier;
-import me.hapyl.eterna.module.util.list.StringList;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.DialogEntry;
@@ -31,6 +31,7 @@ import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Placeholder;
 import me.hapyl.eterna.module.util.Runnables;
 import me.hapyl.eterna.module.util.Ticking;
+import me.hapyl.eterna.module.component.ComponentList;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
 import net.minecraft.network.protocol.game.ClientboundHurtAnimationPacket;
@@ -101,8 +102,8 @@ public class HumanNPC implements Human, NPCListener, ViewDistance, Ticking {
     private boolean collision;
     
     @Nullable private Dialog dialog;
-    @Nullable private LineSupplier aboveHead;
-    @Nullable private LineSupplier belowHead;
+    @Nullable private ComponentSupplier aboveHead;
+    @Nullable private ComponentSupplier belowHead;
     
     private BukkitTask moveTask;
     private AreaEffectCloud chair;
@@ -233,21 +234,21 @@ public class HumanNPC implements Human, NPCListener, ViewDistance, Ticking {
     @Override
     public final void updateHologram() {
         this.hologram.setLines(player -> {
-            final StringList array = StringList.empty();
+            final ComponentList list = ComponentList.empty();
             
             if (aboveHead != null) {
-                array.append(aboveHead.supply(player));
+                list.append(aboveHead.supply(player));
             }
             
             if (hasName()) {
-                array.append(format.formatName(player, this));
+                list.append(Components.ofLegacy(format.formatName(player, this)));
             }
             
             if (belowHead != null) {
-                array.append(belowHead.supply(player));
+                list.append(belowHead.supply(player));
             }
             
-            return array;
+            return list;
         });
     }
     
@@ -264,12 +265,12 @@ public class HumanNPC implements Human, NPCListener, ViewDistance, Ticking {
     }
     
     @Override
-    public void setAboveHead(@Nullable LineSupplier abovehead) {
-        this.aboveHead = abovehead;
+    public void setAboveHead(@Nullable ComponentSupplier aboveHead) {
+        this.aboveHead = aboveHead;
     }
     
     @Override
-    public void setBelowHead(@Nullable LineSupplier belowHead) {
+    public void setBelowHead(@Nullable ComponentSupplier belowHead) {
         this.belowHead = belowHead;
     }
     
