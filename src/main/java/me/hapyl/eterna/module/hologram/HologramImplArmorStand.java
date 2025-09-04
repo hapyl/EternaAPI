@@ -60,7 +60,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         
         // Update armor stands for all players
         this.showingTo.keySet().removeIf(Predicate.not(Player::isOnline));
-        this.showingTo.forEach((player, holograms) -> show(player));
+        this.showingTo.forEach((player, holograms) -> createOrUpdate(player));
     }
     
     @Override
@@ -82,6 +82,36 @@ public class HologramImplArmorStand extends AbstractHologram {
     
     @Override
     public void show(@Nonnull Player player) {
+        if (isShowingTo(player)) {
+            return;
+        }
+        
+        createOrUpdate(player);
+    }
+    
+    @Override
+    public void hide(@Nonnull Player player) {
+        final List<PacketArmorStand> existingLines = showingTo.remove(player);
+        
+        if (existingLines != null) {
+            existingLines.forEach(PacketArmorStand::hide);
+            existingLines.clear();
+        }
+    }
+    
+    @Override
+    public void destroy() {
+        this.showingTo.values().forEach(holograms -> holograms.forEach(PacketArmorStand::hide));
+        this.showingTo.clear();
+    }
+    
+    @Nonnull
+    @Override
+    public Collection<Player> showingTo() {
+        return Set.copyOf(showingTo.keySet());
+    }
+    
+    protected void createOrUpdate(@Nonnull Player player) {
         final ComponentList components = supplier.supply(player);
         final List<PacketArmorStand> existingLines = showingTo.computeIfAbsent(player, _player -> Lists.newArrayList());
         
@@ -108,28 +138,6 @@ public class HologramImplArmorStand extends AbstractHologram {
                 );
             }
         }
-    }
-    
-    @Override
-    public void hide(@Nonnull Player player) {
-        final List<PacketArmorStand> existingLines = showingTo.remove(player);
-        
-        if (existingLines != null) {
-            existingLines.forEach(PacketArmorStand::hide);
-            existingLines.clear();
-        }
-    }
-    
-    @Override
-    public void destroy() {
-        this.showingTo.values().forEach(holograms -> holograms.forEach(PacketArmorStand::hide));
-        this.showingTo.clear();
-    }
-    
-    @Nonnull
-    @Override
-    public Collection<Player> showingTo() {
-        return Set.copyOf(showingTo.keySet());
     }
     
     @ApiStatus.Internal
