@@ -105,6 +105,10 @@ public class HologramImplTextDisplay extends AbstractHologram {
     
     @Override
     public void show(@Nonnull Player player) {
+        if (isShowingTo(player)) {
+            return;
+        }
+        
         this.textDisplay.show(player);
         this.textDisplay.text(player, supplier.supply(player));
         
