@@ -23,20 +23,20 @@ import java.util.List;
  * <h1>Packet events are ASYNC!</h1>
  */
 public abstract class PacketEvent extends Event implements Cancellable {
-
+    
     private final Player player;
     private final Channel channel;
     private final Packet<?> packet;
     private boolean cancel;
-
+    
     PacketEvent(Player player, Channel channel, Packet<?> packet) {
         super(true);
-
+        
         this.player = player;
         this.channel = channel;
         this.packet = packet;
     }
-
+    
     /**
      * Gets the player associated with this event.
      *
@@ -46,7 +46,7 @@ public abstract class PacketEvent extends Event implements Cancellable {
     public Player getPlayer() {
         return player;
     }
-
+    
     /**
      * Gets the {@link Channel} this packet is on.
      *
@@ -56,7 +56,7 @@ public abstract class PacketEvent extends Event implements Cancellable {
     public Channel getChannel() {
         return channel;
     }
-
+    
     /**
      * Gets the {@link Packet}.
      *
@@ -66,7 +66,7 @@ public abstract class PacketEvent extends Event implements Cancellable {
     public Packet<?> getPacket() {
         return packet;
     }
-
+    
     /**
      * Gets the {@link Packet} if it matches the given class, <code>null</code> otherwise.
      *
@@ -78,10 +78,10 @@ public abstract class PacketEvent extends Event implements Cancellable {
         if (packetClass.isInstance(packet)) {
             return packetClass.cast(packet);
         }
-
+        
         return null;
     }
-
+    
     /**
      * Gets a {@link WrappedPacket} for the given {@link PacketWrapper}, or null, if {@link Packet} is not the correct type.
      *
@@ -93,7 +93,7 @@ public abstract class PacketEvent extends Event implements Cancellable {
     public <T extends PacketListener, P extends Packet<T>, W extends WrappedPacket<P>> W getWrappedPacket(@Nonnull PacketWrapper<T, P, W> wrapper) {
         return wrapper.wrap(packet);
     }
-
+    
     /**
      * Gets a {@link WrappedBundlePacket} that contains a {@link List} of {@link Packet}, or null if the packet is not a bundle packet.
      *
@@ -104,10 +104,10 @@ public abstract class PacketEvent extends Event implements Cancellable {
         if (packet instanceof ClientboundBundlePacket bundlePacket) {
             return new WrappedBundlePacket(bundlePacket);
         }
-
+        
         return null;
     }
-
+    
     /**
      * Returns true if this event was cancelled.
      * <br>
@@ -119,7 +119,7 @@ public abstract class PacketEvent extends Event implements Cancellable {
     public boolean isCancelled() {
         return cancel;
     }
-
+    
     /**
      * Sets if this event is cancelled.
      * <br>
@@ -129,13 +129,13 @@ public abstract class PacketEvent extends Event implements Cancellable {
     public void setCancelled(boolean cancel) {
         this.cancel = cancel;
     }
-
+    
     /**
-     * A helper method to call method <b>synchronized</b>.
+     * A helper method that run the given {@link Runnable} synchronized on the main thread.
      *
-     * @param runnable - Runnable to run synchronized.
+     * @param runnable - The runnable to run.
      */
-    protected void synchronize(@Nonnull Runnable runnable) {
+    public void synchronize(@Nonnull Runnable runnable) {
         Runnables.runSync(runnable);
     }
 }

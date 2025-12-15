@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.world.entity.Pose;
@@ -78,6 +79,11 @@ public class DataWatcherType<T> {
         return serializer;
     }
 
+    @Nonnull
+    public EntityDataAccessor<T> createAccessor(int id) {
+        return serializer.createAccessor(id);
+    }
+    
     @Nonnull
     @SuppressWarnings("unchecked")
     @Deprecated

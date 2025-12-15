@@ -1,20 +1,27 @@
 package me.hapyl.eterna.module.inventory;
 
+import com.mojang.datafixers.util.Pair;
+import me.hapyl.eterna.module.nms.NmsHelper;
+import me.hapyl.eterna.module.nms.NmsWrapper;
+import me.hapyl.eterna.module.reflect.Reflect;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.*;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * A {@link EntityEquipment} implementation supporting all {@link EquipmentSlot}s.
  */
-public class Equipment implements EntityEquipment {
+public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>>> {
     
     private static final ItemStack AIR = new ItemStack(Material.AIR);
     
@@ -279,12 +286,36 @@ public class Equipment implements EntityEquipment {
     }
     
     @Override
+    @Deprecated
     public float getDropChance(@NotNull EquipmentSlot slot) {
-        return 0;
+        throw new UnsupportedOperationException();
     }
     
     @Override
+    @Deprecated
     public void setDropChance(@NotNull EquipmentSlot slot, float chance) {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Nonnull
+    @Override
+    public List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> wrapToNms() {
+        return Arrays.stream(EquipmentSlot.values())
+                     .map(equipmentSlot -> {
+                         final ItemStack itemOnSlot = getItem(equipmentSlot);
+                         
+                         // We filter null afterwards
+                         if (itemOnSlot.isEmpty()) {
+                             return null;
+                         }
+                         
+                         return Pair.of(
+                                 NmsHelper.EQUIPMENT_SLOT.toNms(equipmentSlot),
+                                 Reflect.bukkitItemToNMS(itemOnSlot)
+                         );
+                     })
+                     .filter(Objects::nonNull)
+                     .toList();
     }
     
     @Nonnull

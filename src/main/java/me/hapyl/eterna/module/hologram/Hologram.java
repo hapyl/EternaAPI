@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.hologram;
 
 import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.locaiton.Located;
+import me.hapyl.eterna.module.util.Destroyable;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -12,7 +13,7 @@ import javax.annotation.Nonnull;
  * <p>
  * The lines are defined as a {@link ComponentSupplier}, allowing each player to see personalized content.
  */
-public interface Hologram extends Showable, Located {
+public interface Hologram extends Showable, Located, Destroyable {
     
     /**
      * Sets the kines of this {@link Hologram}.
@@ -38,6 +39,11 @@ public interface Hologram extends Showable, Located {
      */
     void teleport(@Nonnull Location location);
     
+    @Override
+    default void setLocation(@Nonnull Location location) {
+        teleport(location);
+    }
+    
     /**
      * Shows this {@link Hologram} for the given player.
      *
@@ -57,6 +63,7 @@ public interface Hologram extends Showable, Located {
     /**
      * Destroys this {@link Hologram} for all players who can see it.
      */
+    @Override
     void destroy();
     
     /**

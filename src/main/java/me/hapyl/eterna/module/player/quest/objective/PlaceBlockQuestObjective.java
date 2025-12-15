@@ -26,7 +26,7 @@ public class PlaceBlockQuestObjective extends QuestObjective {
     public PlaceBlockQuestObjective(@Nonnull Material material, double goal) {
         super("Place %s %s.".formatted(goal, Chat.capitalize(material)), goal);
 
-        this.material = Validate.isTrue(material, Material::isBlock, "Material must be a block!");
+        this.material = Validate.requireValid(material, Material::isBlock, "Material must be a block!");
     }
 
     @Nonnull

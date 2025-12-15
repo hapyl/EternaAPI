@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.reflect.team;
 
 import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.builtin.Debuggable;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.Reflect;
@@ -28,7 +29,7 @@ import java.util.function.Consumer;
  * <p>Note that because this game is garbage, some stuff like glowing color is client-side and based on teams, so changing the packet team will break glowing color and etc.
  */
 @SuppressWarnings("deprecation" /* honestly paper can just suck my balls I ain't switching to adventure until you make it work for nms */)
-public class PacketTeam {
+public class PacketTeam implements Debuggable {
     
     private static final Scoreboard dummyScoreboard;
     private static final Method cachedFromStringOrNull;
@@ -176,7 +177,7 @@ public class PacketTeam {
                     switch (option) {
                         case NAME_TAG_VISIBILITY -> team.setNameTagVisibility(packetOption.visibility());
                         case DEATH_MESSAGE_VISIBILITY -> team.setDeathMessageVisibility(packetOption.visibility());
-                        case COLLISION_RULE -> team.setCollisionRule(team.getCollisionRule());
+                        case COLLISION_RULE -> team.setCollisionRule(packetOption.collision());
                     }
                 }
         );
@@ -197,6 +198,12 @@ public class PacketTeam {
         if (copyOptionsFromExistingTeam(syncer, false)) {
             Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false));
         }
+    }
+    
+    @Nonnull
+    @Override
+    public String toDebugString() {
+        return "PacketTeam{%s}".formatted(team.pack());
     }
     
     /**

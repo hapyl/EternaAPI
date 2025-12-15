@@ -4,7 +4,7 @@ import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.builtin.manager.DialogManager;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.SelfReturn;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
+import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Named;
 import org.bukkit.NamespacedKey;
@@ -185,10 +185,10 @@ public class Dialog implements Named {
     /**
      * Adds a {@link DialogNpcEntry} to the {@link Dialog} with the given {@link String}s.
      *
-     * @param npc     - {@link HumanNPC} who will be sending the messages.
+     * @param npc     - {@link Npc} who will be sending the messages.
      * @param entries - Array of messages, each considered to be a different message.
      */
-    public Dialog addEntry(@Nonnull HumanNPC npc, @Nonnull String... entries) {
+    public Dialog addEntry(@Nonnull Npc npc, @Nonnull String... entries) {
         return addEntry(DialogEntry.of(npc, entries));
     }
     

@@ -1,5 +1,7 @@
 package me.hapyl.eterna.builtin.updater;
 
+import me.hapyl.eterna.EternaKey;
+import me.hapyl.eterna.EternaLock;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.chat.Chat;
@@ -8,11 +10,12 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public final class Updater {
+public final class Updater extends EternaLock {
 
     public static final String URL = "https://api.github.com/repos/hapyl/EternaAPI/releases/latest";
     public static final String VERSION_REGEX = "-?SNAPSHOT.*";
@@ -24,10 +27,11 @@ public final class Updater {
 
     private UpdateResult lastResult;
     private String updateMessage = "";
-
-    public Updater() {
+    
+    public Updater(@Nullable EternaKey key) {
+        super(key);
     }
-
+    
     public void checkForUpdatesAndGiveLink() {
         final UpdateResult result = checkForUpdates();
 

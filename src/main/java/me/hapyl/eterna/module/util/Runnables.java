@@ -7,6 +7,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @ApiStatus.Internal
@@ -18,8 +19,16 @@ public final class Runnables {
     }
     
     @ApiStatus.Internal
-    public static void runLater(@Nonnull Runnable runnable, long delay) {
-        newBukkitRunnable(runnable).runTaskLater(ETERNA, delay);
+    @Nonnull
+    public static CompletableFuture<Void> runLater(@Nonnull Runnable runnable, long delay) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        
+        newBukkitRunnable(() -> {
+            runnable.run();
+            future.complete(null);
+        }).runTaskLater(ETERNA, delay);
+        
+        return future;
     }
     
     @Asynchronous
@@ -35,8 +44,15 @@ public final class Runnables {
     
     @Asynchronous
     @ApiStatus.Internal
-    public static void runLaterAsync(@Nonnull Runnable runnable, long delay) {
-        newBukkitRunnable(runnable).runTaskLaterAsynchronously(ETERNA, delay);
+    public static CompletableFuture<Void> runLaterAsync(@Nonnull Runnable runnable, long delay) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        
+        newBukkitRunnable(() -> {
+            runnable.run();
+            future.complete(null);
+        }).runTaskLaterAsynchronously(ETERNA, delay);
+        
+        return future;
     }
     
     @ApiStatus.Internal
@@ -70,6 +86,22 @@ public final class Runnables {
         
         consumer.accept(bukkitRunnable);
         return bukkitRunnable;
+    }
+    
+    @ApiStatus.Internal
+    @Nonnull
+    public static <E extends Enum<E>> CompletableFuture<Void> iterateEnum(@Nonnull Class<E> enumClass, int delayEach, @Nonnull Consumer<E> consumer) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        int delay = 0;
+        
+        for (E enumConstant : enumClass.getEnumConstants()) {
+            runLater(() -> consumer.accept(enumConstant), delay += delayEach);
+        }
+        
+        // Complete future
+        runLater(() -> future.complete(null), delay);
+        
+        return future;
     }
     
     private static BukkitRunnable newBukkitRunnable(Runnable runnable) {

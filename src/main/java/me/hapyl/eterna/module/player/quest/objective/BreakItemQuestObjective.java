@@ -25,7 +25,7 @@ public class BreakItemQuestObjective extends QuestObjective {
     public BreakItemQuestObjective(@Nonnull Material material) {
         super("Break %s.".formatted(Chat.capitalize(material)), 1);
 
-        this.material = Validate.isTrue(material, Material::isItem, "Material must be an item!");
+        this.material = Validate.requireValid(material, Material::isItem, "Material must be an item!");
     }
 
     @Nonnull

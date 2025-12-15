@@ -8,7 +8,6 @@ import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.annotate.PaperWorkaround;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.math.Tick;
@@ -543,18 +542,13 @@ public class BukkitUtils {
     @Nullable
     public static <T extends LivingEntity> T getNearestEntity(@Nonnull Location location, double x, double y, double z, @Nonnull Class<T> clazz) {
         final World world = location.getWorld();
-        
-        if (world == null) {
-            return null;
-        }
-        
         final Collection<Entity> entities = world.getNearbyEntities(location, x, y, z);
         
         if (entities.isEmpty()) {
             return null;
         }
         
-        T closest = null;
+        Entity closest = null;
         double closestDist = Double.MAX_VALUE;
         
         for (final Entity entity : entities) {
@@ -562,19 +556,15 @@ public class BukkitUtils {
                 continue;
             }
             
-            if (closest == null) {
-                closest = clazz.cast(living);
-            }
-            else {
-                final double currentDist = living.getLocation().distance(location);
-                if (currentDist < closestDist) {
-                    closestDist = currentDist;
-                    closest = clazz.cast(living);
-                }
+            final double currentDist = living.getLocation().distance(location);
+            
+            if (closest == null || currentDist < closestDist) {
+                closest = living;
+                closestDist = currentDist;
             }
         }
         
-        return closest;
+        return clazz.cast(closest);
     }
     
     /**
@@ -587,7 +577,7 @@ public class BukkitUtils {
     public static Property getPlayerTextures(@Nonnull Player player) {
         final GameProfile profile = Reflect.getGameProfile(player);
         
-        return profile.getProperties()
+        return profile.properties()
                       .get("textures")
                       .stream()
                       .findFirst()
@@ -690,23 +680,6 @@ public class BukkitUtils {
     @Nonnull
     public static NamespacedKey createKey(@Nonnull JavaPlugin plugin, @Nonnull Object object) {
         return new NamespacedKey(plugin, String.valueOf(object));
-    }
-    
-    /**
-     * Gets a {@link NamespacedKey} from the given {@link Keyed}.
-     * <br>
-     * Since apparently some keyed objects can exist without a key,
-     * Paper <code>@Deprecated</code> and marked them <code>forRemoval</code>.
-     * <br>
-     * This helper method will 'remove' the annoying error.
-     *
-     * @param keyed - Keyed.
-     * @return a key if keyed, {@link BukkitUtils#DUMMY_KEY} otherwise.
-     */
-    @Nonnull
-    @PaperWorkaround
-    public static <T extends Keyed> NamespacedKey getKey(@Nullable T keyed) {
-        return Nulls.getOrDefault(keyed, Keyed::getKey, DUMMY_KEY);
     }
     
     /**

@@ -2,10 +2,10 @@ package me.hapyl.eterna.module.player;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.util.Nulls;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerLevel;
@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Allows storing minecraft textures and applying them to players.
  */
-public class PlayerSkin {
+public class PlayerSkin implements Skin {
     
     private static final PlayerSkin DEFAULT_SKIN = new PlayerSkin("", "");
     
@@ -48,7 +48,8 @@ public class PlayerSkin {
      * @return the texture of this skin.
      */
     @Nonnull
-    public String getTexture() {
+    @Override
+    public String texture() {
         return texture;
     }
     
@@ -58,7 +59,8 @@ public class PlayerSkin {
      * @return the signature of this skin.
      */
     @Nonnull
-    public String getSignature() {
+    @Override
+    public String signature() {
         return signature;
     }
     
@@ -94,11 +96,9 @@ public class PlayerSkin {
      *                       <p>This has no effect on other players, they <b>will</b> see the skin change.</p>
      */
     public void apply(@Nonnull Player player, boolean refreshForSelf) {
-        final GameProfile gameProfile = Reflect.getGameProfile(player);
-        final PropertyMap properties = gameProfile.getProperties();
+        final ServerPlayer minecraftPlayer = Reflect.getMinecraftPlayer(player);
         
-        properties.removeAll("textures");
-        properties.put("textures", new Property("textures", texture, signature));
+        Reflect.setTextures(minecraftPlayer, this);
         
         // Re-create for other by simply calling hide() and show()
         Bukkit.getOnlinePlayers().forEach(other -> {
@@ -167,10 +167,10 @@ public class PlayerSkin {
     @Nonnull
     public static PlayerSkin of(@Nonnull Player player) {
         final GameProfile profile = Reflect.getGameProfile(player);
-        final Collection<Property> textures = profile.getProperties().get("textures");
+        final Collection<Property> textures = profile.properties().get("textures");
         
         for (Property property : textures) {
-            return new PlayerSkin(property.value(), Nulls.getOrDefault(property.signature(), "null"));
+            return new PlayerSkin(property.value(), Nulls.nonNull(property.signature(), "null"));
         }
         
         EternaLogger.warn("Could not get %s's textures, using default. (It the server is offline mode?)".formatted(player.getName()));

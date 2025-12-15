@@ -18,8 +18,8 @@ public class Rope implements Spawnable<Rope> {
     private final LivingEntity[] entities;
 
     public Rope(Location start, Location end) {
-        Validate.notNull(start);
-        Validate.notNull(end);
+        Validate.nonNull(start);
+        Validate.nonNull(end);
         Validate.isTrue(start.getWorld() == end.getWorld(), "Locations must be in the same world!");
 
         this.start = start;

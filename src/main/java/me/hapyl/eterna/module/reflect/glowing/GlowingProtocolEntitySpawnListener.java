@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.reflect.glowing;
 
 import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.EternaKey;
+import me.hapyl.eterna.EternaLock;
 import me.hapyl.eterna.builtin.manager.GlowingManager;
 import me.hapyl.eterna.module.event.protocol.PacketSendEvent;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
@@ -8,10 +10,18 @@ import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacketPlayOutSpawnEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.jetbrains.annotations.ApiStatus;
 
-public class GlowingProtocolEntitySpawnListener implements Listener {
+import javax.annotation.Nullable;
+
+@ApiStatus.Internal
+public final class GlowingProtocolEntitySpawnListener extends EternaLock implements Listener {
     
     private final GlowingManager manager = Eterna.getManagers().glowing;
+    
+    public GlowingProtocolEntitySpawnListener(@Nullable EternaKey key) {
+        super(key);
+    }
     
     @EventHandler()
     public void handlePacketSendEvent(PacketSendEvent ev) {

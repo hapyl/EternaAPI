@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
  * An interface representing objects that exist in the world at a specific location.
  */
 public interface Located {
-
+    
     /**
      * Gets the location of this object in the world.
      *
@@ -17,7 +17,19 @@ public interface Located {
      */
     @Nonnull
     Location getLocation();
-
+    
+    /**
+     * Sets the location of this object i the world.
+     * <p>
+     * The default implementation throws an {@link UnsupportedOperationException}.
+     * </p>
+     *
+     * @param location - The new location to set.
+     */
+    default void setLocation(@Nonnull Location location) {
+        throw new UnsupportedOperationException("setLocation()");
+    }
+    
     /**
      * Gets the world in which this object is located.
      * <p>
@@ -36,5 +48,5 @@ public interface Located {
     default World getWorld() {
         return getLocation().getWorld();
     }
-
+    
 }

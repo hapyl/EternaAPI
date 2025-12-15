@@ -28,7 +28,7 @@ public class BreedAnimalsQuestObjective extends QuestObjective {
     public BreedAnimalsQuestObjective(@Nonnull EntityType entityType, double goal) {
         super("Breed %s %s times.".formatted(Chat.capitalize(entityType.getKey().getKey()), goal), goal);
 
-        this.entityType = Validate.isTrue(entityType, type -> {
+        this.entityType = Validate.requireValid(entityType, type -> {
             final Class<? extends Entity> entityClass = type.getEntityClass();
 
             return entityClass != null && Breedable.class.isAssignableFrom(entityClass);

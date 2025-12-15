@@ -1,10 +1,10 @@
 package me.hapyl.eterna.module.player.quest.objective;
 
 import me.hapyl.eterna.module.inventory.ItemBuilder;
+import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.player.quest.QuestData;
 import me.hapyl.eterna.module.player.quest.QuestObjectArray;
 import me.hapyl.eterna.module.player.quest.QuestObjective;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import org.bukkit.inventory.ItemStack;
@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
 public class GiveKeyedItemToNpcQuestObjective extends QuestObjective {
 
     public final Key key;
-    public final HumanNPC npc;
+    public final Npc npc;
 
     /**
      * Creates a new objective for the completion of which the player must give a keyed item to a npc.
@@ -25,8 +25,8 @@ public class GiveKeyedItemToNpcQuestObjective extends QuestObjective {
      * @param key - The key of the item.
      * @param npc - The NPC to give the item to.
      */
-    public GiveKeyedItemToNpcQuestObjective(@Nonnull Key key, @Nonnull HumanNPC npc) {
-        super("Give %s item to %s.".formatted(key.getKey(), npc.getName()), 1);
+    public GiveKeyedItemToNpcQuestObjective(@Nonnull Key key, @Nonnull Npc npc) {
+        super("Give %s item to %s.".formatted(key.getKey(), npc.getDefaultName()), 1);
 
         this.key = validateKey(key);
         this.npc = npc;
@@ -39,14 +39,14 @@ public class GiveKeyedItemToNpcQuestObjective extends QuestObjective {
      * @param npc  - The NPC to give the item to.
      * @throws IllegalArgumentException If the item doesn't have a key.
      */
-    public GiveKeyedItemToNpcQuestObjective(@Nonnull ItemStack item, @Nonnull HumanNPC npc) {
+    public GiveKeyedItemToNpcQuestObjective(@Nonnull ItemStack item, @Nonnull Npc npc) {
         this(validateKey(ItemBuilder.getItemKey(item)), npc);
     }
 
     @Nonnull
     @Override
     public Response test(@Nonnull QuestData data, @Nonnull QuestObjectArray object) {
-        final HumanNPC npc = object.getAs(0, HumanNPC.class);
+        final Npc npc = object.getAs(0, Npc.class);
         final ItemStack item = object.getAs(1, ItemStack.class);
 
         if (item == null) {

@@ -1,21 +1,23 @@
 package me.hapyl.eterna.module.player.dialog;
 
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
-import me.hapyl.eterna.module.util.Placeholder;
+import me.hapyl.eterna.module.component.Components;
+import me.hapyl.eterna.module.npc.Npc;
+import me.hapyl.eterna.module.util.NpcPlaceholder;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 
 /**
- * Represents an entry that sends the given string as if a {@link HumanNPC} sent it.
+ * Represents an entry that sends the given string as if a {@link Npc} sent it.
  * <br>
- * The entry uses {@link HumanNPC#sendNpcMessage(Player, String)}, meaning {@link Placeholder} is supported.
+ * The entry uses {@link Npc#sendMessage(Player, Component)}, meaning {@link NpcPlaceholder} is supported.
  */
 public class DialogNpcEntry extends DialogString {
 
-    protected final HumanNPC npc;
+    protected final Npc npc;
 
-    public DialogNpcEntry(@Nonnull HumanNPC npc, @Nonnull String string) {
+    public DialogNpcEntry(@Nonnull Npc npc, @Nonnull String string) {
         super(string);
 
         this.npc = npc;
@@ -25,6 +27,6 @@ public class DialogNpcEntry extends DialogString {
     public void run(@Nonnull DialogInstance dialog) {
         final Player player = dialog.getPlayer();
 
-        npc.sendNpcMessage(player, string);
+        npc.sendMessage(player, Components.ofLegacy(string));
     }
 }

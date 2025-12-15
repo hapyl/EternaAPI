@@ -1,12 +1,21 @@
 package me.hapyl.eterna.module.math;
 
+import me.hapyl.eterna.module.annotate.UtilityClass;
+
 import javax.annotation.Nullable;
 
 /**
  * Simple util class for numbers.
  */
-public class Numbers {
-
+@UtilityClass
+public final class Numbers {
+    
+    private static final float EPSILON = 1e-6f;
+    
+    private Numbers() {
+        UtilityClass.Validator.throwIt();
+    }
+    
     /**
      * Clamps a number between a min and max value.
      *
@@ -20,7 +29,7 @@ public class Numbers {
     public static int clamp(int var, int min, int max) {
         return Math.min(Math.max(var, min), max);
     }
-
+    
     /**
      * Clamps a number between a min and max value.
      *
@@ -34,7 +43,7 @@ public class Numbers {
     public static long clamp(long var, long min, long max) {
         return Math.min(Math.max(var, min), max);
     }
-
+    
     /**
      * Clamps a number between a min and max value.
      *
@@ -48,7 +57,7 @@ public class Numbers {
     public static float clamp(float var, float min, float max) {
         return Math.min(Math.max(var, min), max);
     }
-
+    
     /**
      * Clamps a number between a min and max value.
      *
@@ -62,7 +71,7 @@ public class Numbers {
     public static double clamp(double var, double min, double max) {
         return Math.min(Math.max(var, min), max);
     }
-
+    
     /**
      * Clamps a number between a min and max value.
      *
@@ -76,7 +85,7 @@ public class Numbers {
     public static byte clamp(byte var, byte min, byte max) {
         return (byte) Math.min(Math.max(var, min), max);
     }
-
+    
     /**
      * Clamps a number between a min and max value.
      *
@@ -89,7 +98,7 @@ public class Numbers {
     public static short clamp(short var, short min, short max) {
         return (short) Math.min(Math.max(var, min), max);
     }
-
+    
     /**
      * Clamps a number between a 0 and 1.
      *
@@ -99,7 +108,7 @@ public class Numbers {
     public static int clamp01(int var) {
         return Math.clamp(var, 0, 1);
     }
-
+    
     /**
      * Clamps a number between a 0 and 1.
      *
@@ -109,7 +118,7 @@ public class Numbers {
     public static long clamp01(long var) {
         return Math.clamp(var, 0, 1);
     }
-
+    
     /**
      * Clamps a number between a 0 and 1.
      *
@@ -119,7 +128,7 @@ public class Numbers {
     public static float clamp01(float var) {
         return Math.clamp(var, 0, 1);
     }
-
+    
     /**
      * Clamps a number between a 0 and 1.
      *
@@ -129,7 +138,7 @@ public class Numbers {
     public static double clamp01(double var) {
         return Math.clamp(var, 0, 1);
     }
-
+    
     /**
      * Clamps a number between a 0 and 1.
      *
@@ -139,7 +148,7 @@ public class Numbers {
     public static byte clamp01(byte var) {
         return (byte) Math.clamp(var, (byte) 0, (byte) 1);
     }
-
+    
     /**
      * Clamps a number between a 0 and 1.
      *
@@ -149,7 +158,7 @@ public class Numbers {
     public static short clamp01(short var) {
         return (short) Math.clamp(var, (short) 0, (short) 1);
     }
-
+    
     /**
      * Clamps a number between a -1 and 1.
      *
@@ -159,7 +168,7 @@ public class Numbers {
     public static int clamp1neg1(int var) {
         return Math.clamp(var, -1, 1);
     }
-
+    
     /**
      * Clamps a number between a -1 and 1.
      *
@@ -169,7 +178,7 @@ public class Numbers {
     public static long clamp1neg1(long var) {
         return Math.clamp(var, -1, 1);
     }
-
+    
     /**
      * Clamps a number between a -1 and 1.
      *
@@ -179,7 +188,7 @@ public class Numbers {
     public static float clamp1neg1(float var) {
         return Math.clamp(var, -1, 1);
     }
-
+    
     /**
      * Clamps a number between a -1 and 1.
      *
@@ -189,7 +198,7 @@ public class Numbers {
     public static double clamp1neg1(double var) {
         return Math.clamp(var, -1, 1);
     }
-
+    
     /**
      * Clamps a number between a -1 and 1.
      *
@@ -199,7 +208,7 @@ public class Numbers {
     public static byte clamp1neg1(byte var) {
         return (byte) Math.clamp(var, (byte) -1, (byte) 1);
     }
-
+    
     /**
      * Clamps a number between a -1 and 1.
      *
@@ -209,7 +218,7 @@ public class Numbers {
     public static short clamp1neg1(short var) {
         return (short) Math.clamp(var, (short) -1, (short) 1);
     }
-
+    
     /**
      * Clamps a number between min and max value of an Integer.
      *
@@ -219,7 +228,7 @@ public class Numbers {
     public static int clampInt(int var) {
         return Math.clamp(var, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
-
+    
     /**
      * Clamps a number between min and max value of a Long.
      *
@@ -229,7 +238,7 @@ public class Numbers {
     public static long clampLong(long var) {
         return Math.clamp(var, Long.MIN_VALUE, Long.MAX_VALUE);
     }
-
+    
     /**
      * Clamps a number between min and max value of a Float.
      *
@@ -239,7 +248,7 @@ public class Numbers {
     public static float clampFloat(float var) {
         return Math.clamp(var, Float.MIN_VALUE, Float.MAX_VALUE);
     }
-
+    
     /**
      * Clamps a number between min and max value of a Double.
      *
@@ -249,7 +258,7 @@ public class Numbers {
     public static double clampDouble(double var) {
         return Math.clamp(var, Double.MIN_VALUE, Double.MAX_VALUE);
     }
-
+    
     /**
      * Clamps a number between min and max value of a Byte.
      *
@@ -259,7 +268,7 @@ public class Numbers {
     public static byte clampByte(byte var) {
         return (byte) Math.clamp(var, Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
-
+    
     /**
      * Clamps a number between min and max value of a Short.
      *
@@ -269,7 +278,7 @@ public class Numbers {
     public static short clampShort(short var) {
         return (short) Math.clamp(var, Short.MIN_VALUE, Short.MAX_VALUE);
     }
-
+    
     /**
      * Returns {@code true} if the given {@link Object} is an {@link Integer}, {@code false} otherwise.
      *
@@ -286,13 +295,14 @@ public class Numbers {
         else {
             try {
                 Integer.parseInt(object.toString());
-            } catch (Exception ignored) {
+            }
+            catch (Exception ignored) {
                 return false;
             }
         }
         return true;
     }
-
+    
     /**
      * Returns {@code true} if the given {@link Object} is a {@link Long}, {@code false} otherwise.
      *
@@ -309,13 +319,14 @@ public class Numbers {
         else {
             try {
                 Long.parseLong(object.toString());
-            } catch (Exception ignored) {
+            }
+            catch (Exception ignored) {
                 return false;
             }
         }
         return true;
     }
-
+    
     /**
      * Returns {@code true} if the given {@link Object} is a {@link Float}, {@code false} otherwise.
      *
@@ -332,13 +343,14 @@ public class Numbers {
         else {
             try {
                 Float.parseFloat(object.toString());
-            } catch (Exception ignored) {
+            }
+            catch (Exception ignored) {
                 return false;
             }
         }
         return true;
     }
-
+    
     /**
      * Returns {@code true} if the given {@link Object} is a {@link Double}, {@code false} otherwise.
      *
@@ -355,13 +367,14 @@ public class Numbers {
         else {
             try {
                 Double.parseDouble(object.toString());
-            } catch (Exception ignored) {
+            }
+            catch (Exception ignored) {
                 return false;
             }
         }
         return true;
     }
-
+    
     /**
      * Returns {@code true} if the given {@link Object} is a {@link Byte}, {@code false} otherwise.
      *
@@ -378,13 +391,14 @@ public class Numbers {
         else {
             try {
                 Byte.parseByte(object.toString());
-            } catch (Exception ignored) {
+            }
+            catch (Exception ignored) {
                 return false;
             }
         }
         return true;
     }
-
+    
     /**
      * Returns {@code true} if the given {@link Object} is a {@link Short}, {@code false} otherwise.
      *
@@ -401,13 +415,14 @@ public class Numbers {
         else {
             try {
                 Short.parseShort(object.toString());
-            } catch (Exception ignored) {
+            }
+            catch (Exception ignored) {
                 return false;
             }
         }
         return true;
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to an {@link Integer}.
      * If the object is {@code null}, or if it cannot be
@@ -421,19 +436,20 @@ public class Numbers {
         if (object == null) {
             return def;
         }
-
+        
         else if (object instanceof Number number) {
             return number.intValue();
         }
         else {
             try {
                 return Integer.parseInt(object.toString());
-            } catch (NumberFormatException ignored0) {
+            }
+            catch (NumberFormatException ignored0) {
                 return def;
             }
         }
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to an {@link Integer}.
      * If the object is {@code null}, or if it cannot be
@@ -445,7 +461,7 @@ public class Numbers {
     public static int getInt(@Nullable Object object) {
         return getInt(object, 0);
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Long}.
      * If the object is {@code null}, or if it cannot be
@@ -465,12 +481,13 @@ public class Numbers {
         else {
             try {
                 return Long.parseLong(object.toString());
-            } catch (NumberFormatException ignored0) {
+            }
+            catch (NumberFormatException ignored0) {
                 return def;
             }
         }
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Long}.
      * If the object is {@code null}, or if it cannot be
@@ -482,7 +499,7 @@ public class Numbers {
     public static long getLong(@Nullable Object object) {
         return getLong(object, 0L);
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Float}.
      * If the object is {@code null}, or if it cannot be
@@ -502,12 +519,13 @@ public class Numbers {
         else {
             try {
                 return Float.parseFloat(object.toString());
-            } catch (NumberFormatException ignored0) {
+            }
+            catch (NumberFormatException ignored0) {
                 return def;
             }
         }
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Float}.
      * If the object is {@code null}, or if it cannot be
@@ -519,7 +537,7 @@ public class Numbers {
     public static float getFloat(@Nullable Object object) {
         return getFloat(object, 0.0f);
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Float}.
      * If the object is {@code null}, or if it cannot be
@@ -539,12 +557,13 @@ public class Numbers {
         else {
             try {
                 return Double.parseDouble(object.toString());
-            } catch (NumberFormatException ignored0) {
+            }
+            catch (NumberFormatException ignored0) {
                 return def;
             }
         }
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Double}.
      * If the object is {@code null}, or if it cannot be
@@ -556,7 +575,7 @@ public class Numbers {
     public static double getDouble(@Nullable Object object) {
         return getDouble(object, 0.0d);
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Byte}.
      * If the object is {@code null}, or if it cannot be
@@ -576,12 +595,13 @@ public class Numbers {
         else {
             try {
                 return Byte.parseByte(object.toString());
-            } catch (NumberFormatException ignored0) {
+            }
+            catch (NumberFormatException ignored0) {
                 return def;
             }
         }
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Byte}.
      * If the object is {@code null}, or if it cannot be
@@ -593,7 +613,7 @@ public class Numbers {
     public static byte getByte(@Nullable Object object) {
         return getByte(object, (byte) 0x0);
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Short}.
      * If the object is {@code null}, or if it cannot be
@@ -613,12 +633,13 @@ public class Numbers {
         else {
             try {
                 return Short.parseShort(object.toString());
-            } catch (NumberFormatException ignored0) {
+            }
+            catch (NumberFormatException ignored0) {
                 return def;
             }
         }
     }
-
+    
     /**
      * Attempts to convert the given {@link Object} to a {@link Short}.
      * If the object is {@code null}, or if it cannot be
@@ -630,5 +651,26 @@ public class Numbers {
     public static short getShort(@Nullable Object object) {
         return getShort(object, (short) 0);
     }
-
+    
+    /**
+     * Gets whether the two {@code double} are equals.
+     *
+     * @param a - The first double.
+     * @param b - The second double.
+     * @return {@code true} if the two {@code double} are equals, {@code false} otherwise.
+     */
+    public static boolean doubleEquals(double a, double b) {
+        return Math.abs(a - b) < EPSILON;
+    }
+    
+    /**
+     * Gets whether the two {@code float} are equals.
+     *
+     * @param a - The first float.
+     * @param b - The second float.
+     * @return {@code true} if the two {@code float} are equals, {@code false} otherwise.
+     */
+    public static boolean floatEquals(float a, float b) {
+        return Math.abs(a - b) < EPSILON;
+    }
 }

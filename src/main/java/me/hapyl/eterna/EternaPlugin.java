@@ -10,14 +10,13 @@ import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
 import me.hapyl.eterna.module.inventory.ItemBuilderListener;
 import me.hapyl.eterna.module.inventory.SignListener;
 import me.hapyl.eterna.module.inventory.gui.GUIListener;
+import me.hapyl.eterna.module.npc.NpcRunnable;
 import me.hapyl.eterna.module.parkour.ParkourListener;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
-import me.hapyl.eterna.module.record.ReplayListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolEntitySpawnListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolMetadataListener;
 import me.hapyl.eterna.module.reflect.glowing.GlowingRunnable;
-import me.hapyl.eterna.module.reflect.npc.HumanNPCListener;
-import me.hapyl.eterna.module.reflect.npc.HumanNpcRunnable;
+import me.hapyl.eterna.module.npc.NpcListener;
 import me.hapyl.eterna.module.util.Runnables;
 import me.hapyl.eterna.protocol.EternaProtocol;
 import org.bukkit.Bukkit;
@@ -44,26 +43,28 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
     public void onEnable() {
         plugin = Eterna.plugin = this;
         
+        // Create soleKey
+        final EternaKey soleKey = EternaKey.createSoleKey();
+        
         // Check if the server is running paper
         validateUsingPaper();
         
         // Init protocol
-        this.protocol = new EternaProtocol(this);
+        this.protocol = new EternaProtocol(soleKey, this);
         
         // Init managers
-        this.managers = new EternaManagers(this);
+        this.managers = new EternaManagers(soleKey, this);
         
         final PluginManager manager = this.getServer().getPluginManager();
         
-        manager.registerEvents(new ItemBuilderListener(), this);
-        manager.registerEvents(new GUIListener(), this);
-        manager.registerEvents(new ParkourListener(), this);
-        manager.registerEvents(new ReplayListener(), this);
-        manager.registerEvents(new SignListener(), this);
-        manager.registerEvents(new HumanNPCListener(), this);
-        manager.registerEvents(new GlowingProtocolMetadataListener(), this);
-        manager.registerEvents(new GlowingProtocolEntitySpawnListener(), this);
-        manager.registerEvents(new PlayerMoveOneBlockEvent.Handler(), this);
+        manager.registerEvents(new ItemBuilderListener(soleKey), this);
+        manager.registerEvents(new GUIListener(soleKey), this);
+        manager.registerEvents(new ParkourListener(soleKey), this);
+        manager.registerEvents(new SignListener(soleKey), this);
+        manager.registerEvents(new NpcListener(soleKey), this);
+        manager.registerEvents(new GlowingProtocolMetadataListener(soleKey), this);
+        manager.registerEvents(new GlowingProtocolEntitySpawnListener(soleKey), this);
+        manager.registerEvents(new PlayerMoveOneBlockEvent.Handler(soleKey), this);
         
         final BukkitScheduler scheduler = Bukkit.getScheduler();
         
@@ -71,15 +72,15 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveConfig();
         
-        this.config = new EternaConfigImpl(this);
+        this.config = new EternaConfigImpl(soleKey, this);
         
         // Schedule tasks
-        scheduler.runTaskTimer(this, new HumanNpcRunnable(), 0, config.tickRate().npc());
-        scheduler.runTaskTimer(this, new ParkourRunnable.Actionbar(), 0, config.tickRate().parkour());
+        scheduler.runTaskTimer(this, new NpcRunnable(soleKey), 0, config.tickRate().npc());
+        scheduler.runTaskTimer(this, new ParkourRunnable.Actionbar(soleKey), 0, config.tickRate().parkour());
         
         // The following tasks have hardcoded periods
-        scheduler.runTaskTimer(this, new GlowingRunnable(), 0, 1);
-        scheduler.runTaskTimer(this, new ParkourRunnable.Hologram(), 0, 20);
+        scheduler.runTaskTimer(this, new GlowingRunnable(soleKey), 0, 1);
+        scheduler.runTaskTimer(this, new ParkourRunnable.Hologram(soleKey), 0, 20);
         
         // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);
@@ -97,7 +98,7 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         EternaAPI.loadAll();
         
         // Check for updates
-        this.updater = new Updater();
+        this.updater = new Updater(soleKey);
         
         if (this.config.checkForUpdates()) {
             Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);

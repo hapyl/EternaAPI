@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.event;
 
 import io.papermc.paper.entity.TeleportFlag;
+import me.hapyl.eterna.EternaKey;
+import me.hapyl.eterna.EternaLock;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
@@ -15,8 +17,10 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,10 +61,15 @@ public class PlayerMoveOneBlockEvent extends PlayerEvent implements Cancellable 
         return HANDLER_LIST;
     }
 
-    public static class Handler implements Listener {
+    @ApiStatus.Internal
+    public static final class Handler extends EternaLock implements Listener {
 
         private static final Map<Player, Data> PLAYER_DATA = new ConcurrentHashMap<>();
-
+        
+        public Handler(@Nullable EternaKey key) {
+            super(key);
+        }
+        
         @EventHandler(ignoreCancelled = true)
         public void handlePlayerMoveEvent(PlayerMoveEvent ev) {
             final Player player = ev.getPlayer();

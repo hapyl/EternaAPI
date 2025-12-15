@@ -1,10 +1,9 @@
 package me.hapyl.eterna.module.player.tablist;
 
-import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.reflect.npc.EternaPlayer;
+import me.hapyl.eterna.module.reflect.Skin;
+import me.hapyl.eterna.module.reflect.EternaServerPlayerImpl;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.SupportsColorFormatting;
 import net.minecraft.network.chat.Component;
@@ -19,7 +18,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a {@link Tablist} entry, that can be shown in the {@link Tablist}.
  */
-public class TablistEntry extends EternaPlayer {
+public class TablistEntry extends EternaServerPlayerImpl {
     
     private static final Location PLAYER_LOCATION = BukkitUtils.defLocation(0, -64, 0);
     private static final EntryTexture DEFAULT_TEXTURE = EntryTexture.DARK_GRAY;
@@ -35,16 +34,13 @@ public class TablistEntry extends EternaPlayer {
     private PingBars bars;
     
     TablistEntry(int index, @Nonnull Tablist tablist) {
-        super(PLAYER_LOCATION, ""); // Keeping the actual GameProfile name empty is the key for the system to work
+        super(PLAYER_LOCATION, "", DEFAULT_TEXTURE);
         
         this.index = index;
         this.tablist = tablist;
         
         this.text = Tablist.DEFAULT_ENTRY_NAME;
         this.bars = PingBars.FIVE;
-        
-        // Hardcoding default textures so it's not steves lol
-        setTextureRaw(DEFAULT_TEXTURE.getValue(), DEFAULT_TEXTURE.getSignature());
     }
     
     /**
@@ -94,7 +90,7 @@ public class TablistEntry extends EternaPlayer {
         this.text = newText;
         
         // Update text
-        Reflect.sendPacket(tablist.player, packetFactory.getPacketUpdatePlayer());
+        Reflect.sendPacket(tablist.player, packetFactory.getPacketUpdateDisplayName());
     }
     
     /**
@@ -102,43 +98,53 @@ public class TablistEntry extends EternaPlayer {
      *
      * @param player - Player to get skin from.
      */
-    public TablistEntry setTexture(@Nonnull Player player) {
-        if (skinnedPlayer != null && skinnedPlayer == player) {
-            return this;
+    public void setTexture(@Nonnull Player player) {
+        // Storing a cached player object is much faster even though we cache the textures,
+        // because we're using reflection to get the textures, not the paper way.
+        if (this.skinnedPlayer != null && this.skinnedPlayer == player) {
+            return;
         }
         
-        final Property textures = BukkitUtils.getPlayerTextures(player);
+        this.skinnedPlayer = player;
         
-        skinnedPlayer = player;
-        return setTexture(textures.value(), textures.signature());
+        setTexture(Skin.ofProperty(BukkitUtils.getPlayerTextures(player)));
     }
     
     /**
-     * Sets the skin of this {@link TablistEntry} from value and signature.
+     * Sets the skin of the entry.
      * <p>
-     * You can use something like <a href="https://mineskin.org/">MineSkin</a> to get the value and the signature.
+     * Note that changing a skin <b>requires</b> for the entry to be removed and added again.
+     * </p>
+     * <p>
+     * This will result in tablist "blinking" for 1 tick.
+     * <i>EternaAPI</i> does its best to cache and prevent it from updating unless necessary,
+     * but if you're using {@link Tablist} to display online players, expect flickering when
+     * player joins/leaves.
+     * </p>
      *
-     * @param value     - Value.
-     * @param signature - Signature.
+     * @param newTextures
      */
-    public TablistEntry setTexture(@Nonnull String value, @Nullable String signature) {
-        // Reduce calls since it probably will be updated a lot
-        if (cachedTextures[0].equals(value) && cachedTextures[1].equals(signature)) {
-            return this;
+    @Override
+    public void setTexture(@Nonnull Skin newTextures) {
+        final String newTexture = newTextures.texture();
+        final String newSignature = newTextures.signature();
+        
+        // Because changing skin requires to send a `remove` packet and then an `add` packet,
+        // it will result in a 1-tick blinking, so we reduce calls be caching the last known
+        // textures and only update when they're different.
+        
+        // This will still blink when the texture is changed, but as far as I'm aware, there isn't
+        // a way to prevent that.
+        if (cachedTextures[0].equals(newTexture) && cachedTextures[1].equals(newSignature)) {
+            return;
         }
         
-        setTextureRaw(value, signature);
-        updateSkin();
-        return this;
-    }
-    
-    /**
-     * Sets the skin of this {@link TablistEntry} from the {@link EntryTexture}.
-     *
-     * @param skin - Skin to set.
-     */
-    public TablistEntry setTexture(@Nonnull EntryTexture skin) {
-        return setTexture(skin.getValue(), skin.getSignature());
+        // Actually cache the texture to remove blinking every update dumbass
+        cachedTextures[0] = newTexture;
+        cachedTextures[1] = newSignature;
+        
+        super.setTexture(newTextures);
+        this.updateSkin();
     }
     
     /**
@@ -150,16 +156,6 @@ public class TablistEntry extends EternaPlayer {
         
         Reflect.sendPacket(tablist.player, packetRemove);
         Reflect.sendPacket(tablist.player, packetAdd);
-    }
-    
-    @Override
-    @Deprecated
-    public void show(@Nonnull Player player) {
-    }
-    
-    @Override
-    public void hide(@Nonnull Player player) {
-        Reflect.sendPacket(player, packetFactory.getPacketRemovePlayer());
     }
     
     /**
@@ -178,18 +174,9 @@ public class TablistEntry extends EternaPlayer {
         }
         
         this.bars = bars;
+        
         super.setPing(bars);
         super.updatePing(tablist.player);
-    }
-    
-    protected void setTextureRaw(String value, String signature) {
-        final PropertyMap properties = getProfile().getProperties();
-        
-        properties.removeAll("textures");
-        properties.put("textures", new Property("textures", value, signature));
-        
-        cachedTextures[0] = value;
-        cachedTextures[1] = signature;
     }
     
 }

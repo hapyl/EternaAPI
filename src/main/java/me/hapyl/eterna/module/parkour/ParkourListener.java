@@ -2,6 +2,8 @@ package me.hapyl.eterna.module.parkour;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.EternaKey;
+import me.hapyl.eterna.EternaLock;
 import me.hapyl.eterna.builtin.manager.ParkourManager;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
 import me.hapyl.eterna.module.registry.Key;
@@ -17,13 +19,19 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 
-public class ParkourListener implements Listener {
+@ApiStatus.Internal
+public final class ParkourListener extends EternaLock implements Listener {
     
     private final ItemStack cooldownStart = ItemBuilder.createDummyCooldownItem(Key.ofString("eterna_parkour_start"));
     private final ItemStack cooldownCheckpoint = ItemBuilder.createDummyCooldownItem(Key.ofString("eterna_parkour_checkpoint"));
+    
+    public ParkourListener(@Nonnull EternaKey key) {
+        super(key);
+    }
     
     @EventHandler
     public void handlePlayerJoin(PlayerJoinEvent ev) {

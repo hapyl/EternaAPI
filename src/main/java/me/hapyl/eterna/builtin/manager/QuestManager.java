@@ -6,10 +6,10 @@ import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
 import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
 import me.hapyl.eterna.module.locaiton.Position;
+import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.quest.*;
 import me.hapyl.eterna.module.player.quest.objective.*;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.util.Consumers;
 import me.hapyl.eterna.module.util.Tuple;
 import net.kyori.adventure.text.Component;
@@ -264,13 +264,13 @@ public final class QuestManager extends EternaManager<Player, QuestDataList> imp
     })
     public void handlePlayerClickAtNpcEvent(PlayerClickAtNpcEvent ev) {
         final Player player = ev.getPlayer();
-        final HumanNPC npc = ev.getNpc();
+        final Npc npc = ev.getNpc();
         
         // Quest start
         tryStartQuest(
                 player, quest -> {
                     for (QuestStartBehaviour startBehaviour : quest.getStartBehaviours()) {
-                        if (!(startBehaviour instanceof QuestStartBehaviour.TalkToNpc(@Nonnull HumanNPC targetNpc, @Nonnull Dialog dialog))) {
+                        if (!(startBehaviour instanceof QuestStartBehaviour.TalkToNpc(@Nonnull Npc targetNpc, @Nonnull Dialog dialog))) {
                             continue;
                         }
                         

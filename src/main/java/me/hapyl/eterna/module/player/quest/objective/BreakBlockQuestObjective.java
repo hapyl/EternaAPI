@@ -26,7 +26,7 @@ public class BreakBlockQuestObjective extends QuestObjective {
     public BreakBlockQuestObjective(@Nonnull Material material, double goal) {
         super("Break %s %s blocks.".formatted(goal, Chat.capitalize(material)), goal);
 
-        this.material = Validate.isTrue(material, Material::isBlock, "Material must be a block!");
+        this.material = Validate.requireValid(material, Material::isBlock, "Material must be a block!");
     }
 
     @Nonnull

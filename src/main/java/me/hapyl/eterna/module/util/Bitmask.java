@@ -1,58 +1,75 @@
 package me.hapyl.eterna.module.util;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * Static utility class for easier bitmask manipulations.
  */
 public final class Bitmask {
-
+    
     private Bitmask() {
     }
-
+    
     /**
-     * Constructs a bitmask from the given bits.
+     * Creates a bitmask by applying all the given bits on top of an initial base mask.
      *
-     * @param defaultMask - Default mask to return if the bits are null.
-     * @param bits        - Bits.
-     * @return a bitmask.
+     * @param baseMask - The starting bitmask value.
+     * @param bits     - The bits to include in the resulting mask.
+     * @return The resulting bitmask.
      */
-    public static byte makeMask(byte defaultMask, @Nullable byte... bits) {
+    public static byte make(byte baseMask, @Nullable byte... bits) {
         if (bits == null || bits.length == 0) {
-            return defaultMask;
+            return baseMask;
         }
-        else if (bits.length == 1) {
-            return bits[0];
+        
+        byte mask = baseMask;
+        
+        for (byte bit : bits) {
+            mask |= bit;
         }
-
-        byte bitmask = 0;
-
-        for (byte b : bits) {
-            bitmask |= b;
-        }
-
-        return bitmask;
+        
+        return mask;
     }
-
+    
     /**
-     * Constructs a bitmask from the given bits.
+     * Creates a bitmask from the specified bits.
      *
-     * @param bits - Bits.
-     * @return a bitmask.
+     * @param bits - The bits to include in the resulting mask.
+     * @return The resulting bitmask.
      */
-    public static byte makeMask(@Nullable byte... bits) {
-        return makeMask((byte) 0, bits);
+    public static byte make(@Nullable byte... bits) {
+        return make((byte) 0, bits);
     }
-
+    
     /**
-     * Check if the given mask has a given bit set.
+     * Creates a bitmask from a collection using the given mapping function.
      *
-     * @param bitmask - Bitmask.
-     * @param bit     - Bit.
-     * @return true if the given mask has a given bit; false otherwise.
+     * @param collection   - The collection.
+     * @param byteFunction - A function that converts a value into its corresponding bit value.
+     * @return The resulting bitmask representing all provided enum values.
      */
-    public static boolean isMasked(byte bitmask, byte bit) {
-        return (bitmask & bit) != 0;
+    public static <T> byte make(@Nonnull Collection<T> collection, @Nonnull Function<T, Byte> byteFunction) {
+        byte mask = 0;
+        
+        for (T value : collection) {
+            mask |= byteFunction.apply(value);
+        }
+        
+        return mask;
     }
-
+    
+    /**
+     * Checks whether the specified bit is set within the given bitmask.
+     *
+     * @param mask - The bitmask to check.
+     * @param bit  - The bit to test.
+     * @return {@code true} if the bit is set in the mask, {@code false} otherwise.
+     */
+    public static boolean has(byte mask, byte bit) {
+        return (mask & bit) != 0;
+    }
+    
 }

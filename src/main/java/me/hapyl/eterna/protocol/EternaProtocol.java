@@ -2,9 +2,7 @@ package me.hapyl.eterna.protocol;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
-import me.hapyl.eterna.Eterna;
-import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.EternaPlugin;
+import me.hapyl.eterna.*;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.Runnables;
@@ -20,12 +18,14 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class EternaProtocol implements Listener {
+@ApiStatus.Internal
+public final class EternaProtocol extends EternaLock implements Listener {
     
     public static final String PROTOCOL_NAME;
     public static final String INTERCEPTOR_NAME;
@@ -39,7 +39,9 @@ public class EternaProtocol implements Listener {
     
     private final EternaPlugin plugin;
     
-    public EternaProtocol(EternaPlugin plugin) {
+    public EternaProtocol(@Nonnull EternaKey key, @Nonnull EternaPlugin plugin) {
+        super(key);
+        
         this.plugin = plugin;
         
         // Inject online players
