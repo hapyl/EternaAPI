@@ -1,15 +1,15 @@
 package me.hapyl.eterna.module.reflect;
 
-import com.mojang.datafixers.util.Pair;
+import me.hapyl.eterna.module.inventory.Equipment;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.item.ItemStack;
 import org.bukkit.Location;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -54,7 +54,12 @@ public final class PacketFactory {
     
     @Nonnull
     public static ClientboundSetEntityDataPacket makePacketSetEntityData(@Nonnull Entity entity) {
-        return new ClientboundSetEntityDataPacket(entity.getId(), entity.getEntityData().getNonDefaultValues());
+        return makePacketSetEntityData(entity, entity.getEntityData().getNonDefaultValues());
+    }
+    
+    @Nonnull
+    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@Nonnull Entity entity, @Nullable List<SynchedEntityData.DataValue<?>> valuesToUpdate) {
+        return new ClientboundSetEntityDataPacket(entity.getId(), valuesToUpdate);
     }
     
     @Nonnull
@@ -79,7 +84,7 @@ public final class PacketFactory {
     
     @Nonnull
     public static ClientboundPlayerInfoUpdatePacket makePacketPlayerInfoUpdate(@Nonnull ServerPlayer player, @Nonnull ClientboundPlayerInfoUpdatePacket.Action action) {
-        return new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, player);
+        return new ClientboundPlayerInfoUpdatePacket(action, player);
     }
     
     @Nonnull
@@ -93,12 +98,18 @@ public final class PacketFactory {
     }
     
     @Nonnull
-    public static ClientboundSetEquipmentPacket makePacketSetEquipment(@Nonnull Entity entity, @Nonnull List<Pair<EquipmentSlot, ItemStack>> items) {
-        return new ClientboundSetEquipmentPacket(entity.getId(), items);
+    public static ClientboundSetEquipmentPacket makePacketSetEquipment(@Nonnull Entity entity, @Nonnull Equipment equipment) {
+        return new ClientboundSetEquipmentPacket(entity.getId(), equipment.wrapToNms());
     }
     
     @Nonnull
-    public static ClientboundMoveEntityPacket.Rot makePacketMoveEntityRot(@Nonnull ServerPlayer player, float yaw, float pitch) {
-        return new ClientboundMoveEntityPacket.Rot(player.getId(), (byte) (yaw * 256 / 360), (byte) (pitch * 256 / 360), true);
+    public static ClientboundMoveEntityPacket.Rot makePacketMoveEntityRot(@Nonnull Entity entity, float yaw, float pitch) {
+        return new ClientboundMoveEntityPacket.Rot(entity.getId(), (byte) (yaw * 256 / 360), (byte) (pitch * 256 / 360), true);
     }
+    
+    @Nonnull
+    public static ClientboundSetPassengersPacket makePacketSetPassengers(@Nonnull Entity entity) {
+        return new ClientboundSetPassengersPacket(entity);
+    }
+    
 }

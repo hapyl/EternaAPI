@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.player.tablist;
 
+import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.util.SupportsColorFormatting;
 
 import javax.annotation.Nonnull;
@@ -117,7 +118,7 @@ public class EntryList {
      * @return true if was appended; false otherwise.
      */
     public boolean append(@Nonnull @SupportsColorFormatting Object text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
-        return append0(text, texture != null ? texture.getStringArray() : null, ping);
+        return append0(text, texture, ping);
     }
 
     /**
@@ -153,7 +154,7 @@ public class EntryList {
         Arrays.fill(array, null);
     }
 
-    protected boolean append0(Object obj, String[] texture, PingBars ping) {
+    protected boolean append0(Object obj, Skin skin, PingBars ping) {
         final String text = String.valueOf(obj);
         
         for (int i = 0; i < array.length; i++) {
@@ -163,8 +164,8 @@ public class EntryList {
                 array[i] = entry -> {
                     entry.setText(text);
 
-                    if (texture != null) {
-                        entry.setTexture(texture[0], texture[1]);
+                    if (skin != null) {
+                        entry.setTexture(skin);
                     }
 
                     if (ping != null) {

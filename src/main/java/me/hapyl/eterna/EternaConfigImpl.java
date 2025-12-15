@@ -1,15 +1,19 @@
 package me.hapyl.eterna;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 
-public final class EternaConfigImpl implements EternaConfig {
+@ApiStatus.Internal
+public final class EternaConfigImpl extends EternaLock implements EternaConfig {
     
     private final FileConfiguration cfg;
     private final TickRate tickRate;
     
-    EternaConfigImpl(@Nonnull EternaPlugin plugin) {
+    EternaConfigImpl(@Nonnull EternaKey key, @Nonnull EternaPlugin plugin) {
+        super(key);
+        
         this.cfg = plugin.getConfig();
         this.tickRate = new TickRate() {
             private static final String parent = "tick-rate.";

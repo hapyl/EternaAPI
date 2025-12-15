@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.player.dialog;
 
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
+import me.hapyl.eterna.module.npc.Npc;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -42,13 +42,13 @@ public interface DialogEntry {
     /**
      * Constructs a {@link DialogNpcEntry} from the given {@link String}.
      *
-     * @param npc     - {@link HumanNPC} who will be sending the messages.
+     * @param npc     - {@link Npc} who will be sending the messages.
      * @param strings - Strings.
      * @return an array of {@link DialogNpcEntry}.
      * @see DialogNpcEntry
      */
     @Nonnull
-    static DialogEntry[] of(@Nonnull HumanNPC npc, @Nonnull String... strings) {
+    static DialogEntry[] of(@Nonnull Npc npc, @Nonnull String... strings) {
         return makeArray(strings, string -> new DialogNpcEntry(npc, string));
     }
 

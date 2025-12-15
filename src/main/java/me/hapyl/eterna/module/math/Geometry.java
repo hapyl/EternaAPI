@@ -38,9 +38,9 @@ public class Geometry {
      * @throws NullPointerException if location, quality or drawable is null.
      */
     public static void drawCircle(@Nonnull Location center, double radius, @Nonnull Quality quality, @Nonnull Drawable draw) {
-        Validate.notNull(center, "location cannot be null");
-        Validate.notNull(draw, "draw particle cannot be null");
-        Validate.notNull(quality, "quality cannot be null");
+        Validate.nonNull(center, "location cannot be null");
+        Validate.nonNull(draw, "draw particle cannot be null");
+        Validate.nonNull(quality, "quality cannot be null");
 
         for (double i = 0.0d; i < TWO_PI; i += quality.getStep()) {
             double x = (radius * Math.sin(i));
@@ -71,7 +71,7 @@ public class Geometry {
         final World world = center.getWorld();
         radius = Math.max(radius, 0);
         Validate.isTrue(material.isBlock(), "material must be a block, %s isn't!".formatted(material.name()));
-        Validate.notNull(world, "world cannot be null");
+        Validate.nonNull(world, "world cannot be null");
 
         final List<Block> list = Lists.newArrayList();
         final int tX = center.getBlockX();
@@ -157,9 +157,9 @@ public class Geometry {
      * @throws IllegalArgumentException if start and end are not in the same world.
      */
     public static void drawLine(@Nonnull Location start, @Nonnull Location end, double step, @Nonnull Drawable draw) {
-        Validate.notNull(start);
-        Validate.notNull(end);
-        Validate.notNull(draw);
+        Validate.nonNull(start);
+        Validate.nonNull(end);
+        Validate.nonNull(draw);
         Validate.isTrue(Objects.equals(start.getWorld(), end.getWorld()), "start and end point must be in the same world");
 
         Location dynamic = start.clone();
@@ -184,8 +184,8 @@ public class Geometry {
      * @throws NullPointerException if center or draw is null.
      */
     public static void drawSphere(@Nonnull Location center, double rings, double radius, @Nonnull Drawable draw, boolean drawOnlyTop) {
-        Validate.notNull(center);
-        Validate.notNull(draw);
+        Validate.nonNull(center);
+        Validate.nonNull(draw);
 
         for (double d = 0.0d; d < Math.PI; d += Math.PI / rings) {
             double rad = Math.sin(d) * radius;
@@ -230,8 +230,8 @@ public class Geometry {
      * @throws IllegalArgumentException if points are <= 3
      */
     public static void drawPolygon(@Nonnull Location center, @Range(from = 3, to = Byte.MAX_VALUE) int points, double radius, @Nonnull Drawable draw) {
-        Validate.notNull(center);
-        Validate.notNull(draw);
+        Validate.nonNull(center);
+        Validate.nonNull(draw);
         Validate.isTrue(radius > 0, "radius must be positive");
         Validate.isTrue(points > 3, "polygon requires at least four points");
 
@@ -276,8 +276,8 @@ public class Geometry {
      * @throws NullPointerException if center or draw is null.
      */
     public static void drawDonut(@Nonnull Location center, int layers, double radius, @Nonnull Drawable draw) {
-        Validate.notNull(center);
-        Validate.notNull(draw);
+        Validate.nonNull(center);
+        Validate.nonNull(draw);
 
         for (double d = 0.0d; d < Math.PI * 2; d += Math.PI / 15) {
             double x = Math.cos(d);

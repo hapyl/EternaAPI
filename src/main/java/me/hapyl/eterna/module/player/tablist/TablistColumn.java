@@ -23,6 +23,6 @@ public enum TablistColumn {
     /**
      * The fourth column, from index {@code 60}-{@code 79}.
      */
-    FOURTH
+    FOURTH;
     
 }

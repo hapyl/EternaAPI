@@ -46,6 +46,17 @@ public final class MapMaker<K, V, M extends Map<K, V>> {
     }
     
     /**
+     * Puts all the elements from the given {@code array} into this map.
+     *
+     * @param keys          - The keys.
+     * @param valueSupplier - The value supplier.
+     */
+    @SelfReturn
+    public MapMaker<K, V, M> putAll(@Nonnull K[] keys, @Nonnull Function<K, V> valueSupplier) {
+        return putAll(List.of(keys), valueSupplier);
+    }
+    
+    /**
      * Puts all the elements from the given {@link Iterable} into this map.
      *
      * @param keys          - The keys.
@@ -60,17 +71,6 @@ public final class MapMaker<K, V, M extends Map<K, V>> {
         }
         
         return this;
-    }
-    
-    /**
-     * Puts all the elements from the given {@code array} into this map.
-     *
-     * @param keys          - The keys.
-     * @param valueSupplier - The value supplier.
-     */
-    @SelfReturn
-    public MapMaker<K, V, M> putAll(@Nonnull K[] keys, @Nonnull Function<K, V> valueSupplier) {
-        return putAll(List.of(keys), valueSupplier);
     }
     
     /**
@@ -173,6 +173,5 @@ public final class MapMaker<K, V, M extends Map<K, V>> {
     public static <K extends Enum<K>, V> MapMaker<K, V, EnumMap<K, V>> ofEnumMap(@Nonnull Class<K> enumClass) {
         return new MapMaker<>(new EnumMap<>(enumClass));
     }
-    
     
 }

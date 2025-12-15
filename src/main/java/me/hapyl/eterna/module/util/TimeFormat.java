@@ -43,7 +43,7 @@ public final class TimeFormat {
      */
     @Nonnull
     public static String format(final long millis, @Nullable final byte... bits) {
-        byte bitMask = Bitmask.makeMask(DEFAULT_BIT_MASK, bits);
+        byte bitMask = Bitmask.make(DEFAULT_BIT_MASK, bits);
 
         final long seconds = millis / 1000;
         final long minutes = seconds / 60;
@@ -51,19 +51,19 @@ public final class TimeFormat {
 
         final StringBuilder builder = new StringBuilder();
 
-        if (Bitmask.isMasked(bitMask, HOURS)) {
+        if (Bitmask.has(bitMask, HOURS)) {
             builder.append("%02dh ".formatted(hours));
         }
 
-        if (Bitmask.isMasked(bitMask, MINUTES)) {
+        if (Bitmask.has(bitMask, MINUTES)) {
             builder.append("%02dm ".formatted(minutes % 60));
         }
 
-        if (Bitmask.isMasked(bitMask, SECONDS)) {
+        if (Bitmask.has(bitMask, SECONDS)) {
             builder.append("%02ds ".formatted(seconds % 60));
         }
 
-        if (Bitmask.isMasked(bitMask, MILLIS)) {
+        if (Bitmask.has(bitMask, MILLIS)) {
             builder.append("%03dms ".formatted(millis % 1000));
         }
 

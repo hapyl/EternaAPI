@@ -1,9 +1,9 @@
 package me.hapyl.eterna.module.player.quest.objective;
 
+import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.quest.QuestData;
 import me.hapyl.eterna.module.player.quest.QuestObjective;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 
 import javax.annotation.Nonnull;
 
@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
  */
 public class TalkToNpcQuestObjective extends AbstractDialogQuestObjective {
 
-    public final HumanNPC npc;
+    public final Npc npc;
     public final Dialog dialog;
 
     /**
@@ -24,8 +24,8 @@ public class TalkToNpcQuestObjective extends AbstractDialogQuestObjective {
      * @param npc    - The npc to talk to.
      * @param dialog - The dialog to display.
      */
-    public TalkToNpcQuestObjective(@Nonnull HumanNPC npc, @Nonnull Dialog dialog) {
-        super("Talk to %s.".formatted(npc.getName()));
+    public TalkToNpcQuestObjective(@Nonnull Npc npc, @Nonnull Dialog dialog) {
+        super("Talk to %s.".formatted(npc.getDefaultName()));
 
         this.npc = npc;
         this.dialog = dialog;

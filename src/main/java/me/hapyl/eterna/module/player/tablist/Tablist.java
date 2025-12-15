@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.player.tablist;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.util.Destroyable;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Range;
@@ -13,7 +14,7 @@ import java.util.*;
 /**
  * A four column customizable tab list.
  */
-public class Tablist {
+public class Tablist implements Destroyable {
     
     public static final String DEFAULT_ENTRY_NAME = "                 ";
     public static final int MAX_ENTRIES = 80;
@@ -30,6 +31,7 @@ public class Tablist {
             ClientboundPlayerInfoUpdatePacket.Action.UPDATE_HAT,
             ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LIST_ORDER
     );
+    
     protected final Player player;
     protected final Map<Integer, TablistEntry> entries;
     
@@ -145,6 +147,7 @@ public class Tablist {
     /**
      * Completely destroys this {@link Tablist}, clearing all entries.
      */
+    @Override
     public void destroy() {
         entries.forEach((index, entry) -> entry.hide(player));
         entries.clear();

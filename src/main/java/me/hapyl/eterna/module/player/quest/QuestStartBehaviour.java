@@ -1,8 +1,8 @@
 package me.hapyl.eterna.module.player.quest;
 
 import me.hapyl.eterna.module.locaiton.Position;
+import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.player.dialog.Dialog;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -33,13 +33,13 @@ public interface QuestStartBehaviour {
     
     /**
      * The quest will be started whenever a player finished the given {@link Dialog}.
-     * <p>The dialog will be automatically started whenever a player clicks at the given {@link HumanNPC}.</p>
+     * <p>The dialog will be automatically started whenever a player clicks at the given {@link Npc}.</p>
      *
      * @param npc    - The npc the player must interact with.
      * @param dialog - The dialog to displays before starting the quest.
      */
     @Nonnull
-    static QuestStartBehaviour talkToNpc(@Nonnull HumanNPC npc, @Nonnull Dialog dialog) {
+    static QuestStartBehaviour talkToNpc(@Nonnull Npc npc, @Nonnull Dialog dialog) {
         return new TalkToNpc(npc, dialog);
     }
     
@@ -91,7 +91,7 @@ public interface QuestStartBehaviour {
         }
     }
     
-    record TalkToNpc(@Nonnull HumanNPC npc, @Nonnull Dialog dialog) implements DialogStartBehaviour {
+    record TalkToNpc(@Nonnull Npc npc, @Nonnull Dialog dialog) implements DialogStartBehaviour {
         @Nonnull
         @Override
         public Dialog dialog() {

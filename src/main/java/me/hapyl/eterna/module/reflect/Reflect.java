@@ -1,19 +1,21 @@
 package me.hapyl.eterna.module.reflect;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import io.netty.channel.Channel;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
+import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -215,7 +217,7 @@ public final class Reflect {
             dataWatcher.set(type, value);
         }
         catch (Exception e) {
-            EternaLogger.exception(e);
+            throw EternaLogger.exception(e);
         }
     }
     
@@ -227,7 +229,7 @@ public final class Reflect {
      * @param player  - Player, who will see the update.
      */
     public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull SynchedEntityData watcher, @Nonnull Player player) {
-        sendPacket(player, new ClientboundSetEntityDataPacket(getEntityId(entity), watcher.getNonDefaultValues()));
+        sendPacket(player, PacketFactory.makePacketSetEntityData(entity, watcher.getNonDefaultValues()));
     }
     
     /**
@@ -519,17 +521,17 @@ public final class Reflect {
     }
     
     /**
-     * Sends a packet to a player.
+     * Sends the given {@link Packet}s to the given {@link Player}, in the exact order.
      *
-     * @param player - Player.
-     * @param packet - Packet.
+     * @param player  - The player to receive the packets.
+     * @param packets - The packets to send.
      */
-    public static void sendPacket(@Nonnull Player player, @Nonnull Packet<?> packet) {
-        if (HumanNPC.isNPC(player.getEntityId())) {
-            return;
-        }
+    public static void sendPacket(@Nonnull Player player, @Nonnull Packet<?>... packets) {
+        final ServerGamePacketListenerImpl playerConnection = getPlayerConnection(player);
         
-        getPlayerConnection(player).send(packet);
+        for (@Nonnull Packet<?> packet : Validate.varargs(packets)) {
+            playerConnection.send(packet);
+        }
     }
     
     /**
@@ -540,6 +542,7 @@ public final class Reflect {
      */
     @Nonnull
     public static ServerGamePacketListenerImpl getPlayerConnection(@Nonnull Player player) {
+        // TODO @Oct 20, 2025 (xanyjl) -> Cache this
         return getMinecraftPlayer(player).connection;
     }
     
@@ -582,18 +585,7 @@ public final class Reflect {
      */
     @Nonnull
     public static GameProfile getGameProfile(@Nonnull Player player) {
-        return getGameProfile(getMinecraftPlayer(player));
-    }
-    
-    /**
-     * Gets player's {@link GameProfile}.
-     *
-     * @param player - Player.
-     * @return the game profile.
-     */
-    @Nonnull
-    public static GameProfile getGameProfile(@Nonnull ServerPlayer player) {
-        return player.getGameProfile();
+        return getMinecraftPlayer(player).getGameProfile();
     }
     
     /**
@@ -1019,6 +1011,27 @@ public final class Reflect {
      */
     public static void setEntityNbt(@Nonnull ValueInput tag, @Nonnull net.minecraft.world.entity.Entity entity) {
         entity.load(tag);
+    }
+    
+    public static void setTextures(@Nonnull ServerPlayer player, @Nonnull Skin skin) {
+        // Another bullshit mojang update, yay
+        final GameProfile profile = player.getGameProfile();
+        
+        final GameProfile newGameProfile = new GameProfile(
+                profile.id(),
+                profile.name(),
+                new PropertyMap(ImmutableMultimap.of("textures", new Property("textures", skin.texture(), skin.signature())))
+        );
+        
+        try {
+            final Field field = net.minecraft.world.entity.player.Player.class.getDeclaredField("gameProfile");
+            field.setAccessible(true);
+            
+            field.set(player, newGameProfile);
+        }
+        catch (Exception e) {
+            throw EternaLogger.exception(e);
+        }
     }
     
     private static Field getField0(Object instance, String name, boolean isDeclared) {

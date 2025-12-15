@@ -1,5 +1,7 @@
 package me.hapyl.eterna.module.inventory.gui;
 
+import me.hapyl.eterna.EternaKey;
+import me.hapyl.eterna.EternaLock;
 import me.hapyl.eterna.module.chat.Chat;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,13 +12,18 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.ApiStatus;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
  * A listener implementation for GUIs.
  */
 @ApiStatus.Internal
-public final class GUIListener implements Listener {
+public final class GUIListener extends EternaLock implements Listener {
+    
+    public GUIListener(@Nonnull EternaKey key) {
+        super(key);
+    }
     
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handleGUIDrag(InventoryDragEvent ev) {

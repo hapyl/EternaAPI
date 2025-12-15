@@ -1,7 +1,7 @@
 package me.hapyl.eterna;
 
+import me.hapyl.eterna.module.npc.NpcRunnable;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
-import me.hapyl.eterna.module.reflect.npc.HumanNpcRunnable;
 
 import javax.annotation.Nonnull;
 
@@ -45,9 +45,9 @@ public interface EternaConfig {
     interface TickRate {
         
         /**
-         * Gets the tick rate for {@link HumanNpcRunnable}.
+         * Gets the tick rate for {@link NpcRunnable}.
          *
-         * @return the tick rate for {@link HumanNpcRunnable}.
+         * @return the tick rate for {@link NpcRunnable}.
          */
         int npc();
         

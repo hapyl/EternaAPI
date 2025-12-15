@@ -3,8 +3,9 @@ package me.hapyl.eterna.module.player.dialog;
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.chat.LazyEvent;
+import me.hapyl.eterna.module.component.Components;
+import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.player.PlayerLib;
-import me.hapyl.eterna.module.reflect.npc.HumanNPC;
 import me.hapyl.eterna.module.util.CollectionUtils;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Sound;
@@ -161,11 +162,11 @@ public class DialogOptionEntry implements DialogEntry {
      * Creates a {@link Builder} with the given prompt that will cancel the {@link Dialog}.
      *
      * @param prompt  - Option prompt.
-     * @param npc     - {@link HumanNPC} who will send the goodbye message.
+     * @param npc     - {@link Npc} who will send the goodbye message.
      * @param goodbye - Goodbye message.
      */
     @Nonnull
-    public static Builder goodbye(@Nonnull String prompt, @Nonnull HumanNPC npc, @Nonnull String... goodbye) {
+    public static Builder goodbye(@Nonnull String prompt, @Nonnull Npc npc, @Nonnull String... goodbye) {
         return new Builder()
                 .prompt(goodbyePrompt(prompt))
                 .advanceDialog(true)
@@ -223,25 +224,25 @@ public class DialogOptionEntry implements DialogEntry {
         /**
          * Adds a {@link DialogNpcEntry} that will be shown if this {@link DialogOption} is selected.
          *
-         * @param npc     - {@link HumanNPC} who will send the messages.
+         * @param npc     - {@link Npc} who will send the messages.
          * @param entries - Messages.
          */
-        public Builder add(@Nonnull HumanNPC npc, @Nonnull String... entries) {
+        public Builder add(@Nonnull Npc npc, @Nonnull String... entries) {
             return add(DialogEntry.of(npc, entries));
         }
 
         /**
          * Adds a {@link DialogNpcEntry} that will be shown if this {@link DialogOption} is selected.
          *
-         * @param npc - {@link HumanNPC} who will send the messages.
+         * @param npc - {@link Npc} who will send the messages.
          * @param fn  - Function on how to get the string.
          *            Useful for per-player messages.
          */
-        public Builder add(@Nonnull HumanNPC npc, @Nonnull Function<DialogInstance, String> fn) {
+        public Builder add(@Nonnull Npc npc, @Nonnull Function<DialogInstance, String> fn) {
             return add(dialog -> {
                 final Player player = dialog.getPlayer();
 
-                npc.sendNpcMessage(player, fn.apply(dialog));
+                npc.sendMessage(player, Components.ofLegacy(fn.apply(dialog)));
             });
         }
 
@@ -262,7 +263,6 @@ public class DialogOptionEntry implements DialogEntry {
     }
 
     public static class DialogOption {
-
         private final int index;
         private final String string;
         private final DialogEntry[] entries;

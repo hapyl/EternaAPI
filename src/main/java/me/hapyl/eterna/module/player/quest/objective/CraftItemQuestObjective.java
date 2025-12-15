@@ -26,7 +26,7 @@ public class CraftItemQuestObjective extends QuestObjective {
     public CraftItemQuestObjective(@Nonnull Material material, double goal) {
         super("Craft %s %s times.".formatted(Chat.capitalize(material), goal), goal);
 
-        this.material = Validate.isTrue(material, Material::isItem, "Material must be an item!");
+        this.material = Validate.requireValid(material, Material::isItem, "Material must be an item!");
     }
 
     @Nonnull

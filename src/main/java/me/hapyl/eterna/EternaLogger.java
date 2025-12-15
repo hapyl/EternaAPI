@@ -1,5 +1,6 @@
 package me.hapyl.eterna;
 
+import me.hapyl.eterna.builtin.Debuggable;
 import me.hapyl.eterna.module.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -67,6 +68,10 @@ public final class EternaLogger {
         
         info(DEBUG_PREFIX + formatted);
         Chat.broadcastOp(DEBUG_PREFIX + formatted);
+    }
+    
+    public static void debug(@Nonnull Debuggable debuggable) {
+        debug(debuggable.toDebugString());
     }
     
     @ApiStatus.Internal

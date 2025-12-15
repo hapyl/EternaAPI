@@ -211,8 +211,8 @@ public final class Entities<T extends Entity> {
     public T spawn(@Nonnull Location location, @Nullable Consumer<T> beforeSpawn, @Nonnull EntityCache cache) {
         final T entity = location.getWorld().spawn(
                 location, this.entityClass, self -> {
-                    Nulls.runIfNotNull(rootConsumer, r -> r.accept(self));
-                    Nulls.runIfNotNull(beforeSpawn, r -> r.accept(self));
+                    Nulls.acceptNonNull(rootConsumer, r -> r.accept(self));
+                    Nulls.acceptNonNull(beforeSpawn, r -> r.accept(self));
                 }
         );
 

@@ -559,7 +559,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     public ItemBuilder addLore(@Nonnull Component component) {
         return modifyMeta(meta -> {
-            final List<Component> existingLore = Nulls.getOrDefault(meta.lore(), Lists.newArrayList());
+            final List<Component> existingLore = Nulls.nonNull(meta.lore(), Lists.newArrayList());
             existingLore.add(defaultComponent(component, DEFAULT_LORE_COLOR));
             
             meta.lore(existingLore);
@@ -1371,7 +1371,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      * @param playerSkin - The player skin to apply as the head texture for this item.
      */
     public ItemBuilder setHeadTexture(@Nonnull PlayerSkin playerSkin) {
-        return setHeadTextureBase64(playerSkin.getTexture());
+        return setHeadTextureBase64(playerSkin.texture());
     }
     
     /**
@@ -2217,7 +2217,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     public static void setName(@Nonnull ItemStack item, @Nonnull String name) {
         final ItemMeta meta = item.getItemMeta();
-        Nulls.runIfNotNull(meta, m -> m.setDisplayName(Chat.format(name)));
+        Nulls.acceptNonNull(meta, m -> m.setDisplayName(Chat.format(name)));
         item.setItemMeta(meta);
     }
     
@@ -2229,7 +2229,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     public static void setLore(@Nonnull ItemStack item, @Nonnull String lore) {
         final ItemMeta meta = item.getItemMeta();
-        Nulls.runIfNotNull(meta, m -> m.setLore(Collections.singletonList(lore)));
+        Nulls.acceptNonNull(meta, m -> m.setLore(Collections.singletonList(lore)));
         item.setItemMeta(meta);
     }
     
@@ -2382,6 +2382,11 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     @SuppressWarnings("deprecation")
     public record DefaultColor(@Nonnull ChatColor chatColor, @Nonnull TextColor textColor) {
+        @Nonnull
+        @Override
+        public String toString() {
+            return chatColor.toString();
+        }
     }
     
 }
