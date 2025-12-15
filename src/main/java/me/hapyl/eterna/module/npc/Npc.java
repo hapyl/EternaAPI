@@ -90,6 +90,16 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
     }
     
     @Nonnull
+    public Hologram getHologram() {
+        return hologram;
+    }
+    
+    @Nonnull
+    public PacketTeam getPacketTeam() {
+        return packetTeam;
+    }
+    
+    @Nonnull
     public NpcPose getPose() {
         return this.appearance.getPose();
     }

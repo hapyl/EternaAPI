@@ -15,7 +15,6 @@ import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -108,18 +107,24 @@ public abstract class Appearance {
         this.updateLocation();
     }
     
-    @ApiStatus.Internal
     public void updateLocation() {
         final ClientboundTeleportEntityPacket packet = PacketFactory.makePacketTeleportEntity(handle);
         
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
-    @ApiStatus.Internal
     public void updateMetadata() {
         final ClientboundSetEntityDataPacket packet = PacketFactory.makePacketSetEntityData(handle);
         
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
+    }
+    
+    public <T> void setMetadataValue(@Nonnull DataWatcherType<T> type, int id, @Nonnull T value) {
+        getMetadata().set(type.createAccessor(id), value);
+    }
+    
+    public <T> T getMetadataValue(@Nonnull DataWatcherType<T> type, int id) {
+        return getMetadata().get(type.createAccessor(id));
     }
     
     @Nonnull
