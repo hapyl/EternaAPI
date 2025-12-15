@@ -2499,6 +2499,8 @@ public final class EternaRuntimeTest implements Runnable {
                         AppearanceBuilder.ofMannequin(Skin.ofPlayer(player))
                 );
                 
+                npc.setTagLayout(TagLayout.EMPTY);
+                
                 npc.showAll();
                 
                 final AppearanceMannequin appearance = npc.getAppearance(AppearanceMannequin.class);

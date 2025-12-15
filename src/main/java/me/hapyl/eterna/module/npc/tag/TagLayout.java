@@ -28,16 +28,15 @@ import java.util.Arrays;
  */
 public record TagLayout(@Nonnull TagPart... parts) {
     
-    void a() {
-        Npc npc = null;
-        
-        
-    }
-    
     /**
      * Defines the default layout, consisting of {@link Npc} name.
      */
     public static final TagLayout DEFAULT = new TagLayout(TagPart.name());
+    
+    /**
+     * Defines the empty layout.
+     */
+    public static final TagLayout EMPTY = new TagLayout();
     
     /**
      * Gets a copy of the tag parts.

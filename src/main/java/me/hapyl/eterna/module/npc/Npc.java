@@ -166,7 +166,7 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
             return textComponent.content();
         }
         
-        return "???";
+        return "Invalid Name";
     }
     
     @Nonnull

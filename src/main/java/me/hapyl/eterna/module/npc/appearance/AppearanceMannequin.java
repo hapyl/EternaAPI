@@ -30,7 +30,7 @@ public class AppearanceMannequin extends AppearanceHumanoid {
     
     @Override
     public double chairYOffset() {
-        return 0.4;
+        return Npc.CHAIR_Y_OFFSET;
     }
     
     /**
