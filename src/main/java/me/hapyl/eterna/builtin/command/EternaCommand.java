@@ -20,7 +20,7 @@ public final class EternaCommand extends SimpleAdminCommand {
         super(name);
         
         setDescription("API management administrative command.");
-        addCompleterValues(1, "update", "version", "quest", "reload", "test");
+        addCompleterValues(1, "update", "version", "quest", "reload", "test", "class");
     }
     
     @Override
@@ -104,8 +104,28 @@ public final class EternaCommand extends SimpleAdminCommand {
                 EternaRuntimeTest.test(this, player, testName, new ArgumentList(Arrays.copyOfRange(args, 2, args.length)));
             }
             
+            case "class" -> {
+                if (args.length < 2) {
+                    EternaLogger.sendMessage(sender, "&cMissing class name! Make sure it contains the FULL package.");
+                    return;
+                }
+                final String classToFind = args[1];
+                
+                try {
+                    final Class<?> clazz = Class.forName(classToFind);
+                    
+                    EternaLogger.sendMessage(sender, "&aFound class!");
+                    EternaLogger.sendMessage(sender, " &3package &b%s".formatted(clazz.getPackage().getName()));
+                    EternaLogger.sendMessage(sender, " &3name &b%s".formatted(clazz.getSimpleName()));
+                    EternaLogger.sendMessage(sender, " &3loader &b%s".formatted(clazz.getClassLoader().getName()));
+                }
+                catch (ClassNotFoundException ex) {
+                    EternaLogger.sendMessage(sender, "&cCould not find class &4%s&c!".formatted(classToFind));
+                }
+            }
+            
             default -> {
-                Chat.sendMessage(sender, "&cUnknown argument. " + getUsage());
+                EternaLogger.sendMessage(sender, "&4Invalid usage! " + getUsage());
             }
         }
     }

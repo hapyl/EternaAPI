@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.monster.Husk;
+import net.minecraft.world.entity.monster.zombie.Husk;
 
 import javax.annotation.Nonnull;
 

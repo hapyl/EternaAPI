@@ -14,7 +14,6 @@ import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Objects;
 import java.util.Set;
 
@@ -48,9 +47,8 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
      */
     @Nonnull
     @Override
-    @OverridingMethodsMustInvokeSuper
     public org.bukkit.entity.Entity bukkit() {
-        return entity.getBukkitEntity();
+        return Reflect.getBukkitEntity(entity, org.bukkit.entity.Entity.class);
     }
     
     @Override

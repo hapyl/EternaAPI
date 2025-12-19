@@ -10,6 +10,8 @@ import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.Super;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
+import me.hapyl.eterna.module.reflect.access.ReflectAccess;
+import me.hapyl.eterna.module.reflect.access.ReflectMethodAccess;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
@@ -61,50 +63,27 @@ import java.util.*;
  * "Net" indicates that method belongs to net.minecraft.server
  * "Craft" indicates that method belongs to CraftBukkit
  */
-@TestedOn(version = Version.V1_21_8)
+@TestedOn(version = Version.V1_21_11)
 public final class Reflect {
     
     private static final String mcVersion;
     private static final String getHandleMethodName;
+    
     private static final ProblemReporter problemReporter;
+    
+    private static final ReflectMethodAccess<Entity> accessGetBukkitEntity;
     
     static {
         final String name = Bukkit.getServer().getClass().getPackage().getName();
         
         mcVersion = name.substring(name.lastIndexOf(".") + 1);
         getHandleMethodName = "getHandle";
-        problemReporter = new ProblemReporter() {
-            @Override
-            public ProblemReporter forChild(PathElement pathElement) {
-                return this;
-            }
-            
-            @Override
-            public void report(Problem problem) {
-                throw EternaLogger.exception(new RuntimeException("Error in Reflect! " + problem.description()));
-            }
-        };
+        problemReporter = new ReflectProblemReporter();
+        
+        accessGetBukkitEntity = ReflectAccess.ofMethod(net.minecraft.world.entity.Entity.class, Entity.class, "getBukkitEntity");
     }
     
     private Reflect() {
-    }
-    
-    /**
-     * Returns a 'net.minecraft.server' class.
-     * Note that you <b>must</b> include the full path the class.
-     *
-     * @param path - Path of the class.
-     * @return net.minecraft.server class if exists, null otherwise
-     */
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nonnull
-    public static Class<?> getNetClass(@Nonnull String path) {
-        try {
-            return Class.forName("net.minecraft.server." + path);
-        }
-        catch (ClassNotFoundException e) {
-            throw EternaLogger.exception(e);
-        }
     }
     
     /**
@@ -1013,6 +992,14 @@ public final class Reflect {
         entity.load(tag);
     }
     
+    @Nonnull
+    public static <B extends Entity, E extends net.minecraft.world.entity.Entity> B getBukkitEntity(@Nonnull E entity, @Nonnull Class<B> bukkitClass) {
+        return accessGetBukkitEntity.invoke(() -> entity)
+                                    .filter(bukkitClass::isInstance)
+                                    .map(bukkitClass::cast)
+                                    .orElseThrow(() -> new IllegalArgumentException("Illegal bukkit entity call."));
+    }
+    
     public static void setTextures(@Nonnull ServerPlayer player, @Nonnull Skin skin) {
         // Another bullshit mojang update, yay
         final GameProfile profile = player.getGameProfile();
@@ -1072,4 +1059,15 @@ public final class Reflect {
         return new IllegalArgumentException("Cannot get the handle! " + msg);
     }
     
+    private static class ReflectProblemReporter implements ProblemReporter {
+        @Override
+        public ProblemReporter forChild(PathElement pathElement) {
+            return this;
+        }
+        
+        @Override
+        public void report(Problem problem) {
+            throw EternaLogger.exception(new RuntimeException("Error in Reflect! " + problem.description()));
+        }
+    }
 }

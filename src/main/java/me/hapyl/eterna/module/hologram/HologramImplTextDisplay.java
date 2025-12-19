@@ -148,7 +148,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
             this.entity.teleportTo(location.getX(), location.getY(), location.getZ());
             this.entity.setBillboardConstraints(Display.BillboardConstraints.CENTER);
             
-            this.bukkitEntity = (TextDisplay) entity.getBukkitEntity();
+            this.bukkitEntity = Reflect.getBukkitEntity(entity, TextDisplay.class);
         }
         
         protected void hide(@Nonnull Player player) {

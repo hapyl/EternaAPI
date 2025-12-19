@@ -9,7 +9,8 @@ import javax.annotation.Nonnull;
  * @see TestedOn
  */
 public enum Version {
-    V1_21_8,
+    V1_21_11,
+    @Deprecated V1_21_8,
     @Deprecated V1_21_7,
     @Deprecated V1_21_5,
     @Deprecated V1_21_4,

@@ -3,7 +3,7 @@ package me.hapyl.eterna.module.npc.appearance;
 import me.hapyl.eterna.module.annotate.DefaultEnumValue;
 import me.hapyl.eterna.module.nms.NmsEnum;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.entity.npc.VillagerType;
+import net.minecraft.world.entity.npc.villager.VillagerType;
 
 import javax.annotation.Nonnull;
 

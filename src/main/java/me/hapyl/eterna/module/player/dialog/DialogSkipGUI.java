@@ -1,19 +1,23 @@
 package me.hapyl.eterna.module.player.dialog;
 
-import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
+import me.hapyl.eterna.module.inventory.gui.GUIEventListener;
 import me.hapyl.eterna.module.inventory.gui.PlayerGUI;
 import me.hapyl.eterna.module.player.PlayerLib;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public class DialogSkipGUI extends PlayerGUI implements DialogSkip {
+public class DialogSkipGUI extends PlayerGUI implements DialogSkip, GUIEventListener {
     
     private static final int[][] buttonSlots = {
             {
@@ -37,6 +41,25 @@ public class DialogSkipGUI extends PlayerGUI implements DialogSkip {
         
         this.dialog = dialog;
         this.response = new CompletableFuture<>();
+    }
+    
+    @Override
+    public void onClose(@Nonnull InventoryCloseEvent event) {
+        if (response.isDone()) {
+            return;
+        }
+        
+        workResponse(false);
+    }
+    
+    @Override
+    public void onConfirm(@Nonnull Player player) {
+        player.sendActionBar(Component.text("Skipped '%s' dialog!".formatted(dialog.getName()), NamedTextColor.GRAY, TextDecoration.ITALIC));
+    }
+    
+    @Override
+    public void onCancel(@Nonnull Player player) {
+        player.sendActionBar(Component.text("Resuming '%s' dialog...".formatted(dialog.getName()), NamedTextColor.GRAY, TextDecoration.ITALIC));
     }
     
     @Override
@@ -78,12 +101,6 @@ public class DialogSkipGUI extends PlayerGUI implements DialogSkip {
         PlayerLib.playSound(player, Sound.ENTITY_VILLAGER_YES, 1.0f);
         
         return response;
-    }
-    
-    @Override
-    public void onTimeout(@Nonnull Player player) {
-        Chat.sendMessage(player, "&7&oYou neither confirmed nor cancelled dialog skip, resuming...");
-        player.closeInventory();
     }
     
     private void workResponse(boolean b) {

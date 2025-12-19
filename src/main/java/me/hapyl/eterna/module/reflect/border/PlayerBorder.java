@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.reflect.border;
 
-import me.hapyl.eterna.module.reflect.Reflect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
@@ -12,17 +11,17 @@ import org.bukkit.entity.Player;
  * be reset after player re-logins.
  */
 public class PlayerBorder {
-
+    
     private final Player player;
     private final WorldBorder border;
-
+    
     public PlayerBorder(Player player) {
         this.player = player;
         
         border = Bukkit.createWorldBorder();
-        border.setWarningTime(0);
+        border.setWarningTimeTicks(0);
     }
-
+    
     /**
      * Update world border.
      *
@@ -31,7 +30,7 @@ public class PlayerBorder {
     public void update(Operation operation) {
         update(operation, 1000);
     }
-
+    
     /**
      * Update world border with provided size.
      *
@@ -41,31 +40,26 @@ public class PlayerBorder {
     public void update(Operation operation, double size) {
         final Player player = getPlayer();
         final Location location = player.getLocation();
-
+        
         size = Math.clamp(size, 2.0d, Double.MAX_VALUE);
         border.setCenter(location.getX(), location.getZ());
-
+        
         if (operation == Operation.REMOVE) {
             player.setWorldBorder(player.getWorld().getWorldBorder());
             return;
         }
-
+        
         border.setSize(size);
         border.setWarningDistance(Integer.MAX_VALUE);
-
+        
         switch (operation) {
-            case BORDER_RED -> border.setSize(size - 1.0d, Long.MAX_VALUE);
-            case BORDER_GREEN -> {
-                final net.minecraft.world.level.border.WorldBorder netBorder = Reflect.getNetWorldBorder(border);
-                if (netBorder != null) {
-                    netBorder.lerpSizeBetween(size - 0.1d, size, Long.MAX_VALUE);
-                }
-            }
+            case BORDER_RED -> border.changeSize(size - 1, Integer.MAX_VALUE);
+            case BORDER_GREEN -> border.changeSize(size + 1, Integer.MAX_VALUE);
         }
-
+        
         player.setWorldBorder(border);
     }
-
+    
     /**
      * Resets players border.
      *
@@ -74,7 +68,7 @@ public class PlayerBorder {
     public static void reset(Player player) {
         new PlayerBorder(player).update(Operation.REMOVE, 0);
     }
-
+    
     /**
      * Shows red outline on players screen by setting
      * border at 1000 and warning at max value.
@@ -84,11 +78,11 @@ public class PlayerBorder {
     public static void showRedOutline(Player player) {
         new PlayerBorder(player).update(Operation.BORDER_RED);
     }
-
+    
     public Player getPlayer() {
         return player;
     }
-
+    
     public enum Operation {
         /**
          * Removes players border.
@@ -103,5 +97,5 @@ public class PlayerBorder {
          */
         BORDER_RED
     }
-
+    
 }
