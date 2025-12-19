@@ -2,15 +2,15 @@ package me.hapyl.eterna.module.hologram;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
 import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.component.ComponentList;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -168,7 +168,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         
         @Override
         public String toString() {
-            return armorStand.getBukkitEntity().getName();
+            return Reflect.getBukkitEntity(armorStand, ArmorStand.class).getName();
         }
         
         protected void show() {
@@ -187,7 +187,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         protected void text(@Nullable Component name) {
             final boolean isEmpty = name == null || Components.isEmptyOrNewLine(name);
             
-            final Entity bukkitEntity = armorStand.getBukkitEntity();
+            final ArmorStand bukkitEntity = Reflect.getBukkitEntity(armorStand, ArmorStand.class);
             bukkitEntity.customName(!isEmpty ? name : Component.empty());
             
             // If the name is null, we actually hide the name of this armor stand to no see the | in the name

@@ -5,7 +5,7 @@ import me.hapyl.eterna.module.util.Bitmask;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Fox;
+import net.minecraft.world.entity.animal.fox.Fox;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;

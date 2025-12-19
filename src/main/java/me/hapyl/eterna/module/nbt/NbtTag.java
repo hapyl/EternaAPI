@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-@TestedOn(version = Version.V1_21_8)
+@TestedOn(version = Version.V1_21_11)
 public interface NbtTag<T extends Tag, A> {
     
     @Nonnull NbtTag<StringTag, String> STRING = of(StringTag::asString, StringTag::valueOf, "");

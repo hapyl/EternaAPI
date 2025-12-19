@@ -22,7 +22,7 @@ import me.hapyl.eterna.module.chat.messagebuilder.MessageBuilder;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.entity.Entities;
-import me.hapyl.eterna.module.entity.Rope;
+import me.hapyl.eterna.module.entity.rope.Rope;
 import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.entity.packet.PacketItem;
 import me.hapyl.eterna.module.hologram.Hologram;
@@ -59,6 +59,9 @@ import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
 import me.hapyl.eterna.module.player.tablist.*;
 import me.hapyl.eterna.module.reflect.*;
+import me.hapyl.eterna.module.reflect.access.ObjectInstance;
+import me.hapyl.eterna.module.reflect.access.ReflectAccess;
+import me.hapyl.eterna.module.reflect.access.ReflectFieldAccess;
 import me.hapyl.eterna.module.reflect.border.PlayerBorder;
 import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.glowing.GlowingColor;
@@ -384,32 +387,6 @@ public final class EternaRuntimeTest implements Runnable {
                                           .setHeadTextureUrl("2a084f78cbd787481eaee173002ac6c081916142b9d9ccc2c3c232cb79c75595")
                                           .toItemStack());
                 return true;
-            }
-        });
-        
-        register(new EternaTest("laser") {
-            @Override
-            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final Laser laser = new Laser(player.getLocation(), player.getLocation().add(0.0d, 2.0d, 0.0d));
-                laser.show(player);
-                
-                info("Spawned");
-                
-                later(
-                        60,
-                        () -> {
-                            info("Moved");
-                            
-                            laser.move(player.getLocation(), player.getLocation().add(0, 3, 0));
-                        }, () -> {
-                            info("Removed");
-                            
-                            laser.remove(player);
-                            assertTestPassed();
-                        }
-                );
-                
-                return false;
             }
         });
         
@@ -832,7 +809,7 @@ public final class EternaRuntimeTest implements Runnable {
                         60,
                         () -> {
                             info("Green");
-                            border.update(PlayerBorder.Operation.BORDER_GREEN, 10);
+                            border.update(PlayerBorder.Operation.BORDER_GREEN, 5);
                         },
                         () -> {
                             info("Reset");
@@ -914,17 +891,22 @@ public final class EternaRuntimeTest implements Runnable {
         register(new EternaTest("rope") {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final Location location = player.getLocation();
-                final Rope rope = new Rope(location, location.clone().add(7.0d, 3.0d, 0.0d)).spawn();
+                final Rope rope = new Rope();
+                rope.addPoint(player.getLocation().add(3, 2, 4));
+                rope.addPoint(player.getLocation().add(1, 5, 7));
+                rope.addPoint(player.getLocation().add(9, 6, 2));
+                rope.addPoint(player.getLocation().add(-2, 2, -4));
+                rope.addPoint(player.getLocation().add(3, 1.5, -6));
                 
-                info("Created");
+                info("Shown!");
+                rope.show(player);
                 
-                later(
-                        60, () -> {
-                            rope.remove();
-                            assertTestPassed();
-                        }
-                );
+                later(60, () -> {
+                    info("Removed!");
+                    rope.hide(player);
+                    
+                    assertTestPassed();
+                });
                 
                 return false;
             }
@@ -1763,8 +1745,17 @@ public final class EternaRuntimeTest implements Runnable {
                 final Location location = player.getLocation();
                 final BoundingBox boundingBox = new BoundingBox(player, location.clone().add(5, 5, 5), location.clone().subtract(5, 5, 5));
                 
+                info("Shown!");
                 boundingBox.show();
-                return true;
+                
+                Runnables.runLater(() -> {
+                    info("Hid!");
+                    boundingBox.hide();
+                    
+                    assertTestPassed();
+                }, 20);
+                
+                return false;
             }
         });
         
@@ -1781,6 +1772,7 @@ public final class EternaRuntimeTest implements Runnable {
                         0.0000f, 0.0000f, 0.0000f, 1.0000f
                 ));
                 
+                display.bukkit();
                 display.show(player);
                 
                 return true;
@@ -2049,7 +2041,10 @@ public final class EternaRuntimeTest implements Runnable {
                     dialog.addEntry(DialogEntry.of("Hello World 3!"));
                     dialog.addEntry(DialogEntry.of("Hello World 4!"));
                     dialog.addEntry(DialogEntry.of("Hello World 5!"));
-                    // dialog.summary("You hear the phrase \"Hello World\" five times and begin to wonder... what is life...?");
+                    dialog.addEntry(DialogEntry.of(instance -> {
+                        assertTestPassed();
+                    }));
+                    dialog.summary("You hear the phrase \"Hello World\" five times and begin to wonder... what is life...?");
                 }
                 
                 if (args.getString(0).equals("skip")) {
@@ -2534,6 +2529,66 @@ public final class EternaRuntimeTest implements Runnable {
                          });
                 
                 return false;
+            }
+        });
+        
+        register(new EternaTest("reflect_access") {
+            class TestClass {
+                public final byte myPrivateByte = 5;
+                private static final short myStaticShort = 69;
+                
+                private int getInteger() {
+                    return 123;
+                }
+                
+                private int getIntegerWithArgs(int plus) {
+                    return 1 + plus;
+                }
+                
+                static String getStaticMethod() {
+                    return "Hello";
+                }
+                
+                private void voidMethod() {
+                    info("Called voidMethod()");
+                }
+            }
+            
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                final ObjectInstance __REF = () -> new TestClass();
+                
+                final Integer getInteger
+                        = ReflectAccess.ofMethod(TestClass.class, Integer.class, "getInteger")
+                                       .invoke(__REF)
+                                       .orElseThrow();
+                
+                final Integer getIntegerWithArgs
+                        = ReflectAccess.ofMethod(TestClass.class, Integer.class, "getIntegerWithArgs", int.class)
+                                       .invoke(__REF, 2)
+                                       .orElseThrow();
+                
+                final String getStaticMethod
+                        = ReflectAccess.ofMethod(TestClass.class, String.class, "getStaticMethod")
+                                       .invoke(ObjectInstance.STATIC)
+                                       .orElseThrow();
+                
+                ReflectAccess.ofMethod(TestClass.class, Void.class, "voidMethod").invoke(__REF);
+                
+                assertEquals(getInteger, 123);
+                assertEquals(getIntegerWithArgs, 3);
+                assertEquals(getStaticMethod, "Hello");
+                
+                final ReflectFieldAccess<Byte> myPrivateByteAccess = ReflectAccess.ofField(TestClass.class, Byte.class, "myPrivateByte");
+                final Byte myPrivateByte = myPrivateByteAccess.get(__REF).orElseThrow();
+                
+                assertEquals(myPrivateByte, (byte) 5);
+                
+                final ReflectFieldAccess<Short> myStaticShortAccess = ReflectAccess.ofField(TestClass.class, Short.class, "myStaticShort");
+                final Short myStaticShort = myStaticShortAccess.get(ObjectInstance.STATIC).orElseThrow();
+                
+                assertEquals(myStaticShort, (short) 69);
+                return true;
             }
         });
         

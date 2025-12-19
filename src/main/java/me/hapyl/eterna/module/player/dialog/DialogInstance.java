@@ -7,7 +7,6 @@ import me.hapyl.eterna.builtin.manager.QuestManager;
 import me.hapyl.eterna.module.player.quest.QuestStartBehaviour;
 import me.hapyl.eterna.module.player.quest.objective.AbstractDialogQuestObjective;
 import me.hapyl.eterna.module.util.Compute;
-import me.hapyl.eterna.module.util.Runnables;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -74,37 +73,28 @@ public class DialogInstance extends BukkitRunnable {
      * <p>This method is equivalent to player finishing the dialog and it advanced quests.</p>
      */
     public void skip() {
+        // Don't re-skip dialog
+        if (awaitInput) {
+            return;
+        }
+        
         // Force dialog to pause, this won't actually activate the input
         awaitInput = true;
         
         final DialogSkip handler = dialog.skipHandler(player);
-        
-        // Else try to display and either confirm/cancel
-        final BukkitRunnable task = Runnables.makeTask(
-                () -> {
-                    tick = 25;
-                    awaitInput = false;
-                    
-                    handler.onTimeout(player);
-                }, _task -> _task.runTaskLater(Eterna.getPlugin(), handler.awaitTime())
-        );
-        
         final CompletableFuture<Boolean> response = handler.prompt(player);
         
         response.whenComplete((success, _t) -> {
-            if (success == null) {
-                throw new RuntimeException(_t);
-            }
-            
             if (success) {
+                handler.onConfirm(player);
                 dialogFinished();
             }
             else {
+                handler.onCancel(player);
+                
                 tick = 15;
                 awaitInput = false;
             }
-            
-            task.cancel();
         });
     }
     

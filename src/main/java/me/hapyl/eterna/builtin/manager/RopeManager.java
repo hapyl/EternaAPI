@@ -1,7 +1,7 @@
 package me.hapyl.eterna.builtin.manager;
 
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.entity.Rope;
+import me.hapyl.eterna.module.entity.rope.Rope;
 
 import javax.annotation.Nonnull;
 

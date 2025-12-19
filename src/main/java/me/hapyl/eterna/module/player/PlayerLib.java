@@ -2,11 +2,11 @@ package me.hapyl.eterna.module.player;
 
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.inventory.ItemBuilder;
-import me.hapyl.eterna.module.reflect.access.ReflectAccess;
+import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.Runnables;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemCooldowns;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -386,8 +386,8 @@ public final class PlayerLib {
      * @param predicate - The predicate to match.
      */
     public static void stopCooldowns(@Nonnull Player player, @Nonnull Predicate<Key> predicate) {
-        final ItemCooldowns cooldowns = ReflectAccess.PLAYER.access(player).getCooldowns();
-        final Set<ResourceLocation> keys = Sets.newHashSet(cooldowns.cooldowns.keySet());
+        final ItemCooldowns cooldowns = Reflect.getMinecraftPlayer(player).getCooldowns();
+        final Set<Identifier> keys = Sets.newHashSet(cooldowns.cooldowns.keySet());
 
         keys.stream().filter(rl -> {
             final String path = rl.getPath();

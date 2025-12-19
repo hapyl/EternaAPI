@@ -6,10 +6,12 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import org.bukkit.Location;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -112,4 +114,13 @@ public final class PacketFactory {
         return new ClientboundSetPassengersPacket(entity);
     }
     
+    @Nonnull
+    public static ClientboundSetEntityLinkPacket makePacketSetEntityLink(@Nonnull Entity firstEntity, @Nullable Entity secondEntity) {
+        return new ClientboundSetEntityLinkPacket(firstEntity, secondEntity);
+    }
+    
+    @Nonnull
+    public static ClientboundUpdateAttributesPacket makePacketUpdateAttributes(@Nonnull Entity entity, @Nonnull Collection<AttributeInstance> attributes) {
+        return new ClientboundUpdateAttributesPacket(entity.getId(), attributes);
+    }
 }

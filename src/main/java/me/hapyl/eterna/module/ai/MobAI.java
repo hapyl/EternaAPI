@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.ai;
 
 import me.hapyl.eterna.module.ai.goal.Goal;
 import me.hapyl.eterna.module.ai.goal.GoalType;
+import me.hapyl.eterna.module.annotate.ObsoleteOnceOfficialMojangMappingsAreReleasedIn2026;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import net.minecraft.world.entity.Mob;
@@ -14,7 +15,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 
-@TestedOn(version = Version.V1_21_8)
+@TestedOn(version = Version.V1_21_11)
+@ObsoleteOnceOfficialMojangMappingsAreReleasedIn2026
 public class MobAI implements AI {
 
     private int lastPriority;

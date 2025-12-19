@@ -4,6 +4,7 @@ import me.hapyl.eterna.module.annotate.UtilityClass;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -200,4 +201,33 @@ public final class Validate {
         return varargs;
     }
     
+    /**
+     * Validates that the provided {@link Class} is not a primitive.
+     * <p>To be more precise, it checks whether the class is java primitive, not the object of the primitive.</p>
+     *
+     * @param clazz - The class to check.
+     * @return the same class if it's not a primitive.
+     */
+    @Nonnull
+    public static <T> Class<T> notPrimitive(@Nonnull Class<T> clazz) {
+        class Holder {
+            private static final Map<Class<?>, Class<?>> primitiveToObject = Map.of(
+                    boolean.class, Boolean.class,
+                    byte.class, Byte.class,
+                    short.class, Short.class,
+                    int.class, Integer.class,
+                    long.class, Long.class,
+                    float.class, Float.class,
+                    double.class, Double.class,
+                    char.class, Character.class,
+                    void.class, Void.class
+            );
+        }
+        
+        if (Holder.primitiveToObject.containsKey(clazz)) {
+            throw new IllegalArgumentException("Provided class must not be primitive! (%s -> %s)".formatted(clazz.getSimpleName(), Holder.primitiveToObject.get(clazz).getSimpleName()));
+        }
+        
+        return clazz;
+    }
 }

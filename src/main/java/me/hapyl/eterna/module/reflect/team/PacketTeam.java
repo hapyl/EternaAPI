@@ -5,6 +5,9 @@ import me.hapyl.eterna.builtin.Debuggable;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.access.ObjectInstance;
+import me.hapyl.eterna.module.reflect.access.ReflectAccess;
+import me.hapyl.eterna.module.reflect.access.ReflectMethodAccess;
 import me.hapyl.eterna.module.util.SupportsColorFormatting;
 import me.hapyl.eterna.module.util.TrackedValue;
 import net.minecraft.ChatFormatting;
@@ -19,7 +22,6 @@ import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -32,21 +34,18 @@ import java.util.function.Consumer;
 public class PacketTeam implements Debuggable {
     
     private static final Scoreboard dummyScoreboard;
-    private static final Method cachedFromStringOrNull;
+    private static final ReflectMethodAccess<Component> accessFromStringOrNull;
     
     static {
         dummyScoreboard = new Scoreboard();
         
         // Cache the method bukkit uses to parse string -> nms
-        try {
-            // FIXME @May 25, 2025 (xanyjl) -> When paper changes this fucking 2001 java 1 stupid shit just call the method directly
-            final Class<?> clazz = Class.forName("org.bukkit.craftbukkit.util.CraftChatMessage");
-            
-            cachedFromStringOrNull = clazz.getMethod("fromStringOrNull", String.class);
-        }
-        catch (ClassNotFoundException | NoSuchMethodException e) {
-            throw EternaLogger.exception(e);
-        }
+        accessFromStringOrNull = ReflectAccess.ofMethod(
+                ReflectAccess.paperClass("org.bukkit.craftbukkit.util.CraftChatMessage"),
+                Component.class,
+                "fromStringOrNull",
+                String.class
+        );
     }
     
     protected final String name;
@@ -248,7 +247,7 @@ public class PacketTeam implements Debuggable {
     
     private static Component componentFromString(String string) {
         try {
-            return (Component) cachedFromStringOrNull.invoke(null, Chat.color(string));
+            return accessFromStringOrNull.invoke(ObjectInstance.STATIC, Chat.color(string)).orElseThrow(IllegalArgumentException::new);
         }
         catch (Exception e) {
             throw EternaLogger.exception(e);
@@ -256,7 +255,6 @@ public class PacketTeam implements Debuggable {
     }
     
     private static class TeamOptionTracker {
-        
         private final Team team;
         
         private final TrackedValue<Boolean, Boolean> friendlyFire;

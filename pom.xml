@@ -6,7 +6,7 @@
 
     <groupId>me.hapyl</groupId>
     <artifactId>eternaapi</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>5.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>EternaAPI</name>
@@ -68,7 +68,7 @@
                         </goals>
                         <id>remap-obf</id>
                         <configuration>
-                            <srgIn>org.spigotmc:minecraft-server:1.21.8-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
+                            <srgIn>org.spigotmc:minecraft-server:1.21.11-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
                             <reverse>true</reverse>
                             <remappedArtifactAttached>true</remappedArtifactAttached>
                             <remappedClassifierName>remapped-obf</remappedClassifierName>
@@ -87,10 +87,10 @@
                                 ${project.build.directory}/${project.name}-${project.version}-remapped-obf.jar
                             </inputFile>
                             <srgIn>
-                                org.spigotmc:minecraft-server:1.21.8-R0.1-SNAPSHOT:csrg:maps-spigot
+                                org.spigotmc:minecraft-server:1.21.11-R0.1-SNAPSHOT:csrg:maps-spigot
                             </srgIn>
                             <remappedDependencies>
-                                org.spigotmc:spigot:1.21.8-R0.1-SNAPSHOT:jar:remapped-obf
+                                org.spigotmc:spigot:1.21.11-R0.1-SNAPSHOT:jar:remapped-obf
                             </remappedDependencies>
                         </configuration>
                     </execution>
@@ -166,15 +166,15 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.10-R0.1-SNAPSHOT</version>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- NMS -->
+        <!-- NMS TODO: Remove when new official mappings are available -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.21.10-R0.1-SNAPSHOT</version>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
             <classifier>remapped-mojang</classifier>
             <scope>provided</scope>
         </dependency>

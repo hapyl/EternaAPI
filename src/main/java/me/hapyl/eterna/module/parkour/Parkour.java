@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.parkour;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.registry.Key;
@@ -432,6 +433,8 @@ public class Parkour implements Keyed, Named {
     private void makeHologram(Location location, ComponentList text) {
         final Hologram hologram = Hologram.ofArmorStand(location);
         hologram.setLines(p -> text);
+        
+        EternaLogger.debug("create hologram: " + hologram.hashCode());
         
         this.holograms.add(hologram);
     }

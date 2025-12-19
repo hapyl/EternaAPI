@@ -914,5 +914,15 @@ public class BukkitUtils {
         return entry != null && entry.getKey() != null && entry.getValue() != null;
     }
     
-    
+    /**
+     * Gets a new {@link Location} from the given {@link BlockPos}.
+     *
+     * @param world    - The world of the location.
+     * @param blockPos - The block pos.
+     * @return a new {@link Location} from the given {@link BlockPos}.
+     */
+    @Nonnull
+    public static Location locationFromBlockPos(@Nonnull World world, @Nonnull BlockPos blockPos) {
+        return new Location(world, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+    }
 }

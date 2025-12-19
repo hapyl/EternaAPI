@@ -1,8 +1,6 @@
 package me.hapyl.eterna.module.player.dialog;
 
-import me.hapyl.eterna.module.annotate.EventLike;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletableFuture;
@@ -13,20 +11,14 @@ import java.util.concurrent.CompletableFuture;
 public interface DialogSkip {
     
     /**
-     * Denotes the default confirmation await time before resuming the dialog, in ticks.
-     */
-    int DEFAULT_CONFIRMATION_AWAIT_TIME = 200;
-    
-    /**
      * Prompts the skip summary and returns awaiting response.
      *
      * @param player - The player to display the summary to.
-     * @return A completable future that must be completed within {@link #awaitTime()} with either {@code true} or {@code false}, where:
+     * @return A completable future that must be completed with either {@code true} or {@code false}, where:
      * <p>
      *     <ul>
      *         <li>{@code true} - Confirmation, skips the dialog.
      *         <li>{@code false} - Cancellation, resumes the dialog.
-     *         <li>Other or no response within {@link #awaitTime()} will result in a dialog continuation.
      *     </ul>
      * </p>
      */
@@ -34,22 +26,19 @@ public interface DialogSkip {
     CompletableFuture<Boolean> prompt(@Nonnull Player player);
     
     /**
-     * Called whenever a response timeout.
+     * Called once when a player confirms a dialog skip.
      *
-     * @param player - The player who timed out.
+     * @param player - The player who confirmed the dialog skip.
      */
-    @EventLike
-    default void onTimeout(@Nonnull Player player) {
+    default void onConfirm(@Nonnull Player player) {
     }
     
     /**
-     * Gets the maximum awaiting time before cancelling the skip and resuming the dialog, in ticks.
+     * Called once when a player cancels the dialog skip.
      *
-     * @return maximum awaiting time before cancelling the skip and resuming the dialog, in ticks.
-     * @see #DEFAULT_CONFIRMATION_AWAIT_TIME
+     * @param player - The player who cancelled the dialog skip.
      */
-    default @Range(from = 1, to = Integer.MAX_VALUE) int awaitTime() {
-        return DEFAULT_CONFIRMATION_AWAIT_TIME;
+    default void onCancel(@Nonnull Player player) {
     }
     
 }

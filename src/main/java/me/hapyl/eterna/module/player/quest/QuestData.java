@@ -15,7 +15,6 @@ import java.util.function.BiConsumer;
 /**
  * Represents the runtime quest data for the given player.
  */
-@ApiStatus.Internal
 public class QuestData implements Debuggable {
     
     private final Player player;
