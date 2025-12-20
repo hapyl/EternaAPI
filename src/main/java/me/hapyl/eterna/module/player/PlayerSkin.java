@@ -12,8 +12,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -96,7 +98,7 @@ public class PlayerSkin implements Skin {
      *                       <p>This has no effect on other players, they <b>will</b> see the skin change.</p>
      */
     public void apply(@Nonnull Player player, boolean refreshForSelf) {
-        final ServerPlayer minecraftPlayer = Reflect.getMinecraftPlayer(player);
+        final ServerPlayer minecraftPlayer = Reflect.getHandle(player);
         
         Reflect.setTextures(minecraftPlayer, this);
         
@@ -118,7 +120,7 @@ public class PlayerSkin implements Skin {
     
     // New refresh code if from SkinsRestorer plugin
     protected void createPlayer(@Nonnull Player player) {
-        final ServerPlayer mcPlayer = Reflect.getMinecraftPlayer(player);
+        final ServerPlayer mcPlayer = Reflect.getHandle(player);
         final ServerLevel level = mcPlayer.level();
         
         final ClientboundPlayerInfoRemovePacket tabPacketRemove = new ClientboundPlayerInfoRemovePacket(List.of(player.getUniqueId()));
@@ -141,7 +143,16 @@ public class PlayerSkin implements Skin {
         mcPlayer.onUpdateAbilities();
         
         // Sync player's location
-        mcPlayer.connection.teleport(player.getLocation());
+        final Location location = player.getLocation();
+        
+        mcPlayer.connection.teleport(
+                location.getX(),
+                location.getY(),
+                location.getZ(),
+                location.getYaw(),
+                location.getPitch(),
+                PlayerTeleportEvent.TeleportCause.PLUGIN
+        );
         
         // Update health & exp
         mcPlayer.resetSentInfo();

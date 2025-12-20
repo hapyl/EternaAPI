@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.player.quest;
 
-import me.hapyl.eterna.module.ai.goal.MoveToGoal;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.player.quest.objective.BreakBlockQuestObjective;
 import me.hapyl.eterna.module.player.quest.objective.TalkInChatQuestObjective;
@@ -18,7 +17,6 @@ import javax.annotation.Nonnull;
  *
  * @see BreakBlockQuestObjective
  * @see TalkInChatQuestObjective
- * @see MoveToGoal
  */
 public abstract class QuestObjective implements Described {
 

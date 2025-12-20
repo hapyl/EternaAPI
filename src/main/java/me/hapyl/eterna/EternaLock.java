@@ -10,7 +10,7 @@ public class EternaLock {
     @ApiStatus.Internal
     public EternaLock(@CheckForNull EternaKey key) {
         if (key == null) {
-            throw EternaLogger.exception(new SecurityException("Missing key for: " + this.getClass().getSimpleName()));
+            throw EternaLogger.acknowledgeException(new SecurityException("Missing key for: " + this.getClass().getSimpleName()));
         }
         
         key.validateKey();

@@ -5,7 +5,7 @@ import me.hapyl.eterna.EternaKey;
 import me.hapyl.eterna.EternaLock;
 import me.hapyl.eterna.module.event.protocol.PacketReceiveEvent;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
-import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacketPlayInUseEntity;
+import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedServerboundInteractPacket;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,7 +23,7 @@ public final class NpcListener extends EternaLock implements Listener {
     @EventHandler()
     public void handlePacketReceiveEvent(PacketReceiveEvent ev) {
         final Player player = ev.getPlayer();
-        final WrappedPacketPlayInUseEntity packet = ev.getWrappedPacket(PacketWrappers.PACKET_PLAY_IN_USE_ENTITY);
+        final WrappedServerboundInteractPacket packet = ev.getWrappedPacket(PacketWrappers.PACKET_PLAY_IN_USE_ENTITY);
         
         if (packet == null) {
             return;
@@ -35,17 +35,17 @@ public final class NpcListener extends EternaLock implements Listener {
             return;
         }
         
-        final WrappedPacketPlayInUseEntity.WrappedAction action = packet.getAction();
-        final WrappedPacketPlayInUseEntity.WrappedActionType type = action.getType();
-        final WrappedPacketPlayInUseEntity.WrappedHand hand = action.getHand();
+        final WrappedServerboundInteractPacket.WrappedAction action = packet.getAction();
+        final WrappedServerboundInteractPacket.WrappedActionType type = action.getType();
+        final WrappedServerboundInteractPacket.WrappedHand hand = action.getHand();
         
         // Don't care about INTERACT_AT or OFF_HAND clicks
-        if (type == WrappedPacketPlayInUseEntity.WrappedActionType.INTERACT_AT ||
-            hand == WrappedPacketPlayInUseEntity.WrappedHand.OFF_HAND) {
+        if (type == WrappedServerboundInteractPacket.WrappedActionType.INTERACT_AT ||
+            hand == WrappedServerboundInteractPacket.WrappedHand.OFF_HAND) {
             return;
         }
         
-        ev.synchronize(() -> npc.onClick0(player, type == WrappedPacketPlayInUseEntity.WrappedActionType.ATTACK ? ClickType.ATTACK : ClickType.INTERACT));
+        ev.synchronize(() -> npc.onClick0(player, type == WrappedServerboundInteractPacket.WrappedActionType.ATTACK ? ClickType.ATTACK : ClickType.INTERACT));
     }
     
 }

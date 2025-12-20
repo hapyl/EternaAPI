@@ -73,7 +73,7 @@ public class Rope implements Showable, Destroyable {
         }
         
         final LinkedList<Entity> linkedEntities = Lists.newLinkedList();
-        final ServerLevel level = Reflect.getMinecraftWorld(player.getLocation().getWorld());
+        final ServerLevel level = Reflect.getHandle(player.getLocation().getWorld());
         
         // Create packetTeam for collisions
         final PacketTeam packetTeam = new PacketTeam("rope_collisions");

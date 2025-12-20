@@ -76,7 +76,7 @@ public class CommandProcessor {
             }
 
         } catch (Exception exception) {
-            EternaLogger.exception(exception);
+            EternaLogger.acknowledgeException(exception);
         }
     }
 

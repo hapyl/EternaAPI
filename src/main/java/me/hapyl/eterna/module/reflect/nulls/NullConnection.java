@@ -6,7 +6,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
-import org.apache.commons.lang.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import javax.annotation.Nullable;
 import java.io.Serial;
@@ -49,7 +49,7 @@ public class NullConnection extends Connection {
             FieldUtils.writeDeclaredField(this, "packetListener", packetlistener, true);
             FieldUtils.writeDeclaredField(this, "disconnectListener", null, true);
         } catch (Exception e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
 }

@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.reflect.glowing;
 
 import com.google.common.base.Preconditions;
-import me.hapyl.eterna.module.reflect.DataWatcherType;
+import me.hapyl.eterna.module.reflect.EntityDataType;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.reflect.team.PacketTeamSyncer;
@@ -9,6 +9,7 @@ import me.hapyl.eterna.module.util.Removable;
 import me.hapyl.eterna.module.util.Ticking;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -126,7 +127,7 @@ public class GlowingInstance implements Ticking, Removable {
         final Team team = scoreboard.getEntryTeam(scoreboardName());
         
         if (team != null) {
-            Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(Reflect.getNetTeam(team), true));
+            Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(Reflect.getHandle(team), true));
         }
     }
     
@@ -148,15 +149,15 @@ public class GlowingInstance implements Ticking, Removable {
     }
     
     protected void sendGlowingPacket(boolean flag) {
-        final SynchedEntityData dataWatcher = Reflect.getDataWatcher(Reflect.getMinecraftEntity(entity));
-        final Byte bitMask = dataWatcher.get(DataWatcherType.BYTE.get().createAccessor(0));
+        final SynchedEntityData dataWatcher = Reflect.getEntityData(Reflect.getHandle(entity));
+        final byte existingMask = dataWatcher.get(EntityDataType.BYTE.createAccessor(0));
         
         final ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(
                 entity.getEntityId(),
                 List.of(new SynchedEntityData.DataValue<>(
                         0,
-                        DataWatcherType.BYTE.get(),
-                        !flag ? (byte) (bitMask & ~Glowing.BITMASK) : (byte) (bitMask | Glowing.BITMASK)
+                        EntityDataSerializers.BYTE,
+                        !flag ? (byte) (existingMask & ~Glowing.BITMASK) : (byte) (existingMask | Glowing.BITMASK)
                 ))
         );
         

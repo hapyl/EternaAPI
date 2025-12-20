@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.chat;
 
-import me.hapyl.eterna.EternaLogger;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -8,19 +7,20 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import net.minecraft.network.chat.Component;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -32,19 +32,8 @@ public final class Chat {
     
     public static final char ALTERNATE_COLOR_CHAR;
     
-    private static final Method methodFromString;
-    
     static {
         ALTERNATE_COLOR_CHAR = '&';
-        
-        try {
-            final Class<?> clazz = Class.forName("org.bukkit.craftbukkit.util.CraftChatMessage");
-            methodFromString = clazz.getDeclaredMethod("fromStringOrEmpty", String.class);
-            
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
     }
     
     private Chat() {
@@ -281,12 +270,27 @@ public final class Chat {
     /**
      * Capitalizes string.
      *
-     * @param str - String to capitalize.
+     * @param input - String to capitalize.
      * @return capitalized String.
      */
     @Nonnull
-    public static String capitalize(@Nonnull String str) {
-        return WordUtils.capitalize(str.toLowerCase().replace('_', ' '));
+    public static String capitalize(@Nonnull String input) {
+        if (input.isEmpty()) {
+            return input;
+        }
+        
+        final String[] words = input.split(" ");
+        final StringBuilder builder = new StringBuilder();
+        
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                builder.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1).toLowerCase());
+            }
+            
+            builder.append(" ");
+        }
+        
+        return builder.toString().trim();
     }
     
     /**
@@ -634,11 +638,7 @@ public final class Chat {
      */
     @Nonnull
     public static Component component(@Nonnull String newText) {
-        try {
-            return (Component) methodFromString.invoke(null, Chat.format(newText));
-        } catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
+        return CraftChatMessage.fromStringOrEmpty(Chat.format(newText));
     }
     
 }

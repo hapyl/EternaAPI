@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.entity.packet;
 
-import me.hapyl.eterna.module.reflect.DataWatcherType;
+import me.hapyl.eterna.module.reflect.EntityDataType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Guardian;
 import org.bukkit.Location;
@@ -47,7 +47,7 @@ public class PacketGuardian extends PacketEntity<Guardian> {
      * @param entityId - The entity numeric Id; null entity will remove the beam.
      */
     public void setBeamTarget(int entityId) {
-        setDataWatcherValue(DataWatcherType.INT, 17, entityId);
+        setDataWatcherValue(EntityDataType.INT, 17, entityId);
         updateMetadata();
     }
 }

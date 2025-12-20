@@ -39,7 +39,7 @@ public class ReflectFieldAccess<T> implements ReflectAccess {
             }
             
             if (!this.fieldStruct.fieldType.isInstance(object)) {
-                throw EternaLogger.exception(new IllegalArgumentException("Return type mismatch! Expected %s, got %s!".formatted(
+                throw EternaLogger.acknowledgeException(new IllegalArgumentException("Return type mismatch! Expected %s, got %s!".formatted(
                         fieldStruct.fieldType.getSimpleName(),
                         object.getClass().getSimpleName()
                 )));
@@ -48,7 +48,7 @@ public class ReflectFieldAccess<T> implements ReflectAccess {
             return Optional.of(this.fieldStruct.fieldType.cast(object));
         }
         catch (IllegalAccessException e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
     
@@ -70,7 +70,7 @@ public class ReflectFieldAccess<T> implements ReflectAccess {
                     field = clazz.getField(fieldName);
                 }
                 catch (NoSuchFieldException ex) {
-                    throw EternaLogger.exception(new ReflectiveOperationException("Cannot find field: " + this));
+                    throw EternaLogger.acknowledgeException(new ReflectiveOperationException("Cannot find field: " + this));
                 }
             }
             

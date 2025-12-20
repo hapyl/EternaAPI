@@ -9,11 +9,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class WrappedPacketPlayInSteerVehicle extends WrappedPacket<ServerboundPlayerInputPacket> {
+public class WrappedPacketServerboundInput extends WrappedPacket<ServerboundPlayerInputPacket> {
 
     private final WrappedInput input;
 
-    public WrappedPacketPlayInSteerVehicle(@Nonnull ServerboundPlayerInputPacket packet) {
+    public WrappedPacketServerboundInput(@Nonnull ServerboundPlayerInputPacket packet) {
         super(packet);
 
         this.input = new WrappedInput(packet.input());

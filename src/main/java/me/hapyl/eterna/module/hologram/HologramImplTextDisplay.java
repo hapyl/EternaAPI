@@ -144,11 +144,11 @@ public class HologramImplTextDisplay extends AbstractHologram {
         private final TextDisplay bukkitEntity;
         
         PacketTextDisplay(@Nonnull Location location) {
-            this.entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, Reflect.getMinecraftWorld(location.getWorld()));
+            this.entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, Reflect.getHandle(location.getWorld()));
             this.entity.teleportTo(location.getX(), location.getY(), location.getZ());
             this.entity.setBillboardConstraints(Display.BillboardConstraints.CENTER);
             
-            this.bukkitEntity = Reflect.getBukkitEntity(entity, TextDisplay.class);
+            this.bukkitEntity = (TextDisplay) entity.getBukkitEntity();
         }
         
         protected void hide(@Nonnull Player player) {
@@ -186,7 +186,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
         }
         
         protected void updateMetadata(@Nonnull Player player) {
-            Reflect.updateMetadata(entity, player);
+            Reflect.updateEntityData(entity, player);
         }
         
         @Override

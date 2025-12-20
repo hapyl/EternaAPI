@@ -61,7 +61,7 @@ public class CommandHandle extends Command {
         }
         catch (Exception e) {
             Chat.sendMessage(sender, "&4Error executing command! &c%s".formatted(e.getMessage()));
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
         
         return true;

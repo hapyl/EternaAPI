@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.reflect.access;
 
-import me.hapyl.eterna.EternaLogger;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
@@ -41,24 +40,5 @@ public interface ReflectAccess {
     static <T> ReflectMethodAccess<T> ofMethod(@Nonnull Class<?> clazz, @Nonnull Class<T> returnType, @Nonnull String methodName, @Nullable Class<?>... parameters) {
         return new ReflectMethodAccess<>(clazz, returnType, methodName, parameters);
     }
-    
-    @Nonnull
-    static Class<?> paperClass(@Nonnull String craftbukkitClassName) {
-        class Holder {
-            private static final String requiredPrefix = "org.bukkit.craftbukkit.";
-        }
-        
-        if (!craftbukkitClassName.startsWith(Holder.requiredPrefix)) {
-            throw new IllegalArgumentException("Class name must start with %s!".formatted(Holder.requiredPrefix));
-        }
-        
-        try {
-            return Class.forName(craftbukkitClassName);
-        }
-        catch (ClassNotFoundException e) {
-            throw EternaLogger.exception(e);
-        }
-    }
-    
     
 }

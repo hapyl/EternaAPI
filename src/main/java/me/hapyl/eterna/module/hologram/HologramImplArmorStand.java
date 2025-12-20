@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.hologram;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.papermc.paper.adventure.PaperAdventure;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
@@ -10,7 +11,6 @@ import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -148,7 +148,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         PacketArmorStand(@Nonnull Player player, @Nonnull Location location, @Nullable Component text) {
             this.player = player;
             this.armorStand = new net.minecraft.world.entity.decoration.ArmorStand(
-                    Reflect.getMinecraftWorld(location.getWorld()),
+                    Reflect.getHandle(location.getWorld()),
                     location.getX(),
                     location.getY(),
                     location.getZ()
@@ -168,7 +168,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         
         @Override
         public String toString() {
-            return Reflect.getBukkitEntity(armorStand, ArmorStand.class).getName();
+            return armorStand.getBukkitEntity().getName();
         }
         
         protected void show() {
@@ -181,17 +181,16 @@ public class HologramImplArmorStand extends AbstractHologram {
         }
         
         protected void update() {
-            Reflect.updateMetadata(armorStand, player);
+            Reflect.updateEntityData(armorStand, player);
         }
         
         protected void text(@Nullable Component name) {
             final boolean isEmpty = name == null || Components.isEmptyOrNewLine(name);
             
-            final ArmorStand bukkitEntity = Reflect.getBukkitEntity(armorStand, ArmorStand.class);
-            bukkitEntity.customName(!isEmpty ? name : Component.empty());
+            // Set the name either to empty component or name
+            armorStand.setCustomName(isEmpty ? net.minecraft.network.chat.Component.empty() : PaperAdventure.asVanilla(name));
             
             // If the name is null, we actually hide the name of this armor stand to no see the | in the name
-            // FIXME @Sep 04, 2025 (xanyjl) -> This doesn't seem to work?
             armorStand.setCustomNameVisible(!isEmpty);
             
             // Refresh name

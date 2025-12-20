@@ -7,10 +7,6 @@ import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.builtin.command.EternaCommand;
-import me.hapyl.eterna.module.ai.AI;
-import me.hapyl.eterna.module.ai.MobAI;
-import me.hapyl.eterna.module.ai.goal.FloatGoal;
-import me.hapyl.eterna.module.ai.goal.MeleeAttackGoal;
 import me.hapyl.eterna.module.block.display.BDEngine;
 import me.hapyl.eterna.module.block.display.DisplayData;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
@@ -22,9 +18,9 @@ import me.hapyl.eterna.module.chat.messagebuilder.MessageBuilder;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.entity.Entities;
-import me.hapyl.eterna.module.entity.rope.Rope;
 import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.entity.packet.PacketItem;
+import me.hapyl.eterna.module.entity.rope.Rope;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.hologram.HologramImplTextDisplay;
 import me.hapyl.eterna.module.inventory.*;
@@ -58,7 +54,10 @@ import me.hapyl.eterna.module.player.quest.objective.TalkToNpcQuestObjective;
 import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
 import me.hapyl.eterna.module.player.tablist.*;
-import me.hapyl.eterna.module.reflect.*;
+import me.hapyl.eterna.module.reflect.BoundingBox;
+import me.hapyl.eterna.module.reflect.EternaServerPlayerImpl;
+import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.reflect.access.ObjectInstance;
 import me.hapyl.eterna.module.reflect.access.ReflectAccess;
 import me.hapyl.eterna.module.reflect.access.ReflectFieldAccess;
@@ -82,7 +81,6 @@ import net.minecraft.world.level.Level;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -200,7 +198,7 @@ public final class EternaRuntimeTest implements Runnable {
                         }
                 );
                 
-                return false;
+                return true;
             }
         });
         
@@ -868,26 +866,6 @@ public final class EternaRuntimeTest implements Runnable {
             }
         });
         
-        register(new EternaTest("ai") {
-            @Override
-            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
-                final LivingEntity entity = Entities.PILLAGER.spawn(player.getLocation(), self -> self.setSilent(true));
-                final AI ai = MobAI.of(entity);
-                
-                ai.removeAllGoals();
-                ai.addGoal(new FloatGoal(ai));
-                ai.addGoal(new MeleeAttackGoal(ai, 1.0d, true));
-                
-                assertEquals(ai.getGoals().size(), 2);
-                
-                ai.getGoals().forEach(goal -> {
-                    info(goal.getClass().getSimpleName());
-                });
-                
-                return true;
-            }
-        });
-        
         register(new EternaTest("rope") {
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
@@ -1079,11 +1057,11 @@ public final class EternaRuntimeTest implements Runnable {
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
                 final World world = player.getWorld();
                 
-                final ServerPlayer playerHandle = Reflect.getHandle(player, ServerPlayer.class);
-                final Level worldHandle = Reflect.getHandle(world, Level.class);
+                final ServerPlayer playerHandle = Reflect.getHandle(player);
+                final Level worldHandle = Reflect.getHandle(world);
                 
                 assertThrows(() -> {
-                    Reflect.getHandle(player, Void.class);
+                    Reflect.getHandle(player);
                 });
                 
                 return true;
@@ -1185,16 +1163,6 @@ public final class EternaRuntimeTest implements Runnable {
                 return false;
             }
             
-        });
-        
-        register(new EternaTest("cb_class") {
-            @Override
-            public boolean test(@NotNull Player player, @NotNull ArgumentList args) throws EternaTestException {
-                final Class<?> clazz = Reflect.getCraftClass("entity.CraftPlayer");
-                
-                player.sendMessage(clazz.toString());
-                return true;
-            }
         });
         
         register(new EternaTest("hide_flags") {

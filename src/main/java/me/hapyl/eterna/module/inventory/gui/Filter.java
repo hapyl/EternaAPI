@@ -173,7 +173,7 @@ public abstract class Filter<E, S extends Enum<S>> {
                     continue;
                 }
             } catch (Exception e) {
-                throw EternaLogger.exception(e);
+                throw EternaLogger.acknowledgeException(e);
             }
 
             values.add(s);

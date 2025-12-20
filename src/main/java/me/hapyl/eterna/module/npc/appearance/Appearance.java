@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.npc.NpcPose;
-import me.hapyl.eterna.module.reflect.DataWatcherType;
+import me.hapyl.eterna.module.reflect.EntityDataType;
 import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -17,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -24,8 +25,8 @@ import java.util.UUID;
  */
 public abstract class Appearance {
     
-    private static final EntityDataAccessor<Integer> ACCESSOR_SHAKING = DataWatcherType.INT.createAccessor(7);
-    private static final EntityDataAccessor<Pose> ACCESSOR_POSE = DataWatcherType.ENTITY_POSE.createAccessor(6);
+    private static final EntityDataAccessor<Integer> ACCESSOR_SHAKING = EntityDataType.INT.createAccessor(7);
+    private static final EntityDataAccessor<Pose> ACCESSOR_POSE = EntityDataType.ENTITY_POSE.createAccessor(6);
     
     protected final Npc npc;
     protected final Entity handle;
@@ -52,6 +53,11 @@ public abstract class Appearance {
      */
     public double chairYOffset() {
         return 0;
+    }
+    
+    @Nonnull
+    public Map<NpcPose, Double> poseYOffset() {
+        return Map.of();
     }
     
     @Nonnull
@@ -119,11 +125,11 @@ public abstract class Appearance {
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
-    public <T> void setMetadataValue(@Nonnull DataWatcherType<T> type, int id, @Nonnull T value) {
+    public <T> void setMetadataValue(@Nonnull EntityDataType<T> type, int id, @Nonnull T value) {
         getMetadata().set(type.createAccessor(id), value);
     }
     
-    public <T> T getMetadataValue(@Nonnull DataWatcherType<T> type, int id) {
+    public <T> T getMetadataValue(@Nonnull EntityDataType<T> type, int id) {
         return getMetadata().get(type.createAccessor(id));
     }
     
@@ -135,7 +141,7 @@ public abstract class Appearance {
     @Nonnull
     protected static Level dummyWorld() {
         class Holder {
-            static final Level level = Reflect.getMinecraftWorld(Bukkit.getWorlds().getFirst());
+            static final Level level = Reflect.getHandle(Bukkit.getWorlds().getFirst());
         }
         
         return Holder.level;

@@ -27,7 +27,9 @@ public class EntityUtils {
      * @param viewers - Viewers.
      */
     public static void hideEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
-        Reflect.hideEntity(entity, viewers);
+        final net.minecraft.world.entity.Entity handle = Reflect.getHandle(entity);
+        
+        viewers.forEach(player -> Reflect.destroyEntity(handle, player));
     }
     
     /**
@@ -37,17 +39,7 @@ public class EntityUtils {
      * @param player - Viewers.
      */
     public static void hideEntity(@Nonnull Entity entity, @Nonnull Player player) {
-        Reflect.hideEntity(entity, player);
-    }
-    
-    /**
-     * Shows hidden entity using packets.
-     *
-     * @param entity - Entity to show.
-     * @param player - Viewers.
-     */
-    public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
-        Reflect.showEntity(entity, player);
+        Reflect.destroyEntity(Reflect.getHandle(entity), player);
     }
     
     /**
@@ -57,7 +49,19 @@ public class EntityUtils {
      * @param viewers - Viewers.
      */
     public static void showEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
-        Reflect.showEntity(entity, viewers);
+        final net.minecraft.world.entity.Entity handle = Reflect.getHandle(entity);
+        
+        viewers.forEach(player -> Reflect.createEntity(handle, player));
+    }
+    
+    /**
+     * Shows hidden entity using packets.
+     *
+     * @param entity - Entity to show.
+     * @param player - Viewers.
+     */
+    public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
+        Reflect.createEntity(Reflect.getHandle(entity), player);
     }
     
     /**
