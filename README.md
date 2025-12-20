@@ -84,6 +84,24 @@ public void onEnable() {
 </dependency>
 ```
 
+## Gradle
+```kotlin
+repositories {
+    maven {
+        url = uri("https://maven.pkg.github.com/hapyl/EternaAPI")
+        credentials {
+            username = USERNAME
+            // Use system environments for tokens, DO NOT put your actual token here
+            password = TOKEN
+        }
+    }
+}
+
+dependencies {
+    implementation("me.hapyl:eternaapi:VERSION")
+}
+```
+
 > [!IMPORTANT]
 > You must have PAT (Personal Access Token) set up with at least `read:packages` in order to access the package!
 
