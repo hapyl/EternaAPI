@@ -1,7 +1,0 @@
-name: "EternaAPI"
-main: "me.hapyl.eterna.EternaPlugin"
-version: ${version}
-author: "hapyl"
-description: ${description}
-prefix: "EternaAPI"
-api-version: 1.20.5

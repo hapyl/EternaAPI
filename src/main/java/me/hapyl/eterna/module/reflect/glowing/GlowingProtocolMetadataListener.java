@@ -8,7 +8,7 @@ import me.hapyl.eterna.builtin.manager.GlowingManager;
 import me.hapyl.eterna.module.event.protocol.PacketSendEvent;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
-import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacketPlayOutEntityMetadata;
+import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacketClientboundEntityData;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import org.bukkit.entity.Player;
@@ -32,7 +32,7 @@ public final class GlowingProtocolMetadataListener extends EternaLock implements
     @EventHandler()
     public void handlePacketSendEvent(PacketSendEvent ev) {
         final Player player = ev.getPlayer();
-        final WrappedPacketPlayOutEntityMetadata packet = ev.getWrappedPacket(PacketWrappers.PACKET_PLAY_OUT_ENTITY_METADATA);
+        final WrappedPacketClientboundEntityData packet = ev.getWrappedPacket(PacketWrappers.PACKET_PLAY_OUT_ENTITY_METADATA);
         
         if (packet == null) {
             return;
@@ -55,9 +55,9 @@ public final class GlowingProtocolMetadataListener extends EternaLock implements
         
         // Otherwise do some changes and resend the packet
         
-        final WrappedPacketPlayOutEntityMetadata.WrappedDataWatcherValueList packedItems = packet.getWrappedDataWatcherValueList();
+        final WrappedPacketClientboundEntityData.WrappedDataWatcherValueList packedItems = packet.getWrappedDataWatcherValueList();
         
-        for (WrappedPacketPlayOutEntityMetadata.WrappedDataWatcherValue item : packedItems) {
+        for (WrappedPacketClientboundEntityData.WrappedEntityDataValue item : packedItems) {
             final int id = item.getId();
             final Byte value = item.getValueAs(Byte.class);
             

@@ -7,266 +7,196 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import io.netty.channel.Channel;
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.annotate.Super;
+import me.hapyl.eterna.module.annotate.PacketOperation;
 import me.hapyl.eterna.module.annotate.TestedOn;
+import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.reflect.access.ReflectAccess;
-import me.hapyl.eterna.module.reflect.access.ReflectMethodAccess;
+import me.hapyl.eterna.module.reflect.access.ReflectFieldAccess;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.border.WorldBorder;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
-import org.apache.commons.lang.reflect.FieldUtils;
-import org.apache.commons.lang.reflect.MethodUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
- * Useful utility class, which was indented to use reflection, hence the name - Reflect.
- * <p>
- * "Net" indicates that method belongs to net.minecraft.server
- * "Craft" indicates that method belongs to CraftBukkit
+ * A utility helper class useful for {@link Packet} handling and reflection access.
  */
 @TestedOn(version = Version.V1_21_11)
+@UtilityClass
 public final class Reflect {
     
-    private static final String mcVersion;
-    private static final String getHandleMethodName;
-    
-    private static final ProblemReporter problemReporter;
-    
-    private static final ReflectMethodAccess<Entity> accessGetBukkitEntity;
-    
-    static {
-        final String name = Bukkit.getServer().getClass().getPackage().getName();
-        
-        mcVersion = name.substring(name.lastIndexOf(".") + 1);
-        getHandleMethodName = "getHandle";
-        problemReporter = new ReflectProblemReporter();
-        
-        accessGetBukkitEntity = ReflectAccess.ofMethod(net.minecraft.world.entity.Entity.class, Entity.class, "getBukkitEntity");
-    }
+    private static final ReflectFieldAccess<PlayerTeam> accessPlayerTeam = ReflectAccess.ofField(Reflect.classForName("org.bukkit.craftbukkit.scoreboard.CraftTeam"), PlayerTeam.class, "team");
     
     private Reflect() {
+        UtilityClass.Validator.throwIt();
     }
     
     /**
-     * Returns a 'org.bukkit.craftbukkit' class.
-     * Note that you <b>must</b> include the full path the class.
+     * Sets the given entity's location.
      *
-     * @param path - Path of the class.
-     * @return org.bukkit.craftbukkit class if exists, null otherwise
-     */
-    @Nonnull
-    public static Class<?> getCraftClass(@Nonnull String path) {
-        try {
-            return Class.forName("org.bukkit.craftbukkit." + path);
-        }
-        catch (ClassNotFoundException e) {
-            throw EternaLogger.exception(e);
-        }
-    }
-    
-    /**
-     * Sends a {@link ClientboundTeleportEntityPacket} packet to player.
-     *
-     * @param entity - Entity to update location of.
-     * @param player - Player to update location for.
-     */
-    public static void updateEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
-        sendPacket(player, PacketFactory.makePacketTeleportEntity(entity));
-    }
-    
-    /**
-     * Changes entity's location.
-     * <br>
-     * You must call {@link Reflect#updateEntityLocation(net.minecraft.world.entity.Entity, Player)} to see changes.
-     *
-     * @param entity   - Entity.
-     * @param location - Location.
+     * @param entity   - The entity whose location will be set.
+     * @param location - The desired location.
      */
     public static void setEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Location location) {
         entity.absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
     
     /**
-     * Sends a {@link ClientboundRemoveEntitiesPacket} packet to player.
+     * Updates the given entity's location via sending a {@link ClientboundTeleportEntityPacket} packet.
      *
-     * @param entity - Entity to remove.
-     * @param player - Player to remove this entity for.
+     * @param entity - The entity whose location will be updated.
+     * @param player - The player for whom the location is updated.
      */
+    @PacketOperation
+    public static void updateEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
+        sendPacket(player, PacketFactory.makePacketTeleportEntity(entity));
+    }
+    
+    /**
+     * Creates the given entity via sending a {@link ClientboundAddEntityPacket} packet.
+     *
+     * @param entity - The entity to create.
+     * @param player - The player for whom the entity will be created.
+     */
+    @PacketOperation
+    public static void createEntity(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
+        sendPacket(player, PacketFactory.makePacketAddEntity(entity, getEntityLocation(entity)));
+    }
+    
+    /**
+     * Destroys the given entity via sending a {@link ClientboundRemoveEntitiesPacket} packet.
+     *
+     * @param entity - The entity to destroy.
+     * @param player - The player for whom the entity will be destroyed.
+     */
+    @PacketOperation
     public static void destroyEntity(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
         sendPacket(player, PacketFactory.makePacketRemoveEntity(entity));
     }
     
     /**
-     * Changes DataWatcher value.
-     * Please follow <a href="https://wiki.vg/Entity_metadata#Entity_Metadata_Format">https://wiki.vg/Entity_metadata#Entity_Metadata_Format</a> format.
-     * <p>
-     * This method does <b>not</b> update the metadata,
-     * use {@link #updateMetadata(net.minecraft.world.entity.Entity, Player)} to update the metadata!
+     * Gets the given entity's {@link SynchedEntityData} value.
      *
-     * @param entity - Entity.
-     * @param type   - Value type.
-     * @param key    - Key or index.
-     * @param value  - Value.
-     * @param <T>    - Type of the value.
+     * @param entity - The entity whose value to get.
+     * @param type   - The type of value.
+     * @param id     - The id of the value.
+     * @param <T>    - The type of the value.
+     * @return the value stored in entity's data.
      */
-    public static <T> void setDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key, @Nullable T value) {
-        final SynchedEntityData dataWatcher = getDataWatcher(entity);
-        
-        setDataWatcherValue0(dataWatcher, type.get().createAccessor(key), value);
+    @Nonnull
+    public static <T> Optional<T> getEntityDataValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull EntityDataType<T> type, int id) {
+        return Optional.of(getEntityData(entity).get(type.createAccessor(id)));
     }
     
     /**
-     * Gets the value from entity data watcher.
+     * Sets the given entity's {@link SynchedEntityData} value.
      *
-     * @param entity - Entity.
-     * @param type   - Type.
-     * @param key    - Key.
-     * @param <T>    - Type of the value.
-     * @return Value.
+     * @param entity - The entity whose value to set.
+     * @param type   - The type of the value.
+     * @param id     - The id of the value.
+     * @param value  - The value to set.
+     * @param <T>    - The type of the value.
      */
-    public static <T> T getDataWatcherValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull DataWatcherType<T> type, int key) {
-        final SynchedEntityData dataWatcher = getDataWatcher(entity);
-        return dataWatcher.get(type.get().createAccessor(key));
+    public static <T> void setEntityDataValue(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull EntityDataType<T> type, int id, @Nonnull T value) {
+        getEntityData(entity).set(type.createAccessor(id), value);
     }
     
     /**
-     * Sets entity's DataWatcher byte value.
-     * <p>
-     * This method does <b>not</b> update the metadata,
-     * use {@link #updateMetadata(net.minecraft.world.entity.Entity, Player)} to update the metadata!
+     * Sends a {@link ClientboundSetEntityDataPacket} packet, that updates the given entity's {@link SynchedEntityData}.
      *
-     * @param entity - Entity.
-     * @param key    - Key or index.
-     * @param value  - Value.
+     * @param entity     - The entity whose data to update.
+     * @param entityData - The entity data to update.
+     * @param player     - The player for whom to update the entity data.
      */
-    public static void setDataWatcherByteValue(@Nonnull net.minecraft.world.entity.Entity entity, int key, byte value) {
-        setDataWatcherValue(entity, DataWatcherType.BYTE, key, value);
+    @PacketOperation
+    public static void updateEntityData(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull SynchedEntityData entityData, @Nonnull Player player) {
+        sendPacket(player, PacketFactory.makePacketSetEntityData(entity, entityData.getNonDefaultValues()));
     }
     
     /**
-     * Sets entity's DataWatcher value.
+     * Sends a {@link ClientboundSetEntityDataPacket} packet, that updates the given entity's {@link SynchedEntityData}.
+     * <p>This method uses up-to-date entity data.</p>
      *
-     * @param dataWatcher - DataWatcher.
-     * @param type        - Type.
-     * @param value       - Value.
-     * @param <T>         - Type of the value.
+     * @param entity - The entity whose data to update.
+     * @param player - The player for whom to update the entity data.
      */
-    @Super
-    public static <T> void setDataWatcherValue0(@Nonnull SynchedEntityData dataWatcher, @Nonnull EntityDataAccessor<T> type, T value) {
-        try {
-            dataWatcher.set(type, value);
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
-    }
-    
-    /**
-     * Updates entity's metadata for player.
-     *
-     * @param entity  - Entity.
-     * @param watcher - DataWatcher.
-     * @param player  - Player, who will see the update.
-     */
-    public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull SynchedEntityData watcher, @Nonnull Player player) {
-        sendPacket(player, PacketFactory.makePacketSetEntityData(entity, watcher.getNonDefaultValues()));
-    }
-    
-    /**
-     * Updates the metadata for the given entity for the given players.
-     * <br>
-     * This will use the entities actual {@link SynchedEntityData}.
-     *
-     * @param entity - Entity.
-     * @param player - Player, who will see the change.
-     */
-    public static void updateMetadata(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
+    @PacketOperation
+    public static void updateEntityData(@Nonnull net.minecraft.world.entity.Entity entity, @Nonnull Player player) {
         sendPacket(player, PacketFactory.makePacketSetEntityData(entity));
     }
     
     /**
-     * Returns entity's ID.
+     * Gets the given entity's numeric id.
      *
-     * @param entity - Entity.
-     * @return entity's ID.
+     * @param entity - The entity whose id to get.
+     * @return the entity's id.
      */
+    @ApiStatus.Obsolete
     public static int getEntityId(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getId();
     }
     
     /**
-     * Gets the NMS world border from a bukkit world border.
+     * Gets the server version.
      *
-     * @param bukkitWorldBorder - Bukkit world border.
-     * @return the NMS world border or null.
-     */
-    @Nullable
-    public static WorldBorder getNetWorldBorder(@Nonnull org.bukkit.WorldBorder bukkitWorldBorder) {
-        try {
-            return (WorldBorder) MethodUtils.invokeMethod(bukkitWorldBorder, "getHandle", null);
-        }
-        catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            EternaLogger.exception(e);
-            return null;
-        }
-    }
-    
-    /**
-     * Returns a string of current bukkit version.
-     *
-     * @return a string of current bukkit version.
+     * @return the server version.
      */
     @Nonnull
+    @ApiStatus.Obsolete
     public static String getVersion() {
-        return mcVersion;
+        return Bukkit.getServer().getVersion();
     }
     
     /**
-     * Invokes a method.
+     * Invokes the given {@link Method} with the given object instance and parameters.
+     * <p>This method exists as a convenience to avoid using {@code try-catch}; it still throws exceptions.</p>
      *
-     * @param method   - Method to invoke.
-     * @param instance - Instance, null for static methods.
-     * @param params   - Method parameters.
-     * @return the returned value of the method.
+     * @param method   - The method to invoke.
+     * @param instance - The object instance.
+     * @param params   - The method parameters.
+     * @return the object returned by the method, if any.
      */
     @Nullable
     public static Object invokeMethod(@Nonnull Method method, @Nullable Object instance, @Nullable Object... params) {
@@ -274,16 +204,18 @@ public final class Reflect {
             return method.invoke(instance, params);
         }
         catch (Exception e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
     
     /**
-     * Creates a new instance from the constructor with the given parameters.
+     * Creates a new object instance from the given {@link Constructor} and parameters.
+     * <p>This method exists as a convenience to avoid using {@code try-catch}; it still throws exceptions.</p>
      *
-     * @param constructor - Constructor.
-     * @param parameters  - Parameters.
-     * @return a new object.
+     * @param constructor - The constructor.
+     * @param parameters  - The parameters.
+     * @param <T>         - The object type.
+     * @return a new instance of the object.
      */
     @Nonnull
     public static <T> T newInstance(@Nonnull Constructor<T> constructor, @Nullable Object... parameters) {
@@ -291,218 +223,127 @@ public final class Reflect {
             return constructor.newInstance(parameters);
         }
         catch (Exception e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
     
     /**
-     * Gets the field value.
+     * Reads a {@link Field} from the given {@link Object} instance {@code class}.
+     * <p>This method first attempts to retrieve the declared field via {@link Class#getDeclaredField(String)}; if not found, it falls back to {@link Class#getField(String)}.</p>
      *
-     * @param field    - Field.
-     * @param instance - Instance.
-     * @return the field value.
+     * @param instance  - The object instance.
+     * @param fieldName - The target field name.
+     * @param fieldType - The target field type.
+     * @param <T>       - The target field type.
+     * @return an {@link Optional} containing the field value, or an {@link Optional#empty()} if field doesn't exist or has {@code null} value.
      */
-    @Deprecated(since = "4.7.2", forRemoval = true)
-    @Nullable
-    public static Object getFieldValue(@Nonnull Field field, @Nonnull Object instance) {
+    @Nonnull
+    public static <T> Optional<T> readFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull Class<T> fieldType) {
         try {
-            return field.get(instance);
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
-    }
-    
-    /**
-     * Reads the <b>declared</b> field value from the given instance.
-     *
-     * @param instance  - Instance.
-     * @param fieldName - Field name.
-     * @param valueType - Value type.
-     * @return the value or null.
-     */
-    @Nullable
-    public static <T> T getDeclaredFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull Class<T> valueType) {
-        return getFieldValue0(instance, fieldName, valueType, true);
-    }
-    
-    /**
-     * Reads the field value from the given instance.
-     *
-     * @param instance  - Instance.
-     * @param fieldName - Field name.
-     * @param valueType - Value type.
-     * @return the value or null.
-     */
-    @Nullable
-    public static <T> T getFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull Class<T> valueType) {
-        return getFieldValue0(instance, fieldName, valueType, false);
-    }
-    
-    /**
-     * Sets the <b>declared</b> field value for the given instance.
-     *
-     * @param instance  - Instance.
-     * @param fieldName - Field name.
-     * @param value     - Value.
-     */
-    public static <T> void setDeclaredFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull T value) {
-        setDeclaredFieldValue0(instance, fieldName, value, true);
-    }
-    
-    /**
-     * Sets the field value for the given instance.
-     *
-     * @param instance  - Instance.
-     * @param fieldName - Field name.
-     * @param value     - Value.
-     */
-    public static <T> void setFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull T value) {
-        setDeclaredFieldValue0(instance, fieldName, value, false);
-    }
-    
-    public static <T> void setDeclaredFieldValue0(Object instance, String fieldName, T value, boolean isDeclared) {
-        try {
-            final Class<?> clazz = instance.getClass();
-            final Field field = isDeclared ? FieldUtils.getDeclaredField(clazz, fieldName, true) : FieldUtils.getField(
-                    clazz,
-                    fieldName,
-                    true
-            );
+            final Field field = tryFindField(instance, fieldName);
+            
+            if (field == null) {
+                return Optional.empty();
+            }
             
             field.setAccessible(true);
-            field.set(instance, value);
+            
+            final Object objectValue = field.get(instance);
+            
+            if (objectValue == null) {
+                return Optional.empty();
+            }
+            
+            if (fieldType.isInstance(objectValue)) {
+                return Optional.of(fieldType.cast(objectValue));
+            }
+            
+            return Optional.empty();
         }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
+        catch (IllegalAccessException ex) {
+            throw EternaLogger.acknowledgeException(ex);
         }
     }
     
     /**
-     * Returns BlockPosition of provided block.
+     * Writes a {@link Field} value from the given {@link Object} instance {@code class}.
+     * <p>This method first attempts to retrieve the declared field via {@link Class#getDeclaredField(String)}; if not found, it falls back to {@link Class#getField(String)}.</p>
      *
-     * @param block - Block.
-     * @return BlockPosition.
+     * @param instance  - The object instance.
+     * @param fieldName - The target field name.
+     * @param value     - The value to set.
+     * @param <T>       - The target field type.
+     * @return {@code true} if successfully written; {@code false} if the field doesn't exist.
+     */
+    public static <T> boolean writeFieldValue(@Nonnull Object instance, @Nonnull String fieldName, @Nonnull T value) {
+        final Field field = tryFindField(instance, fieldName);
+        
+        if (field == null) {
+            return false;
+        }
+        
+        try {
+            field.setAccessible(true);
+            field.set(instance, value);
+            return true;
+        }
+        catch (IllegalAccessException ex) {
+            throw EternaLogger.acknowledgeException(ex);
+        }
+    }
+    
+    /**
+     * Gets a {@link BlockPos} from the given {@link Block}.
+     *
+     * @param block - The block to get {@link BlockPos} from.
+     * @return a new {@link BlockPos}.
      */
     @Nonnull
     public static BlockPos getBlockPosition(@Nonnull Block block) {
         final Location location = block.getLocation();
+        
         return new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
     
     /**
-     * Hides entity for viewers.
+     * Gets the entity's {@link SynchedEntityData}.
      *
-     * @param entity  - Entity to hide.
-     * @param viewers - Viewers.
-     */
-    public static void hideEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
-        for (Player viewer : viewers) {
-            hideEntity(entity, viewer);
-        }
-    }
-    
-    /**
-     * Hides entity for every online player.
-     *
-     * @param entity - Entity to hide.
-     */
-    public static void hideEntity(@Nonnull Entity entity) {
-        Bukkit.getOnlinePlayers().forEach(player -> hideEntity(entity, player));
-    }
-    
-    /**
-     * Hides an entity for certain player.
-     *
-     * @param entity - Entity that will be hidden.
-     * @param player - Who entity will be hidden for.
-     */
-    public static void hideEntity(@Nonnull Entity entity, @Nonnull Player player) {
-        sendPacket(player, new ClientboundRemoveEntitiesPacket(entity.getEntityId()));
-    }
-    
-    /**
-     * Shows the given entity to players.
-     *
-     * @param netEntity - Entity.
-     * @param player    - Player.
-     */
-    public static void createEntity(@Nonnull net.minecraft.world.entity.Entity netEntity, @Nonnull Player player) {
-        sendPacket(player, new ClientboundAddEntityPacket(netEntity, netEntity.getId(), getEntityBlockPosition(netEntity)));
-    }
-    
-    /**
-     * Gets entity's {@link SynchedEntityData}.
-     *
-     * @param entity - Entity.
-     * @return the data watcher.
+     * @param entity - The entity whose entity data to get.
+     * @return the entity's {@link SynchedEntityData}.
      */
     @Nonnull
-    public static SynchedEntityData getDataWatcher(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return Objects.requireNonNull(entity.getEntityData(), "DataWatcher cannot be null."); // getEntityData()
+    public static SynchedEntityData getEntityData(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return Objects.requireNonNull(entity.getEntityData(), "DataWatcher cannot be null.");
     }
     
     /**
-     * Gets the non-default values from the {@link SynchedEntityData}.
+     * Gets non-default values from the given {@link SynchedEntityData}.
      *
-     * @param dataWatcher - Data watcher.
-     * @return the list of non-default values.
+     * @param entityData - The entity data.
+     * @return a {@link List} containing non-default entity data values.
      */
     @Nonnull
-    public static List<SynchedEntityData.DataValue<?>> getDataWatcherNonDefaultValues(@Nonnull SynchedEntityData dataWatcher) {
-        final List<SynchedEntityData.DataValue<?>> values = dataWatcher.getNonDefaultValues();
+    public static List<SynchedEntityData.DataValue<?>> getNonDefaultEntityDataValues(@Nonnull SynchedEntityData entityData) {
+        final List<SynchedEntityData.DataValue<?>> values = entityData.getNonDefaultValues();
         
-        return values == null ? Lists.newArrayList() : values;
+        return values != null ? values : Lists.newArrayList();
     }
     
     /**
-     * Gets the non-default values from the entity's {@link SynchedEntityData}.
+     * Gets non-default values from the given {@link SynchedEntityData}.
      *
-     * @param entity - Entity.
-     * @return the list of non-default values.
+     * @param entity - The entity whose data to get.
+     * @return a {@link List} containing non-default entity data values.
      */
     @Nonnull
-    public static List<SynchedEntityData.DataValue<?>> getDataWatcherNonDefaultValues(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return getDataWatcherNonDefaultValues(getDataWatcher(entity));
+    public static List<SynchedEntityData.DataValue<?>> getNonDefaultEntityDataValues(@Nonnull net.minecraft.world.entity.Entity entity) {
+        return getNonDefaultEntityDataValues(getEntityData(entity));
     }
     
     /**
-     * Shows hidden entity for viewers.
+     * Sends the given {@link Packet} to the given {@link Player}.
      *
-     * @param entity  - Entity to show.
-     * @param viewers - Viewers.
-     */
-    public static void showEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
-        for (Player viewer : viewers) {
-            showEntity(entity, viewer);
-        }
-    }
-    
-    /**
-     * Shows hidden entity for every online player.
-     *
-     * @param entity - Entity to show.
-     */
-    public static void showEntity(@Nonnull Entity entity) {
-        Bukkit.getOnlinePlayers().forEach(player -> showEntity(entity, player));
-    }
-    
-    /**
-     * Shows hidden entity.
-     *
-     * @param entity - Entity to show.
-     * @param player - Player, who will see the change.
-     */
-    public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
-        final net.minecraft.world.entity.Entity netEntity = getMinecraftEntity(entity);
-        
-        createEntity(netEntity, player);
-    }
-    
-    /**
-     * Sends the given {@link Packet}s to the given {@link Player}, in the exact order.
-     *
-     * @param player  - The player to receive the packets.
+     * @param player  - The player receiving the packet.
      * @param packets - The packets to send.
      */
     public static void sendPacket(@Nonnull Player player, @Nonnull Packet<?>... packets) {
@@ -514,22 +355,21 @@ public final class Reflect {
     }
     
     /**
-     * Gets a {@link Connection} for the given {@link Player}.
+     * Gets the {@link Player} connection to the {@link Server}.
      *
-     * @param player - Player to get the connection for.
-     * @return the player connection.
+     * @param player - The player whose connection to get.
+     * @return player's connection.
      */
     @Nonnull
     public static ServerGamePacketListenerImpl getPlayerConnection(@Nonnull Player player) {
-        // TODO @Oct 20, 2025 (xanyjl) -> Cache this
-        return getMinecraftPlayer(player).connection;
+        return getHandle(player).connection;
     }
     
     /**
-     * Gets the {@link Channel} associated with the given {@link Player}.
+     * Gets the {@link Player} netty channel.
      *
-     * @param player - Player.
-     * @return the channel.
+     * @param player - The player whose channel to get.
+     * @return player's channel.
      */
     @Nonnull
     public static Channel getNettyChannel(@Nonnull Player player) {
@@ -537,338 +377,162 @@ public final class Reflect {
     }
     
     /**
-     * Gets a {@link Connection} for the given {@link Player}.
+     * Gets the {@link Player} network manager.
      *
-     * @param player - Player to get the manager for.
-     * @return the player connection.
+     * @param player - The player whose network manager to get.
+     * @return player's network manager.
      */
     @Nonnull
     public static Connection getNetworkManager(@Nonnull Player player) {
         final ServerGamePacketListenerImpl playerConnection = getPlayerConnection(player);
         
-        try {
-            final Field field = FieldUtils.getDeclaredField(ServerCommonPacketListenerImpl.class, "connection", true);
-            
-            return (Connection) field.get(playerConnection);
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
+        return playerConnection.connection;
     }
     
     /**
-     * Gets player's {@link GameProfile}.
+     * Gets the {@link Player} profile.
      *
-     * @param player - Player.
-     * @return the game profile.
+     * @param player - The player whose profile to get.
+     * @return player's profile.
      */
     @Nonnull
     public static GameProfile getGameProfile(@Nonnull Player player) {
-        return getMinecraftPlayer(player).getGameProfile();
-    }
-    
-    /**
-     * @deprecated player#getPing()
-     */
-    @Deprecated
-    public static int getPing(Player player) {
-        return player.getPing();
-    }
-    
-    /**
-     * Returns CraftBukkit method.
-     *
-     * @param className  - Name of the CraftBukkit class.
-     * @param methodName - Name of the method.
-     * @param params     - Parameters if required.
-     * @return CraftBukkit method if exists, throws an exception otherwise.
-     * @throws IllegalArgumentException if the method does not exist, or there is an error in arguments.
-     */
-    @Nonnull
-    public static Method getCraftMethod(@Nonnull String className, @Nonnull String methodName, @Nullable Class<?>... params) {
-        try {
-            final Class<?> clazz = getCraftClass(className);
-            
-            return clazz.getMethod(methodName, params);
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
+        return getHandle(player).getGameProfile();
     }
     
     /**
      * Gets the {@link MinecraftServer}.
      *
-     * @return the server.
+     * @return the minecraft server.
      */
     @Nonnull
     public static MinecraftServer getMinecraftServer() {
-        return Objects.requireNonNull(MinecraftServer.getServer(), "MinecraftServer cannot be null.");
+        return MinecraftServer.getServer();
     }
     
     /**
      * Gets the {@link DedicatedPlayerList}.
      *
-     * @return the list.
+     * @return the {@link DedicatedPlayerList}.
      */
     @Nullable
     public static DedicatedPlayerList getMinecraftPlayerList() {
-        try {
-            return (DedicatedPlayerList) MethodUtils.invokeMethod(Bukkit.getServer(), "getHandle", null);
-        }
-        catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw EternaLogger.exception(e);
-        }
+        return ((CraftServer) Bukkit.getServer()).getHandle();
     }
     
     /**
-     * Gets the NMS entity from the bukkit entity.
+     * Gets the {@link Entity} handle.
      *
-     * @param bukkitEntity - Bukkit entity.
-     * @return the NMS entity.
-     */
-    public static net.minecraft.world.entity.Entity getMinecraftEntity(@Nonnull Entity bukkitEntity) {
-        return getHandle(bukkitEntity, net.minecraft.world.entity.Entity.class);
-    }
-    
-    /**
-     * Gets the NMS player from the bukkit entity.
-     *
-     * @param player - Bukkit player.
-     * @return the NMS player.
-     */
-    public static ServerPlayer getMinecraftPlayer(@Nonnull Player player) {
-        return getHandle(player, ServerPlayer.class);
-    }
-    
-    /**
-     * Gets the NMS world for the bukkit world.
-     *
-     * @param bukkitWorld - Bukkit world.
-     * @return the NMS world.
-     */
-    public static ServerLevel getMinecraftWorld(@Nonnull World bukkitWorld) {
-        return getHandle(bukkitWorld, ServerLevel.class);
-    }
-    
-    /**
-     * Returns the NMS itemstack from a bukkit itemstack.
-     *
-     * @param bukkitItem - Bukkit itemstack.
-     * @return NMS itemstack.
-     */
-    public static ItemStack bukkitItemToNMS(@Nullable org.bukkit.inventory.ItemStack bukkitItem) {
-        return (ItemStack) invokeMethod(
-                getCraftMethod("inventory.CraftItemStack", "asNMSCopy", org.bukkit.inventory.ItemStack.class),
-                null,
-                bukkitItem
-        );
-    }
-    
-    /**
-     * Returns the NMS scoreboard from a bukkit scoreboard.
-     *
-     * @param scoreboard - Bukkit scoreboard.
-     * @return NMS scoreboard.
+     * @param entity - The bukkit entity.
+     * @return the {@link Entity} handle.
      */
     @Nonnull
-    public static net.minecraft.world.scores.Scoreboard getNetScoreboard(@Nonnull Scoreboard scoreboard) {
-        return getHandle(scoreboard, net.minecraft.world.scores.Scoreboard.class);
+    public static net.minecraft.world.entity.Entity getHandle(@Nonnull Entity entity) {
+        return ((CraftEntity) entity).getHandle();
     }
     
     /**
-     * Returns the NMS scoreboard team from a bukkit scoreboard.
+     * Gets the {@link Player} handle.
      *
-     * @param scoreboard - Bukkit scoreboard.
-     * @param teamName   - Name of the team.
-     * @return NMS scoreboard team.
+     * @param player - The bukkit player.
+     * @return the {@link Player} handle.
+     */
+    @Nonnull
+    public static net.minecraft.server.level.ServerPlayer getHandle(@Nonnull Player player) {
+        return ((CraftPlayer) player).getHandle();
+    }
+    
+    /**
+     * Gets the {@link World} handle.
+     *
+     * @param world - The bukkit world.
+     * @return the {@link World} handle.
+     */
+    @Nonnull
+    public static net.minecraft.server.level.ServerLevel getHandle(@Nonnull World world) {
+        return ((CraftWorld) world).getHandle();
+    }
+    
+    /**
+     * Gets the {@link Scoreboard} handle.
+     *
+     * @param scoreboard - The bukkit scoreboard.
+     * @return the {@link Scoreboard} handle.
+     */
+    @Nonnull
+    public static net.minecraft.world.scores.Scoreboard getHandle(@Nonnull Scoreboard scoreboard) {
+        return ((CraftScoreboard) scoreboard).getHandle();
+    }
+    
+    /**
+     * Gets the {@link PlayerTeam} handle.
+     *
+     * @param team - The bukkit team.
+     * @return the {@link PlayerTeam} handle.
+     */
+    @Nonnull
+    public static PlayerTeam getHandle(@Nonnull Team team) throws IllegalArgumentException {
+        try {
+            return accessPlayerTeam.get(() -> team).orElseThrow();
+        }
+        catch (Exception ex) {
+            throw EternaLogger.acknowledgeException(ex);
+        }
+    }
+    
+    /**
+     * Create a copy of {@link ItemStack} as a NMS {@link net.minecraft.world.item.ItemStack}.
+     *
+     * @param itemStack - The bukkit item stack.
+     * @return a copy of {@link ItemStack} as a NMS {@link net.minecraft.world.item.ItemStack}.
+     */
+    @Nonnull
+    @ApiStatus.Obsolete
+    public static net.minecraft.world.item.ItemStack bukkitItemToNMS(@Nullable ItemStack itemStack) {
+        return CraftItemStack.asNMSCopy(itemStack);
+    }
+    
+    /**
+     * Gets the {@link BlockEntity} from the given {@link Block}.
+     *
+     * @param block - The block to retrieve block entity from.
+     * @return the {@link BlockEntity}, or {@code null} if the block is not a block entity.
      */
     @Nullable
-    public static PlayerTeam getNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
-        return getNetScoreboard(scoreboard).getPlayerTeam(teamName);
-    }
-    
-    /**
-     * Gets a NMS team from the bukkit team.
-     *
-     * @param team - Bukkit team.
-     * @return the NMS team.
-     * @throws IllegalArgumentException if the team is somehow not a team.
-     */
-    @Nonnull
-    public static PlayerTeam getNetTeam(@Nonnull Team team) throws IllegalArgumentException {
-        try {
-            final Object object = FieldUtils.readDeclaredField(team, "team", true);
-            
-            return castOrThrow(object, PlayerTeam.class);
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
-    }
-    
-    @Nonnull
-    public static <T> T castOrThrow(@Nonnull Object object, @Nonnull Class<T> clazz) {
-        if (clazz.isInstance(object)) {
-            return clazz.cast(object);
-        }
-        
-        throw new IllegalArgumentException("%s cannot be cast to %s".formatted(object.toString(), clazz.getSimpleName()));
-    }
-    
-    /**
-     * Attempts to retrieve a tile entity for the given {@link Block}.
-     *
-     * @param block - The block to get the tile entity for.
-     * @return a tile entity at the given block, or {@code null} if it isn't a tile entity.
-     */
-    @Nullable
-    public static BlockEntity getTileEntity(@Nonnull Block block) {
-        final ServerLevel world = getMinecraftWorld(block.getWorld());
+    public static BlockEntity getBlockEntity(@Nonnull Block block) {
+        final ServerLevel world = getHandle(block.getWorld());
         
         return world.getBlockEntity(new BlockPos(block.getX(), block.getY(), block.getZ()));
     }
     
     /**
-     * Gets the NMS team from the give scoreboard.
+     * Gets the {@link World} from {@code NMS} {@link ServerLevel}.
      *
-     * @param scoreboard - Scoreboard.
-     * @param team       - Team.
-     * @return the NMS team or null.
-     */
-    @Nullable
-    public static net.minecraft.world.scores.Team getNetTeam(@Nonnull Scoreboard scoreboard, Team team) {
-        if (team == null) {
-            return null;
-        }
-        
-        return getNetTeam(scoreboard, team.getName());
-    }
-    
-    /**
-     * Creates a new NMS scoreboard team.
-     *
-     * @param scoreboard - Bukkit scoreboard.
-     * @param teamName   - Name of the team.
-     * @return NMS scoreboard team.
-     */
-    public static net.minecraft.world.scores.Team createNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
-        return getNetScoreboard(scoreboard).addPlayerTeam(teamName);
-    }
-    
-    /**
-     * Deletes the NMS scoreboard team.
-     *
-     * @param scoreboard - Bukkit scoreboard.
-     * @param teamName   - Name of the team.
-     */
-    public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull String teamName) {
-        final PlayerTeam team = getNetTeam(scoreboard, teamName);
-        
-        if (team == null) {
-            return;
-        }
-        
-        getNetScoreboard(scoreboard).removePlayerTeam(team);
-    }
-    
-    /**
-     * Deletes the NMS scoreboard team.
-     *
-     * @param scoreboard - Scoreboard.
-     * @param netTeam    - Team.
-     */
-    public static void deleteNetTeam(@Nonnull Scoreboard scoreboard, @Nonnull PlayerTeam netTeam) {
-        getNetScoreboard(scoreboard).removePlayerTeam(netTeam);
-    }
-    
-    /**
-     * Gets the bukkit world from a minecraft world.
-     *
-     * @param worldServer - Minecraft world.
-     * @return the bukkit world or null.
+     * @param worldServer - The {@code NMS} world instance.
+     * @return the {@link World} from {@code NMS} {@link ServerLevel}.
      */
     @Nonnull
+    @ApiStatus.Obsolete
     public static World getBukkitWorld(@Nonnull ServerLevel worldServer) {
-        return Objects.requireNonNull(Bukkit.getWorld(worldServer.uuid), "Server level must not be null!");
+        return worldServer.getWorld();
     }
     
     /**
-     * Gets a NMS handle of the craft object.
-     * <br>
-     * This calls the <code>getHandle()</code> method and casts the returned value.
+     * Gets the entity scoreboard name.
      *
-     * @param craftObject - Craft object.
-     * @param handleClass - NMS handle class.
-     * @return the NMS handle.
+     * @param entity - The entity whose scoreboard name to get.
+     * @return the entity scoreboard name.
      */
     @Nonnull
-    public static <T> T getHandle(@Nonnull Object craftObject, @Nonnull Class<T> handleClass) {
-        try {
-            final Method method = getDeclaredMethodInHierarchy(craftObject.getClass(), getHandleMethodName)
-                    .orElseThrow(() -> makeIllegalArgumentHandle("Provided object is not a CraftBukkit object! (%s)".formatted(craftObject)));
-            
-            method.setAccessible(true);
-            final Object object = method.invoke(craftObject);
-            
-            if (object == null) {
-                throw makeIllegalArgumentHandle("CraftBukkit object returned null!");
-            }
-            
-            if (!handleClass.isInstance(object)) {
-                throw makeIllegalArgumentHandle("CraftBukkit object is not an instance of %s!".formatted(handleClass.getSimpleName()));
-            }
-            
-            return handleClass.cast(object);
-        }
-        catch (InvocationTargetException | IllegalAccessException e) {
-            throw EternaLogger.exception(e);
-        }
-    }
-    
-    /**
-     * Gets a {@link Optional} of a {@link Method} from the given class or it's superclasses,
-     * or empty {@link Optional} if there is no method in the given class nor in any of the superclasses.
-     *
-     * @param clazz - The class to get the method in.
-     * @param name  - The name of the method.
-     * @return a {@link Optional} of a {@link Method} from the given class or it's superclasses,
-     * or empty {@link Optional} if there is no method in the given class nor in any of the superclasses.
-     */
-    @Nonnull
-    public static Optional<Method> getDeclaredMethodInHierarchy(@Nonnull Class<?> clazz, @Nonnull String name) {
-        try {
-            return Optional.of(clazz.getDeclaredMethod(name));
-        }
-        catch (NoSuchMethodException noSuchMethodException) {
-            final Class<?> superClass = clazz.getSuperclass();
-            
-            // No such method
-            if (superClass == Object.class) {
-                return Optional.empty();
-            }
-            
-            return getDeclaredMethodInHierarchy(superClass, name);
-        }
-    }
-    
-    /**
-     * Gets the scoreboard name for the given entity.
-     * <br>
-     * For players, it's their name, for other entities it's their UUID.
-     *
-     * @param entity - The entity to get the scoreboard name for.
-     * @return the scoreboard name for the given entity.
-     */
-    @Nonnull
+    @ApiStatus.Obsolete
     public static String getScoreboardEntityName(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getScoreboardName();
     }
     
     /**
-     * Gets the {@link ServerConnectionListener} for the server.
+     * Gets the server {@link ServerConnectionListener}.
      *
-     * @return server connection.
+     * @return the server {@link ServerConnectionListener}.
      */
     @Nonnull
     public static ServerConnectionListener getServerConnection() {
@@ -876,66 +540,66 @@ public final class Reflect {
     }
     
     /**
-     * Gets a {@link Class} by name, or throws an exception if class is not found.
+     * Gets a {@link Class} by the give name.
+     * <p>This method exists as a convenience to avoid using {@code try-catch}; it still throws exceptions.</p>
      *
-     * @param className - Class name.
-     * @return a class.
+     * @param className - The class name; Must contain full path, including packages.
+     * @return a {@code class}.
+     * @throws IllegalArgumentException if a class by that name doesn't exist.
      */
     @Nonnull
-    public static Class<?> getClass(@Nonnull String className) {
+    public static Class<?> classForName(@Nonnull String className) {
         try {
             return Class.forName(className);
         }
-        catch (Exception e) {
-            throw new IllegalArgumentException("Cannot find class named '%s'!".formatted(className));
+        catch (Exception ex) {
+            throw EternaLogger.acknowledgeException(new IllegalArgumentException("Cannot find class: %s".formatted(className)));
         }
     }
     
-    @Nullable
-    public static Field getDeclaredField(@Nonnull Object instance, @Nonnull String fieldName) {
-        return getField0(instance, fieldName, true);
-    }
-    
+    /**
+     * Gets a {@link Field} from the given {@link Object} instance.
+     *
+     * @param instance  - The object instance.
+     * @param fieldName - The target field name.
+     * @return a {@link Field}, or {@code null} if the field doesn't exist.
+     */
     @Nullable
     public static Field getField(@Nonnull Object instance, @Nonnull String fieldName) {
-        return getField0(instance, fieldName, false);
+        return tryFindField(instance, fieldName);
     }
     
+    /**
+     * Casts the given object to the given {@link Class}, if it's an instance of that class.
+     *
+     * @param value - The value to cast.
+     * @param clazz - The class to cast to.
+     * @param <T>   - The class type.
+     * @return the cast object, or {@code null} if not an instance.
+     */
     @Nullable
-    public static <T> T cast(@Nonnull Object value, @Nonnull Class<T> clazz) {
+    public static <T> T castIfInstance(@Nonnull Object value, @Nonnull Class<T> clazz) {
         return clazz.isInstance(value) ? clazz.cast(value) : null;
     }
     
     /**
-     * Gets a new {@link BlockPos} of entity's position.
-     * <br>
-     * May not be accurate.
+     * Gets the given entity's {@link UUID}.
      *
-     * @param entity - Entity.
-     * @return a new block position of entity.
+     * @param entity - The entity whose {@link UUID} to get.
+     * @return the given entity's {@link UUID}.
      */
     @Nonnull
-    public static BlockPos getEntityBlockPosition(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return new BlockPos((int) entity.xo, (int) entity.yo, (int) entity.zo);
-    }
-    
-    /**
-     * Gets the given {@link net.minecraft.world.entity.Entity} {@link UUID}.
-     *
-     * @param entity - Entity.
-     * @return the given entity's UUID.
-     */
-    @Nonnull
+    @ApiStatus.Obsolete
     public static UUID getEntityUuid(@Nonnull net.minecraft.world.entity.Entity entity) {
         return entity.getUUID();
     }
     
     /**
-     * Converts NMS {@link net.minecraft.world.entity.Entity} position into {@link Location}.
+     * Converts the given {@link Vec3} into {@link Location}.
      *
-     * @param world    - Location world.
-     * @param position - Position.
-     * @return location.
+     * @param world    - The world of the location.
+     * @param position - The vector.
+     * @return a new {@link Location}.
      */
     @Nonnull
     public static Location locationFromPosition(@Nonnull World world, @Nonnull Vec3 position) {
@@ -943,21 +607,25 @@ public final class Reflect {
     }
     
     /**
-     * Gets {@link net.minecraft.world.entity.Entity} position as {@link Location}.
+     * Gets the entity's {@link Location}.
+     * <p>The location doesn't include yaw or pitch.</p>
      *
-     * @param entity - Entity to get location for.
-     * @return entity's location.
+     * @param entity - The entity whose location to get.
+     * @return a new {@link Location}.
      */
     @Nonnull
     public static Location getEntityLocation(@Nonnull net.minecraft.world.entity.Entity entity) {
-        return locationFromPosition(getBukkitWorld(entity.level()), entity.position());
+        final World world = getBukkitWorld(entity.level());
+        final Vec3 position = entity.position();
+        
+        return new Location(world, position.x, position.y, position.z);
     }
     
     /**
-     * Gets the bukkit world from the given {@link Level}.
+     * Gets the {@link World} from {@code NSM} {@link Level}.
      *
-     * @param level - {@link Level}.
-     * @return the bukkit world.
+     * @param level - The {@code NMS} level.
+     * @return the {@link World} from {@code NSM} {@link Level}.
      */
     @Nonnull
     public static World getBukkitWorld(@Nonnull Level level) {
@@ -969,37 +637,11 @@ public final class Reflect {
     }
     
     /**
-     * Creates a new {@link ValueOutput} for the given {@link net.minecraft.world.entity.Entity}, with all the Nbt fields of that entity.
+     * Sets the given {@link ServerPlayer} textures via replacing their {@link GameProfile}.
      *
-     * @param entity - The entity to get the nbt for.
-     * @return a new {@link ValueOutput}.
+     * @param player - The player for whom to set the skin.
+     * @param skin   - The skin to set.
      */
-    @Nonnull
-    public static ValueOutput getEntityNbt(@Nonnull net.minecraft.world.entity.Entity entity) {
-        final TagValueOutput tag = TagValueOutput.createWithoutContext(problemReporter);
-        entity.saveWithoutId(tag);
-        
-        return tag;
-    }
-    
-    /**
-     * Sets the given {@link ValueInput} to the given {@link net.minecraft.world.entity.Entity}.
-     *
-     * @param tag    - The nbt to set.
-     * @param entity - The entity to set the nbt to.
-     */
-    public static void setEntityNbt(@Nonnull ValueInput tag, @Nonnull net.minecraft.world.entity.Entity entity) {
-        entity.load(tag);
-    }
-    
-    @Nonnull
-    public static <B extends Entity, E extends net.minecraft.world.entity.Entity> B getBukkitEntity(@Nonnull E entity, @Nonnull Class<B> bukkitClass) {
-        return accessGetBukkitEntity.invoke(() -> entity)
-                                    .filter(bukkitClass::isInstance)
-                                    .map(bukkitClass::cast)
-                                    .orElseThrow(() -> new IllegalArgumentException("Illegal bukkit entity call."));
-    }
-    
     public static void setTextures(@Nonnull ServerPlayer player, @Nonnull Skin skin) {
         // Another bullshit mojang update, yay
         final GameProfile profile = player.getGameProfile();
@@ -1017,57 +659,27 @@ public final class Reflect {
             field.set(player, newGameProfile);
         }
         catch (Exception e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
     
-    private static Field getField0(Object instance, String name, boolean isDeclared) {
+    @Nullable
+    private static Field tryFindField(@Nonnull Object instance, @Nonnull String fieldName) {
+        final Class<?> clazz = instance.getClass();
+        Field field;
+        
         try {
-            final Class<?> clazz = instance.getClass();
-            
-            return isDeclared ? clazz.getDeclaredField(name) : clazz.getField(name);
+            field = clazz.getDeclaredField(fieldName);
         }
-        catch (Exception e) {
-            return null;
-        }
-    }
-    
-    private static <T> T getFieldValue0(Object instance, String name, Class<T> type, boolean isDeclared) {
-        try {
-            final Object object = isDeclared ? FieldUtils.readDeclaredField(instance, name, true) : FieldUtils.readField(
-                    instance,
-                    name,
-                    true
-            );
-            
-            if (object == null) {
+        catch (NoSuchFieldException ignored) {
+            try {
+                field = clazz.getField(fieldName);
+            }
+            catch (NoSuchFieldException e) {
                 return null;
             }
-            
-            if (type.isInstance(object)) {
-                return type.cast(object);
-            }
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
         }
         
-        return null;
-    }
-    
-    private static IllegalArgumentException makeIllegalArgumentHandle(String msg) {
-        return new IllegalArgumentException("Cannot get the handle! " + msg);
-    }
-    
-    private static class ReflectProblemReporter implements ProblemReporter {
-        @Override
-        public ProblemReporter forChild(PathElement pathElement) {
-            return this;
-        }
-        
-        @Override
-        public void report(Problem problem) {
-            throw EternaLogger.exception(new RuntimeException("Error in Reflect! " + problem.description()));
-        }
+        return field;
     }
 }

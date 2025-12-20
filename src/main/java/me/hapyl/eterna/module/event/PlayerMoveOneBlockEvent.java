@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.event;
 
-import io.papermc.paper.entity.TeleportFlag;
 import me.hapyl.eterna.EternaKey;
 import me.hapyl.eterna.EternaLock;
 import org.bukkit.Location;
@@ -129,10 +128,8 @@ public class PlayerMoveOneBlockEvent extends PlayerEvent implements Cancellable 
                 location.setYaw(playerLocation.getYaw());
                 location.setPitch(playerLocation.getPitch());
 
-                player.teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN,
-                        TeleportFlag.EntityState.RETAIN_PASSENGERS,
-                        TeleportFlag.EntityState.RETAIN_VEHICLE
-                );
+                player.teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                
                 data.movedX = 0.0d;
                 data.movedY = 0.0d;
                 data.movedZ = 0.0d;

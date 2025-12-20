@@ -14,30 +14,30 @@ import java.util.function.Function;
  */
 public final class PacketWrappers {
 
-    // In
-    public static final PacketWrapperIn<ServerboundInteractPacket, WrappedPacketPlayInUseEntity> PACKET_PLAY_IN_USE_ENTITY;
-    public static final PacketWrapperIn<ServerboundPlayerInputPacket, WrappedPacketPlayInSteerVehicle> PACKET_PLAY_IN_STEER_VEHICLE;
+    // Serverbound
+    public static final PacketWrapperServerbound<ServerboundInteractPacket, WrappedServerboundInteractPacket> PACKET_PLAY_IN_USE_ENTITY;
+    public static final PacketWrapperServerbound<ServerboundPlayerInputPacket, WrappedPacketServerboundInput> PACKET_PLAY_IN_STEER_VEHICLE;
 
-    // Out
-    public static final PacketWrapperOut<ClientboundSetEntityDataPacket, WrappedPacketPlayOutEntityMetadata> PACKET_PLAY_OUT_ENTITY_METADATA;
-    public static final PacketWrapperOut<ClientboundAddEntityPacket, WrappedPacketPlayOutSpawnEntity> PACKET_PLAY_OUT_SPAWN_ENTITY;
+    // Clientbound
+    public static final PacketWrapperClientbound<ClientboundSetEntityDataPacket, WrappedPacketClientboundEntityData> PACKET_PLAY_OUT_ENTITY_METADATA;
+    public static final PacketWrapperClientbound<ClientboundAddEntityPacket, WrappedPacketPlayOutSpawnEntity> PACKET_PLAY_OUT_SPAWN_ENTITY;
 
     static {
         // In
-        PACKET_PLAY_IN_USE_ENTITY = ofIn(ServerboundInteractPacket.class, WrappedPacketPlayInUseEntity::new);
-        PACKET_PLAY_IN_STEER_VEHICLE = ofIn(ServerboundPlayerInputPacket.class, WrappedPacketPlayInSteerVehicle::new);
+        PACKET_PLAY_IN_USE_ENTITY = server(ServerboundInteractPacket.class, WrappedServerboundInteractPacket::new);
+        PACKET_PLAY_IN_STEER_VEHICLE = server(ServerboundPlayerInputPacket.class, WrappedPacketServerboundInput::new);
 
         // Out
-        PACKET_PLAY_OUT_ENTITY_METADATA = ofOut(ClientboundSetEntityDataPacket.class, WrappedPacketPlayOutEntityMetadata::new);
-        PACKET_PLAY_OUT_SPAWN_ENTITY = ofOut(ClientboundAddEntityPacket.class, WrappedPacketPlayOutSpawnEntity::new);
+        PACKET_PLAY_OUT_ENTITY_METADATA = client(ClientboundSetEntityDataPacket.class, WrappedPacketClientboundEntityData::new);
+        PACKET_PLAY_OUT_SPAWN_ENTITY = client(ClientboundAddEntityPacket.class, WrappedPacketPlayOutSpawnEntity::new);
     }
 
-    private static <P extends Packet<ServerGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperIn<P, W> ofIn(Class<P> clazz, Function<P, W> function) {
-        return new PacketWrapperIn<>(clazz, function);
+    private static <P extends Packet<ServerGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperServerbound<P, W> server(Class<P> clazz, Function<P, W> function) {
+        return new PacketWrapperServerbound<>(clazz, function);
     }
 
-    private static <P extends Packet<ClientGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperOut<P, W> ofOut(Class<P> clazz, Function<P, W> function) {
-        return new PacketWrapperOut<>(clazz, function);
+    private static <P extends Packet<ClientGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperClientbound<P, W> client(Class<P> clazz, Function<P, W> function) {
+        return new PacketWrapperClientbound<>(clazz, function);
     }
 
 

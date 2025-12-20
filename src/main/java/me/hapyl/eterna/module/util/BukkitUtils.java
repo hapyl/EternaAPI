@@ -883,7 +883,7 @@ public class BukkitUtils {
             return URI.create(url).toURL();
         }
         catch (MalformedURLException e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
     

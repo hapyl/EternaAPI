@@ -924,7 +924,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
             modifyMeta(SkullMeta.class, meta -> meta.setPlayerProfile(profile));
         }
         catch (Exception e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
         
         return this;

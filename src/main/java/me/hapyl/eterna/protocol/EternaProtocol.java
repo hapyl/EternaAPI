@@ -86,7 +86,7 @@ public final class EternaProtocol extends EternaLock implements Listener {
             pipeline.addBefore(ADD_BEFORE_NAME, INTERCEPTOR_NAME, packetInterceptor);
         }
         catch (Exception e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
     

@@ -1,13 +1,8 @@
 package me.hapyl.eterna.module.reflect.team;
 
-import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.builtin.Debuggable;
 import me.hapyl.eterna.module.annotate.EventLike;
-import me.hapyl.eterna.module.chat.Chat;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.reflect.access.ObjectInstance;
-import me.hapyl.eterna.module.reflect.access.ReflectAccess;
-import me.hapyl.eterna.module.reflect.access.ReflectMethodAccess;
 import me.hapyl.eterna.module.util.SupportsColorFormatting;
 import me.hapyl.eterna.module.util.TrackedValue;
 import net.minecraft.ChatFormatting;
@@ -16,6 +11,7 @@ import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.ChatColor;
+import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
@@ -34,18 +30,9 @@ import java.util.function.Consumer;
 public class PacketTeam implements Debuggable {
     
     private static final Scoreboard dummyScoreboard;
-    private static final ReflectMethodAccess<Component> accessFromStringOrNull;
     
     static {
         dummyScoreboard = new Scoreboard();
-        
-        // Cache the method bukkit uses to parse string -> nms
-        accessFromStringOrNull = ReflectAccess.ofMethod(
-                ReflectAccess.paperClass("org.bukkit.craftbukkit.util.CraftChatMessage"),
-                Component.class,
-                "fromStringOrNull",
-                String.class
-        );
     }
     
     protected final String name;
@@ -246,12 +233,7 @@ public class PacketTeam implements Debuggable {
     }
     
     private static Component componentFromString(String string) {
-        try {
-            return accessFromStringOrNull.invoke(ObjectInstance.STATIC, Chat.color(string)).orElseThrow(IllegalArgumentException::new);
-        }
-        catch (Exception e) {
-            throw EternaLogger.exception(e);
-        }
+        return CraftChatMessage.fromStringOrNull(string);
     }
     
     private static class TeamOptionTracker {

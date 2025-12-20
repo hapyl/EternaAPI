@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.entity.packet;
 
 import com.google.common.collect.Sets;
-import me.hapyl.eterna.module.reflect.DataWatcherType;
+import me.hapyl.eterna.module.reflect.EntityDataType;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.BukkitWrapper;
 import me.hapyl.eterna.module.util.TeamHelper;
@@ -48,7 +48,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
     @Nonnull
     @Override
     public org.bukkit.entity.Entity bukkit() {
-        return Reflect.getBukkitEntity(entity, org.bukkit.entity.Entity.class);
+        return entity.getBukkitEntity();
     }
     
     @Override
@@ -67,7 +67,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
         players.add(player);
         
         Reflect.createEntity(entity, player);
-        Reflect.updateMetadata(entity, player);
+        Reflect.updateEntityData(entity, player);
     }
     
     @Override
@@ -84,8 +84,8 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
     
     @Override
     public void setVisible(boolean visibility) {
-        final byte bitMask = getDataWatcherValue(DataWatcherType.BYTE, 0, (byte) 0);
-        setDataWatcherValue(DataWatcherType.BYTE, 0, (byte) (visibility ? (bitMask & ~0x20) : (bitMask | 0x20)));
+        final byte bitMask = getDataWatcherValue(EntityDataType.BYTE, 0, (byte) 0);
+        setDataWatcherValue(EntityDataType.BYTE, 0, (byte) (visibility ? (bitMask & ~0x20) : (bitMask | 0x20)));
     }
     
     @Override
@@ -104,12 +104,12 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
     
     @Override
     public void setSilent(boolean silent) {
-        setDataWatcherValue(DataWatcherType.BOOL, 4, silent);
+        setDataWatcherValue(EntityDataType.BOOL, 4, silent);
     }
     
     @Override
     public void setGravity(boolean gravity) {
-        setDataWatcherValue(DataWatcherType.BOOL, 5, !gravity);
+        setDataWatcherValue(EntityDataType.BOOL, 5, !gravity);
     }
     
     @Override
@@ -137,31 +137,29 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
     }
     
     protected void updateMetadata() {
-        players.forEach(player -> Reflect.updateMetadata(entity, player));
+        players.forEach(player -> Reflect.updateEntityData(entity, player));
     }
     
-    protected <D> void setDataWatcherValue(@Nonnull DataWatcherType<D> type, int key, D value) {
+    protected <D> void setDataWatcherValue(@Nonnull EntityDataType<D> type, int key, D value) {
         final SynchedEntityData dataWatcher = getDataWatcher();
         
-        Reflect.setDataWatcherValue0(dataWatcher, type.get().createAccessor(key), value);
+        dataWatcher.set(type.createAccessor(key), value);
         updateMetadata();
     }
     
     @Nullable
-    protected <D> D getDataWatcherValue(@Nonnull DataWatcherType<D> type, int key) {
+    protected <D> D getDataWatcherValue(@Nonnull EntityDataType<D> type, int key) {
         return getDataWatcherValue(type, key, null);
     }
     
     @Nonnull
-    protected <D> D getDataWatcherValue(@Nonnull DataWatcherType<D> type, int key, D def) {
-        final D value = Reflect.getDataWatcherValue(entity, type, key);
-        
-        return value == null ? def : value;
+    protected <D> D getDataWatcherValue(@Nonnull EntityDataType<D> type, int key, D def) {
+        return Reflect.getEntityDataValue(entity, type, key).orElse(def);
     }
     
     @Nonnull
     protected SynchedEntityData getDataWatcher() {
-        return Reflect.getDataWatcher(entity);
+        return Reflect.getEntityData(entity);
     }
     
     private void hide0(Player player) {
@@ -170,7 +168,7 @@ public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrap
     
     @Nonnull
     protected static ServerLevel getWorld(@Nonnull Location location) {
-        return Reflect.getMinecraftWorld(Objects.requireNonNull(location.getWorld(), "World must be loaded."));
+        return Reflect.getHandle(Objects.requireNonNull(location.getWorld(), "World must be loaded."));
     }
     
 }

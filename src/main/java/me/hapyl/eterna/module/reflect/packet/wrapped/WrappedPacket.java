@@ -11,24 +11,24 @@ import javax.annotation.Nonnull;
  * {@link WrappedPacket}s are <b>not</b> backed up by the raw {@link Packet}, therefore, writing should be done into the <I>raw</I> packet!
  */
 public class WrappedPacket<P> {
-
+    
     protected final P packet;
-
+    
     public WrappedPacket(P packet) {
         this.packet = packet;
     }
-
+    
     @Nonnull
     public P getPacket() {
         return packet;
     }
-
+    
     protected <T> T readField(@Nonnull String fieldName, Class<T> clazz) {
-        return Reflect.getDeclaredFieldValue(packet, fieldName, clazz);
+        return Reflect.readFieldValue(packet, fieldName, clazz).orElseThrow();
     }
-
+    
     protected <T> void writeField(@Nonnull String fieldName, T value) {
-        Reflect.setDeclaredFieldValue(packet, fieldName, value);
+        Reflect.writeFieldValue(packet, fieldName, value);
     }
-
+    
 }

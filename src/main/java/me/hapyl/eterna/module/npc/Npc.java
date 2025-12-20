@@ -106,6 +106,7 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
     
     public void setPose(@Nonnull NpcPose pose) {
         this.appearance.setPose(pose);
+        this.syncHologram();
     }
     
     public boolean isSitting() {
@@ -123,7 +124,7 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
             final Location location = getLocation();
             location.subtract(0, CHAIR_Y_OFFSET, 0);
             
-            this.chairEntity = new AreaEffectCloud(Reflect.getMinecraftWorld(location.getWorld()), location.getX(), location.getY(), location.getZ());
+            this.chairEntity = new AreaEffectCloud(Reflect.getHandle(location.getWorld()), location.getX(), location.getY(), location.getZ());
             this.chairEntity.setRadius(0.0f);
             this.chairEntity.setDuration(Integer.MAX_VALUE);
             this.chairEntity.passengers = ImmutableList.of(appearance.getHandle());
@@ -160,6 +161,13 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         // If the npc is sitting, offset by chairYOffset
         if (isSitting()) {
             location.subtract(0, appearance.chairYOffset(), 0);
+        }
+        
+        // Offset by pose
+        final Double poseYOffset = this.appearance.poseYOffset().get(getPose());
+        
+        if (poseYOffset != null) {
+            location.subtract(0, poseYOffset, 0);
         }
         
         return location;

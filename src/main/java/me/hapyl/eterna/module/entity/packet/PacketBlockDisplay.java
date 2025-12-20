@@ -84,7 +84,7 @@ public class PacketBlockDisplay extends PacketEntity<Display.BlockDisplay> {
         try {
             return (BlockState) data.getClass().getDeclaredMethod("getState").invoke(data);
         } catch (Exception e) {
-            throw EternaLogger.exception(e);
+            throw EternaLogger.acknowledgeException(e);
         }
     }
 

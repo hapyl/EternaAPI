@@ -386,7 +386,7 @@ public final class PlayerLib {
      * @param predicate - The predicate to match.
      */
     public static void stopCooldowns(@Nonnull Player player, @Nonnull Predicate<Key> predicate) {
-        final ItemCooldowns cooldowns = Reflect.getMinecraftPlayer(player).getCooldowns();
+        final ItemCooldowns cooldowns = Reflect.getHandle(player).getCooldowns();
         final Set<Identifier> keys = Sets.newHashSet(cooldowns.cooldowns.keySet());
 
         keys.stream().filter(rl -> {

@@ -1,7 +1,5 @@
 package me.hapyl.eterna.module.registry;
 
-import org.apache.commons.lang.IllegalClassException;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -33,7 +31,7 @@ public interface KeyedEnum extends Keyed {
             return Key.ofString(anEnum.name().toLowerCase());
         }
 
-        throw new IllegalClassException(getClass().getSimpleName() + " must be an enum!");
+        throw new IllegalArgumentException(getClass().getSimpleName() + " must be an enum!");
     }
 
     /**

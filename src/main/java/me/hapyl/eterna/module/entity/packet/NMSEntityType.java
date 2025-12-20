@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.entity.packet;
 
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.module.annotate.ObsoleteOnceOfficialMojangMappingsAreReleasedIn2026;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import net.minecraft.world.entity.*;
@@ -98,7 +97,6 @@ import java.util.Map;
  * @see #fromNms(net.minecraft.world.entity.EntityType)
  */
 @SuppressWarnings("all")
-@ObsoleteOnceOfficialMojangMappingsAreReleasedIn2026
 @TestedOn(version = Version.V1_21_11)
 public final class NMSEntityType {
 

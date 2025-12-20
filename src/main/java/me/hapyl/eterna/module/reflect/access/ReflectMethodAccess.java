@@ -44,7 +44,7 @@ public class ReflectMethodAccess<T> implements ReflectAccess {
             }
             
             if (!this.methodStruct.returnType.isInstance(object)) {
-                throw EternaLogger.exception(new IllegalArgumentException("Return type mismatch! Expected %s, got %s!".formatted(
+                throw EternaLogger.acknowledgeException(new IllegalArgumentException("Return type mismatch! Expected %s, got %s!".formatted(
                         methodStruct.returnType.getSimpleName(),
                         object.getClass().getSimpleName()
                 )));
@@ -53,7 +53,7 @@ public class ReflectMethodAccess<T> implements ReflectAccess {
             return Optional.of(this.methodStruct.returnType.cast(object));
         }
         catch (IllegalAccessException | InvocationTargetException e) {
-            throw EternaLogger.exception(new ReflectiveOperationException("Failed to invoke method: " + methodStruct));
+            throw EternaLogger.acknowledgeException(new ReflectiveOperationException("Failed to invoke method: " + methodStruct));
         }
     }
     
@@ -85,7 +85,7 @@ public class ReflectMethodAccess<T> implements ReflectAccess {
                     method = clazz.getMethod(methodName, parameters);
                 }
                 catch (NoSuchMethodException ex) {
-                    throw EternaLogger.exception(new ReflectiveOperationException("Cannot find method: " + this));
+                    throw EternaLogger.acknowledgeException(new ReflectiveOperationException("Cannot find method: " + this));
                 }
             }
             
