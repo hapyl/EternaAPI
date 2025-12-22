@@ -17,13 +17,17 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 import java.util.UUID;
 
 /**
  * Represents a base appearance class.
+ * <p>Appearance is the way {@link Npc} looks, be it {@link AppearanceMannequin} or {@link AppearanceSheep}.</p>
  */
 public abstract class Appearance {
+    
+    // -[ A Rule of Thumb ]-
+    // If something has to do with entity data and packets, delegate
+    // the implementation to Appearance rather than to Npc class!
     
     private static final EntityDataAccessor<Integer> ACCESSOR_SHAKING = EntityDataType.INT.createAccessor(7);
     private static final EntityDataAccessor<Pose> ACCESSOR_POSE = EntityDataType.ENTITY_POSE.createAccessor(6);
@@ -31,9 +35,12 @@ public abstract class Appearance {
     protected final Npc npc;
     protected final Entity handle;
     
+    private NpcPose pose;
+    
     public Appearance(@Nonnull Npc npc, @Nonnull Entity handle) {
         this.handle = handle;
         this.npc = npc;
+        this.pose = NpcPose.STANDING;
     }
     
     /**
@@ -56,11 +63,6 @@ public abstract class Appearance {
     }
     
     @Nonnull
-    public Map<NpcPose, Double> poseYOffset() {
-        return Map.of();
-    }
-    
-    @Nonnull
     public Entity getHandle() {
         return this.handle;
     }
@@ -72,26 +74,33 @@ public abstract class Appearance {
     
     public void setShaking(boolean shaking) {
         this.handle.getEntityData().set(ACCESSOR_SHAKING, shaking ? Integer.MAX_VALUE : -100);
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Nonnull
     public NpcPose getPose() {
-        return NpcPose.fromNms(this.handle.getPose());
+        return this.pose;
     }
     
-    public void setPose(@Nonnull NpcPose pose) {
-        final SynchedEntityData entityData = this.handle.getEntityData();
+    public boolean setPose(@Nonnull NpcPose pose) {
+        if (this.pose == pose) {
+            return false;
+        }
         
-        // Yes, STANDING is STILL fucked up, so have to use this fuckass workaround
-        // to fix the fuckass fucking hitbox...
+        this.pose = pose;
+        
+        final SynchedEntityData entityData = getEntityData();
+        
+        // Unfuckup hitbox by updating the pose to something with a standing hitbox first
         if (pose == NpcPose.STANDING) {
             entityData.set(ACCESSOR_POSE, NpcPose.fuckassFakeStandingPoseBecauseIFuckingHateEverythingThatExistsEspeciallyMojang());
-            updateMetadata();
+            this.updateEntityData();
         }
         
         entityData.set(ACCESSOR_POSE, pose.toNms());
-        this.updateMetadata();
+        this.updateEntityData();
+        
+        return true;
     }
     
     @Nonnull
@@ -119,22 +128,22 @@ public abstract class Appearance {
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
-    public void updateMetadata() {
+    public void updateEntityData() {
         final ClientboundSetEntityDataPacket packet = PacketFactory.makePacketSetEntityData(handle);
         
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
     public <T> void setMetadataValue(@Nonnull EntityDataType<T> type, int id, @Nonnull T value) {
-        getMetadata().set(type.createAccessor(id), value);
+        getEntityData().set(type.createAccessor(id), value);
     }
     
     public <T> T getMetadataValue(@Nonnull EntityDataType<T> type, int id) {
-        return getMetadata().get(type.createAccessor(id));
+        return getEntityData().get(type.createAccessor(id));
     }
     
     @Nonnull
-    public SynchedEntityData getMetadata() {
+    public SynchedEntityData getEntityData() {
         return this.handle.getEntityData();
     }
     

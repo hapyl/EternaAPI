@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.npc;
 
 import me.hapyl.eterna.module.nms.NmsEnum;
-import me.hapyl.eterna.module.nms.NmsMap;
 import me.hapyl.eterna.module.npc.appearance.Appearance;
 import net.minecraft.world.entity.Pose;
 
@@ -52,15 +51,6 @@ public enum NpcPose implements NmsEnum<Pose> {
     
     public boolean isApplicableTo(@Nonnull Class<? super Appearance> appearance) {
         return this.applicableTo == null || this.applicableTo.contains(appearance);
-    }
-    
-    @Nonnull
-    public static NpcPose fromNms(@Nonnull Pose nms) {
-        class Holder {
-            static final NmsMap<Pose, NpcPose> nmsMapped = NmsMap.create(Pose.class, NpcPose.class);
-        }
-        
-        return Holder.nmsMapped.get(nms);
     }
     
     /**

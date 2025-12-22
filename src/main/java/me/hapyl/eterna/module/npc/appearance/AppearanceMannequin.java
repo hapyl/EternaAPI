@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import com.mojang.authlib.GameProfile;
 import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.npc.NpcPose;
 import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.util.Bitmask;
 import net.minecraft.world.entity.EntityType;
@@ -12,17 +11,12 @@ import net.minecraft.world.item.component.ResolvableProfile;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * Represents a {@link EntityType#MANNEQUIN} appearance.
  */
 public class AppearanceMannequin extends AppearanceHumanoid {
-    
-    private static final Map<NpcPose, Double> poseYOffsets = Map.of(
-            NpcPose.CROUCHING, 0.3
-    );
     
     private final Set<SkinPart> skinParts;
     @Nonnull private Skin skin;
@@ -37,12 +31,6 @@ public class AppearanceMannequin extends AppearanceHumanoid {
     @Override
     public double chairYOffset() {
         return Npc.CHAIR_Y_OFFSET;
-    }
-    
-    @Nonnull
-    @Override
-    public Map<NpcPose, Double> poseYOffset() {
-        return poseYOffsets;
     }
     
     /**
@@ -62,7 +50,7 @@ public class AppearanceMannequin extends AppearanceHumanoid {
      */
     public void setSkin(@Nonnull Skin skin) {
         this.skin = skin;
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Nonnull
@@ -74,18 +62,18 @@ public class AppearanceMannequin extends AppearanceHumanoid {
         this.skinParts.clear();
         this.skinParts.addAll(Arrays.asList(parts));
         
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Override
-    public void updateMetadata() {
+    public void updateEntityData() {
         // Write skin
         getHandle().setProfile(ResolvableProfile.createResolved(new GameProfile(getUuid(), "", skin.asPropertyMap())));
         
         // Write skin parts
-        super.getMetadata().set(SkinPart.CAPE.getAccessor(), Bitmask.make(skinParts, SkinPart::getAccessorValue));
+        super.getEntityData().set(SkinPart.CAPE.getAccessor(), Bitmask.make(skinParts, SkinPart::getAccessorValue));
         
-        super.updateMetadata();
+        super.updateEntityData();
     }
     
     @Nonnull

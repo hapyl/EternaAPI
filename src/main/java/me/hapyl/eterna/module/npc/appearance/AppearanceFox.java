@@ -44,7 +44,7 @@ public class AppearanceFox extends Appearance {
      */
     public void setFoxType(@Nonnull FoxType foxType) {
         this.foxType = foxType;
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     /**
@@ -65,7 +65,7 @@ public class AppearanceFox extends Appearance {
     public void setBehaviours(@Nonnull FoxBehaviour... behaviours) {
         this.behaviours.clear();
         this.behaviours.addAll(Arrays.asList(Validate.varargs(behaviours, "There must be at least one behaviour!")));
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Nonnull
@@ -75,8 +75,8 @@ public class AppearanceFox extends Appearance {
     }
     
     @Override
-    public void updateMetadata() {
-        final SynchedEntityData metadata = super.getMetadata();
+    public void updateEntityData() {
+        final SynchedEntityData metadata = super.getEntityData();
         
         // Write fox type
         metadata.set(foxType.getAccessor(), foxType.getAccessorValue());
@@ -84,7 +84,7 @@ public class AppearanceFox extends Appearance {
         // Write fox behaviors
         metadata.set(FoxBehaviour.SITTING.getAccessor(), Bitmask.make(behaviours, FoxBehaviour::getAccessorValue));
         
-        super.updateMetadata();
+        super.updateEntityData();
     }
     
 }

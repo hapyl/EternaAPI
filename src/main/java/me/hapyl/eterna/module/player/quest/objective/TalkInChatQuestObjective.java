@@ -7,12 +7,11 @@ import me.hapyl.eterna.module.player.quest.QuestObjective;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import javax.annotation.meta.When;
 
 /**
  * A {@link QuestObjective} for the completion of which the player must talk in chat.
  */
-@Asynchronous(when = When.MAYBE)
+@Asynchronous
 public class TalkInChatQuestObjective extends QuestObjective {
 
     public final String thingToSay;
@@ -45,20 +44,20 @@ public class TalkInChatQuestObjective extends QuestObjective {
     }
 
     @Override
-    @Asynchronous(when = When.MAYBE)
+    @Asynchronous
     public void onIncrement(@Nonnull Player player, double value) {
         super.onIncrement(player, value);
     }
 
     @Override
-    @Asynchronous(when = When.MAYBE)
+    @Asynchronous
     public void onFail(@Nonnull Player player) {
         super.onFail(player);
     }
 
     @Nonnull
     @Override
-    @Asynchronous(when = When.MAYBE)
+    @Asynchronous
     public Response test(@Nonnull QuestData data, @Nonnull QuestObjectArray object) {
         return object.compareAs(String.class, string -> {
             return exactMatch ? thingToSay.equals(string) : thingToSay.equalsIgnoreCase(string);

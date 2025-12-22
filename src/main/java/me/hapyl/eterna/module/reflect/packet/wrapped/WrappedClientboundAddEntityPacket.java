@@ -10,11 +10,11 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
-public class WrappedPacketPlayOutSpawnEntity extends WrappedPacket<ClientboundAddEntityPacket> {
+public class WrappedClientboundAddEntityPacket extends WrappedPacket<ClientboundAddEntityPacket> {
 
     private final EntityType entityType;
 
-    public WrappedPacketPlayOutSpawnEntity(ClientboundAddEntityPacket packet) {
+    public WrappedClientboundAddEntityPacket(ClientboundAddEntityPacket packet) {
         super(packet);
 
         this.entityType = NMSEntityType.fromNmsOr(packet.getType(), EntityType.EGG);

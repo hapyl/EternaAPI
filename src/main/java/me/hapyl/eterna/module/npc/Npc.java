@@ -105,8 +105,9 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
     }
     
     public void setPose(@Nonnull NpcPose pose) {
-        this.appearance.setPose(pose);
-        this.syncHologram();
+        if (this.appearance.setPose(pose)) {
+            this.syncHologram();
+        }
     }
     
     public boolean isSitting() {
@@ -161,13 +162,6 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         // If the npc is sitting, offset by chairYOffset
         if (isSitting()) {
             location.subtract(0, appearance.chairYOffset(), 0);
-        }
-        
-        // Offset by pose
-        final Double poseYOffset = this.appearance.poseYOffset().get(getPose());
-        
-        if (poseYOffset != null) {
-            location.subtract(0, poseYOffset, 0);
         }
         
         return location;

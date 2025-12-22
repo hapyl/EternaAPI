@@ -3,8 +3,6 @@ package me.hapyl.eterna.module.annotate;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import javax.annotation.Nonnull;
-import javax.annotation.meta.When;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -22,8 +20,4 @@ import java.util.concurrent.Callable;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface Asynchronous {
-
-    @Nonnull
-    When when() default When.ALWAYS;
-
 }

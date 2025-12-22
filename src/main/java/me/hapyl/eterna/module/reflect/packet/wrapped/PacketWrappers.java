@@ -15,29 +15,29 @@ import java.util.function.Function;
 public final class PacketWrappers {
 
     // Serverbound
-    public static final PacketWrapperServerbound<ServerboundInteractPacket, WrappedServerboundInteractPacket> PACKET_PLAY_IN_USE_ENTITY;
-    public static final PacketWrapperServerbound<ServerboundPlayerInputPacket, WrappedPacketServerboundInput> PACKET_PLAY_IN_STEER_VEHICLE;
+    public static final PacketWrapper.Server<ServerboundInteractPacket, WrappedServerboundInteractPacket> SERVERBOUND_INTERACT;
+    public static final PacketWrapper.Server<ServerboundPlayerInputPacket, WrappedServerboundInputPacket> SERVERBOUND_INPUT;
 
     // Clientbound
-    public static final PacketWrapperClientbound<ClientboundSetEntityDataPacket, WrappedPacketClientboundEntityData> PACKET_PLAY_OUT_ENTITY_METADATA;
-    public static final PacketWrapperClientbound<ClientboundAddEntityPacket, WrappedPacketPlayOutSpawnEntity> PACKET_PLAY_OUT_SPAWN_ENTITY;
+    public static final PacketWrapper.Client<ClientboundSetEntityDataPacket, WrappedSetEntityDataPacket> CLIENTBOUND_SET_ENTITY_DATA;
+    public static final PacketWrapper.Client<ClientboundAddEntityPacket, WrappedClientboundAddEntityPacket> CLIENTBOUND_ADD_ENTITY;
 
     static {
-        // In
-        PACKET_PLAY_IN_USE_ENTITY = server(ServerboundInteractPacket.class, WrappedServerboundInteractPacket::new);
-        PACKET_PLAY_IN_STEER_VEHICLE = server(ServerboundPlayerInputPacket.class, WrappedPacketServerboundInput::new);
+        // Serverbound
+        SERVERBOUND_INTERACT = server(ServerboundInteractPacket.class, WrappedServerboundInteractPacket::new);
+        SERVERBOUND_INPUT = server(ServerboundPlayerInputPacket.class, WrappedServerboundInputPacket::new);
 
-        // Out
-        PACKET_PLAY_OUT_ENTITY_METADATA = client(ClientboundSetEntityDataPacket.class, WrappedPacketClientboundEntityData::new);
-        PACKET_PLAY_OUT_SPAWN_ENTITY = client(ClientboundAddEntityPacket.class, WrappedPacketPlayOutSpawnEntity::new);
+        // Clientbound
+        CLIENTBOUND_SET_ENTITY_DATA = client(ClientboundSetEntityDataPacket.class, WrappedSetEntityDataPacket::new);
+        CLIENTBOUND_ADD_ENTITY = client(ClientboundAddEntityPacket.class, WrappedClientboundAddEntityPacket::new);
     }
 
-    private static <P extends Packet<ServerGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperServerbound<P, W> server(Class<P> clazz, Function<P, W> function) {
-        return new PacketWrapperServerbound<>(clazz, function);
+    private static <P extends Packet<ServerGamePacketListener>, W extends WrappedPacket<P>> PacketWrapper.Server<P, W> server(Class<P> clazz, Function<P, W> function) {
+        return new PacketWrapper.Server<>(clazz, function);
     }
 
-    private static <P extends Packet<ClientGamePacketListener>, W extends WrappedPacket<P>> PacketWrapperClientbound<P, W> client(Class<P> clazz, Function<P, W> function) {
-        return new PacketWrapperClientbound<>(clazz, function);
+    private static <P extends Packet<ClientGamePacketListener>, W extends WrappedPacket<P>> PacketWrapper.Client<P, W> client(Class<P> clazz, Function<P, W> function) {
+        return new PacketWrapper.Client<>(clazz, function);
     }
 
 

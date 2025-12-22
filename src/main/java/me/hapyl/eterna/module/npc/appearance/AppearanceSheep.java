@@ -30,7 +30,7 @@ public class AppearanceSheep extends Appearance {
     
     public void setColor(@Nonnull SheepColor color) {
         this.sheepColor = color;
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     public boolean isSheared() {
@@ -39,13 +39,13 @@ public class AppearanceSheep extends Appearance {
     
     public void setSheared(boolean sheared) {
         this.sheared = sheared;
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Override
-    public void updateMetadata() {
+    public void updateEntityData() {
         // Write sheep color and sheared flag
-        super.getMetadata().set(sheepColor.getAccessor(), (byte) ((sheepColor.ordinal() & 0x0F) | (sheared ? 0x10 : 0)));
-        super.updateMetadata();
+        super.getEntityData().set(sheepColor.getAccessor(), (byte) ((sheepColor.ordinal() & 0x0F) | (sheared ? 0x10 : 0)));
+        super.updateEntityData();
     }
 }

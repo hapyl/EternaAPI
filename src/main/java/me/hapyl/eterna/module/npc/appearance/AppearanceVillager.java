@@ -23,7 +23,7 @@ public class AppearanceVillager extends Appearance {
         this.profession = profession;
         this.level = level;
         
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Nonnull
@@ -33,7 +33,7 @@ public class AppearanceVillager extends Appearance {
     
     public void setVariant(@Nonnull VillagerVariant variant) {
         this.variant = variant;
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Nonnull
@@ -43,7 +43,7 @@ public class AppearanceVillager extends Appearance {
     
     public void setProfession(@Nonnull VillagerProfession profession) {
         this.profession = profession;
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Nonnull
@@ -53,7 +53,7 @@ public class AppearanceVillager extends Appearance {
     
     public void setLevel(@Nonnull VillagerLevel level) {
         this.level = level;
-        this.updateMetadata();
+        this.updateEntityData();
     }
     
     @Nonnull
@@ -63,13 +63,13 @@ public class AppearanceVillager extends Appearance {
     }
     
     @Override
-    public void updateMetadata() {
+    public void updateEntityData() {
         class Holder {
             private static final EntityDataAccessor<VillagerData> accessor = EntityDataSerializers.VILLAGER_DATA.createAccessor(18);
         }
         
         // Write villager data
-        super.getMetadata().set(
+        super.getEntityData().set(
                 Holder.accessor,
                 new VillagerData(
                         BuiltInRegistries.VILLAGER_TYPE.getOrThrow(variant.toNms()),
@@ -78,6 +78,6 @@ public class AppearanceVillager extends Appearance {
                 )
         );
         
-        super.updateMetadata();
+        super.updateEntityData();
     }
 }

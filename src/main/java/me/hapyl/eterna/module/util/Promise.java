@@ -2,18 +2,18 @@ package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.Asynchronous;
+import me.hapyl.eterna.module.annotate.Synchronized;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import javax.annotation.Nonnull;
-import javax.annotation.meta.When;
 import java.util.function.Consumer;
 
 /**
  * A {@link Promise} represents an asynchronous operation that can have a subsequent task executed after its completion,
  * and can catch exceptions that occur during the execution.
  */
-@Asynchronous(when = When.ALWAYS)
+@Asynchronous
 public final class Promise {
 
     private Runnable andThen;
@@ -31,7 +31,7 @@ public final class Promise {
      *
      * @param then - The task to execute after the promise is fulfilled.
      */
-    @Asynchronous(when = When.NEVER)
+    @Synchronized
     public Promise then(@Nonnull Runnable then) {
         this.andThen = then;
         return this;
@@ -42,7 +42,7 @@ public final class Promise {
      *
      * @param exception - The consumer to handle exceptions.
      */
-    @Asynchronous(when = When.ALWAYS)
+    @Synchronized
     public Promise caught(@Nonnull Consumer<RuntimeException> exception) {
         this.caught = exception;
         return this;
