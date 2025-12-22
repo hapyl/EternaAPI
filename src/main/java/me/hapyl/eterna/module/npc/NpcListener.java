@@ -23,7 +23,7 @@ public final class NpcListener extends EternaLock implements Listener {
     @EventHandler()
     public void handlePacketReceiveEvent(PacketReceiveEvent ev) {
         final Player player = ev.getPlayer();
-        final WrappedServerboundInteractPacket packet = ev.getWrappedPacket(PacketWrappers.PACKET_PLAY_IN_USE_ENTITY);
+        final WrappedServerboundInteractPacket packet = ev.getWrappedPacket(PacketWrappers.SERVERBOUND_INTERACT);
         
         if (packet == null) {
             return;

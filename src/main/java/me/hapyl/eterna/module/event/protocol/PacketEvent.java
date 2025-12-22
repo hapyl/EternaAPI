@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.event.protocol;
 
 import io.netty.channel.Channel;
+import me.hapyl.eterna.module.annotate.Asynchronous;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrapper;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
@@ -19,14 +20,18 @@ import java.util.List;
 
 /**
  * Fires before a {@link Packet} is delivered.
- * <br>
- * <h1>Packet events are ASYNC!</h1>
+ * <h1>Packet events are always ASYNC!</h1>
+ *
+ * @see PacketReceiveEvent
+ * @see PacketSendEvent
  */
+@Asynchronous
 public abstract class PacketEvent extends Event implements Cancellable {
     
     private final Player player;
     private final Channel channel;
     private final Packet<?> packet;
+    
     private boolean cancel;
     
     PacketEvent(Player player, Channel channel, Packet<?> packet) {

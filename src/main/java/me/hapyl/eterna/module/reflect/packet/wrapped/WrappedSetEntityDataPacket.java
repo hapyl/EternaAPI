@@ -16,8 +16,8 @@ import java.util.List;
 /**
  * Represents a wrapped {@link ClientboundSetEntityDataPacket}.
  */
-public class WrappedPacketClientboundEntityData extends WrappedPacket<ClientboundSetEntityDataPacket> {
-    public WrappedPacketClientboundEntityData(ClientboundSetEntityDataPacket packet) {
+public class WrappedSetEntityDataPacket extends WrappedPacket<ClientboundSetEntityDataPacket> {
+    public WrappedSetEntityDataPacket(ClientboundSetEntityDataPacket packet) {
         super(packet);
     }
     

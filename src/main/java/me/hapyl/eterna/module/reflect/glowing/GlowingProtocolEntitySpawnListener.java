@@ -7,7 +7,7 @@ import me.hapyl.eterna.builtin.manager.GlowingManager;
 import me.hapyl.eterna.module.event.protocol.PacketSendEvent;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
-import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacketPlayOutSpawnEntity;
+import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedClientboundAddEntityPacket;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.ApiStatus;
@@ -31,7 +31,7 @@ public final class GlowingProtocolEntitySpawnListener extends EternaLock impleme
             return;
         }
         
-        final WrappedPacketPlayOutSpawnEntity packet = bundlePacket.getFirstPacketWrapped(PacketWrappers.PACKET_PLAY_OUT_SPAWN_ENTITY);
+        final WrappedClientboundAddEntityPacket packet = bundlePacket.getFirstPacketWrapped(PacketWrappers.CLIENTBOUND_ADD_ENTITY);
         
         if (packet == null) {
             return;

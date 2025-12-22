@@ -3,7 +3,6 @@ plugins {
     `maven-publish`
 
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
-    id("de.eldoria.plugin-yml.paper") version "0.8.0"
     id("maven-publish")
 }
 
@@ -28,16 +27,6 @@ java {
     withJavadocJar()
 }
 
-// Generate `paper-plugin.yml`
-paper {
-    name = project.name
-    version = project.version.toString()
-    prefix = "EternaAPI"
-
-    main = "me.hapyl.eterna.EternaPlugin"
-    apiVersion = "1.21.11"
-}
-
 // Setup publishing to github
 publishing {
     publications.create<MavenPublication>("maven") {
@@ -59,12 +48,29 @@ publishing {
     }
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
+tasks {
+    withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+
+    // Silence javadocs
+    withType<Javadoc> {
+        options.encoding = "UTF-8"
+        (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
+        isFailOnError = false
+    }
+
+    // Copy version from project to `plugin.yml`, because gradle can't do
+    // that automatically ¯\_(ツ)_/¯
+    named<ProcessResources>("processResources") {
+        filteringCharset = "UTF-8"
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+        from(sourceSets.main.get().resources.srcDirs) {
+            include("plugin.yml")
+            expand("version" to project.version)
+        }
+    }
 }
 
-tasks.withType<Javadoc> {
-    options.encoding = "UTF-8"
-    (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
-    isFailOnError = false
-}
+

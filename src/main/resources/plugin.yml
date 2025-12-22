@@ -1,0 +1,6 @@
+name: "EternaAPI"
+version: ${version}
+main: "me.hapyl.eterna.EternaPlugin"
+description: "An API for PaperMC."
+prefix: "EternaAPI"
+api-version: 1.21.11

@@ -2,26 +2,40 @@ package me.hapyl.eterna.module.reflect.packet.wrapped;
 
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ServerGamePacketListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
+/**
+ * Represents a packet wrapper that converts raw packets into their wrapped form.
+ *
+ * @param <T> - The packet type.
+ * @param <P> - The packet.
+ * @param <W> - The wrapped packet.
+ */
 public class PacketWrapper<T extends PacketListener, P extends Packet<T>, W extends WrappedPacket<P>> {
-
+    
     private final Class<P> clazz;
     private final Function<P, W> function;
-
+    
     PacketWrapper(Class<P> clazz, Function<P, W> function) {
         this.clazz = clazz;
         this.function = function;
     }
-
+    
+    /**
+     * Gets the {@link Class} of the packet.
+     *
+     * @return the class of the packet.
+     */
     @Nonnull
     public Class<P> getClazz() {
         return clazz;
     }
-
+    
     /**
      * Wraps the given {@link Packet} if the type matches.
      *
@@ -33,10 +47,10 @@ public class PacketWrapper<T extends PacketListener, P extends Packet<T>, W exte
         if (clazz.isInstance(packet)) {
             return function.apply(clazz.cast(packet));
         }
-
+        
         return null;
     }
-
+    
     /**
      * Wraps the given {@link Packet} if the type matches, throws an exception otherwise.
      *
@@ -47,15 +61,26 @@ public class PacketWrapper<T extends PacketListener, P extends Packet<T>, W exte
     @Nonnull
     public W wrapOrThrow(@Nonnull Packet<?> packet) {
         final W wrapped = wrap(packet);
-
+        
         if (wrapped != null) {
             return wrapped;
         }
-
+        
         throw new IllegalArgumentException("Packet %s cannot be wrapped unto Wrapped%s!".formatted(
                 packet.getClass().getSimpleName(),
                 clazz.getSimpleName()
         ));
     }
-
+    
+    public static class Client<P extends Packet<ClientGamePacketListener>, W extends WrappedPacket<P>> extends PacketWrapper<ClientGamePacketListener, P, W> {
+        Client(@Nonnull Class<P> clazz, @Nonnull Function<P, W> function) {
+            super(clazz, function);
+        }
+    }
+    
+    public static final class Server<P extends Packet<ServerGamePacketListener>, W extends WrappedPacket<P>> extends PacketWrapper<ServerGamePacketListener, P, W> {
+        Server(@Nonnull Class<P> clazz, @Nonnull Function<P, W> function) {
+            super(clazz, function);
+        }
+    }
 }
