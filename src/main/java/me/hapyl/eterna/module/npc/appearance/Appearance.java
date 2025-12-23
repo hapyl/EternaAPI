@@ -3,7 +3,7 @@ package me.hapyl.eterna.module.npc.appearance;
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.npc.NpcPose;
 import me.hapyl.eterna.module.reflect.EntityDataType;
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
@@ -17,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.UUID;
 
 /**
@@ -37,6 +38,12 @@ public abstract class Appearance {
     
     private NpcPose pose;
     
+    /**
+     * Creates a new {@link Appearance} for the given {@link Npc} with the given {@link Entity} handle.
+     *
+     * @param npc    - The npc this appearance belongs to.
+     * @param handle - The entity handle.
+     */
     public Appearance(@Nonnull Npc npc, @Nonnull Entity handle) {
         this.handle = handle;
         this.npc = npc;
@@ -44,8 +51,7 @@ public abstract class Appearance {
     }
     
     /**
-     * Gets the height of the {@link Appearance}.
-     * <p>Used to offset the hologram above the head.</p>
+     * Gets the height of the {@link Appearance}, which is used to offset holograms.
      *
      * @return the height of the appearance.
      */
@@ -62,26 +68,52 @@ public abstract class Appearance {
         return 0;
     }
     
+    /**
+     * Gets the entity handle.
+     *
+     * @return the entity handle.
+     */
     @Nonnull
     public Entity getHandle() {
         return this.handle;
     }
     
+    /**
+     * Gets the entity {@link UUID}.
+     *
+     * @return the entity {@link UUID}.
+     */
     @Nonnull
     public UUID getUuid() {
         return handle.getUUID();
     }
     
+    /**
+     * Sets whether this {@link Npc} should be shaking.
+     *
+     * @param shaking - Whether the {@link Npc} should be shaking.
+     */
     public void setShaking(boolean shaking) {
         this.handle.getEntityData().set(ACCESSOR_SHAKING, shaking ? Integer.MAX_VALUE : -100);
         this.updateEntityData();
     }
     
+    /**
+     * Gets the current {@link NpcPose}.
+     *
+     * @return the current {@link NpcPose}.
+     */
     @Nonnull
     public NpcPose getPose() {
         return this.pose;
     }
     
+    /**
+     * Sets the {@link NpcPose}.
+     *
+     * @param pose - The new pose to set.
+     * @return {@code ture} whether the pose was set, {@code false} otherwise.
+     */
     public boolean setPose(@Nonnull NpcPose pose) {
         if (this.pose == pose) {
             return false;
@@ -103,50 +135,109 @@ public abstract class Appearance {
         return true;
     }
     
+    /**
+     * Gets the scoreboard entity name, which is always {@link UUID#toString()}.
+     *
+     * @return the scoreboard entity name.
+     */
     @Nonnull
     public String getScoreboardEntry() {
         return handle.getScoreboardName();
     }
     
+    /**
+     * Shows this appearance to the given {@link Player} at the given {@link Location}.
+     *
+     * @param player   - The player for whom to show the appearance.
+     * @param location - The location to show at.
+     */
+    @OverridingMethodsMustInvokeSuper
     public void show(@Nonnull Player player, @Nonnull Location location) {
         Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(handle, location));
         Reflect.sendPacket(player, PacketFactory.makePacketSetEntityData(handle));
     }
     
+    /**
+     * Hides this appearance from the given {@link Player}.
+     *
+     * @param player - The player for whom to hide the appearance.
+     */
+    @OverridingMethodsMustInvokeSuper
     public void hide(@Nonnull Player player) {
         Reflect.sendPacket(player, PacketFactory.makePacketRemoveEntity(handle));
     }
     
+    /**
+     * Sets the {@link Location} of this appearance.
+     * <p>The location will be synced for each player who can see the {@link Npc}</p>
+     *
+     * @param location - The location to set.
+     */
     public void setLocation(@Nonnull Location location) {
         this.handle.absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.updateLocation();
     }
     
+    /**
+     * Updates the location of this appearance for each player who can see the {@link Npc}.
+     */
     public void updateLocation() {
         final ClientboundTeleportEntityPacket packet = PacketFactory.makePacketTeleportEntity(handle);
         
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
+    /**
+     * Updates the entity data of this appearance for each player who can see the {@link Npc}.
+     */
     public void updateEntityData() {
         final ClientboundSetEntityDataPacket packet = PacketFactory.makePacketSetEntityData(handle);
         
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
-    public <T> void setMetadataValue(@Nonnull EntityDataType<T> type, int id, @Nonnull T value) {
-        getEntityData().set(type.createAccessor(id), value);
-    }
-    
-    public <T> T getMetadataValue(@Nonnull EntityDataType<T> type, int id) {
-        return getEntityData().get(type.createAccessor(id));
-    }
-    
+    /**
+     * Gets the entity data.
+     *
+     * @return the entity data.
+     */
     @Nonnull
     public SynchedEntityData getEntityData() {
         return this.handle.getEntityData();
     }
     
+    /**
+     * Sets the entity data value for this appearance.
+     * <p>You must manually {@link #updateEntityData()} to see the changes, see <a href="https://minecraft.wiki/w/Java_Edition_protocol/Entity_metadata">minecraft.wiki</a>
+     * for help with entity data.</p>
+     *
+     * @param type  - The target entity data type.
+     * @param id    - The target entity data id.
+     * @param value - The new entity data value.
+     * @param <T>   - The target entity data type.
+     */
+    public <T> void setEntityDataValue(@Nonnull EntityDataType<T> type, int id, @Nonnull T value) {
+        getEntityData().set(type.createAccessor(id), value);
+    }
+    
+    /**
+     * Gets the entity data value for this appearance.
+     * <p>See <a href="https://minecraft.wiki/w/Java_Edition_protocol/Entity_metadata">minecraft.wiki</a> for help with entity data.</p>
+     *
+     * @param type - The target entity data type.
+     * @param id   - The target entity data id.
+     * @param <T>  - The target entity data type.
+     * @return the entity data value.
+     */
+    public <T> T getEntityDataValue(@Nonnull EntityDataType<T> type, int id) {
+        return getEntityData().get(type.createAccessor(id));
+    }
+    
+    /**
+     * A dummy world helper method, which is required for packet entities.
+     *
+     * @return a dummy world.
+     */
     @Nonnull
     protected static Level dummyWorld() {
         class Holder {

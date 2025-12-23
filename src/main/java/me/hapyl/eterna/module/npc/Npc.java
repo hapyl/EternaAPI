@@ -7,6 +7,9 @@ import me.hapyl.eterna.module.annotate.DefensiveCopy;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.Immutable;
 import me.hapyl.eterna.module.component.ComponentList;
+import me.hapyl.eterna.module.component.builder.ComponentBuilder;
+import me.hapyl.eterna.module.component.builder.ComponentResolver;
+import me.hapyl.eterna.module.component.builder.ComponentSupplier;
 import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
 import me.hapyl.eterna.module.hologram.Hologram;
@@ -16,12 +19,11 @@ import me.hapyl.eterna.module.npc.appearance.Appearance;
 import me.hapyl.eterna.module.npc.appearance.AppearanceBuilder;
 import me.hapyl.eterna.module.npc.tag.TagLayout;
 import me.hapyl.eterna.module.npc.tag.TagPart;
-import me.hapyl.eterna.module.reflect.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Destroyable;
-import me.hapyl.eterna.module.util.NpcPlaceholder;
 import me.hapyl.eterna.module.util.Ticking;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -47,7 +49,18 @@ import java.util.*;
  */
 public class Npc implements Located, Showable, Destroyable, Ticking {
     
-    public static final double CHAIR_Y_OFFSET = 0.4;
+    public static final double CHAIR_Y_OFFSET;
+    private static final ComponentBuilder DEFAULT_MESSAGE_FORMAT;
+    
+    static {
+        CHAIR_Y_OFFSET = 0.4;
+        DEFAULT_MESSAGE_FORMAT = new ComponentBuilder()
+                .append(ComponentSupplier.ofLiteral(Component.text("[NPC] ", NamedTextColor.YELLOW)))
+                .append(ComponentSupplier.ofPlaceholder("name"))
+                .append(ComponentSupplier.ofLiteral(Component.text(": ", NamedTextColor.YELLOW)))
+                .append(ComponentSupplier.ofLiteral(Component.text("", NamedTextColor.WHITE)))
+                .append(ComponentSupplier.ofPlaceholder("message"));
+    }
     
     // Field instantiation because we must have the `playerData` before appearance build()
     protected final Map<Player, NpcPlayerData> playerData = Maps.newHashMap();
@@ -463,15 +476,21 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
     }
     
     public void sendMessage(@Nonnull Player player, @Nonnull Component message) {
-        // Apply placeholders
-        message = NpcPlaceholder.placehold(message, this, player);
+        // Apply static placeholders
+        message = NpcPlaceholder.doPlacehold(message, this, player);
         
-        player.sendMessage(
-                Component.text("[NPC] ", NamedTextColor.YELLOW)
-                         .append(getName(player))
-                         .append(Component.text(": ", NamedTextColor.YELLOW))
-                         .append(message)
+        final Component component = getNpcMessageFormat().build(
+                ComponentResolver.builder()
+                                 .resolve("name", getName(player))
+                                 .resolve("message", message)
         );
+        
+        player.sendMessage(component);
+    }
+    
+    @Nonnull
+    public ComponentBuilder getNpcMessageFormat() {
+        return DEFAULT_MESSAGE_FORMAT;
     }
     
     public void playAnimation(@Nonnull NpcAnimation animation) {

@@ -7,6 +7,7 @@ import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.builtin.command.EternaCommand;
+import me.hapyl.eterna.module.block.BoundingBox;
 import me.hapyl.eterna.module.block.display.BDEngine;
 import me.hapyl.eterna.module.block.display.DisplayData;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
@@ -17,6 +18,9 @@ import me.hapyl.eterna.module.chat.messagebuilder.Keybind;
 import me.hapyl.eterna.module.chat.messagebuilder.MessageBuilder;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.Components;
+import me.hapyl.eterna.module.component.builder.ComponentBuilder;
+import me.hapyl.eterna.module.component.builder.ComponentResolver;
+import me.hapyl.eterna.module.component.builder.ComponentSupplier;
 import me.hapyl.eterna.module.entity.Entities;
 import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.entity.packet.PacketItem;
@@ -54,7 +58,6 @@ import me.hapyl.eterna.module.player.quest.objective.TalkToNpcQuestObjective;
 import me.hapyl.eterna.module.player.sound.SoundQueue;
 import me.hapyl.eterna.module.player.synthesizer.Synthesizer;
 import me.hapyl.eterna.module.player.tablist.*;
-import me.hapyl.eterna.module.reflect.BoundingBox;
 import me.hapyl.eterna.module.reflect.EternaServerPlayerImpl;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.Skin;
@@ -73,7 +76,6 @@ import me.hapyl.eterna.module.util.array.Array;
 import me.hapyl.eterna.module.util.collection.Cache;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.level.ServerPlayer;
@@ -879,12 +881,14 @@ public final class EternaRuntimeTest implements Runnable {
                 info("Shown!");
                 rope.show(player);
                 
-                later(60, () -> {
-                    info("Removed!");
-                    rope.hide(player);
-                    
-                    assertTestPassed();
-                });
+                later(
+                        60, () -> {
+                            info("Removed!");
+                            rope.hide(player);
+                            
+                            assertTestPassed();
+                        }
+                );
                 
                 return false;
             }
@@ -1716,12 +1720,14 @@ public final class EternaRuntimeTest implements Runnable {
                 info("Shown!");
                 boundingBox.show();
                 
-                Runnables.runLater(() -> {
-                    info("Hid!");
-                    boundingBox.hide();
-                    
-                    assertTestPassed();
-                }, 20);
+                Runnables.runLater(
+                        () -> {
+                            info("Hid!");
+                            boundingBox.hide();
+                            
+                            assertTestPassed();
+                        }, 20
+                );
                 
                 return false;
             }
@@ -2274,6 +2280,18 @@ public final class EternaRuntimeTest implements Runnable {
             
             @Override
             public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                class Holder {
+                    static void register() {
+                        NpcPlaceholder.register(
+                                "custom_placeholder", (npc, player) -> {
+                                    return Component.text("💓 %.0f".formatted(player.getHealth()));
+                                }
+                        );
+                    }
+                }
+                
+                Holder.register();
+                
                 if (__NPC != null) {
                     assertFail("Busy!");
                 }
@@ -2290,6 +2308,7 @@ public final class EternaRuntimeTest implements Runnable {
                         case "player" -> AppearanceBuilder.ofMannequin(Skin.ofPlayer(player));
                         case "sheep" -> AppearanceBuilder.ofSheep(SheepColor.RED);
                         case "fox" -> AppearanceBuilder.ofFox(FoxType.RED);
+                        case "villager" -> AppearanceBuilder.ofVillager(VillagerVariant.PLAINS, VillagerProfession.LEATHERWORKER, VillagerLevel.NOVICE);
                         case "husk" -> AppearanceHusk::new;
                         default -> throw new IllegalArgumentException("Illegal npc type: " + argument);
                     };
@@ -2313,7 +2332,7 @@ public final class EternaRuntimeTest implements Runnable {
                 
                 __NPC = new Npc(
                         player.getLocation(),
-                        Component.text("Test Npc Name", TextColor.color(220, 17, 103), TextDecoration.BOLD),
+                        Component.text("Test Npc Name"),
                         appearance
                 ) {
                     @Override
@@ -2325,12 +2344,9 @@ public final class EternaRuntimeTest implements Runnable {
                     
                     @Override
                     public void onClick(@Nonnull Player player, @Nonnull ClickType clickType) {
-                        sendMessage(
-                                player,
-                                Component.text("You clicked! ", NamedTextColor.AQUA)
-                                         .append(Component.text(" player: {player}", NamedTextColor.GREEN))
-                                         .append(Component.text(" npc_name: {npc_name}", NamedTextColor.RED))
-                        );
+                        sendMessage(player, Component.text("Thank you for clicking me, {player}.", NamedTextColor.AQUA));
+                        sendMessage(player, Component.text("My name is {npc_name}.", NamedTextColor.GOLD));
+                        sendMessage(player, Component.text("This is a custom placeholder: {custom_placeholder}"));
                     }
                 };
                 
@@ -2560,6 +2576,36 @@ public final class EternaRuntimeTest implements Runnable {
             }
         });
         
+        register(new EternaTest("component_builder") {
+            @Override
+            public boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException {
+                class Holder {
+                    private static final ComponentBuilder builder = new ComponentBuilder()
+                            .append(ComponentSupplier.ofLiteral(Component.text("This is always the same!", NamedTextColor.GREEN)))
+                            
+                            .append(ComponentSupplier.ofLiteral(Component.text(" Your name: ", NamedTextColor.AQUA)))
+                            .append(ComponentSupplier.ofPlaceholder("name"))
+                            
+                            .append(ComponentSupplier.ofLiteral(Component.text(" Random value: ", NamedTextColor.GOLD)))
+                            .append(ComponentSupplier.ofPlaceholder("random_value"));
+                }
+                
+                player.sendMessage(
+                        Holder.builder.build(
+                                ComponentResolver.builder()
+                                                 .resolve("name", player.name())
+                                                 .resolve("random_value", Component.text(new Random().nextInt() * 1000))
+                        )
+                );
+                
+                assertThrows(() -> {
+                    player.sendMessage(Holder.builder.build(ComponentResolver.builder()));
+                });
+                
+                return true;
+            }
+        });
+        
         // *=* Internal *=* //
         register(new EternaTest("fail") {
             @Override
@@ -2666,6 +2712,16 @@ public final class EternaRuntimeTest implements Runnable {
     @ApiStatus.Internal
     public static List<String> listTests() {
         return allTests.keySet().stream().map(Key::getKey).collect(Collectors.toUnmodifiableList());
+    }
+    
+    @Nonnull
+    @ApiStatus.Internal
+    public static <T> T nonNullNullObject(@Nonnull Class<T> classCast) {
+        return new Object() {
+            T getT() {
+                throw new IllegalStateException();
+            }
+        }.getT();
     }
     
 }

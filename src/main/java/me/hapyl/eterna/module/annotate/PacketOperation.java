@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.annotate;
 
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

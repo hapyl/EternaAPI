@@ -13,6 +13,7 @@ import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.reflect.access.ReflectAccess;
 import me.hapyl.eterna.module.reflect.access.ReflectFieldAccess;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;

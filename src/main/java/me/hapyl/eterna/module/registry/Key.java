@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.registry;
 
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.util.Capitalizable;
 import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.NamespacedKey;
 
@@ -18,7 +19,7 @@ import java.util.regex.Pattern;
  * @see Key#ofStringOrNull(String)
  * @see Keyed
  */
-public class Key {
+public class Key implements Capitalizable {
     
     /**
      * A pattern that all {@link Key} must match.
@@ -149,6 +150,17 @@ public class Key {
     @Nonnull
     public final NamespacedKey asNamespacedKey() {
         return BukkitUtils.createKey(key);
+    }
+    
+    /**
+     * Capitalized the {@link String} key of this {@link Key}.
+     *
+     * @return the capitalized value.
+     */
+    @Nonnull
+    @Override
+    public String capitalize() {
+        return Capitalizable.capitalize(key.replace("_", " "));
     }
     
     /**

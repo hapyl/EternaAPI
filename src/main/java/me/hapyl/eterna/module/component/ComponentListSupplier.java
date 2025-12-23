@@ -1,14 +1,13 @@
-package me.hapyl.eterna.module.hologram;
+package me.hapyl.eterna.module.component;
 
-import me.hapyl.eterna.module.component.ComponentList;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 
 /**
- * Supplies a {@link ComponentList} for use in holograms.
+ * Supplies a {@link ComponentList} for the given {@link Player}.
  */
-public interface ComponentSupplier {
+public interface ComponentListSupplier {
     
     /**
      * Supplies the {@link ComponentList} for the given {@link Player}.

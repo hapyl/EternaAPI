@@ -18,11 +18,11 @@ import org.joml.Quaternionfc;
 import org.joml.Vector3fc;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * Represents a {@link SynchedEntityData} (previously {@code DataWatcher}) wrapper.
+ * <p>Entity metadata can be found <a href="https://minecraft.wiki/w/Java_Edition_protocol/Entity_metadata">here</a>.</p>
  *
  * @param <T> - The data watcher type.
  */

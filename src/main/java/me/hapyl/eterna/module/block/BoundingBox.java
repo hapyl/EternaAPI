@@ -1,8 +1,9 @@
-package me.hapyl.eterna.module.reflect;
+package me.hapyl.eterna.module.block;
 
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
+import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Runnables;
 import net.minecraft.core.BlockPos;

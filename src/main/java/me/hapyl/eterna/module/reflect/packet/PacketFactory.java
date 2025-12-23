@@ -1,6 +1,7 @@
-package me.hapyl.eterna.module.reflect;
+package me.hapyl.eterna.module.reflect.packet;
 
 import me.hapyl.eterna.module.inventory.Equipment;
+import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;

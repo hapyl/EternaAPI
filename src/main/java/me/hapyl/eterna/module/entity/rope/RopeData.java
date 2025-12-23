@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.entity.rope;
 
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.util.Disposable;

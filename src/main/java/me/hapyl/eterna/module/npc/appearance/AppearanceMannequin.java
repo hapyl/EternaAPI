@@ -53,16 +53,32 @@ public class AppearanceMannequin extends AppearanceHumanoid {
         this.updateEntityData();
     }
     
+    /**
+     * Gets a copy of {@link SkinPart} of the appearance.
+     *
+     * @return a copy of {@link SkinPart} of the appearance.
+     */
     @Nonnull
     public Set<SkinPart> getSkinParts() {
         return Set.copyOf(skinParts);
     }
     
+    /**
+     * Sets the {@link SkinPart} visible on the appearance.
+     *
+     * @param parts - The visible skin parts.
+     */
     public void setSkinParts(@Nonnull SkinPart... parts) {
         this.skinParts.clear();
         this.skinParts.addAll(Arrays.asList(parts));
         
         this.updateEntityData();
+    }
+    
+    @Nonnull
+    @Override
+    public Mannequin getHandle() {
+        return (Mannequin) super.getHandle();
     }
     
     @Override
@@ -74,12 +90,6 @@ public class AppearanceMannequin extends AppearanceHumanoid {
         super.getEntityData().set(SkinPart.CAPE.getAccessor(), Bitmask.make(skinParts, SkinPart::getAccessorValue));
         
         super.updateEntityData();
-    }
-    
-    @Nonnull
-    @Override
-    public Mannequin getHandle() {
-        return (Mannequin) super.getHandle();
     }
     
 }
