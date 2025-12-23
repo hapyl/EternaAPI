@@ -6,6 +6,7 @@ import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.player.tablist.PingBars;
 import me.hapyl.eterna.module.reflect.nulls.NullConnection;
 import me.hapyl.eterna.module.reflect.nulls.NullPacketListener;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;

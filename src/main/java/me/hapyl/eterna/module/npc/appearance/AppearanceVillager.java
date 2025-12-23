@@ -10,6 +10,9 @@ import net.minecraft.world.entity.npc.villager.VillagerData;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Represents a {@link EntityType#VILLAGER} appearance.
+ */
 public class AppearanceVillager extends Appearance {
     
     private VillagerVariant variant;
@@ -26,31 +29,61 @@ public class AppearanceVillager extends Appearance {
         this.updateEntityData();
     }
     
+    /**
+     * Gets the {@link VillagerVariant}.
+     *
+     * @return the villager variant.
+     */
     @Nonnull
     public VillagerVariant getVariant() {
         return variant;
     }
     
+    /**
+     * Sets the {@link VillagerVariant}.
+     *
+     * @param variant - The new villager variant.
+     */
     public void setVariant(@Nonnull VillagerVariant variant) {
         this.variant = variant;
         this.updateEntityData();
     }
     
+    /**
+     * Gets the {@link VillagerProfession}.
+     *
+     * @return the {@link VillagerProfession}.
+     */
     @Nonnull
     public VillagerProfession getProfession() {
         return profession;
     }
     
+    /**
+     * Sets the {@link VillagerProfession}.
+     *
+     * @param profession - The new profession.
+     */
     public void setProfession(@Nonnull VillagerProfession profession) {
         this.profession = profession;
         this.updateEntityData();
     }
     
+    /**
+     * Gets the {@link VillagerLevel}.
+     *
+     * @return the {@link VillagerLevel}.
+     */
     @Nonnull
     public VillagerLevel getLevel() {
         return level;
     }
     
+    /**
+     * Sets the {@link VillagerLevel}.
+     *
+     * @param level - The new villager level.
+     */
     public void setLevel(@Nonnull VillagerLevel level) {
         this.level = level;
         this.updateEntityData();

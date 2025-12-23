@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.player.dialog;
 
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.util.NpcPlaceholder;
+import me.hapyl.eterna.module.npc.NpcPlaceholder;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 

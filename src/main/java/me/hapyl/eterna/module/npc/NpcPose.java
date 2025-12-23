@@ -49,6 +49,13 @@ public enum NpcPose implements NmsEnum<Pose> {
         return this.pose;
     }
     
+    /**
+     * Gets whether this {@link NpcPose} is applicable to the given {@link Appearance}.
+     * <p>Poses that aren't applicable to the appearance ignored is most cases and cause no difference in the actual pose.</p>
+     *
+     * @param appearance - The appearance to check.
+     * @return {@code true} if this {@link NpcPose} is applicable to the given {@link Appearance}, {@code false} otherwise.
+     */
     public boolean isApplicableTo(@Nonnull Class<? super Appearance> appearance) {
         return this.applicableTo == null || this.applicableTo.contains(appearance);
     }

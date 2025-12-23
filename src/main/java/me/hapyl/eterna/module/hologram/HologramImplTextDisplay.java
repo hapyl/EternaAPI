@@ -1,8 +1,9 @@
 package me.hapyl.eterna.module.hologram;
 
 import com.google.common.collect.Sets;
+import me.hapyl.eterna.module.component.ComponentListSupplier;
 import me.hapyl.eterna.module.component.Components;
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.component.ComponentList;
 import net.kyori.adventure.text.Component;
@@ -76,7 +77,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
     }
     
     @Override
-    public void setLines(@Nonnull ComponentSupplier supplier) {
+    public void setLines(@Nonnull ComponentListSupplier supplier) {
         super.setLines(supplier);
         
         // Update for all players

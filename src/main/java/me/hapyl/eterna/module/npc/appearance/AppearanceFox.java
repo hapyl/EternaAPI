@@ -78,10 +78,8 @@ public class AppearanceFox extends Appearance {
     public void updateEntityData() {
         final SynchedEntityData metadata = super.getEntityData();
         
-        // Write fox type
+        // Write fox type & behaviours
         metadata.set(foxType.getAccessor(), foxType.getAccessorValue());
-        
-        // Write fox behaviors
         metadata.set(FoxBehaviour.SITTING.getAccessor(), Bitmask.make(behaviours, FoxBehaviour::getAccessorValue));
         
         super.updateEntityData();

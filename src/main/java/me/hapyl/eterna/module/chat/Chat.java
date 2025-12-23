@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.chat;
 
+import me.hapyl.eterna.module.util.Capitalizable;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -268,40 +269,25 @@ public final class Chat {
     }
     
     /**
-     * Capitalizes string.
+     * Capitalized an {@link Enum#name()}.
      *
-     * @param input - String to capitalize.
-     * @return capitalized String.
+     * @param enumValue - The enum to capitalize.
+     * @return the capitalized {@link Enum} name.
      */
     @Nonnull
-    public static String capitalize(@Nonnull String input) {
-        if (input.isEmpty()) {
-            return input;
-        }
-        
-        final String[] words = input.split(" ");
-        final StringBuilder builder = new StringBuilder();
-        
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                builder.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1).toLowerCase());
-            }
-            
-            builder.append(" ");
-        }
-        
-        return builder.toString().trim();
+    public static String capitalize(@Nonnull Enum<?> enumValue) {
+        return Capitalizable.capitalizeEnum(enumValue);
     }
     
     /**
-     * Capitalizes Enum name.
+     * Capitalized the given {@link String}.
      *
-     * @param enumQ - Enum to capitalize.
-     * @return capitalized Enum.
+     * @param value - The string to capitalize.
+     * @return the capitalized {@link String}.
      */
     @Nonnull
-    public static String capitalize(@Nonnull Enum<?> enumQ) {
-        return capitalize(enumQ.name());
+    public static String capitalize(@Nonnull String value) {
+        return Capitalizable.capitalize(value);
     }
     
     /**

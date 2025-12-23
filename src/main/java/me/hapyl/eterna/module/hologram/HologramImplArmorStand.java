@@ -4,9 +4,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.papermc.paper.adventure.PaperAdventure;
 import me.hapyl.eterna.module.component.ComponentList;
+import me.hapyl.eterna.module.component.ComponentListSupplier;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.locaiton.LocationHelper;
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import net.kyori.adventure.text.Component;
@@ -55,7 +56,7 @@ public class HologramImplArmorStand extends AbstractHologram {
     }
     
     @Override
-    public void setLines(@Nonnull ComponentSupplier supplier) {
+    public void setLines(@Nonnull ComponentListSupplier supplier) {
         super.setLines(supplier);
         
         // Update armor stands for all players

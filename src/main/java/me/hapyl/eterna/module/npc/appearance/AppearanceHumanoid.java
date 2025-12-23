@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.inventory.Equipment;
 import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,10 +37,25 @@ public class AppearanceHumanoid extends Appearance {
         this.updateEquipment(player);
     }
     
+    /**
+     * Sets the new {@link Equipment}.
+     *
+     * @param equipment - The new equipment.
+     */
     public void setEquipment(@Nonnull Equipment equipment) {
         this.equipment = equipment;
         
         this.npc.showingTo().forEach(this::updateEquipment);
+    }
+    
+    /**
+     * Gets a copy of entity {@link Equipment}.
+     *
+     * @return a copy of entity {@link Equipment}.
+     */
+    @Nonnull
+    public Equipment getEquipment() {
+        return Equipment.copyOf(equipment);
     }
     
     @ApiStatus.Internal

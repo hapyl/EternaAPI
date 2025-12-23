@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.hologram;
 
+import me.hapyl.eterna.module.component.ComponentListSupplier;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.component.ComponentList;
 import org.bukkit.Location;
@@ -10,7 +11,7 @@ import javax.annotation.Nonnull;
 public abstract class AbstractHologram implements Hologram {
     
     @Nonnull protected Location location;
-    @Nonnull protected ComponentSupplier supplier;
+    @Nonnull protected ComponentListSupplier supplier;
     
     public AbstractHologram(@Nonnull Location location) {
         this.location = BukkitUtils.newLocation(location);
@@ -18,7 +19,7 @@ public abstract class AbstractHologram implements Hologram {
     }
     
     @Override
-    public void setLines(@Nonnull ComponentSupplier supplier) {
+    public void setLines(@Nonnull ComponentListSupplier supplier) {
         this.supplier = supplier;
     }
     

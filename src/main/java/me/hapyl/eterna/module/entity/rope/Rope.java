@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.entity.Showable;
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.util.Destroyable;

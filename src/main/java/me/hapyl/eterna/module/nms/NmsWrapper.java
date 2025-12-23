@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.nms;
 
-import me.hapyl.eterna.module.reflect.PacketFactory;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 
 import javax.annotation.Nonnull;
 

@@ -23,8 +23,6 @@ import java.util.Objects;
  */
 public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>>> {
     
-    private static final ItemStack AIR = new ItemStack(Material.AIR);
-    
     private final ItemStack[] items;
     
     public Equipment() {
@@ -72,7 +70,7 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
     @Nonnull
     @Override
     public ItemStack getItem(@Nonnull EquipmentSlot slot) {
-        return itemByIndex(slot.ordinal());
+        return byIndex(slot.ordinal());
     }
     
     @Nonnull
@@ -319,13 +317,13 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
     }
     
     @Nonnull
-    private ItemStack itemByIndex(int index) {
+    private ItemStack byIndex(int index) {
         if (index < 0 || index >= items.length) {
-            return AIR;
+            return new ItemStack(Material.AIR);
         }
         
         final ItemStack item = items[index];
-        return item != null ? item : AIR;
+        return item != null ? item : new ItemStack(Material.AIR);
     }
     
     /**
@@ -349,6 +347,25 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
         }
         
         return equipment;
+    }
+    
+    /**
+     * Creates a copy of the given {@link Equipment}, or an empty {@link Equipment} if {@code null}.
+     *
+     * @param equipment - The equipment to copy.
+     * @return a copy of the given {@link Equipment}, or an empty {@link Equipment} if {@code null}.
+     */
+    @Nonnull
+    public static Equipment copyOf(@Nullable Equipment equipment) {
+        final Equipment copy = new Equipment();
+        
+        if (equipment != null) {
+            for (EquipmentSlot equipmentSlot : EquipmentSlot.values()) {
+                copy.setItem(equipmentSlot, new ItemStack(equipment.getItem(equipmentSlot)));
+            }
+        }
+        
+        return copy;
     }
     
     /**
