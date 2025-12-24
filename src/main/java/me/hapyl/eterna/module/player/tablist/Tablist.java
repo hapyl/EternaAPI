@@ -1,8 +1,10 @@
 package me.hapyl.eterna.module.player.tablist;
 
 import com.google.common.collect.Maps;
+import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.Destroyable;
+import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Range;
@@ -12,12 +14,23 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * A four column customizable tab list.
+ * Represents a customizable four-column tablist.
  */
 public class Tablist implements Destroyable {
     
-    public static final String DEFAULT_ENTRY_NAME = "                 ";
+    /**
+     * Defines the default entry name.
+     */
+    public static final Component DEFAULT_ENTRY_NAME = Component.text("                 ");
+    
+    /**
+     * Defines the maximum total entries.
+     */
     public static final int MAX_ENTRIES = 80;
+    
+    /**
+     * Defines the maximum entries per column.
+     */
     public static final int MAX_ENTRIES_PER_COLUMN = 20;
     
     private static final Map<Player, Tablist> PLAYER_TAB_LIST_MAP = Maps.newHashMap();
@@ -35,6 +48,11 @@ public class Tablist implements Destroyable {
     protected final Player player;
     protected final Map<Integer, TablistEntry> entries;
     
+    /**
+     * Creates a new {@link Tablist} for the given {@link Player}.
+     *
+     * @param player - The player for whom to create the tablist.
+     */
     public Tablist(@Nonnull Player player) {
         this.player = player;
         this.entries = Maps.newLinkedHashMap();
@@ -45,11 +63,11 @@ public class Tablist implements Destroyable {
     }
     
     /**
-     * Gets the {@link TablistEntry} at the given index.
+     * Gets the {@link TablistEntry} at the given {@code index}.
      *
-     * @param index - Index, from <code>0</code> to <code>79</code>.
+     * @param index - The index to retrieve the entry, must be within {@code 0} - {@link #MAX_ENTRIES}.
      * @return tablist entry.
-     * @throws IndexOutOfBoundsException if the given index is out of bounds.
+     * @throws IndexOutOfBoundsException if the given {@code index} is out of bounds.
      */
     @Nonnull
     public TablistEntry getEntry(@Range(from = 0, to = MAX_ENTRIES) int index) {
@@ -57,27 +75,25 @@ public class Tablist implements Destroyable {
     }
     
     /**
-     * Gets the {@link TablistEntry} at the given column and line.
+     * Gets the {@link TablistEntry} at the given {@link TablistColumn} and {@code line}.
      *
-     * @param column - Column, from <code>0</code> to <code>3</code>.
-     * @param line   - Index, from <code>0</code> to <code>19</code>.
+     * @param column - The column.
+     * @param line   - The index of the column, must be within {@code 0} - {@code 19}.
      * @return tablist entry.
-     * @throws IndexOutOfBoundsException if the given index is out of bounds.
+     * @throws IndexOutOfBoundsException if the given {@code index} is out of bounds.
      */
     @Nonnull
-    
     public TablistEntry getEntry(@Nonnull TablistColumn column, int line) {
-        return getEntry(line + column.ordinal() * 20);
+        return getEntry(line + column.ordinal() * MAX_ENTRIES_PER_COLUMN);
     }
     
     /**
-     * Sets the column to the given {@link EntryList}.
+     * Sets the {@link TablistColumn} to the given {@link EntryList}.
      *
-     * @param column - Column, from <code>0</code> to <code>3</code>.
-     * @param list   - {@link EntryList}.
-     * @return tablist entry.
-     * @see TablistEntry
+     * @param column - The column.
+     * @param list   - The entry list to set.
      */
+    @SelfReturn
     public Tablist setColumn(@Nonnull TablistColumn column, @Nonnull EntryList list) {
         int index = column.ordinal() * MAX_ENTRIES_PER_COLUMN;
         
@@ -97,24 +113,24 @@ public class Tablist implements Destroyable {
     }
     
     /**
-     * Sets the column to the given {@link String} {@link List}.
+     * Sets the {@link TablistColumn} to the given {@link Component} list.
      *
-     * @param column - Column, from <code>0</code> to <code>3</code>.
-     * @param lines  - List of lines, max 20 lines.
-     * @return tablist entry.
+     * @param column - The column.
+     * @param lines  - The list of {@link Component}; must be within range, as any out of bounds components are silently ignored.
      */
-    public Tablist setColumn(@Nonnull TablistColumn column, @Range(from = 0, to = 20) @Nonnull List<String> lines) {
+    @SelfReturn
+    public Tablist setColumn(@Nonnull TablistColumn column, @Range(from = 0, to = MAX_ENTRIES_PER_COLUMN) @Nonnull List<Component> lines) {
         return setColumn(column, new EntryList(lines));
     }
     
     /**
      * Sets the column to the given {@link String} array.
      *
-     * @param column - Column, from <code>0</code> to <code>3</code>.
-     * @param lines  - Array of lines, max 20 lines.
-     * @return tablist entry.
+     * @param column - The column.
+     * @param lines  - The list of {@link Component}; must be within range, as any out of bounds components are silently ignored.
      */
-    public Tablist setColumn(@Nonnull TablistColumn column, @Range(from = 0, to = 20) @Nonnull String... lines) {
+    @SelfReturn
+    public Tablist setColumn(@Nonnull TablistColumn column, @Range(from = 0, to = MAX_ENTRIES_PER_COLUMN) @Nonnull Component... lines) {
         return setColumn(column, new EntryList(lines));
     }
     
@@ -135,10 +151,8 @@ public class Tablist implements Destroyable {
     
     /**
      * Hides this {@link Tablist}.
-     *
-     * @param player - Player.
      */
-    public void hide(@Nonnull Player player) {
+    public void hide() {
         entries.forEach((index, entry) -> entry.hide(player));
         
         PLAYER_TAB_LIST_MAP.remove(player, this);

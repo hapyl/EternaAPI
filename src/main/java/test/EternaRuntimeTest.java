@@ -722,19 +722,19 @@ public final class EternaRuntimeTest implements Runnable {
                         final List<Player> players = Lists.newArrayList(Bukkit.getOnlinePlayers());
                         
                         final EntryList entryList = new EntryList();
-                        entryList.append("&aPlayers:");
-                        entryList.append("");
+                        entryList.append(Component.text("Players:", NamedTextColor.GREEN));
+                        entryList.append(Component.empty());
                         
                         players.forEach(player -> {
-                            entryList.append(player.getName(), EntryTexture.of(player));
+                            entryList.append(player.name(), EntryTexture.of(player));
                         });
                         
-                        entryList.append(new Random().nextDouble() * 1000, EntryTexture.random(), Enums.getRandomValue(PingBars.class));
+                        entryList.append(Component.text(new Random().nextDouble() * 1000), EntryTexture.random(), Enums.getRandomValue(PingBars.class));
                         
                         final EntryList entryList2 = new EntryList();
                         
                         for (NamedTextColor color : NamedTextColor.NAMES.values()) {
-                            entryList2.append(color.toString(), EntryTexture.of(color));
+                            entryList2.append(Component.text(color.toString()), EntryTexture.of(color));
                         }
                         
                         tablist.setColumn(TablistColumn.FIRST, entryList);
@@ -746,8 +746,8 @@ public final class EternaRuntimeTest implements Runnable {
                         
                         tablist.setColumn(
                                 TablistColumn.THIRD,
-                                "&2Friends:",
-                                "&8Friends? What friends?"
+                                Component.text("Frinds:", NamedTextColor.DARK_GREEN),
+                                Component.text("Friends? What friends?", NamedTextColor.DARK_GRAY)
                         );
                         
                         int pingIndex = 0;
@@ -762,26 +762,26 @@ public final class EternaRuntimeTest implements Runnable {
                 
                 tablist.setColumn(
                         TablistColumn.FOURTH,
-                        "&e&lHELLO WORLD",
-                        "This is a test",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "pre-last",
-                        "last",
-                        "LAST!!!!!!!"
+                        Component.text("HELLO WORLD", NamedTextColor.YELLOW, TextDecoration.BOLD),
+                        Component.text("This is a test"),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.empty(),
+                        Component.text("Third from last..."),
+                        Component.text("Almost last one..."),
+                        Component.text("Last one!!!", NamedTextColor.GREEN)
                 );
                 
                 later(

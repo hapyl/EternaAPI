@@ -1,12 +1,11 @@
 package me.hapyl.eterna.module.player.tablist;
 
-import me.hapyl.eterna.module.chat.Chat;
+import io.papermc.paper.adventure.PaperAdventure;
+import me.hapyl.eterna.module.reflect.EternaServerPlayerImpl;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.Skin;
-import me.hapyl.eterna.module.reflect.EternaServerPlayerImpl;
 import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.util.SupportsColorFormatting;
-import net.minecraft.network.chat.Component;
+import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import org.bukkit.Location;
@@ -29,7 +28,7 @@ public class TablistEntry extends EternaServerPlayerImpl {
     
     private final String[] cachedTextures = { "", "" };
     
-    private String text;
+    private Component text;
     private Player skinnedPlayer;
     private PingBars bars;
     
@@ -51,8 +50,8 @@ public class TablistEntry extends EternaServerPlayerImpl {
      */
     @Nullable
     @Override
-    public Component getTabListDisplayName() {
-        return Chat.component(text);
+    public net.minecraft.network.chat.Component getTabListDisplayName() {
+        return PaperAdventure.asVanilla(text);
     }
     
     /**
@@ -82,7 +81,7 @@ public class TablistEntry extends EternaServerPlayerImpl {
      *
      * @param newText - New text.
      */
-    public void setText(@Nonnull @SupportsColorFormatting String newText) {
+    public void setText(@Nonnull Component newText) {
         if (this.text.equals(newText)) {
             return;
         }
@@ -122,7 +121,7 @@ public class TablistEntry extends EternaServerPlayerImpl {
      * player joins/leaves.
      * </p>
      *
-     * @param newTextures
+     * @param newTextures - The new textures to set.
      */
     @Override
     public void setTexture(@Nonnull Skin newTextures) {

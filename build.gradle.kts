@@ -4,6 +4,7 @@ plugins {
 
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
     id("maven-publish")
+    id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
 repositories {
@@ -70,6 +71,10 @@ tasks {
             include("plugin.yml")
             expand("version" to project.version)
         }
+    }
+
+    runServer {
+        minecraftVersion("1.21.11")
     }
 }
 

@@ -623,6 +623,7 @@ public final class Chat {
      * @return a formatted component.
      */
     @Nonnull
+    @Deprecated(forRemoval = true)
     public static Component component(@Nonnull String newText) {
         return CraftChatMessage.fromStringOrEmpty(Chat.format(newText));
     }

@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.player.tablist;
 
 import me.hapyl.eterna.module.reflect.Skin;
-import me.hapyl.eterna.module.util.SupportsColorFormatting;
+import net.kyori.adventure.text.Component;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -9,83 +9,83 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Represents an array of <code>20</code> lines exactly.
+ * Represents an {@code list} of {@link EntryList#ARRAY_SIZE} lines exactly, which is how many fits on one tablist column.
  */
 public class EntryList {
-
+    
     private static final int ARRAY_SIZE = 20;
-
+    
     protected final EntryConsumer[] array;
-
+    
     /**
      * Creates a new {@link EntryList} from the given {@link List}.
      * {@link #ARRAY_SIZE} first list entries will be copied.
      *
      * @param list - String list.
      */
-    public EntryList(@Nonnull List<String> list) {
+    public EntryList(@Nonnull List<Component> list) {
         this();
-
+        
         for (int i = 0; i < ARRAY_SIZE; i++) {
             if (i >= list.size()) {
                 break;
             }
-
-            final String newText = list.get(i);
+            
+            final Component newText = list.get(i);
             array[i] = entry -> entry.setText(newText);
         }
     }
-
+    
     /**
      * Creates a new {@link EntryList} from the given array.
      * {@link #ARRAY_SIZE} first array entries will be copied.
      *
      * @param lines - String array.
      */
-    public EntryList(@Nonnull String[] lines) {
+    public EntryList(@Nonnull Component[] lines) {
         this();
-
+        
         for (int i = 0; i < ARRAY_SIZE; i++) {
             if (i >= lines.length) {
                 break;
             }
-
-            final String line = lines[i];
+            
+            final Component line = lines[i];
             array[i] = entry -> entry.setText(line);
         }
     }
-
+    
     /**
      * Creates an empty {@link EntryList}.
      */
     public EntryList() {
         this.array = new EntryConsumer[ARRAY_SIZE];
     }
-
+    
     /**
      * Sets the string at the given index.
      *
      * @param index - Index.
      * @param value - Value.
      */
-    public void set(int index, final @Nonnull String value) {
+    public void set(int index, final @Nonnull Component value) {
         if (index < 0 || index >= ARRAY_SIZE) {
             return;
         }
-
+        
         array[index] = entry -> entry.setText(value);
     }
-
+    
     /**
      * Appends a value to the end of the list.
      *
      * @param text - Text to append.
      * @return true if was appended; false otherwise.
      */
-    public boolean append(@Nonnull @SupportsColorFormatting Object text) {
+    public boolean append(@Nonnull Component text) {
         return append(text, null, null);
     }
-
+    
     /**
      * Appends a value to the end of the list.
      *
@@ -94,10 +94,10 @@ public class EntryList {
      * @return true if was appended; false otherwise.
      * @see EntryTexture
      */
-    public boolean append(@Nonnull @SupportsColorFormatting Object text, @Nullable EntryTexture texture) {
+    public boolean append(@Nonnull Component text, @Nullable EntryTexture texture) {
         return append(text, texture, null);
     }
-
+    
     /**
      * Appends a value to the end of the list.
      *
@@ -105,10 +105,10 @@ public class EntryList {
      * @param ping - Ping to set.
      * @return true if was appended; false otherwise.
      */
-    public boolean append(@Nonnull @SupportsColorFormatting String text, @Nullable PingBars ping) {
+    public boolean append(@Nonnull Component text, @Nullable PingBars ping) {
         return append(text, null, ping);
     }
-
+    
     /**
      * Appends a value to the end of the list.
      *
@@ -117,19 +117,19 @@ public class EntryList {
      * @param ping    - Ping to set.
      * @return true if was appended; false otherwise.
      */
-    public boolean append(@Nonnull @SupportsColorFormatting Object text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
+    public boolean append(@Nonnull Component text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
         return append0(text, texture, ping);
     }
-
+    
     /**
      * Appends an empty text to the end of the list.
      *
      * @return true if was appended; false otherwise.
      */
     public boolean append() {
-        return append("");
+        return append(Component.empty());
     }
-
+    
     /**
      * Gets the size of non-null elements in this list.
      *
@@ -137,47 +137,45 @@ public class EntryList {
      */
     public int size() {
         int size = 0;
-
+        
         for (EntryConsumer entryConsumer : array) {
             if (entryConsumer != null) {
                 size++;
             }
         }
-
+        
         return size;
     }
-
+    
     /**
      * Clears this list.
      */
     public void clear() {
         Arrays.fill(array, null);
     }
-
-    protected boolean append0(Object obj, Skin skin, PingBars ping) {
-        final String text = String.valueOf(obj);
-        
+    
+    protected boolean append0(@Nonnull Component component, @Nullable Skin skin, @Nullable PingBars ping) {
         for (int i = 0; i < array.length; i++) {
             final EntryConsumer val = array[i];
-
+            
             if (val == null) {
                 array[i] = entry -> {
-                    entry.setText(text);
-
+                    entry.setText(component);
+                    
                     if (skin != null) {
                         entry.setTexture(skin);
                     }
-
+                    
                     if (ping != null) {
                         entry.setPing(ping);
                     }
                 };
-
+                
                 return true;
             }
         }
-
+        
         return false;
     }
-
+    
 }
