@@ -1,8 +1,7 @@
 package me.hapyl.eterna.module.locaiton;
 
+import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.util.CollectionUtils;
-import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,15 +9,25 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Range;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * Useful helper to work with locations.
  */
+@UtilityClass
 public final class LocationHelper {
     
+    public static final Set<Axis> allAxis;
+    
+    static {
+        allAxis = Set.of(Axis.X, Axis.Y, Axis.Z);
+    }
+    
     private LocationHelper() {
+        UtilityClass.Validator.throwIt();
     }
     
     /**
@@ -262,31 +271,47 @@ public final class LocationHelper {
      * Calculates the squared distance between two {@link Location} objects along the specified axes.
      * <p>This method avoids the computational cost of square root calculation, making it suitable
      * for comparisons or scenarios where exact distances are unnecessary.</p>
+     * <p>For locations in difference worlds, the return is always {@link Double#MAX_VALUE}.</p>
      *
      * @param from - The starting {@link Location}.
      * @param to   - The target {@link Location}.
-     * @param axis - The axes along which to calculate the distance.
+     * @param axis - The axes along which to calculate the distance; if non given, every axis will be calculated.
      * @return the squared distance between the two locations along the specified axis.
-     * @throws IllegalArgumentException if no axes are provided.
      */
-    public static double distanceSquared(@Nonnull Location from, @Nonnull Location to, @Nonnull @Range(from = 1, to = 3) Axis... axis) {
-        Validate.isTrue(axis.length > 0, "There must be at least one axis!");
+    public static double distanceSquared(@Nonnull Location from, @Nonnull Location to, @Nullable @Range(from = 1, to = 3) Axis... axis) {
+        if (!from.getWorld().equals(to.getWorld())) {
+            return Double.MAX_VALUE;
+        }
         
-        double distance = 0.0d;
+        final Set<Axis> axisSet = (axis != null && axis.length != 0) ? Set.of(axis) : allAxis;
+        double distance = 0.0;
         
-        if (CollectionUtils.contains(axis, Axis.X)) {
+        if (axisSet.contains(Axis.X)) {
             distance += square(from.getX() - to.getX());
         }
         
-        if (CollectionUtils.contains(axis, Axis.Y)) {
+        if (axisSet.contains(Axis.Y)) {
             distance += square(from.getY() - to.getY());
         }
         
-        if (CollectionUtils.contains(axis, Axis.Z)) {
+        if (axisSet.contains(Axis.Z)) {
             distance += square(from.getZ() - to.getZ());
         }
         
         return distance;
+    }
+    
+    /**
+     * Calculates the distance between two {@link Location} objects along the specified axes.
+     * <p>For locations in difference worlds, the return is always {@link Double#MAX_VALUE}.</p>
+     *
+     * @param from - The starting {@link Location}.
+     * @param to   - The target {@link Location}.
+     * @param axis - The axes along which to calculate the distance; if non given, every axis will be calculated.
+     * @return the distance between the two locations along the specified axis.
+     */
+    public static double distance(@Nonnull Location from, @Nonnull Location to, @Nonnull @Range(from = 1, to = 3) Axis... axis) {
+        return Math.sqrt(distanceSquared(from, to, axis));
     }
     
     /**

@@ -14,6 +14,7 @@ import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
 import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.locaiton.Located;
+import me.hapyl.eterna.module.locaiton.LocationHelper;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.npc.appearance.Appearance;
 import me.hapyl.eterna.module.npc.appearance.AppearanceBuilder;
@@ -409,7 +410,7 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         
         if (viewDistance > 0) {
             this.playerData.values().forEach(playerData -> {
-                final double distanceToNpc = playerData.player.getLocation().distance(location);
+                final double distanceToNpc = LocationHelper.distance(playerData.player.getLocation(), location);
                 final boolean canSeeNpc = distanceToNpc <= viewDistance;
                 
                 if (canSeeNpc && playerData.visibility == Visibility.NOT_VISIBLE) {

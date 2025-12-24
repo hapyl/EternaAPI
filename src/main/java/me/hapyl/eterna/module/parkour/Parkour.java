@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.hologram.Hologram;
+import me.hapyl.eterna.module.locaiton.LocationHelper;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
@@ -13,10 +14,7 @@ import me.hapyl.eterna.module.util.Validate;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
@@ -416,7 +414,7 @@ public class Parkour implements Keyed, Named {
             final Location location = player.getLocation();
             
             for (Hologram hologram : holograms) {
-                final double distanceSquared = hologram.getLocation().distanceSquared(location);
+                final double distanceSquared = LocationHelper.distanceSquared(hologram.getLocation(), location);
                 final boolean canBeSeen = distanceSquared <= hologramViewDistance;
                 final boolean showingTo = hologram.isShowingTo(player);
                 

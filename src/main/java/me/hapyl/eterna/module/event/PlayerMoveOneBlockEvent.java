@@ -108,7 +108,7 @@ public class PlayerMoveOneBlockEvent extends PlayerEvent implements Cancellable 
         }
 
         private static void increment(Player player, Location from, Location to) {
-            if (from.distanceSquared(to) == 0.0d) { // ignore mouse movement
+            if ((!from.getWorld().equals(to.getWorld())) || from.distanceSquared(to) == 0.0d) { // ignore mouse movement
                 return;
             }
 

@@ -23,8 +23,10 @@ public final class Components {
      *
      * @param legacy - The legacy text.
      * @return a {@link Component} based on legacy text.
+     * @deprecated Planned removal of legacy colors
      */
     @Nonnull
+    @Deprecated
     public static Component ofLegacy(@Nonnull Object legacy) {
         return new LegacyStringComponent(String.valueOf(legacy)).asComponent();
     }
