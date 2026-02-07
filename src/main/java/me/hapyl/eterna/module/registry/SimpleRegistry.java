@@ -4,82 +4,79 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.util.Validate;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * A simple implementation of the {@link Registry} interface that maintains the order of registration.
- * This registry stores elements of type {@code T} in a {@link LinkedHashMap} to preserve insertion order.
+ * Represents a simple {@link Registry} implementation with an underlying {@link LinkedHashMap}.
  *
- * @param <T> - The type of elements stored in the registry, which must extend {@link Keyed}.
+ * @param <K> - The keyed object type.
  */
-public class SimpleRegistry<T extends Keyed> implements Registry<T> {
-
+public class SimpleRegistry<K extends Keyed> implements Registry<K>, Iterable<K> {
+    
+    protected final Map<Key, K> registered;
+    
     /**
-     * The underlying map that holds the registered elements, keyed by their {@link Key}.
-     */
-    protected final Map<Key, T> registered;
-
-    /**
-     * Constructs a new empty {@link SimpleRegistry}.
+     * Creates a new {@link SimpleRegistry}.
      */
     public SimpleRegistry() {
         this.registered = Maps.newLinkedHashMap(); // Actually, keep the order.
     }
-
-    @Nullable
+    
+    
     @Override
-    public T get(@Nonnull Key key) {
-        return registered.get(key);
+    @NotNull
+    public Optional<K> get(@NotNull Key key) {
+        return Optional.ofNullable(registered.get(key));
     }
-
-    /**
-     * Registers the specified element in the registry.
-     * Ensures that duplicate registrations are not allowed.
-     *
-     * @param t - The element to register.
-     * @return the registered element.
-     * @throws IllegalArgumentException if the key is already registered.
-     */
+    
     @Override
+    @NotNull
     @OverridingMethodsMustInvokeSuper
-    public T register(@Nonnull T t) {
-        final Key key = t.getKey();
+    public K register(@NotNull K k) {
+        final Key key = k.getKey();
         Validate.isTrue(!registered.containsKey(key), "Duplicate registration of '%s'!".formatted(key));
-
-        registered.put(key, t);
-        return t;
+        
+        registered.put(key, k);
+        return k;
     }
-
+    
     @Override
-    public boolean unregister(@Nonnull T t) {
-        return registered.remove(t.getKey()) != null;
+    public boolean unregister(@NotNull K k) {
+        return registered.remove(k.getKey()) != null;
     }
-
+    
     @Override
     public boolean isRegistered(@NotNull Key key) {
         return registered.containsKey(key);
     }
-
+    
     @Override
-    public boolean isRegistered(@NotNull T t) {
-        return registered.containsValue(t);
+    public boolean isRegistered(@NotNull K k) {
+        return registered.containsValue(k);
     }
-
+    
     @Override
     public boolean isEmpty() {
         return registered.isEmpty();
     }
-
-    @Nonnull
+    
+    @NotNull
     @Override
-    public List<T> values() {
-        return new ArrayList<>(registered.values());
+    public List<Key> keys() {
+        return List.copyOf(registered.keySet());
     }
-
+    
+    @NotNull
+    @Override
+    public List<K> values() {
+        return List.copyOf(registered.values());
+    }
+    
+    @NotNull
+    @Override
+    public Iterator<K> iterator() {
+        // Get iterator through immutable list copy
+        return values().iterator();
+    }
 }

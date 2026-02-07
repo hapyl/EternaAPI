@@ -1,20 +1,18 @@
 package me.hapyl.eterna.module.npc;
 
-import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaKey;
-import me.hapyl.eterna.EternaLock;
+import me.hapyl.eterna.EternaKeyed;
 import org.jetbrains.annotations.ApiStatus;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
-public class NpcRunnable extends EternaLock implements Runnable {
-    public NpcRunnable(@Nonnull EternaKey key) {
+public final class NpcRunnable extends EternaKeyed implements Runnable {
+    public NpcRunnable(@NotNull EternaKey key) {
         super(key);
     }
     
     @Override
     public void run() {
-        Eterna.getManagers().npc.forEach(Npc::tick);
+        NpcHandler.handler.forEach(Npc::tick);
     }
 }

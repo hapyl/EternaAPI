@@ -1,11 +1,11 @@
 package me.hapyl.eterna.module.npc;
 
-import me.hapyl.eterna.module.nms.NmsEnum;
+import me.hapyl.eterna.module.nms.NmsWrapper;
 import me.hapyl.eterna.module.npc.appearance.Appearance;
 import net.minecraft.world.entity.Pose;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -13,7 +13,7 @@ import java.util.Set;
  *
  * <p>Note that some poses are only applicable to certain {@link Appearance} and are ignored for those that don't support it.</p>
  */
-public enum NpcPose implements NmsEnum<Pose> {
+public enum NpcPose implements NmsWrapper<Pose> {
     
     STANDING(Pose.STANDING),
     FALL_FLYING(Pose.FALL_FLYING),
@@ -38,12 +38,17 @@ public enum NpcPose implements NmsEnum<Pose> {
     @Nullable private final Set<Class<? super Appearance>> applicableTo;
     
     @SafeVarargs
-    NpcPose(@Nonnull Pose pose, @Nullable Class<? super Appearance>... applicableTo) {
+    NpcPose(@NotNull Pose pose, @Nullable Class<? super Appearance>... applicableTo) {
         this.pose = pose;
         this.applicableTo = applicableTo != null ? Set.of(applicableTo) : null;
     }
     
-    @Nonnull
+    /**
+     * Gets the {@code nms} pose.
+     *
+     * @return the {@code nms} pose.
+     */
+    @NotNull
     @Override
     public Pose toNms() {
         return this.pose;
@@ -54,9 +59,9 @@ public enum NpcPose implements NmsEnum<Pose> {
      * <p>Poses that aren't applicable to the appearance ignored is most cases and cause no difference in the actual pose.</p>
      *
      * @param appearance - The appearance to check.
-     * @return {@code true} if this {@link NpcPose} is applicable to the given {@link Appearance}, {@code false} otherwise.
+     * @return {@code true} if this pose is applicable to the given appearance, {@code false} otherwise.
      */
-    public boolean isApplicableTo(@Nonnull Class<? super Appearance> appearance) {
+    public boolean isApplicableTo(@NotNull Class<? super Appearance> appearance) {
         return this.applicableTo == null || this.applicableTo.contains(appearance);
     }
     
@@ -66,7 +71,7 @@ public enum NpcPose implements NmsEnum<Pose> {
      *
      * @return A fake {@link NpcPose#STANDING} pose.
      */
-    @Nonnull
+    @NotNull
     public static Pose fuckassFakeStandingPoseBecauseIFuckingHateEverythingThatExistsEspeciallyMojang() {
         return Pose.LONG_JUMPING;
     }

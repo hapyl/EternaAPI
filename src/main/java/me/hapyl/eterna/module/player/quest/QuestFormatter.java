@@ -1,210 +1,235 @@
 package me.hapyl.eterna.module.player.quest;
 
-import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.player.PlayerLib;
-import me.hapyl.eterna.module.util.Formatter;
-import org.bukkit.ChatColor;
+import me.hapyl.eterna.module.player.quest.objective.QuestObjective;
+import me.hapyl.eterna.module.component.Formatter;
+import me.hapyl.eterna.Runnables;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a quest formatter.
+ * Represents a {@link QuestFormatter} for a {@link Quest}.
  */
 public interface QuestFormatter extends Formatter {
-
-    QuestFormatter EMPTY = new QuestFormatter() {
-        @Override
-        public void sendObjectiveNew(@Nonnull Player player, @Nonnull QuestObjective objective) {
-        }
-
-        @Override
-        public void sendObjectiveComplete(@Nonnull Player player, @Nonnull QuestObjective objective) {
-        }
-
-        @Override
-        public void sendObjectiveFailed(@Nonnull Player player, @Nonnull QuestObjective objective) {
-        }
-
-        @Override
-        public void sendQuestCompleteFormat(@Nonnull Player player, @Nonnull Quest quest) {
-        }
-
-        @Override
-        public void sendQuestStartedFormat(@Nonnull Player player, @Nonnull Quest quest) {
-        }
-
-        @Override
-        public void sendCannotStartQuestAlreadyCompleted(@Nonnull Player player, @Nonnull Quest quest) {
-        }
-
-        @Override
-        public void sendPreRequirementNotMet(@Nonnull Player player, @Nonnull QuestPreRequirement preRequirement) {
-        }
-
-        @Override
-        public void sendCannotStartQuestAlreadyStarted(@Nonnull Player player, @Nonnull Quest quest) {
-        }
-
-        @Override
-        public void sendQuestFailedFormat(@Nonnull Player player, @Nonnull Quest quest) {
-        }
-    };
-
+    
+    /**
+     * Defins the default formatter used.
+     */
+    @NotNull
     QuestFormatter DEFAULT = new QuestFormatter() {
-
         @Override
-        public void sendObjectiveNew(@Nonnull Player player, @Nonnull QuestObjective objective) {
-            sendLine(player, ChatColor.GOLD);
-            Chat.sendCenterMessage(player, "&e&lɴᴇᴡ ᴏʙᴊᴇᴄᴛɪᴠᴇ");
-            Chat.sendCenterMessage(player, "&7" + objective.getDescription());
-            sendLine(player, ChatColor.GOLD);
-
+        public void objectiveStarted(@NotNull Player player, @NotNull QuestObjective objective) {
+            outlined(player, NamedTextColor.GOLD, () -> {
+                player.sendMessage(Component.text("ɴᴇᴡ ᴏʙᴊᴇᴄᴛɪᴠᴇ", NamedTextColor.YELLOW, TextDecoration.BOLD));
+                player.sendMessage(Component.text(" ").append(objective.getDescription().color(NamedTextColor.GRAY)));
+                
+                final Component detailedDescription = objective.getDetailedDescription();
+                
+                if (!Components.isEmpty(detailedDescription)) {
+                    player.sendMessage(Component.text("  ").append(detailedDescription).color(NamedTextColor.DARK_GRAY));
+                }
+            });
+            
             PlayerLib.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1.25f);
         }
-
+        
         @Override
-        public void sendObjectiveComplete(@Nonnull Player player, @Nonnull QuestObjective objective) {
-            sendLine(player, ChatColor.GREEN);
-            Chat.sendCenterMessage(player, "&2&lᴏʙᴊᴇᴄᴛɪᴠᴇ ᴄᴏᴍᴘʟᴇᴛᴇ");
-            Chat.sendCenterMessage(player, "&a✔ " + objective.getDescription());
-            sendLine(player, ChatColor.GREEN);
-
+        public void objectiveComplete(@NotNull Player player, @NotNull QuestObjective objective) {
+            outlined(player, NamedTextColor.GREEN, () -> {
+                player.sendMessage(Component.text("ᴏʙᴊᴇᴄᴛɪᴠᴇ ᴄᴏᴍᴘʟᴇᴛᴇ", NamedTextColor.DARK_GREEN, TextDecoration.BOLD));
+                player.sendMessage(Component.text(" ✔ ").append(objective.getDescription()).color(NamedTextColor.GREEN));
+            });
+            
             PlayerLib.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f);
         }
-
+        
         @Override
-        public void sendObjectiveFailed(@Nonnull Player player, @Nonnull QuestObjective objective) {
-            sendLine(player, ChatColor.DARK_RED);
-            Chat.sendCenterMessage(player, "&c&lᴏʙᴊᴇᴄᴛɪᴠᴇ ꜰᴀɪʟᴇᴅ");
-            Chat.sendCenterMessage(player, "&c" + objective.getDescription());
-            Chat.sendCenterMessage(player, "&7It's ok! Try again.");
-            sendLine(player, ChatColor.DARK_RED);
-
+        public void objectiveFailed(@NotNull Player player, @NotNull QuestObjective objective, @NotNull QuestObjective.FailType failType) {
+            outlined(player, NamedTextColor.DARK_RED, () -> {
+                player.sendMessage(Component.text("ᴏʙᴊᴇᴄᴛɪᴠᴇ ꜰᴀɪʟᴇᴅ", NamedTextColor.RED, TextDecoration.BOLD));
+                player.sendMessage(Component.text(" ❌ ").append(objective.getDescription()).color(NamedTextColor.RED));
+                
+                if (failType == QuestObjective.FailType.RESTART_OBJECTIVE) {
+                    player.sendMessage(Component.empty());
+                    player.sendMessage(Component.text("It's ok, try again!", NamedTextColor.GRAY));
+                }
+            });
+            
             PlayerLib.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 0.0f);
         }
-
+        
         @Override
-        public void sendQuestCompleteFormat(@Nonnull Player player, @Nonnull Quest quest) {
-            sendLine(player, ChatColor.YELLOW);
-            Chat.sendCenterMessage(player, "&6&lQUEST COMPLETE");
-            Chat.sendCenterMessage(player, "&a" + quest.getName());
-            sendLine(player, ChatColor.YELLOW);
-
+        public void questStarted(@NotNull Player player, @NotNull Quest quest) {
+            outlined(player, NamedTextColor.YELLOW, () -> {
+                player.sendMessage(Component.text("QUEST STARTED!", NamedTextColor.GOLD, TextDecoration.BOLD));
+                player.sendMessage(Component.text(" ").append(quest.getName()).color(NamedTextColor.GREEN));
+                player.sendMessage(Component.empty());
+                
+                player.sendMessage(Component.text("ᴏʙᴊᴇᴄᴛɪᴠᴇ", NamedTextColor.GREEN, TextDecoration.BOLD));
+                player.sendMessage(Component.text(" ").append(quest.getFirstObjective().getDescription()).color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
+            });
+        }
+        
+        @Override
+        public void questComplete(@NotNull Player player, @NotNull Quest quest) {
+            outlined(player, NamedTextColor.YELLOW, () -> {
+                player.sendMessage(Component.text("QUEST COMPLETED", NamedTextColor.GOLD, TextDecoration.BOLD));
+                player.sendMessage(Component.text(" ").append(quest.getName()).color(NamedTextColor.WHITE));
+            });
+            
             PlayerLib.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 2.0f);
         }
-
+        
         @Override
-        public void sendQuestStartedFormat(@Nonnull Player player, @Nonnull Quest quest) {
-            sendLine(player, ChatColor.YELLOW);
-            Chat.sendCenterMessage(player, "&6&lQUEST STARTED!");
-            Chat.sendCenterMessage(player, "&a" + quest.getName());
-            Chat.sendCenterMessage(player, "");
-            Chat.sendCenterMessage(player, "&a&lᴄᴜʀʀᴇɴᴛ ᴏʙᴊᴇᴄᴛɪᴠᴇ");
-            Chat.sendCenterMessage(player, "&7&o" + quest.getFirstObjective().getDescription());
-            sendLine(player, ChatColor.YELLOW);
+        public void questFailed(@NotNull Player player, @NotNull Quest quest) {
+            outlined(player, NamedTextColor.DARK_RED, () -> {
+                player.sendMessage(Component.text("QUEST FAILED", NamedTextColor.RED, TextDecoration.BOLD));
+                player.sendMessage(Component.text(" ").append(quest.getName()).color(NamedTextColor.WHITE));
+            });
         }
-
+        
         @Override
-        public void sendQuestFailedFormat(@Nonnull Player player, @Nonnull Quest quest) {
-            sendLine(player, ChatColor.DARK_RED);
-            Chat.sendCenterMessage(player, "&c&lQUEST FAILED");
-            Chat.sendCenterMessage(player, "&f" + quest.getName());
-            sendLine(player, ChatColor.DARK_RED);
+        public void cannotStartQuestAlreadyComplete(@NotNull Player player, @NotNull Quest quest) {
+            player.sendMessage(Component.text("You have already completed this quest!", NamedTextColor.RED));
         }
-
+        
         @Override
-        public void sendCannotStartQuestAlreadyCompleted(@Nonnull Player player, @Nonnull Quest quest) {
-            Chat.sendMessage(player, "&4You have already completed this quest!");
+        public void cannotStartQuestPreRequirementNotMet(@NotNull Player player, @NotNull QuestPreRequirement preRequirement) {
+            player.sendMessage(preRequirement.getMessage().color(NamedTextColor.RED));
         }
-
+        
         @Override
-        public void sendPreRequirementNotMet(@Nonnull Player player, @Nonnull QuestPreRequirement preRequirement) {
-            Chat.sendMessage(player, "&4" + preRequirement.getMessage());
+        public void cannotStartQuestAlreadyStarted(@NotNull Player player, @NotNull Quest quest) {
+            player.sendMessage(Component.text("You have already started this quest!", NamedTextColor.RED));
         }
-
-        @Override
-        public void sendCannotStartQuestAlreadyStarted(@Nonnull Player player, @Nonnull Quest quest) {
-            Chat.sendMessage(player, "&4This quest is already started!");
-        }
-
-        private void sendLine(Player player, ChatColor color) {
-            Chat.sendCenterMessage(player, color + "&m]                                      [");
+        
+        private static void outlined(@NotNull Player player, @NotNull TextColor color, @NotNull Runnable then) {
+            final TextComponent line = Component.text("═══════════════════════════════════", color).shadowColor(null);
+            
+            player.sendMessage(line);
+            then.run();
+            player.sendMessage(line);
         }
     };
-
+    
+    @NotNull
+    @Override
+    default Component defineFormatter() {
+        return Component.text("quest");
+    }
+    
     /**
-     * Sent whenever the player's objective changes to a new one.
+     * Sends a message for when a {@link QuestObjective} is started.
      *
-     * @param player    - Player for whom the objective has changed.
-     * @param objective - The new objective.
+     * @param player    - The player for whom the objective started.
+     * @param objective - The started objective.
      */
-    void sendObjectiveNew(@Nonnull Player player, @Nonnull QuestObjective objective);
-
+    void objectiveStarted(@NotNull Player player, @NotNull QuestObjective objective);
+    
     /**
-     * Sent whenever the player completes an objective.
+     * Sends a message for when a {@link QuestObjective} is complete.
      *
-     * @param player    - Player who has completed the objective.
-     * @param objective - The completed the objective.
+     * @param player    - The player who completed the objective.
+     * @param objective - The completed objective.
      */
-    void sendObjectiveComplete(@Nonnull Player player, @Nonnull QuestObjective objective);
-
+    void objectiveComplete(@NotNull Player player, @NotNull QuestObjective objective);
+    
     /**
-     * Sent whenever the player fails an objective.
+     * Sends a message for when a {@link QuestObjective} is failed.
      *
-     * @param player    - Player who has failed the objective.
+     * @param player    - The player who failed the objective.
      * @param objective - The failed objective.
+     * @param failType  - The fail type.
      */
-    void sendObjectiveFailed(@Nonnull Player player, @Nonnull QuestObjective objective);
-
+    void objectiveFailed(@NotNull Player player, @NotNull QuestObjective objective, @NotNull QuestObjective.FailType failType);
+    
     /**
-     * Sent whenever the player starts a quest.
+     * Sends a message for when a {@link Quest} is started.
      *
-     * @param player - Player who has started the quest.
+     * @param player - The player for whom the quest started.
      * @param quest  - The started quest.
      */
-    void sendQuestStartedFormat(@Nonnull Player player, @Nonnull Quest quest);
-
+    void questStarted(@NotNull Player player, @NotNull Quest quest);
+    
     /**
-     * Sent whenever the player completes a quest.
+     * Sends a message for when a {@link Quest} is complete.
      *
-     * @param player - Player who has completed the quest.
+     * @param player - The player complete the quest.
      * @param quest  - The completed quest.
      */
-    void sendQuestCompleteFormat(@Nonnull Player player, @Nonnull Quest quest);
-
+    void questComplete(@NotNull Player player, @NotNull Quest quest);
+    
     /**
-     * Sent whenever the player fails a quest.
+     * Sends a message for when a {@link Quest} is failed.
      *
-     * @param player - Player who has failed the quest.
+     * @param player - The player who failed the quest.
      * @param quest  - The failed quest.
-     * @deprecated Failing quests is currently not implemented.
      */
-    @Deprecated
-    void sendQuestFailedFormat(@Nonnull Player player, @Nonnull Quest quest);
-
+    void questFailed(@NotNull Player player, @NotNull Quest quest);
+    
     /**
-     * Sent whenever the player attempts to start a quest that they have already completed.
-     *
-     * @param player - Player who tried to start the quest.
-     * @param quest  - The quest.
-     */
-    void sendCannotStartQuestAlreadyCompleted(@Nonnull Player player, @Nonnull Quest quest);
-
-    /**
-     * Sent whenever the player attempts to start a quest but doesn't have pre-requirements met.
-     *
-     * @param player         - Player who tried to start the quest.
-     * @param preRequirement - Pre-requirements.
-     */
-    void sendPreRequirementNotMet(@Nonnull Player player, @Nonnull QuestPreRequirement preRequirement);
-
-    /**
-     * Sent whenever the player attempts to start a quest while it's already active.
+     * Sends a message for when a {@link Player} attempts to start a {@link Quest} that is already complete.
      *
      * @param player - The player who attempted to start the quest.
-     * @param quest  - The quest.
+     * @param quest  - The quest that player has attempted to start.
      */
-    void sendCannotStartQuestAlreadyStarted(@Nonnull Player player, @Nonnull Quest quest);
+    void cannotStartQuestAlreadyComplete(@NotNull Player player, @NotNull Quest quest);
+    
+    /**
+     * Sends a message for when a {@link Player} attempts to start a {@link Quest} that is currently in progress.
+     *
+     * @param player - The player who attempted to start the quest.
+     * @param quest  - The quest that player has attempted to start.
+     */
+    void cannotStartQuestAlreadyStarted(@NotNull Player player, @NotNull Quest quest);
+    
+    /**
+     * Sends a message for when a {@link Player} attempts to start a {@link Quest} but has not the {@link QuestPreRequirement}.
+     *
+     * @param player         - The player who attempted to start the quest.
+     * @param preRequirement - The pre-requirements that has not been met.
+     */
+    void cannotStartQuestPreRequirementNotMet(@NotNull Player player, @NotNull QuestPreRequirement preRequirement);
+    
+    /**
+     * Defines the internal {@link Timings} for {@link QuestFormatter}.
+     */
+    @ApiStatus.Internal
+    enum Timings {
+        OBJECTIVE_STARTED(30),
+        OBJECTIVE_COMPLETE(10),
+        OBJECTIVE_FAILED(10),
+        
+        QUEST_STARTED(-1),
+        QUEST_COMPLETE(30),
+        
+        // Quests can only fail if objective is failed, and it's fail type is FAIL_QUEST,
+        // so delay by +10 ticks from OBJECTIVE_FAILED.
+        QUEST_FAILED(OBJECTIVE_FAILED.delay + 10);
+        
+        private final int delay;
+        
+        Timings(int delay) {
+            this.delay = delay;
+        }
+        
+        void schedule(@NotNull Runnable runnable) {
+            if (delay == -1) {
+                runnable.run();
+            }
+            else {
+                Runnables.later(runnable, delay);
+            }
+        }
+        
+    }
+    
 }

@@ -1,322 +1,384 @@
 package me.hapyl.eterna.module.player.song;
 
 import com.google.common.collect.Sets;
-import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.chat.Chat;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.module.util.EternaRunnable;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
 
 /**
- * Represents a player that can play {@see Song} to players.
+ * Represents a {@link SongPlayer} responsible for managing and playing {@link Song}.
  */
-public class SongPlayer {
+public class SongPlayer extends EternaRunnable {
     
-    public static final SongPlayer DEFAULT_PLAYER;
-    public static final String PREFIX = "&b&lNBS&b> &7";
+    /**
+     * Defines the default played used by Eterna.
+     */
+    @NotNull
+    public static final SongPlayer SERVER_PLAYER;
     
     static {
-        DEFAULT_PLAYER = new SongPlayer(EternaPlugin.getPlugin()) {
+        SERVER_PLAYER = new SongPlayer(Eterna.getPlugin()) {
             @Override
-            public boolean isGlobal() {
-                return true; // Force global
+            public void addListener(@NotNull Player player) {
             }
             
-            @Nonnull
             @Override
-            public Collection<Player> getListeners() {
-                return Sets.newHashSet(Bukkit.getOnlinePlayers());
+            public void removeListener(Player player) {
+            }
+            
+            @Override
+            public boolean isListener(@NotNull Player player) {
+                return true;
+            }
+            
+            @NotNull
+            @Override
+            public Set<Player> getListeners() {
+                return Set.copyOf(Bukkit.getOnlinePlayers());
             }
         };
     }
     
-    private final JavaPlugin plugin;
+    private final Plugin plugin;
     private final SongQueue queue;
-    private final Collection<Player> listeners;
+    private final Set<Player> listeners;
     
-    private SongInstance currentInstance;
+    @Nullable
+    private SongInstance currentSong;
+    
+    @NotNull private Status status;
+    @NotNull private SongFormatter formatter;
+    
+    @Range(from = 0, to = 1)
     private float volume;
     
-    public SongPlayer(@Nonnull JavaPlugin plugin) {
-        this.plugin = plugin;
-        this.queue = new SongPlayerQueue();
-        this.listeners = Sets.newHashSet();
-        this.volume = SongNote.DEFAULT_VOLUME;
-    }
+    private float tickAccumulator;
     
     /**
-     * Gets the current volume of the player.
+     * Creates a new {@link SongPlayer} for the given {@link Plugin}.
      *
-     * @return the current volume of the player.
+     * @param plugin - The plugin to delegate tasks to.
      */
-    public float volume() {
-        return volume;
-    }
-    
-    /**
-     * Sets the current volume of the player.
-     * <p>If there is currently an instance playing, its volume will be changed.</p>
-     *
-     * @param volume - The new volume.
-     */
-    public void volume(float volume) {
-        this.volume = Math.clamp(volume, 0, 1);
+    public SongPlayer(@NotNull Plugin plugin) {
+        super(plugin);
         
-        if (currentInstance != null) {
-            currentInstance.volume(volume);
-        }
+        this.plugin = plugin;
+        this.queue = new SongQueueImpl();
+        this.listeners = Sets.newHashSet();
+        this.volume = 1.0f;
+        this.status = Status.NOT_PLAYING;
+        this.formatter = SongFormatter.DEFAULT;
+        
+        // Schedule the task
+        this.runTaskTimer(0, 1);
     }
     
     /**
-     * Gets the owning plugin of the player.
+     * Gets the {@link Plugin} this {@link SongPlayer} belongs to.
      *
-     * @return the owning plugin of the player.
+     * @return the plugin this song player belongs to.
      */
-    @Nonnull
-    public JavaPlugin getOwningPlugin() {
+    @NotNull
+    public final Plugin getPlugin() {
         return plugin;
     }
     
     /**
-     * Gets the song queue of the player.
+     * Gets the current {@link SongInstance}, or {@code null} if nothing is currently playing.
      *
-     * @return the song queue of the player.
+     * @return the current song instance, or {@code null} if nothing is currently playing.
      */
-    @Nonnull
+    @Nullable
+    public SongInstance getCurrentSong() {
+        return this.currentSong;
+    }
+    
+    /**
+     * Gets the {@link SongFormatter} for this {@link SongPlayer}.
+     *
+     * @return the formatter for this song player.
+     * @see SongFormatter
+     */
+    @NotNull
+    public SongFormatter getFormatter() {
+        return formatter;
+    }
+    
+    /**
+     * Sets the {@link SongFormatter} for this {@link SongPlayer}.
+     *
+     * @param formatter - The formatter to set.
+     * @throws NullPointerException if the given formatter is {@code null}.
+     */
+    public void setFormatter(@NotNull SongFormatter formatter) {
+        this.formatter = Objects.requireNonNull(formatter, "Formatter cannot be null.");
+    }
+    
+    /**
+     * Gets the volume of this {@link SongPlayer}, from {@code 0} - {@code 1}.
+     *
+     * @return the volume of this song player, from {@code 0} - {@code 1}.
+     */
+    @Range(from = 0, to = 1)
+    public float getVolume() {
+        return volume;
+    }
+    
+    /**
+     * Sets the volume of this {@link SongPlayer}, from {@code 0} - {@code 1}.
+     *
+     * @param volume - The volume to set.
+     */
+    public void setVolume(@Range(from = 0, to = 1) final float volume) {
+        this.volume = Math.clamp(volume, 0, 1);
+    }
+    
+    /**
+     * Gets the {@link SongQueue} for this {@link SongPlayer}.
+     *
+     * @return the song queue for this song player.
+     */
+    @NotNull
     public SongQueue getQueue() {
         return queue;
     }
     
     /**
-     * Adds the given player as to listeners.
+     * Adds the given {@link Player} to listeners.
      *
-     * @param player - The player to add.
+     * @param player - The player to add to listeners.
      */
-    public void addListener(@Nonnull Player player) {
+    public void addListener(@NotNull Player player) {
         this.listeners.add(player);
     }
     
     /**
-     * Removes the given player from listeners.
+     * Removes the given {@link Player} from listeners.
      *
-     * @param player - The player to remove.
+     * @param player - The player to remove from listeners.
      */
     public void removeListener(Player player) {
         this.listeners.remove(player);
     }
     
     /**
-     * Returns {@code true} if the given player is a listener.
+     * Gets whether the given {@link Player} is a listener.
      *
      * @param player - The player to check.
-     * @return {@code true} if the given player is a listener.
+     * @return {@code true} if the given player is a listener; {@code false} otherwise.
      */
-    public boolean isListener(@Nonnull Player player) {
-        return this.listeners.isEmpty() || this.listeners.contains(player);
+    public boolean isListener(@NotNull Player player) {
+        return this.listeners.contains(player);
     }
     
     /**
-     * Clears all the listeners, making the playback global for each online player.
-     */
-    public void setGlobal() {
-        this.listeners.clear();
-    }
-    
-    /**
-     * Returns {@code true} if playback is global for each online player.
+     * Gets an <b>immutable</b> {@link Set} of listeners.
      *
-     * @return {@code true} if playback is global for each online player.
+     * @return an <b>immutable</b> set of listeners.
      */
-    public boolean isGlobal() {
-        return this.listeners.isEmpty();
+    @NotNull
+    public Set<Player> getListeners() {
+        return Set.copyOf(listeners);
     }
     
     /**
-     * Gets the listeners of the player.
-     *
-     * @return the listeners.
+     * Runs this {@link SongPlayer}.
      */
-    @Nonnull
-    public Collection<Player> getListeners() {
-        return listeners;
-    }
-    
-    /**
-     * Gets the current song instance or {@code null} if there is none.
-     *
-     * @return the current song instance or {@code null} if there is none.
-     */
-    @Nullable
-    public SongInstance currentInstance() {
-        return currentInstance;
-    }
-    
-    /**
-     * Gets the current song or {@code null} if there is none.
-     *
-     * @return the current song or {@code null} if there is none.
-     */
-    @Nullable
-    public Song currentSong() {
-        return currentInstance != null ? currentInstance.song() : null;
-    }
-    
-    /**
-     * Pauses or resumes the current instance if it exists.
-     */
-    public void pausePlaying() {
-        if (this.currentInstance == null) {
+    @Override
+    public void run() {
+        if (currentSong == null || status == Status.PAUSED) {
             return;
         }
         
-        this.currentInstance.pause();
+        // Because tempo is not guaranteed to be divisible by 20, we have to use an
+        // accumulator to play the songs at the right tick.
+        // It is technically better to calculate the delta between this tick and the
+        // previous one, but we're assuming it's 20 tps (1000ms), so that's what we use.
+        tickAccumulator += 50 / (1000.0f / currentSong.getSong().getTempo());
+        
+        while (tickAccumulator >= 1.0f) {
+            final boolean hasFinished = currentSong.playNextNote(this);
+            
+            if (hasFinished) {
+                stopPlaying(true);
+                return;
+            }
+            
+            tickAccumulator -= 1.0f;
+        }
     }
     
     /**
-     * Forcefully stops the current instance if it exists.
+     * Pauses the current {@link Song}.
+     *
+     * <p>
+     * If the song is currently paused, it will be resumed.
+     * </p>
      */
-    public void stopPlaying() {
-        if (this.currentInstance == null) {
+    public void pause() {
+        if (this.currentSong == null) {
             return;
         }
         
-        this.currentInstance.cancel();
-        this.currentInstance = null;
+        this.status = this.status == Status.PLAYING ? Status.PAUSED : Status.PLAYING;
+        
+        formatterAll((formatter, player) -> formatter.pausedPlaying(player, currentSong.getSong(), status == Status.PAUSED));
     }
     
     /**
-     * Returns {@code true} if there is an instance and its currently {@link SongInstance#isPlaying()}.
+     * Forcefully plays the given {@link Song}.
      *
-     * @return {@code true} if there is an instance and its currently {@link SongInstance#isPlaying()}.
-     */
-    public boolean isPlaying() {
-        return this.currentInstance != null && this.currentInstance.isPlaying();
-    }
-    
-    /**
-     * Returns {@code ture} if there is an instance.
-     *
-     * @return {@code ture} if there is an instance.
-     */
-    public boolean hasSong() {
-        return this.currentInstance != null;
-    }
-    
-    /**
-     * Starts playing the given {@link Song}.
-     * <p>This will cancel currently playing song if there is one.</p>
+     * <p>
+     * If any song was already playing, it is forcefully stopped.
+     * </p>
      *
      * @param song - The song to play.
      */
-    public void startPlaying(@Nonnull Song song) {
-        stopPlaying();
+    public void startPlaying(@NotNull Song song) {
+        this.status = Status.PLAYING;
+        this.currentSong = song.newInstance();
         
-        final SongInstance instance = song.newInstance(plugin);
-        instance.volume(volume);
-        instance.callback(makeCallback(song));
+        this.tickAccumulator = 0.0f;
         
-        this.currentInstance = instance;
-        this.currentInstance.play(getListeners());
+        formatterAll((formatter, player) -> formatter.nowPlaying(player, song));
     }
     
     /**
-     * Sends the NBS message to the given player.
+     * Stops playing the current {@link Song}.
      *
-     * @param player  - The player.
-     * @param message - The message.
+     * @param playNext - {@code true} to play the next song in queue; {@code false} otherwise.
      */
-    public void message(@Nonnull CommandSender player, @Nonnull String message) {
-        Chat.sendMessage(player, PREFIX + message);
-    }
-    
-    /**
-     * Sends the NBS message to the given player.
-     *
-     * @param player  - The player.
-     * @param message - The message.
-     */
-    public void message(@Nonnull CommandSender player, @Nonnull TextComponent.Builder message) {
-        player.sendMessage(Component.text(Chat.format(PREFIX)).append(message));
-    }
-    
-    /**
-     * Sends the NBS message to the all listeners.
-     *
-     * @param message - The message.
-     */
-    public void message(@Nonnull String message) {
-        getListeners().forEach(player -> this.message(player, message));
-    }
-    
-    /**
-     * Sends the NBS message to the all listeners.
-     *
-     * @param message - The message.
-     */
-    public void message(@Nonnull TextComponent.Builder message) {
-        getListeners().forEach(player -> this.message(player, message));
-    }
-    
-    private SongCallback makeCallback(Song song) {
-        return new SongCallback() {
-            @Override
-            public void onStartPlaying() {
-                message("&aNow playing &6%s&a.".formatted(song.getName()));
-                
-                // Display warnings
-                if (!song.isPerfect()) {
-                    final TextComponent.Builder builder = Component.text()
-                                                                   .append(Component.text(" ❗ ", NamedTextColor.GOLD));
-                    
-                    if (!song.isOkOctave()) {
-                        builder.append(
-                                Component.text("Illegal Notes", NamedTextColor.YELLOW, TextDecoration.BOLD, TextDecoration.UNDERLINED)
-                                         .hoverEvent(HoverEvent.showText(Component.text(
-                                                 "Some notes aren't within Minecraft limit of F#0 and F#2 so it might sound off!",
-                                                 NamedTextColor.GOLD
-                                         )))
-                        );
-                        
-                        builder.append(Component.text("  ")); // Don't retain the format
-                    }
-                    
-                    if (!song.isOkTempo()) {
-                        builder.append(
-                                Component.text("Illegal Tempo", NamedTextColor.YELLOW, TextDecoration.BOLD, TextDecoration.UNDERLINED)
-                                         .hoverEvent(HoverEvent.showText(Component.text(
-                                                 "The tempo of the song isn't divisible by 20 so it might sound faster due to tick limitations!",
-                                                 NamedTextColor.GOLD
-                                         )))
-                        );
-                    }
-                    
-                    message(builder);
-                }
-            }
+    public void stopPlaying(boolean playNext) {
+        if (this.currentSong == null) {
+            return;
+        }
+        
+        final Song song = currentSong.getSong();
+        
+        this.status = Status.NOT_PLAYING;
+        this.currentSong = null;
+        
+        this.tickAccumulator = 0.0f;
+        
+        formatterAll((formatter, player) -> formatter.finishedPlaying(player, song));
+        
+        if (playNext) {
+            final Song nextSong = queue.pollNext();
             
-            @Override
-            public void onFinishedPlaying() {
-                stopPlaying();
-                queue.playNext();
-                
-                message("&aFinished playing &6%s&a.".formatted(song.getName()));
+            if (nextSong != null) {
+                startPlaying(nextSong);
             }
+        }
+    }
+    
+    /**
+     * Gets the {@link Status} of this {@link SongPlayer}.
+     *
+     * @return the status of this song player.
+     */
+    @NotNull
+    public Status getStatus() {
+        return status;
+    }
+    
+    /**
+     * Plays the next song in {@link SongQueue}, if any.
+     */
+    public void playNextInQueue() {
+        final Song song = this.queue.pollNext();
+        
+        if (song != null) {
+            startPlaying(song);
+        }
+    }
+    
+    /**
+     * Adds the given {@link Song} to this {@link SongQueue}.
+     *
+     * @param player - The player who added the song.
+     * @param song   - The song to add.
+     */
+    public void addToQueue(@NotNull Player player, @NotNull Song song) {
+        if (this.queue.hasSong(song)) {
+            this.formatter.songCannotBeAddedToQueueDuplicate(player, song);
+        }
+        else {
+            this.queue.add(song);
+            this.formatter.songAddedToQueue(player, song, this.queue.size() - 1);
             
-            @Override
-            public void onPause(boolean pause) {
-                message("%s&a playing &6%s&a.".formatted(pause ? "&ePaused" : "&aResumed", song.getName()));
+            // If nothing is currently playing, start playing the song
+            if (this.currentSong == null) {
+                this.playNextInQueue();
             }
-        };
+        }
+    }
+    
+    /**
+     * Removes the given {@link Song} from this {@link SongQueue}.
+     *
+     * @param player - The player who removed the song.
+     * @param song   - The song to remove.
+     */
+    public void removeFromQueue(@NotNull Player player, @NotNull Song song) {
+        if (!this.queue.hasSong(song)) {
+            this.formatter.songCannotBeRemovedFromQueueNotInQueue(player, song);
+        }
+        else {
+            this.queue.remove(song);
+            this.formatter.songRemovedFromQueue(player, song);
+        }
+    }
+    
+    /**
+     * Advances the current {@link Song} by the given number of seconds.
+     *
+     * <p>
+     * If there is no song currently playing, this method is silently ignored.
+     * </p>
+     *
+     * @param seconds - The number of seconds to advance; use negative value to advance backwards.
+     */
+    public void advanceCurrentSong(final float seconds) {
+        if (this.currentSong == null) {
+            return;
+        }
+        
+        final int tickIncrement = (int) (seconds * currentSong.getSong().getTempo());
+        this.currentSong.advanceTick(tickIncrement);
+    }
+    
+    private void formatterAll(@NotNull BiConsumer<SongFormatter, Player> consumer) {
+        getListeners().forEach(player -> consumer.accept(formatter, player));
+    }
+    
+    /**
+     * Represents the {@link Status} for {@link SongPlayer}.
+     */
+    public enum Status {
+        
+        /**
+         * Defines that nothing is currently playing.
+         */
+        NOT_PLAYING,
+        
+        /**
+         * Defines that a {@link Song} is present and is currently playing.
+         */
+        PLAYING,
+        
+        /**
+         * Defines that a {@link Song} is present, but currently paused.
+         */
+        PAUSED
     }
     
 }

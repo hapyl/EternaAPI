@@ -1,38 +1,43 @@
 package me.hapyl.eterna.module.registry;
 
+import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.util.Capitalizable;
-import me.hapyl.eterna.module.util.Validate;
+import me.hapyl.eterna.module.text.Capitalizable;
 import org.bukkit.NamespacedKey;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * Represents a key to identify an object.
+ * Represents a {@link Key} to identify a {@link Keyed} object.
+ *
+ * <p>
+ * Keys must strictly follow the {@code ^[a-z0-9_]+$} pattern, and are immutable and case-sensitive.
+ * </p>
  *
  * @see Key#ofString(String)
  * @see Key#ofStringOrNull(String)
+ * @see Key#empty()
  * @see Keyed
  */
-public class Key implements Capitalizable {
+public class Key implements Capitalizable, KeyLike, Comparable<Key> {
     
     /**
-     * A pattern that all {@link Key} must match.
+     * Defines the pattern all {@link Key} must match.
      */
     public static final Pattern PATTERN = Pattern.compile("^[a-z0-9_]+$");
     
     /**
-     * A constant used for {@link #empty()} {@link Key}.
+     * Defines the empty constant {@link String} for an {@link #empty()} {@link Key}.
      */
     public static final String EMPTY_KEY_CONSTANT = "_";
     
     /**
-     * An empty {@link Key} instance.
+     * An empty {@link Key} singleton instance.
      *
      * @see #empty()
      */
@@ -40,47 +45,58 @@ public class Key implements Capitalizable {
     
     private final String key;
     
-    public Key(@Nonnull String key) {
-        Validate.isTrue(PATTERN.matcher(key).matches(), "Key '%s' doesn't match the pattern '%s'!".formatted(key, PATTERN.pattern()));
+    /**
+     * Creates a new {@link Key} from the given {@link String}.
+     *
+     * @param key - The string key.
+     * @throws IllegalArgumentException if the key does not match the pattern.
+     */
+    public Key(@NotNull String key) {
+        if (!PATTERN.matcher(key).matches()) {
+            throw new IllegalArgumentException("Key `%s` doesn't match the pattern `%s`!".formatted(key, PATTERN.pattern()));
+        }
+        
         this.key = key;
     }
     
     /**
-     * Gets the actual {@link String} of this {@link Key}.
+     * Gets the {@link String} key of this {@link Key}.
      *
-     * @return the string of this key.
+     * @return the string key of this key object.
      */
-    @Nonnull
+    @NotNull
     public String getKey() {
         return key;
     }
     
     /**
-     * Gets the actual {@link String} of this {@link Key}.
+     * Gets the same {@link Key} object, as for {@link KeyLike} definition.
      *
-     * @return the string of this key.
+     * @return the same key object.
      */
+    @NotNull
     @Override
-    public String toString() {
-        return key;
+    public final Key key() {
+        return this;
     }
     
     /**
-     * Returns true if this key is empty.
+     * Gets whether this {@link Key} is empty.
      *
-     * @return true if this key is empty.
+     * @return {@code true} if this key is empty; {@code false} otherwise.
      */
     public boolean isEmpty() {
         return this.equals(EMPTY);
     }
     
     /**
-     * Ensures that this key is not empty.
-     * <p>If the key is empty, an {@link IllegalArgumentException} is thrown.</p>
+     * Gets the same {@link Key} object if it's not empty; throws an {@link IllegalArgumentException} otherwise.
      *
-     * <p>This method returns {@code this} to allow for fluent method chaining.</p>
+     * <p>
+     * This is a helper method used for a strict non-empty key validations.
+     * </p>
      *
-     * @throws IllegalArgumentException – If the key is empty
+     * @throws IllegalArgumentException if the key is empty.
      */
     @SelfReturn
     public Key nonEmpty() throws IllegalArgumentException {
@@ -92,30 +108,30 @@ public class Key implements Capitalizable {
     }
     
     /**
-     * Returns true if the given {@link String} matches the {@link Key} exactly.
+     * Gets whether this {@link Key} matches the given {@link String}.
      *
-     * @param string - String to check.
-     * @return true if the given string matches the key exactly.
+     * @param string - The string to check.
+     * @return {@code true} if the given string matches this key exactly; {@code false} otherwise.
      */
-    public boolean isKeyMatches(@Nonnull String string) {
+    public boolean isKeyMatches(@NotNull String string) {
         return key.equals(string);
     }
     
     /**
-     * Returns true if the given {@link String} matches the {@link Key} ignoring the case.
+     * Gets the hash code of this {@link Key}.
      *
-     * @param string - String to check.
-     * @return true if the given string matches the key ignoring the case.
+     * @return the hash code of this key.
      */
-    public boolean isKeyMatchesIgnoreCase(@Nonnull String string) {
-        return key.equalsIgnoreCase(string);
+    @Override
+    public final int hashCode() {
+        return Objects.hashCode(key);
     }
     
     /**
-     * Returns true if the given object is a {@link Key} and it matches the string of this key.
+     * Gets whether the given {@link Object} equals to this {@link Key}.
      *
-     * @param object - Object to compare.
-     * @return true if the given object is equals to this one.
+     * @param object - The object to compare.
+     * @return {@code true} if the given object is a key and their key matches; {@code false} otherwise.
      */
     @Override
     public final boolean equals(Object object) {
@@ -128,26 +144,29 @@ public class Key implements Capitalizable {
         }
         
         final Key that = (Key) object;
-        return Objects.equals(key, that.key);
+        return Objects.equals(this.key, that.key);
     }
     
     /**
-     * Gets the hash code of this key.
+     * Gets the {@link String} representation of this {@link Key}.
      *
-     * @return the hash code of this key.
+     * @return the string representation of this key.
      */
     @Override
-    public final int hashCode() {
-        return Objects.hashCode(key);
+    public String toString() {
+        return key;
     }
     
     /**
-     * Gets a {@link NamespacedKey} representation of this {@link Key}.
-     * <p>The namespace always belongs to {@code Eterna}</p>
+     * Converts this {@link Key} into a {@link NamespacedKey}.
      *
-     * @return a {@link NamespacedKey} representation of this {@link Key}.
+     * <p>
+     * The namespace of the {@link NamespacedKey} always belongs to {@link EternaPlugin}.
+     * </p>
+     *
+     * @return a namespaced key with this key.
      */
-    @Nonnull
+    @NotNull
     public final NamespacedKey asNamespacedKey() {
         return BukkitUtils.createKey(key);
     }
@@ -157,49 +176,58 @@ public class Key implements Capitalizable {
      *
      * @return the capitalized value.
      */
-    @Nonnull
+    @NotNull
     @Override
     public String capitalize() {
         return Capitalizable.capitalize(key.replace("_", " "));
     }
     
     /**
-     * A factory method for creating {@link Key}s.
-     * <p>This returns {@link #empty()} {@link Key} for empty strings and {@link #EMPTY_KEY_CONSTANT}.</p>
+     * Compares this {@link Key} to another.
      *
-     * @param string - Id.
-     * @return a new string.
-     * @throws IllegalArgumentException if the given string does not match the {@link #PATTERN}.
+     * @param key - The key to compare to.
+     * @return {@code 0} if the keys are identical, {@code < 0} if this key is shorter, {@code > 0} if this key is longer.
      */
-    @Nonnull
-    public static Key ofString(@Nonnull String string) {
+    @Override
+    public int compareTo(@NotNull Key key) {
+        return this.key.compareTo(key.key);
+    }
+    
+    /**
+     * A static factory method for creating {@link Key} from the given {@link String}.
+     *
+     * @param string - The string to use as a key.
+     * @return a new key object.
+     * @throws IllegalArgumentException if the key does not match the pattern.
+     */
+    @NotNull
+    public static Key ofString(@NotNull String string) {
         return new Key(string);
     }
     
     /**
-     * A factory method for creating {@link Key}s.
+     * A static factory method for creating {@link Key} from the given {@link String}.
      *
-     * @param string - Id.
-     * @return a new string or null, if the string is invalid.
+     * @param string - The string to use as a key.
+     * @return a new key if the string matches the pattern; {@code null} otherwise.
      */
     @Nullable
-    public static Key ofStringOrNull(@Nonnull String string) {
-        try {
-            return ofString(string);
-        }
-        catch (Exception e) {
-            return null;
-        }
+    public static Key ofStringOrNull(@NotNull String string) {
+        return isStringValid(string) ? new Key(string) : null;
     }
     
     /**
-     * Creates a new {@link Key} based on the given {@link UUID}.
+     * A static factory method for creating {@link Key} from the given {@link UUID}.
      *
-     * @param uuid - The uuid to convert to a {@link Key}.
+     * <p>
+     * The uuid will be lowercased and all occurrences of {@code -} will be replaced with {@code _}.
+     * </p>
+     *
+     * @param uuid - The uuid to convert to a key.
      * @return a new key.
      */
-    @Nonnull
-    public static Key ofUuid(@Nonnull UUID uuid) {
+    @NotNull
+    public static Key ofUuid(@NotNull UUID uuid) {
         return ofString(uuid.toString()
                             .replace("-", "_")
                             .toLowerCase()
@@ -207,34 +235,45 @@ public class Key implements Capitalizable {
     }
     
     /**
-     * Creates a new random {@link Key}.
+     * A static factory method for creating a random {@link Key}.
+     *
+     * <p>
+     * This method uses a random {@link UUID} and converts it into a {@link Key}.
+     * </p>
+     *
+     * <p>
+     * Note that this is a method intended to be used for development only, since the sole point ot {@link Key}
+     * of to identify objects, so using a random key defeats the purpose of that.
+     * </p>
      *
      * @return a new random key.
      */
-    @Nonnull
+    @NotNull
     public static Key ofRandom() {
         return ofUuid(UUID.randomUUID());
     }
     
     /**
-     * Gets an empty {@link Key} instance.
-     * <br>
-     * The returned {@link Key} is guaranteed to return true when {@link #isEmpty()} is called.
+     * Gets the empty {@link Key} instance.
      *
-     * @return an empty ket.
+     * <p>
+     * The instance returned is guaranteed to return {@code true} when {@link #isEmpty()} is called.
+     * </p>
+     *
+     * @return an empty key instance.
      */
-    @Nonnull
+    @NotNull
     public static Key empty() {
         return EMPTY;
     }
     
     /**
-     * Returns true if the given string matches the {@link #PATTERN}.
+     * Gets whether the given {@link String} matches the {@link Key} pattern.
      *
-     * @param string - String to check.
-     * @return true if the given string matches the {@link #PATTERN}, false otherwise.
+     * @param string - The string to check.
+     * @return {@code true} if the given string matches the key pattern; {@code false} otherwise.
      */
-    public static boolean isStringValid(@Nonnull String string) {
+    public static boolean isStringValid(@NotNull String string) {
         return PATTERN.matcher(string).matches();
     }
 }

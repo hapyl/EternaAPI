@@ -1,9 +1,11 @@
 package me.hapyl.eterna.module.inventory;
 
 import com.mojang.datafixers.util.Pair;
-import me.hapyl.eterna.module.nms.NmsHelper;
+import me.hapyl.eterna.module.annotate.SelfReturn;
+import me.hapyl.eterna.module.nms.NmsConverters;
 import me.hapyl.eterna.module.nms.NmsWrapper;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.util.Buildable;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -11,40 +13,42 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * A {@link EntityEquipment} implementation supporting all {@link EquipmentSlot}s.
+ * A {@link EntityEquipment} implementation supporting all {@link EquipmentSlot}.
  */
 public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>>> {
     
     private final ItemStack[] items;
     
+    /**
+     * Creates a new {@link Equipment}.
+     */
     public Equipment() {
         this.items = new ItemStack[EquipmentSlot.values().length];
     }
     
     /**
-     * Equips this equipment to the given entity.
+     * Equips this {@link Equipment} to the given {@link LivingEntity}.
      *
      * @param entity - The entity to equip to.
      */
-    public void equip(@Nonnull LivingEntity entity) {
+    public void equip(@NotNull LivingEntity entity) {
         equip(entity, false);
     }
     
     /**
-     * Equips this equipment to the given entity.
+     * Equips this {@link Equipment} to the given {@link LivingEntity}.
      *
      * @param entity - The entity to equip to.
-     * @param silent - Whether the equipment should be silent.
+     * @param silent - {@code true} to equip without a sound, {@code false} otherwise.
      */
-    public void equip(@Nonnull LivingEntity entity, boolean silent) {
+    public void equip(@NotNull LivingEntity entity, boolean silent) {
         // zero fucking docs why it can be null so requiring non-null
         final EntityEquipment equipment = Objects.requireNonNull(entity.getEquipment(), "%s does not support equipment!".formatted(entity));
         
@@ -58,22 +62,22 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
     }
     
     @Override
-    public void setItem(@Nonnull EquipmentSlot slot, @Nullable ItemStack item) {
+    public void setItem(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
         this.items[slot.ordinal()] = item;
     }
     
     @Override
-    public void setItem(@Nonnull EquipmentSlot slot, @Nullable ItemStack item, boolean silent) {
+    public void setItem(@NotNull EquipmentSlot slot, @Nullable ItemStack item, boolean silent) {
         setItem(slot, item);
     }
     
-    @Nonnull
+    @NotNull
     @Override
-    public ItemStack getItem(@Nonnull EquipmentSlot slot) {
+    public ItemStack getItem(@NotNull EquipmentSlot slot) {
         return byIndex(slot.ordinal());
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public ItemStack getItemInMainHand() {
         return getItem(EquipmentSlot.HAND);
@@ -89,7 +93,7 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
         setItemInMainHand(item);
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public ItemStack getItemInOffHand() {
         return getItem(EquipmentSlot.OFF_HAND);
@@ -105,7 +109,7 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
         setItemInOffHand(item);
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public ItemStack getItemInHand() {
         return getItemInMainHand();
@@ -176,20 +180,41 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
         setBoots(boots);
     }
     
-    @Nonnull
+    @NotNull
     @Override
-    public ItemStack[] getArmorContents() {
+    public ItemStack @NotNull [] getArmorContents() {
         return Arrays.copyOf(items, items.length);
     }
     
     @Override
-    public void setArmorContents(@Nonnull ItemStack[] items) {
+    public void setArmorContents(@NotNull ItemStack @NotNull [] items) {
         System.arraycopy(items, 0, this.items, 0, this.items.length);
     }
     
     @Override
     public void clear() {
         Arrays.fill(this.items, null);
+    }
+    
+    @NotNull
+    @Override
+    public List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> toNms() {
+        return Arrays.stream(EquipmentSlot.values())
+                     .map(equipmentSlot -> {
+                         final ItemStack itemOnSlot = getItem(equipmentSlot);
+                         
+                         // We filter null afterwards
+                         if (itemOnSlot.isEmpty()) {
+                             return null;
+                         }
+                         
+                         return Pair.of(
+                                 NmsConverters.EQUIPMENT_SLOT.toNms(equipmentSlot),
+                                 Reflect.bukkitItemAsVanilla(itemOnSlot)
+                         );
+                     })
+                     .filter(Objects::nonNull)
+                     .toList();
     }
     
     @Override
@@ -276,7 +301,7 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
         throw new UnsupportedOperationException();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     @Deprecated
     public Entity getHolder() {
@@ -295,28 +320,7 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
         throw new UnsupportedOperationException();
     }
     
-    @Nonnull
-    @Override
-    public List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> wrapToNms() {
-        return Arrays.stream(EquipmentSlot.values())
-                     .map(equipmentSlot -> {
-                         final ItemStack itemOnSlot = getItem(equipmentSlot);
-                         
-                         // We filter null afterwards
-                         if (itemOnSlot.isEmpty()) {
-                             return null;
-                         }
-                         
-                         return Pair.of(
-                                 NmsHelper.EQUIPMENT_SLOT.toNms(equipmentSlot),
-                                 Reflect.bukkitItemToNMS(itemOnSlot)
-                         );
-                     })
-                     .filter(Objects::nonNull)
-                     .toList();
-    }
-    
-    @Nonnull
+    @NotNull
     private ItemStack byIndex(int index) {
         if (index < 0 || index >= items.length) {
             return new ItemStack(Material.AIR);
@@ -327,13 +331,13 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
     }
     
     /**
-     * Creates {@link Equipment} from the given entity.
+     * A static factory method to create an {@link Equipment}, copying the given {@link LivingEntity} equipment.
      *
-     * @param entity - The entity whose equipment to clone.
-     * @return new equipment from the given entity.
+     * @param entity - The entity whose equipment to copy.
+     * @return {@code equipment} with items copied from the {@code entity}.
      */
-    @Nonnull
-    public static Equipment of(@Nonnull LivingEntity entity) {
+    @NotNull
+    public static Equipment copyOf(@NotNull LivingEntity entity) {
         final Equipment equipment = new Equipment();
         final EntityEquipment entityEquipment = entity.getEquipment();
         
@@ -350,12 +354,12 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
     }
     
     /**
-     * Creates a copy of the given {@link Equipment}, or an empty {@link Equipment} if {@code null}.
+     * A static factory method to create an {@link Equipment}, copying the items from the given {@link Equipment}.
      *
      * @param equipment - The equipment to copy.
-     * @return a copy of the given {@link Equipment}, or an empty {@link Equipment} if {@code null}.
+     * @return {@code equipment} with items copied from the given {@code equipment}.
      */
-    @Nonnull
+    @NotNull
     public static Equipment copyOf(@Nullable Equipment equipment) {
         final Equipment copy = new Equipment();
         
@@ -373,16 +377,20 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
      *
      * @return a new builder.
      */
-    @Nonnull
+    @NotNull
     public static Builder builder() {
         return new Builder();
     }
     
-    private static ItemStack itemCopyOrNull(ItemStack item) {
+    @Nullable
+    private static ItemStack itemCopyOrNull(@Nullable ItemStack item) {
         return item != null ? new ItemStack(item) : null;
     }
     
-    public static class Builder implements me.hapyl.eterna.module.util.Builder<Equipment> {
+    /**
+     * Builder for creating {@link Equipment}.
+     */
+    public static class Builder implements Buildable<Equipment> {
         
         private final Equipment equipment;
         
@@ -390,77 +398,177 @@ public class Equipment implements EntityEquipment, NmsWrapper<List<Pair<net.mine
             this.equipment = new Equipment();
         }
         
-        public Builder mainHand(@Nonnull ItemStack item) {
+        /**
+         * Sets the item in {@link EquipmentSlot#HAND}.
+         *
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder mainHand(@NotNull ItemStack item) {
             return set(EquipmentSlot.HAND, item);
         }
         
-        public Builder mainHand(@Nonnull Material material) {
+        /**
+         * Sets the material in {@link EquipmentSlot#HAND}.
+         *
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder mainHand(@NotNull Material material) {
             return mainHand(new ItemStack(material));
         }
         
-        public Builder offHand(@Nonnull ItemStack item) {
+        /**
+         * Sets the item in {@link EquipmentSlot#OFF_HAND}.
+         *
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder offHand(@NotNull ItemStack item) {
             return set(EquipmentSlot.OFF_HAND, item);
         }
         
-        public Builder offHand(@Nonnull Material material) {
+        /**
+         * Sets the material in {@link EquipmentSlot#OFF_HAND}.
+         *
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder offHand(@NotNull Material material) {
             return offHand(new ItemStack(material));
         }
         
-        public Builder boots(@Nonnull ItemStack item) {
+        /**
+         * Sets the item in {@link EquipmentSlot#FEET}.
+         *
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder boots(@NotNull ItemStack item) {
             return set(EquipmentSlot.FEET, item);
         }
         
-        public Builder boots(@Nonnull Material material) {
+        /**
+         * Sets the material in {@link EquipmentSlot#FEET}.
+         *
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder boots(@NotNull Material material) {
             return boots(new ItemStack(material));
         }
         
-        public Builder leggings(@Nonnull ItemStack item) {
+        /**
+         * Sets the item in {@link EquipmentSlot#LEGS}.
+         *
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder leggings(@NotNull ItemStack item) {
             return set(EquipmentSlot.LEGS, item);
         }
         
-        public Builder leggings(@Nonnull Material material) {
+        /**
+         * Sets the material in {@link EquipmentSlot#LEGS}.
+         *
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder leggings(@NotNull Material material) {
             return leggings(new ItemStack(material));
         }
         
-        public Builder chestPlate(@Nonnull ItemStack item) {
+        /**
+         * Sets the item in {@link EquipmentSlot#CHEST}.
+         *
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder chestPlate(@NotNull ItemStack item) {
             return set(EquipmentSlot.CHEST, item);
         }
         
-        public Builder chestPlate(@Nonnull Material material) {
+        /**
+         * Sets the material in {@link EquipmentSlot#CHEST}.
+         *
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder chestPlate(@NotNull Material material) {
             return chestPlate(new ItemStack(material));
         }
         
-        public Builder helmet(@Nonnull ItemStack item) {
+        /**
+         * Sets the item in {@link EquipmentSlot#HEAD}.
+         *
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder helmet(@NotNull ItemStack item) {
             return set(EquipmentSlot.HEAD, item);
         }
         
-        public Builder helmet(@Nonnull Material material) {
+        /**
+         * Sets the material in {@link EquipmentSlot#HEAD}.
+         *
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder helmet(@NotNull Material material) {
             return helmet(new ItemStack(material));
         }
         
-        public Builder body(@Nonnull ItemStack item) {
+        /**
+         * Sets the item in {@link EquipmentSlot#BODY}.
+         *
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder body(@NotNull ItemStack item) {
             return set(EquipmentSlot.BODY, item);
         }
         
-        public Builder body(@Nonnull Material material) {
+        /**
+         * Sets the material in {@link EquipmentSlot#BODY}.
+         *
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder body(@NotNull Material material) {
             return body(new ItemStack(material));
         }
         
-        public Builder set(@Nonnull EquipmentSlot slot, @Nonnull ItemStack item) {
+        /**
+         * Sets the item in the given {@link EquipmentSlot}.
+         *
+         * @param slot - The slot to set.
+         * @param item - The item to equip.
+         */
+        @SelfReturn
+        public Builder set(@NotNull EquipmentSlot slot, @NotNull ItemStack item) {
             this.equipment.setItem(slot, item);
             return this;
         }
         
-        public Builder set(@Nonnull EquipmentSlot slot, @Nonnull Material material) {
+        /**
+         * Sets the material in the given {@link EquipmentSlot}.
+         *
+         * @param slot     - The slot to set.
+         * @param material - The material to equip.
+         */
+        @SelfReturn
+        public Builder set(@NotNull EquipmentSlot slot, @NotNull Material material) {
             return set(slot, new ItemStack(material));
         }
         
-        @Nonnull
+        /**
+         * Builds the configured {@link Equipment}.
+         */
+        @NotNull
         @Override
         public Equipment build() {
             return this.equipment;
         }
     }
-    
     
 }

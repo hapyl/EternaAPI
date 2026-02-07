@@ -1,32 +1,32 @@
 package me.hapyl.eterna.module.nms;
 
 import org.jetbrains.annotations.ApiStatus;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a converter between a Bukkit and Nms.
+ * Represents a converter between {@code bukkit} and {@code nms}.
  *
- * @param <B> - The Bukkit type.
- * @param <N> - The Nms type.
+ * @param <B> - The {@code bukkit} value type.
+ * @param <N> - The {@code nms} value type.
  */
 @ApiStatus.Internal
 public interface NmsConverter<B, N> {
-    /**
-     * Gets the bukkit object from the given Nms object.
-     *
-     * @param n - The Nms object.
-     * @return the bukkit object from the given Nms object.
-     */
-    @Nonnull
-    B toBukkit(@Nonnull N n);
     
     /**
-     * Gets the Nms object from the given bukkit type.
+     * Converts this object into a {@code bukkit} object.
      *
-     * @param b - The bukkit type.
-     * @return the Nms object from the given bukkit type.
+     * @param n - The {@code nms} object.
+     * @return this object as {@code bukkit}.
      */
-    @Nonnull
-    N toNms(@Nonnull B b);
+    @NotNull
+    B toBukkit(@NotNull N n);
+    
+    /**
+     * Converts this object into a {@code nms} object.
+     *
+     * @param b - The {@code bukkit} object.
+     * @return this object as {@code nms}.
+     */
+    @NotNull
+    N toNms(@NotNull B b);
 }

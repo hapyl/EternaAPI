@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.component.builder;
 
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -11,13 +12,13 @@ import java.util.Map;
 public final class ComponentSupplierLiteral implements ComponentSupplier {
     private final Component component;
     
-    ComponentSupplierLiteral(@Nonnull Component component) {
+    ComponentSupplierLiteral(@NotNull Component component) {
         this.component = component;
     }
     
-    @Nonnull
+    @NotNull
     @Override
-    public Component supply(@Nonnull Map<String, Component> components) {
+    public Component supply(@NotNull Map<String, Component> components) {
         return component;
     }
 }

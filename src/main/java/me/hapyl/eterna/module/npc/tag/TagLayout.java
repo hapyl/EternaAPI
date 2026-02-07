@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.npc.tag;
 
 import me.hapyl.eterna.module.npc.Npc;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -26,7 +27,7 @@ import java.util.Arrays;
  *
  * @param parts - The tag parts.
  */
-public record TagLayout(@Nonnull TagPart... parts) {
+public record TagLayout(@NotNull TagPart... parts) {
     
     /**
      * Defines the default layout, consisting of {@link Npc} name.
@@ -44,7 +45,7 @@ public record TagLayout(@Nonnull TagPart... parts) {
      * @return a copy of the tag parts.
      */
     @Override
-    @Nonnull
+    @NotNull
     public TagPart[] parts() {
         return Arrays.copyOf(parts, parts.length);
     }

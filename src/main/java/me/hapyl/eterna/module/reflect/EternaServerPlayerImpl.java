@@ -3,12 +3,14 @@ package me.hapyl.eterna.module.reflect;
 import com.mojang.authlib.GameProfile;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.entity.Showable;
+import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.player.tablist.PingBars;
 import me.hapyl.eterna.module.reflect.nulls.NullConnection;
 import me.hapyl.eterna.module.reflect.nulls.NullPacketListener;
 import me.hapyl.eterna.module.reflect.packet.PacketFactory;
-import me.hapyl.eterna.module.util.BukkitUtils;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,20 +19,29 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-@ApiStatus.Internal
+/**
+ * Represents an internal implementation of {@link ServerPlayer} that may be shown via packets.
+ */
 public class EternaServerPlayerImpl extends ServerPlayer implements Showable {
-    
-    public final EternaPlayerPacketFactory packetFactory;
     
     private Location location;
     
-    public EternaServerPlayerImpl(@Nonnull Location location, @Nonnull String name, @Nonnull Skin skin) {
+    /**
+     * Creates a new {@link EternaServerPlayerImpl}.
+     *
+     * @param location - The location to create the server player at.
+     * @param name     - The name of the server player.
+     * @param skin     - The skin of the server player.
+     */
+    @ApiStatus.Internal
+    public EternaServerPlayerImpl(@NotNull Location location, @NotNull String name, @NotNull Skin skin) {
         super(
                 Reflect.getMinecraftServer(),
                 Reflect.getHandle(location.getWorld()),
@@ -38,22 +49,14 @@ public class EternaServerPlayerImpl extends ServerPlayer implements Showable {
                 ClientInformation.createDefault()
         );
         
-        this.packetFactory = new EternaPlayerPacketFactory();
         this.location = location;
-        
-        setConnection();
-    }
-    
-    @Override
-    public UUID getUUID() {
-        return getGameProfile().id();
+        this.setConnection();
     }
     
     /**
      * Sets the ping of this {@link EternaServerPlayerImpl}.
      *
-     * @param ping - New ping.
-     * @see PingBars
+     * @param ping - The ping to set.
      */
     public void setPing(int ping) {
         try {
@@ -64,107 +67,232 @@ public class EternaServerPlayerImpl extends ServerPlayer implements Showable {
         }
     }
     
-    public void setPing(@Nonnull PingBars bars) {
-        setPing(bars.getValue());
+    /**
+     * Sets the ping of this {@link EternaServerPlayerImpl}.
+     *
+     * @param bars - The ping to set.
+     */
+    public void setPing(@NotNull PingBars bars) {
+        setPing(bars.getMagicValue());
     }
     
-    public void updatePing(@Nonnull Player player) {
-        final ClientboundPlayerInfoUpdatePacket packet = packetFactory.getPacketUpdatePing();
+    /**
+     * Updates the ping bars for the given {@link Player}.
+     *
+     * @param player - The player for whom to update the ping.
+     */
+    public void updatePing(@NotNull Player player) {
+        final ClientboundPlayerInfoUpdatePacket packet = PacketFactory.makePacketPlayerInfoUpdate(this, ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY);
         
         Reflect.sendPacket(player, packet);
     }
     
-    public void setTexture(@Nonnull Skin newTextures) {
+    /**
+     * Sets the {@link Skin} of this {@link EternaServerPlayerImpl}.
+     *
+     * @param newTextures - The textures to set.
+     */
+    public void setTexture(@NotNull Skin newTextures) {
         Reflect.setTextures(this, newTextures);
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link GameProfile} of this {@link EternaServerPlayerImpl}.
+     *
+     * @return the game profile of this server player.
+     */
+    @NotNull
     public GameProfile getProfile() {
-        return getGameProfile();
+        return gameProfile;
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link ClientInformation} of this {@link EternaServerPlayerImpl}.
+     *
+     * @return the client information of this server player.
+     */
+    @NotNull
     public ClientInformation getClientInformation() {
         return this.clientInformation();
     }
     
+    /**
+     * Gets the id of this {@link EternaServerPlayerImpl}.
+     *
+     * @return the id of this server player.
+     */
     public int getEntityId() {
-        return getId();
+        return super.getId();
     }
     
-    @Nonnull
+    /**
+     * Gets a {@link Location} copy of this {@link EternaServerPlayerImpl}.
+     *
+     * @return a copy of the location of this server player.
+     */
+    @NotNull
     public Location getLocation() {
-        return BukkitUtils.newLocation(location);
+        return LocationHelper.copyOf(location);
     }
     
-    public void setLocation(@Nonnull Location location) {
+    /**
+     * Sets the {@link Location} of this {@link EternaServerPlayerImpl}.
+     *
+     * <p>
+     * This method only modifies the {@link Location}, but does not update the location.
+     * </p>
+     *
+     * @param location - The location to set.
+     */
+    public void setLocation(@NotNull Location location) {
         this.location = location;
         
-        absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        super.absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
     
+    /**
+     * Sets the {@code yaw} and {@code pitch} of this {@link EternaServerPlayerImpl}.
+     *
+     * @param yaw   - The yaw to set.
+     * @param pitch - The pitch to set.
+     */
     public void setYawPitch(float yaw, float pitch) {
         absSnapTo(location.getX(), location.getY(), location.getZ(), yaw, pitch);
     }
     
-    public void setDataWatcherByteValue(int key, byte value) {
-        Reflect.setEntityDataValue(this, EntityDataType.BYTE, key, value);
+    /**
+     * Sets the {@code byte} value of the {@link SynchedEntityData}.
+     *
+     * @param key   - The value key.
+     * @param value - The value to set.
+     */
+    public void setEntityDataByteValue(int key, byte value) {
+        Reflect.setEntityDataValue(this, EntityDataSerializers.BYTE, key, value);
     }
     
-    public <D> void setDataWatcherValue(@Nonnull EntityDataType<D> type, int key, @Nonnull D value) {
+    /**
+     * Sets the value of the {@link SynchedEntityData}.
+     *
+     * @param type  - The value type.
+     * @param key   - The value key.
+     * @param value - The value to set.
+     * @param <D>   - The value type.
+     */
+    public <D> void setEntityDataValue(@NotNull EntityDataSerializer<D> type, int key, @NotNull D value) {
         Reflect.setEntityDataValue(this, type, key, value);
     }
     
-    public byte getDataWatcherByteValue(int key) {
-        return Reflect.getEntityDataValue(this, EntityDataType.BYTE, key).orElse((byte) 0);
+    /**
+     * Gets the {@code byte} value of the {@link SynchedEntityData}.
+     *
+     * @param key - The key to retrieve the value at.
+     * @return the {@code byte} value, or {@link Byte#MIN_VALUE} if unset.
+     */
+    public byte getEntityDataByteValue(int key) {
+        return Reflect.getEntityDataValue(this, EntityDataSerializers.BYTE, key).orElse(Byte.MIN_VALUE);
     }
     
-    @Nonnull
-    public SynchedEntityData getDataWatcher() {
-        return Reflect.getEntityData(this);
+    /**
+     * Gets the value of the {@link SynchedEntityData}.
+     *
+     * @param type - The value type.
+     * @param key  - The key to retrieve the value at.
+     * @param <D>  - The value type.
+     * @return the value wrapped in an optional.
+     */
+    @NotNull
+    public <D> Optional<D> getEntityDataValue(@NotNull EntityDataSerializer<D> type, int key) {
+        return Reflect.getEntityDataValue(this, type, key);
     }
     
-    public void updateMetadata(@Nonnull Collection<Player> players) {
-        for (Player player : players) {
-            Reflect.updateEntityData(this, getDataWatcher(), player);
-        }
+    /**
+     * Gets the {@link SynchedEntityData}.
+     *
+     * @return the entity data.
+     */
+    @NotNull
+    @Override
+    public SynchedEntityData getEntityData() {
+        return super.getEntityData();
     }
     
-    public void updateMetadata(@Nonnull Player player) {
-        Reflect.updateEntityData(this, getDataWatcher(), player);
+    /**
+     * Gets the {@link UUID} of this {@link EternaServerPlayerImpl}.
+     *
+     * @return the uuid of this server player.
+     */
+    @Override
+    @NotNull
+    public UUID getUUID() {
+        return getGameProfile().id();
     }
     
-    public void hideTabName(@Nonnull Player player) {
-        final ClientboundPlayerInfoRemovePacket packet = packetFactory.getPacketRemovePlayer();
+    /**
+     * Updates the metadata for the given {@link Player}.
+     *
+     * @param player - The player for whom to update the metadata.
+     */
+    public void updateMetadata(@NotNull Player player) {
+        Reflect.updateEntityData(player, this);
+    }
+    
+    /**
+     * Hides the name of this {@link EternaServerPlayerImpl} from the tab-list for the given {@link Player}.
+     *
+     * @param player - The player for whom to hide the tab-list name.
+     */
+    public void hideTabName(@NotNull Player player) {
+        final ClientboundPlayerInfoRemovePacket packet = PacketFactory.makePacketPlayerInfoRemove(this);
         
         Reflect.sendPacket(player, packet);
     }
     
-    public void updateLocation(@Nonnull Player player) {
+    /**
+     * Updates the {@link Location} of this {@link EternaServerPlayerImpl} for the given {@link Player}.
+     *
+     * @param player - The player for whom to update the location.
+     */
+    public void updateLocation(@NotNull Player player) {
         Reflect.updateEntityLocation(this, player);
     }
     
+    /**
+     * Shows this {@link EternaServerPlayerImpl} for the given {@link Player}.
+     *
+     * @param player - The player for whom this entity should be shown.
+     */
     @Override
-    public void show(@Nonnull Player player) {
-        Reflect.sendPacket(player, packetFactory.getPacketAddPlayer());
+    public void show(@NotNull Player player) {
+        Reflect.sendPacket(player, PacketFactory.makePacketPlayerInfoUpdate(this, ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER));
     }
     
+    /**
+     * Hides this {@link EternaServerPlayerImpl} for the given {@link Player}.
+     *
+     * @param player - The player for whom this entity should be hidden.
+     */
     @Override
-    public void hide(@Nonnull Player player) {
-        Reflect.sendPacket(player, packetFactory.getPacketRemovePlayer());
+    public void hide(@NotNull Player player) {
+        Reflect.sendPacket(player, PacketFactory.makePacketPlayerInfoRemove(this));
     }
     
-    @Nonnull
+    /**
+     * Gets an <b>immutable</b> collection of {@link Player} for whom this {@link EternaServerPlayerImpl} is visible.
+     *
+     * <p>
+     * The base {@link EternaServerPlayerImpl} does not handle player caching and always returns an empty {@link List}.
+     * </p>
+     *
+     * @return an <b>immutable</b> collection of players for whom this server player is visible.
+     */
+    @NotNull
     @Override
     public Collection<Player> showingTo() {
         return List.of();
     }
     
+    @ApiStatus.Internal
     void setConnection() {
-        if (this.connection != null) {
-            return;
-        }
-        
         try {
             this.connection = new NullPacketListener(
                     Reflect.getMinecraftServer(),
@@ -177,54 +305,5 @@ public class EternaServerPlayerImpl extends ServerPlayer implements Showable {
             throw EternaLogger.acknowledgeException(e);
         }
     }
-    
-    public class EternaPlayerPacketFactory {
-        @Nonnull
-        public ClientboundTeleportEntityPacket getPacketTeleport() {
-            return PacketFactory.makePacketTeleportEntity(EternaServerPlayerImpl.this);
-        }
-        
-        @Nonnull
-        public ClientboundRotateHeadPacket getPacketEntityHeadRotation(float yaw) {
-            return PacketFactory.makePacketRotateHead(EternaServerPlayerImpl.this, yaw);
-        }
-        
-        @Nonnull
-        public ClientboundPlayerInfoUpdatePacket getPacketAddPlayer() {
-            return PacketFactory.makePacketPlayerInfoUpdate(EternaServerPlayerImpl.this, ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER);
-        }
-        
-        @Nonnull
-        public ClientboundPlayerInfoUpdatePacket getPacketInitPlayer() {
-            return PacketFactory.makePacketPlayerInitialization(EternaServerPlayerImpl.this);
-        }
-        
-        @Nonnull
-        public ClientboundPlayerInfoUpdatePacket getPacketUpdatePing() {
-            return PacketFactory.makePacketPlayerInfoUpdate(EternaServerPlayerImpl.this, ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY);
-        }
-        
-        @Nonnull
-        public ClientboundPlayerInfoUpdatePacket getPacketUpdateDisplayName() {
-            return PacketFactory.makePacketPlayerInfoUpdate(EternaServerPlayerImpl.this, ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME);
-        }
-        
-        @Nonnull
-        public ClientboundPlayerInfoRemovePacket getPacketRemovePlayer() {
-            return PacketFactory.makePacketPlayerInfoRemove(EternaServerPlayerImpl.this);
-        }
-        
-        @Nonnull
-        public ClientboundAddEntityPacket getPacketEntitySpawn() {
-            return PacketFactory.makePacketAddEntity(EternaServerPlayerImpl.this, location);
-        }
-        
-        @Nonnull
-        public ClientboundRemoveEntitiesPacket getPacketEntityDestroy() {
-            return PacketFactory.makePacketRemoveEntity(EternaServerPlayerImpl.this);
-        }
-        
-    }
-    
     
 }

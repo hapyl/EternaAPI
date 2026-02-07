@@ -1,146 +1,154 @@
 package me.hapyl.eterna.module.registry;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * A generic registry interface that holds elements of type {@code T} that extend {@link Keyed}.
- * Allows for registering, retrieving, and unregistering elements by their {@link Key}.
+ * Represents a {@link Registry} that maps {@link Key} to a {@link Keyed} object.
  *
- * @param <T> - The type of elements stored in the registry, which must extend {@link Keyed}.
+ * @param <K> - The keyed object type.
  */
-public interface Registry<T extends Keyed> {
-
+public interface Registry<K extends Keyed> extends Iterable<K> {
+    
     /**
-     * Gets the element by its {@link Key} or {@code null} if not registered.
+     * Retrieves the {@link K} object from this {@link Registry} wrapped in an {@link Optional}.
      *
-     * @param key - The {@link Key} of the element to retrieve.
-     * @return the element associated with the key, or {@code null} if not registered.
+     * <p>
+     * This method returns {@link Optional#empty()} is there are no elements mapped by the given {@link Key}.
+     * </p>
+     *
+     * @param key - The key retrieve the element at.
+     * @return the keyed object wrapped in an optional.
      */
-    @Nullable
-    T get(@Nonnull Key key);
-
+    @NotNull
+    Optional<K> get(@NotNull Key key);
+    
     /**
-     * Gets the element by its {@link Key} derived from a string ID or returns {@code null} if not registered or the {@link String} is invalid.
+     * Retrieves the {@link K} object from this {@link Registry} wrapped in an {@link Optional}.
      *
-     * @param string - The string ID to convert to a {@link Key}.
-     * @return the element associated with the key, or {@code null} if not registered.
+     * <p>
+     * This is a convenience method that converts the given {@link String} into a {@link Key} before retrieves an object.
+     * If the given {@link String} isn't a valid {@link Key}, an {@link Optional#empty()} is returned.
+     * </p>
+     *
+     * @param key - The string key to retrieve the element at.
+     * @return the keyed object wrapped in an optional.
      */
-    @Nullable
-    default T get(@Nonnull String string) {
-        final Key key = Key.ofStringOrNull(string);
-
-        return key != null ? get(key) : null;
+    @NotNull
+    default Optional<K> get(@NotNull String key) {
+        final Key keyObject = Key.ofStringOrNull(key);
+        
+        return keyObject != null ? get(keyObject) : Optional.empty();
     }
-
+    
     /**
-     * Gets an {@link Optional} containing the element associated with the given {@link Key}.
+     * Registers the given {@link K} in this {@link Registry}.
      *
-     * @param key - The {@link Key} of the element to retrieve.
-     * @return an {@link Optional} containing the element if found, or an empty {@link Optional}.
+     * <p>
+     * Attempting to register a duplicate element will result in a {@link IllegalArgumentException}.
+     * </p>
+     *
+     * @param k - The object to register.
+     * @return the same object.
      */
-    @Nonnull
-    default Optional<T> getOptional(@Nonnull Key key) {
-        return Optional.ofNullable(get(key));
-    }
-
+    @NotNull
+    K register(@NotNull K k);
+    
     /**
-     * Registers the given item in the registry.
+     * Creates and registers an instance of {@link K} using the given {@link Key} in this {@link Registry}.
      *
-     * @param t - The item to register.
-     * @return the registered item.
+     * <p>
+     * Attempting to register a duplicate element will result in a {@link IllegalArgumentException}.
+     * </p>
+     *
+     * @param key      - The string to create the key from.
+     * @param function - The function how to create the {@link K}.
+     * @param <E>      - The function key.
+     * @return the registered element capture.
+     * @throws IllegalArgumentException if the given string does not match the key pattern.
      */
-    T register(@Nonnull T t);
-
+    default <E extends K> E register(@NotNull String key, @NotNull KeyFunction<E> function) {
+        final E e = function.apply(Key.ofString(key));
+        
+        this.register(e);
+        return e;
+    }
+    
     /**
-     * Registers an item using the given string ID as a key and a {@link KeyFunction} to create the item.
-     * <br>
-     * Usage example:
-     * <pre>{@code
-     * KeyedItem keyedItem = register("keyed_item", KeyedItem::new);
+     * Unregisters the given {@link K} from this {@link Registry}.
      *
-     * // Considering the KeyedItem is structured as:
-     * class KeyedItem implements Keyed {
-     *
-     *     private final Key key;
-     *
-     *     public KeyedItem(@Nonnull Key key) {
-     *         this.key = key;
-     *     }
-     *
-     *     @Nonnull
-     *     @Override
-     *     public final Key getKey() {
-     *         return this.key;
-     *     }
-     *
-     * }
-     * }</pre>
-     *
-     * @param key - The string ID to convert to a {@link Key} and register the item under.
-     * @param fn  - A {@link KeyFunction} to create the item to register.
-     * @return the registered item.
+     * @param k - The element to unregister.
+     * @return {@code true} if the element was unregistered; {@code false} otherwise.
      */
-    @Nonnull
-    default <E extends T> E register(@Nonnull String key, @Nonnull KeyFunction<E> fn) {
-        final E t = fn.apply(Key.ofString(key));
-
-        register(t);
-        return t;
-    }
-
+    boolean unregister(@NotNull K k);
+    
     /**
-     * Unregisters the given item from the registry. (optional operation)
+     * Gets whether the given {@link Key} is registered in this {@link Registry}.
      *
-     * @param t - The item to unregister.
-     * @return {@code true} if the item was successfully unregistered, {@code false} otherwise.
+     * @param key - The key to check.
+     * @return {@code true} if the given key is registered in this registry; {@code false} otherwise.
      */
-    boolean unregister(@Nonnull T t);
-
-    default boolean isRegistered(@Nonnull Key key) {
-        return get(key) != null;
+    default boolean isRegistered(@NotNull Key key) {
+        return get(key).isPresent();
     }
-
-    default boolean isRegistered(@Nonnull T t) {
-        return isRegistered(t.getKey());
-    }
-
+    
     /**
-     * Returns {@code true} if this {@link Registry} is empty, meaning nothing is registered, {@code false} otherwise.
+     * Gets whether the given {@link K} is registered in this {@link Registry}.
      *
-     * @return {@code true} if this {@link Registry} is empty, meaning nothing is registered, {@code false} otherwise.
+     * @param k - The object to check.
+     * @return {@code true} if the given object is registered in this registry; {@code false} otherwise.
+     */
+    default boolean isRegistered(@NotNull K k) {
+        return isRegistered(k.getKey());
+    }
+    
+    /**
+     * Gets whether this {@link Registry} is empty, meaning no elements are registered.
+     *
+     * @return {@code true} if this registry is empty; {@code false} otherwise.
      */
     boolean isEmpty();
-
+    
     /**
-     * Gets a copy of all registered elements.
+     * Gets an <b>immutable</b> copy of {@link Key} objects in this {@link Registry}.
      *
-     * @return a list containing all registered elements.
+     * @return an <b>immutable</b> copy of keys objects in this registry.
      */
-    @Nonnull
-    List<T> values();
-
+    @NotNull
+    List<Key> keys();
+    
     /**
-     * Retrieves a list of all registered {@link Key} objects.
+     * Gets an <b>immutable</b> copy of {@link K} objects in this {@link Registry}.
      *
-     * @return a list of all registered {@link Key} objects.
+     * @return an <b>immutable</b> copy of {@link K} objects in this registry.
      */
-    @Nonnull
-    default List<Key> keys() {
-        return values().stream().map(Keyed::getKey).collect(Collectors.toList());
-    }
-
+    @NotNull
+    List<K> values();
+    
     /**
-     * Retrieves a list of string representations of all registered {@link Key}s.
+     * Gets an <b>immutable</b> {@link List} of {@link Key} string values in this {@link Registry}.
      *
-     * @return a list of string representations of all registered {@link Key}s.
+     * @return an <b>immutable</b> list of key string values in this registry.
      */
-    @Nonnull
+    @NotNull
     default List<String> keysAsString() {
         return values().stream().map(Keyed::getKeyAsString).collect(Collectors.toList());
     }
-
+    
+    /**
+     * Gets an {@link Iterator} over the {@link K} objects in this {@link Registry}.
+     *
+     * <p>
+     * The iterator is over an <b>immutable</b> copy of the elements, meaning it does <b>not</b> support removal operations.
+     * </p>
+     *
+     * @return an iterator over the {@link K} objects in this registry.
+     */
+    @NotNull
+    @Override
+    Iterator<K> iterator();
 }

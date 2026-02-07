@@ -8,18 +8,15 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Annotates that the annotated object must be not empty.
- * <br>
- * The following are considered as <code>empty</code>:
+ * Indicates that the annotated object must not be empty.
+ * <p>The following are considered as <i>empty</i>:
  * <ul>
  *    <li> {@link String#isEmpty()}
  *    <li> {@link String#isBlank()}
  *    <li> {@link Collection#isEmpty()}
  *    <li> {@link Map#isEmpty()}
  *    <li> <code>array.length == 0</code>
- * </ul>
- * <p>
- * etc.
+ * </ul></p>
  */
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE })
 @Retention(RetentionPolicy.RUNTIME)

@@ -7,7 +7,10 @@ import org.jetbrains.annotations.Range;
 
 /**
  * Represents properties of an {@link Npc}.
- * <p>Note that options must be set <b>before</b> showing the {@link Npc}!</p>
+ *
+ * <p><b>
+ * Note that properties must be set before {@link Npc#show(Player)} the {@link Npc}!
+ * </b></p>
  */
 public class NpcProperties {
     
@@ -29,11 +32,10 @@ public class NpcProperties {
     
     /**
      * Gets the visibility distance of this {@link Npc}.
-     * <p>
-     * The {@link Npc} along with {@link Hologram} will be hidden for players who are further than the visibility distance.
-     * </p>
      *
-     * @return the visibility distance of this {@link Npc}.
+     * <p>The {@link Npc} along with {@link Hologram} will be hidden for players who are further than the visibility distance.</p>
+     *
+     * @return the visibility distance of this npc.
      */
     public double getViewDistance() {
         return viewDistance;
@@ -41,11 +43,10 @@ public class NpcProperties {
     
     /**
      * Sets the visibility distance of this {@link Npc}.
-     * <p>
-     * The {@link Npc} along with {@link Hologram} will be hidden for players who are further than the visibility distance.
-     * </p>
      *
-     * @param viewDistance - The new distance.
+     * <p>The {@link Npc} along with {@link Hologram} will be hidden for players who are further than the visibility distance.</p>
+     *
+     * @param viewDistance - The new view distance.
      */
     public void setViewDistance(@Range(from = 1, to = 1024) double viewDistance) {
         this.viewDistance = viewDistance;
@@ -54,16 +55,16 @@ public class NpcProperties {
     /**
      * Gets the distance at which the {@link Npc} will look at the closest {@link Player}.
      *
-     * @return the distance at which the {@link Npc} will look at the closest {@link Player}.
+     * @return the distance at which the npc will look at the closest player.
      */
     public double getLookAtClosePlayerDistance() {
         return lookAtClosePlayerDistance;
     }
     
     /**
-     * Sets the distance at which the {@link Npc} will look at the closest {@link Player}.
+     * Sets the distance at which the npc will look at the closest player.
      *
-     * @param lookAtClosePlayerDistance - New distance; or {@code 0} to not look.
+     * @param lookAtClosePlayerDistance - The new distance or {@code 0} to not look.
      */
     public void setLookAtClosePlayerDistance(@Range(from = 0, to = Integer.MAX_VALUE) double lookAtClosePlayerDistance) {
         this.lookAtClosePlayerDistance = lookAtClosePlayerDistance;
@@ -72,7 +73,7 @@ public class NpcProperties {
     /**
      * Gets the interaction delay, in ticks, for this {@link Npc}.
      *
-     * @return the interaction delay, in ticks, for this {@link Npc}.
+     * @return the interaction delay, in ticks, for this npc.
      */
     public int getInteractionDelay() {
         return interactionDelay;
@@ -81,7 +82,7 @@ public class NpcProperties {
     /**
      * Sets the interaction delay, in ticks, for this {@link Npc}.
      *
-     * @param interactionDelay - New delay.
+     * @param interactionDelay - The new interaction delay.
      */
     public void setInteractionDelay(@Range(from = 0, to = Integer.MAX_VALUE) int interactionDelay) {
         this.interactionDelay = interactionDelay;
@@ -90,7 +91,8 @@ public class NpcProperties {
     /**
      * Gets the rest head position of the {@link Npc}.
      *
-     * @return the rest head postion of the {@link Npc}.
+     * @return the rest head position of the npc.
+     * @see RestHeadPosition
      */
     @Nullable
     public RestHeadPosition getRestPosition() {
@@ -100,7 +102,8 @@ public class NpcProperties {
     /**
      * Sets the rest head position of the {@link Npc}.
      *
-     * @param restHeadPosition - The new position.
+     * @param restHeadPosition - The new rest position.
+     * @see RestHeadPosition
      */
     public void setRestPosition(@Nullable RestHeadPosition restHeadPosition) {
         this.restHeadPosition = restHeadPosition;
@@ -109,7 +112,7 @@ public class NpcProperties {
     /**
      * Gets whether this {@link Npc} has collision.
      *
-     * @return {@code true} if this {@link Npc} has collision, {@code false} otherwise.
+     * @return {@code true} if this npc has collision, {@code false} otherwise.
      */
     public boolean isCollidable() {
         return collidable;

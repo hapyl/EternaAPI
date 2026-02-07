@@ -1,676 +1,424 @@
 package me.hapyl.eterna.module.math;
 
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
- * Simple util class for numbers.
+ * A utility class to convert numbers.
  */
 @UtilityClass
 public final class Numbers {
     
-    private static final float EPSILON = 1e-6f;
+    /**
+     * Defines the epsilon for decimal checks.
+     */
+    public static final float EPSILON = 1e-6f;
     
     private Numbers() {
         UtilityClass.Validator.throwIt();
     }
     
     /**
-     * Clamps a number between a min and max value.
+     * Clamps the given {@link Integer} between {@code 0} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @param min - minimum value.
-     * @param max - maximum value.
-     * @return clamped value.
-     * @deprecated {@link Math#clamp(long, int, int)}
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    @Deprecated
-    public static int clamp(int var, int min, int max) {
-        return Math.min(Math.max(var, min), max);
+    public static int clamp01(int value) {
+        return Math.clamp(value, 0, 1);
     }
     
     /**
-     * Clamps a number between a min and max value.
+     * Clamps the given {@link Long} between {@code 0} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @param min - minimum value.
-     * @param max - maximum value.
-     * @return clamped value.
-     * @deprecated {@link Math#clamp(long, long, long)}
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    @Deprecated
-    public static long clamp(long var, long min, long max) {
-        return Math.min(Math.max(var, min), max);
+    public static long clamp01(long value) {
+        return Math.clamp(value, 0, 1);
     }
     
     /**
-     * Clamps a number between a min and max value.
+     * Clamps the given {@link Float} between {@code 0} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @param min - minimum value.
-     * @param max - maximum value.
-     * @return clamped value.
-     * @deprecated {@link Math#clamp(float, float, float)}
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    @Deprecated
-    public static float clamp(float var, float min, float max) {
-        return Math.min(Math.max(var, min), max);
+    public static float clamp01(float value) {
+        return Math.clamp(value, 0, 1);
     }
     
     /**
-     * Clamps a number between a min and max value.
+     * Clamps the given {@link Double} between {@code 0} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @param min - minimum value.
-     * @param max - maximum value.
-     * @return clamped value.
-     * @deprecated {@link Math#clamp(double, double, double)}
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    @Deprecated
-    public static double clamp(double var, double min, double max) {
-        return Math.min(Math.max(var, min), max);
+    public static double clamp01(double value) {
+        return Math.clamp(value, 0, 1);
     }
     
     /**
-     * Clamps a number between a min and max value.
+     * Clamps the given {@link Byte} between {@code 0} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @param min - minimum value.
-     * @param max - maximum value.
-     * @return clamped value.
-     * @deprecated {@link Math#clamp(long, int, int)}
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    @Deprecated
-    public static byte clamp(byte var, byte min, byte max) {
-        return (byte) Math.min(Math.max(var, min), max);
+    public static byte clamp01(byte value) {
+        return (byte) Math.clamp(value, (byte) 0, (byte) 1);
     }
     
     /**
-     * Clamps a number between a min and max value.
+     * Clamps the given {@link Short} between {@code 0} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @param min - minimum value.
-     * @param max - maximum value.
-     * @deprecated {@link Math#clamp(long, int, int)}
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    @Deprecated
-    public static short clamp(short var, short min, short max) {
-        return (short) Math.min(Math.max(var, min), max);
+    public static short clamp01(short value) {
+        return (short) Math.clamp(value, (short) 0, (short) 1);
     }
     
     /**
-     * Clamps a number between a 0 and 1.
+     * Clamps the given {@link Integer} between {@code -1} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @return clamped value.
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    public static int clamp01(int var) {
-        return Math.clamp(var, 0, 1);
+    public static int clamp1neg1(int value) {
+        return Math.clamp(value, -1, 1);
     }
     
     /**
-     * Clamps a number between a 0 and 1.
+     * Clamps the given {@link Long} between {@code -1} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @return clamped value.
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    public static long clamp01(long var) {
-        return Math.clamp(var, 0, 1);
+    public static long clamp1neg1(long value) {
+        return Math.clamp(value, -1, 1);
     }
     
     /**
-     * Clamps a number between a 0 and 1.
+     * Clamps the given {@link Float} between {@code -1} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @return clamped value.
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    public static float clamp01(float var) {
-        return Math.clamp(var, 0, 1);
+    public static float clamp1neg1(float value) {
+        return Math.clamp(value, -1, 1);
     }
     
     /**
-     * Clamps a number between a 0 and 1.
+     * Clamps the given {@link Double} between {@code -1} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @return clamped value.
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    public static double clamp01(double var) {
-        return Math.clamp(var, 0, 1);
+    public static double clamp1neg1(double value) {
+        return Math.clamp(value, -1, 1);
     }
     
     /**
-     * Clamps a number between a 0 and 1.
+     * Clamps the given {@link Byte} between {@code -1} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @return clamped value.
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    public static byte clamp01(byte var) {
-        return (byte) Math.clamp(var, (byte) 0, (byte) 1);
+    public static byte clamp1neg1(byte value) {
+        return (byte) Math.clamp(value, (byte) -1, (byte) 1);
     }
     
     /**
-     * Clamps a number between a 0 and 1.
+     * Clamps the given {@link Short} between {@code -1} and {@code 1} (inclusive).
      *
-     * @param var - variable to clamp.
-     * @return clamped value.
+     * @param value - The value to clamp.
+     * @return the clamped value.
      */
-    public static short clamp01(short var) {
-        return (short) Math.clamp(var, (short) 0, (short) 1);
+    public static short clamp1neg1(short value) {
+        return (short) Math.clamp(value, (short) -1, (short) 1);
     }
     
     /**
-     * Clamps a number between a -1 and 1.
+     * Gets whether the given {@link Object} is an {@link Integer}.
      *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static int clamp1neg1(int var) {
-        return Math.clamp(var, -1, 1);
-    }
-    
-    /**
-     * Clamps a number between a -1 and 1.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static long clamp1neg1(long var) {
-        return Math.clamp(var, -1, 1);
-    }
-    
-    /**
-     * Clamps a number between a -1 and 1.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static float clamp1neg1(float var) {
-        return Math.clamp(var, -1, 1);
-    }
-    
-    /**
-     * Clamps a number between a -1 and 1.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static double clamp1neg1(double var) {
-        return Math.clamp(var, -1, 1);
-    }
-    
-    /**
-     * Clamps a number between a -1 and 1.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static byte clamp1neg1(byte var) {
-        return (byte) Math.clamp(var, (byte) -1, (byte) 1);
-    }
-    
-    /**
-     * Clamps a number between a -1 and 1.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static short clamp1neg1(short var) {
-        return (short) Math.clamp(var, (short) -1, (short) 1);
-    }
-    
-    /**
-     * Clamps a number between min and max value of an Integer.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static int clampInt(int var) {
-        return Math.clamp(var, Integer.MIN_VALUE, Integer.MAX_VALUE);
-    }
-    
-    /**
-     * Clamps a number between min and max value of a Long.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static long clampLong(long var) {
-        return Math.clamp(var, Long.MIN_VALUE, Long.MAX_VALUE);
-    }
-    
-    /**
-     * Clamps a number between min and max value of a Float.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static float clampFloat(float var) {
-        return Math.clamp(var, Float.MIN_VALUE, Float.MAX_VALUE);
-    }
-    
-    /**
-     * Clamps a number between min and max value of a Double.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static double clampDouble(double var) {
-        return Math.clamp(var, Double.MIN_VALUE, Double.MAX_VALUE);
-    }
-    
-    /**
-     * Clamps a number between min and max value of a Byte.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static byte clampByte(byte var) {
-        return (byte) Math.clamp(var, Byte.MIN_VALUE, Byte.MAX_VALUE);
-    }
-    
-    /**
-     * Clamps a number between min and max value of a Short.
-     *
-     * @param var - variable to clamp.
-     * @return clamped value.
-     */
-    public static short clampShort(short var) {
-        return (short) Math.clamp(var, Short.MIN_VALUE, Short.MAX_VALUE);
-    }
-    
-    /**
-     * Returns {@code true} if the given {@link Object} is an {@link Integer}, {@code false} otherwise.
-     *
-     * @param object - Object to check.
-     * @return {@code true} if the given {@link Object} is an {@link Integer}, {@code false} otherwise.
+     * @return {@code true} if the given object is an {@code integer}; {@code false} otherwise.
      */
     public static boolean isInt(@Nullable Object object) {
-        if (object == null) {
-            return false;
-        }
-        else if (object instanceof Integer) {
-            return true;
-        }
-        else {
-            try {
-                Integer.parseInt(object.toString());
-            }
-            catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
+        return isNumber0(object, Integer.class, Integer::parseInt);
     }
     
     /**
-     * Returns {@code true} if the given {@link Object} is a {@link Long}, {@code false} otherwise.
+     * Gets whether the given {@link Object} is a {@link Long}.
      *
-     * @param object - Object to check.
-     * @return {@code true} if the given {@link Object} is a {@link Long}, {@code false} otherwise.
+     * @return {@code true} if the given object is a {@code long}; {@code false} otherwise.
      */
     public static boolean isLong(@Nullable Object object) {
-        if (object == null) {
-            return false;
-        }
-        else if (object instanceof Long) {
-            return true;
-        }
-        else {
-            try {
-                Long.parseLong(object.toString());
-            }
-            catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
+        return isNumber0(object, Long.class, Long::parseLong);
     }
     
     /**
-     * Returns {@code true} if the given {@link Object} is a {@link Float}, {@code false} otherwise.
+     * Gets whether the given {@link Object} is a {@link Float}.
      *
-     * @param object - Object to check.
-     * @return {@code true} if the given {@link Object} is a {@link Float}, {@code false} otherwise.
+     * @return {@code true} if the given object is a {@code float}; {@code false} otherwise.
      */
     public static boolean isFloat(@Nullable Object object) {
-        if (object == null) {
-            return false;
-        }
-        else if (object instanceof Float) {
-            return true;
-        }
-        else {
-            try {
-                Float.parseFloat(object.toString());
-            }
-            catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
+        return isNumber0(object, Float.class, Float::parseFloat);
     }
     
     /**
-     * Returns {@code true} if the given {@link Object} is a {@link Double}, {@code false} otherwise.
+     * Gets whether the given {@link Object} is a {@link Double}.
      *
-     * @param object - Object to check.
-     * @return {@code true} if the given {@link Object} is a {@link Double}, {@code false} otherwise.
+     * @return {@code true} if the given object is a {@code double}; {@code false} otherwise.
      */
     public static boolean isDouble(@Nullable Object object) {
-        if (object == null) {
-            return false;
-        }
-        else if (object instanceof Double) {
-            return true;
-        }
-        else {
-            try {
-                Double.parseDouble(object.toString());
-            }
-            catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
+        return isNumber0(object, Double.class, Double::parseDouble);
     }
     
     /**
-     * Returns {@code true} if the given {@link Object} is a {@link Byte}, {@code false} otherwise.
+     * Gets whether the given {@link Object} is a {@link Byte}.
      *
-     * @param object - Object to check.
-     * @return {@code true} if the given {@link Object} is a {@link Byte}, {@code false} otherwise.
+     * @return {@code true} if the given object is a {@code byte}; {@code false} otherwise.
      */
     public static boolean isByte(@Nullable Object object) {
-        if (object == null) {
-            return false;
-        }
-        else if (object instanceof Byte) {
-            return true;
-        }
-        else {
-            try {
-                Byte.parseByte(object.toString());
-            }
-            catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
+        return isNumber0(object, Byte.class, Byte::parseByte);
     }
     
     /**
-     * Returns {@code true} if the given {@link Object} is a {@link Short}, {@code false} otherwise.
+     * Gets whether the given {@link Object} is a {@link Short}.
      *
-     * @param object - Object to check.
-     * @return {@code true} if the given {@link Object} is a {@link Short}, {@code false} otherwise.
+     * @return {@code true} if the given object is a {@code short}; {@code false} otherwise.
      */
     public static boolean isShort(@Nullable Object object) {
-        if (object == null) {
-            return false;
-        }
-        else if (object instanceof Short) {
-            return true;
-        }
-        else {
-            try {
-                Short.parseShort(object.toString());
-            }
-            catch (Exception ignored) {
-                return false;
-            }
-        }
-        return true;
+        return isNumber0(object, Short.class, Short::parseShort);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to an {@link Integer}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Integer}, returns the specified default value.
+     * Converts the given {@link Object} to an {@link Integer}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
-     * @return the {@link Integer} value of the object, or the default value if conversion is not possible.
+     * @param object       - The object to convert.
+     * @param defaultValue - The default value, if the object cannot be converted.
+     * @return the converted value, or {@code defaultValue} if the object cannot be converted.
      */
-    public static int getInt(@Nullable Object object, int def) {
-        if (object == null) {
-            return def;
-        }
-        
-        else if (object instanceof Number number) {
-            return number.intValue();
-        }
-        else {
-            try {
-                return Integer.parseInt(object.toString());
-            }
-            catch (NumberFormatException ignored0) {
-                return def;
-            }
-        }
+    public static int toInt(@Nullable Object object, int defaultValue) {
+        return toNumber0(object, Integer.class, Integer::parseInt, defaultValue);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to an {@link Integer}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Integer}, returns {@code 0}.
+     * Converts the given {@link Object} to an {@link Integer}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @return the {@link Integer} value of the object, or {@code 0} if conversion is not possible.
+     * @param object - The object to convert.
+     * @return the converted value, or {@code 0} if the object cannot be converted.
      */
-    public static int getInt(@Nullable Object object) {
-        return getInt(object, 0);
+    public static int toInt(@Nullable Object object) {
+        return toInt(object, 0);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Long}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Long}, returns the specified default value.
+     * Converts the given {@link Object} to a {@link Long}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
-     * @return the {@link Long} value of the object, or the default value if conversion is not possible.
+     * @param object       - The object to convert.
+     * @param defaultValue - The default value, if the object cannot be converted.
+     * @return the converted value, or {@code defaultValue} if the object cannot be converted.
      */
-    public static long getLong(@Nullable Object object, long def) {
-        if (object == null) {
-            return def;
-        }
-        else if (object instanceof Number number) {
-            return number.longValue();
-        }
-        else {
-            try {
-                return Long.parseLong(object.toString());
-            }
-            catch (NumberFormatException ignored0) {
-                return def;
-            }
-        }
+    public static long toLong(@Nullable Object object, long defaultValue) {
+        return toNumber0(object, Long.class, Long::parseLong, defaultValue);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Long}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Long}, returns {@code 0}.
+     * Converts the given {@link Object} to a {@link Long}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @return the {@link Long} value of the object, or {@code 0} if conversion is not possible.
+     * @param object - The object to convert.
+     * @return the converted value, or {@code 0L} if the object cannot be converted.
      */
-    public static long getLong(@Nullable Object object) {
-        return getLong(object, 0L);
+    public static long toLong(@Nullable Object object) {
+        return toLong(object, 0L);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Float}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Float}, returns the specified default value.
+     * Converts the given {@link Object} to a {@link Float}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
-     * @return the {@link Float} value of the object, or the default value if conversion is not possible.
+     * @param object       - The object to convert.
+     * @param defaultValue - The default value, if the object cannot be converted.
+     * @return the converted value, or {@code defaultValue} if the object cannot be converted.
      */
-    public static float getFloat(@Nullable Object object, float def) {
-        if (object == null) {
-            return def;
-        }
-        else if (object instanceof Number number) {
-            return number.floatValue();
-        }
-        else {
-            try {
-                return Float.parseFloat(object.toString());
-            }
-            catch (NumberFormatException ignored0) {
-                return def;
-            }
-        }
+    public static float toFloat(@Nullable Object object, float defaultValue) {
+        return toNumber0(object, Float.class, Float::parseFloat, defaultValue);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Float}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Float}, returns {@code 0.0f}.
+     * Converts the given {@link Object} to a {@link Float}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @return the {@link Float} value of the object, or {@code 0.0f} if conversion is not possible.
+     * @param object - The object to convert.
+     * @return the converted value, or {@code 0.0f} if the object cannot be converted.
      */
-    public static float getFloat(@Nullable Object object) {
-        return getFloat(object, 0.0f);
+    public static float toFloat(@Nullable Object object) {
+        return toFloat(object, 0.0f);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Float}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Float}, returns the specified default value.
+     * Converts the given {@link Object} to a {@link Double}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
-     * @return the {@link Float} value of the object, or the default value if conversion is not possible.
+     * @param object       - The object to convert.
+     * @param defaultValue - The default value, if the object cannot be converted.
+     * @return the converted value, or {@code defaultValue} if the object cannot be converted.
      */
-    public static double getDouble(@Nullable Object object, double def) {
-        if (object == null) {
-            return def;
-        }
-        else if (object instanceof Number number) {
-            return number.doubleValue();
-        }
-        else {
-            try {
-                return Double.parseDouble(object.toString());
-            }
-            catch (NumberFormatException ignored0) {
-                return def;
-            }
-        }
+    public static double toDouble(@Nullable Object object, double defaultValue) {
+        return toNumber0(object, Double.class, Double::parseDouble, defaultValue);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Double}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Double}, returns {@code 0.0d}.
+     * Converts the given {@link Object} to a {@link Double}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @return the {@link Double} value of the object, or {@code 0.0d} if conversion is not possible.
+     * @param object - The object to convert.
+     * @return the converted value, or {@code 0.0d} if the object cannot be converted.
      */
-    public static double getDouble(@Nullable Object object) {
-        return getDouble(object, 0.0d);
+    public static double toDouble(@Nullable Object object) {
+        return toDouble(object, 0.0d);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Byte}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Byte}, returns the specified default value.
+     * Converts the given {@link Object} to a {@link Byte}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
-     * @return the {@link Byte} value of the object, or the default value if conversion is not possible.
+     * @param object       - The object to convert.
+     * @param defaultValue - The default value, if the object cannot be converted.
+     * @return the converted value, or {@code defaultValue} if the object cannot be converted.
      */
-    public static byte getByte(@Nullable Object object, byte def) {
-        if (object == null) {
-            return def;
-        }
-        else if (object instanceof Number number) {
-            return number.byteValue();
-        }
-        else {
-            try {
-                return Byte.parseByte(object.toString());
-            }
-            catch (NumberFormatException ignored0) {
-                return def;
-            }
-        }
+    public static byte toByte(@Nullable Object object, byte defaultValue) {
+        return toNumber0(object, Byte.class, Byte::parseByte, defaultValue);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Byte}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Byte}, returns {@code (byte)0x0}.
+     * Converts the given {@link Object} to a {@link Byte}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @return the {@link Byte} value of the object, or {@code (byte)0x0} if conversion is not possible.
+     * @param object - The object to convert.
+     * @return the converted value, or {@code (byte) 0x0} if the object cannot be converted.
      */
-    public static byte getByte(@Nullable Object object) {
-        return getByte(object, (byte) 0x0);
+    public static byte toByte(@Nullable Object object) {
+        return toByte(object, (byte) 0x0);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Short}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Short}, returns the specified default value.
+     * Converts the given {@link Object} to a {@link Short}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @param def    - The default value to return if the object is {@code null} or cannot be converted.
-     * @return the {@link Short} value of the object, or the default value if conversion is not possible.
+     * @param object       - The object to convert.
+     * @param defaultValue - The default value, if the object cannot be converted.
+     * @return the converted value, or {@code defaultValue} if the object cannot be converted.
      */
-    public static short getShort(@Nullable Object object, short def) {
-        if (object == null) {
-            return def;
-        }
-        if (object instanceof Number number) {
-            return number.shortValue();
-        }
-        else {
-            try {
-                return Short.parseShort(object.toString());
-            }
-            catch (NumberFormatException ignored0) {
-                return def;
-            }
-        }
+    public static short toShort(@Nullable Object object, short defaultValue) {
+        return toNumber0(object, Short.class, Short::parseShort, defaultValue);
     }
     
     /**
-     * Attempts to convert the given {@link Object} to a {@link Short}.
-     * If the object is {@code null}, or if it cannot be
-     * converted to an {@link Short}, returns {@code (short)0}.
+     * Converts the given {@link Object} to a {@link Short}.
      *
-     * @param object - The {@link Object} to convert to an integer.
-     * @return the {@link Short} value of the object, or {@code (short)0} if conversion is not possible.
+     * @param object - The object to convert.
+     * @return the converted value, or {@code (short) 0} if the object cannot be converted.
      */
-    public static short getShort(@Nullable Object object) {
-        return getShort(object, (short) 0);
+    public static short toShort(@Nullable Object object) {
+        return toShort(object, (short) 0);
     }
     
     /**
-     * Gets whether the two {@code double} are equals.
+     * Checks if two {@code double} values are approximately equal, within a small epsilon tolerance.
      *
-     * @param a - The first double.
-     * @param b - The second double.
-     * @return {@code true} if the two {@code double} are equals, {@code false} otherwise.
+     * @param a - The first value.
+     * @param b - The second value.
+     * @return {@code true} if the values are equal, {@code false} otherwise.
      */
     public static boolean doubleEquals(double a, double b) {
         return Math.abs(a - b) < EPSILON;
     }
     
     /**
-     * Gets whether the two {@code float} are equals.
+     * Checks if two {@code float} values are approximately equal, within a small epsilon tolerance.
      *
-     * @param a - The first float.
-     * @param b - The second float.
-     * @return {@code true} if the two {@code float} are equals, {@code false} otherwise.
+     * @param a - The first value
+     * @param b - The second value.
+     * @return {@code true} if the values are equal, {@code false} otherwise.
      */
     public static boolean floatEquals(float a, float b) {
         return Math.abs(a - b) < EPSILON;
+    }
+    
+    /**
+     * Squares the given {@code int}.
+     *
+     * @param value - The value to square.
+     * @return a squared {@code int}.
+     */
+    public static int square(int value) {
+        return value * value;
+    }
+    
+    /**
+     * Squares the given {@code long}.
+     *
+     * @param value - The value to square.
+     * @return a squared {@code long}.
+     */
+    public static long square(long value) {
+        return value * value;
+    }
+    
+    /**
+     * Squares the given {@code float}.
+     *
+     * @param value - The value to square.
+     * @return a squared {@code float}.
+     */
+    public static float square(float value) {
+        return value * value;
+    }
+    
+    /**
+     * Squares the given {@code double}.
+     *
+     * @param value - The value to square.
+     * @return a squared {@code double}.
+     */
+    public static double square(double value) {
+        return value * value;
+    }
+    
+    @NotNull
+    @ApiStatus.Internal
+    private static <N extends Number> N toNumber0(@Nullable Object object, @NotNull Class<N> numberClass, @NotNull Function<String, N> parseFunction, @NotNull N defaultValue) {
+        if (object == null) {
+            return defaultValue;
+        }
+        else if (numberClass.isInstance(object)) {
+            return numberClass.cast(object);
+        }
+        else {
+            try {
+                return parseFunction.apply(object.toString());
+            }
+            catch (NumberFormatException ex) {
+                return defaultValue;
+            }
+        }
+    }
+    
+    @ApiStatus.Internal
+    private static <N extends Number> boolean isNumber0(@Nullable Object object, @NotNull Class<N> numberClass, @NotNull Function<String, N> parseFunction) {
+        if (object == null) {
+            return false;
+        }
+        else if (numberClass.isInstance(object)) {
+            return true;
+        }
+        else {
+            try {
+                parseFunction.apply(object.toString());
+                return true;
+            }
+            catch (NumberFormatException ex) {
+                return false;
+            }
+        }
     }
 }

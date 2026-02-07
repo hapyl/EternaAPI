@@ -2,13 +2,13 @@ package me.hapyl.eterna;
 
 import me.hapyl.eterna.module.npc.NpcRunnable;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
-
-import javax.annotation.Nonnull;
+import me.hapyl.eterna.module.util.Reloadable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a {@code config.yml} file.
  */
-public interface EternaConfig {
+public interface EternaConfig extends Reloadable {
     
     /**
      * Whether to check for updates.
@@ -25,18 +25,18 @@ public interface EternaConfig {
     boolean keepTestCommands();
     
     /**
-     * Whether to print stack traces.
+     * Whether to allow quests journal.
      *
-     * @return {@code ture} if this server prints stack traces.
+     * @return {@code true} if this server allows quest journal.
      */
-    boolean printStackTraces();
+    boolean allowQuestJournal();
     
     /**
      * Gets the {@link TickRate}.
      *
      * @return the tick rate.
      */
-    @Nonnull
+    @NotNull
     TickRate tickRate();
     
     /**

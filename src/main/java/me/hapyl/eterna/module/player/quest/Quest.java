@@ -1,139 +1,77 @@
 package me.hapyl.eterna.module.player.quest;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import me.hapyl.eterna.Eterna;
-import me.hapyl.eterna.EternaAPI;
-import me.hapyl.eterna.builtin.manager.QuestManager;
 import me.hapyl.eterna.module.annotate.EventLike;
+import me.hapyl.eterna.module.annotate.Size;
+import me.hapyl.eterna.module.component.Described;
+import me.hapyl.eterna.module.player.quest.objective.QuestObjective;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
-import me.hapyl.eterna.module.util.Described;
+import me.hapyl.eterna.module.component.Named;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.LinkedList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
- * A {@link Quest} implementation.
- * <br>
- * Note about quests:
+ * Represents a {@link Quest} that consists of {@link QuestObjective}.
+ *
  * <p>
- * {@link EternaAPI} <b>only</b> handles the runtime of {@link Quest}s.
- * The implementing plugin <b>must</b> handle quest loading/saving using a {@link QuestHandler}.
+ * Note that to ensure proper quest handling, all quests must be registered on start-up, <b>before</b> any player can join the server.
  * </p>
  */
-public class Quest implements Keyed, Described {
+public class Quest implements Keyed, Named, Described {
     
-    private final JavaPlugin plugin;
+    private final QuestRegistry registry;
     private final Key key;
-    private final LinkedList<QuestObjective> objectives;
-    private final Set<QuestStartBehaviour> startBehaviours;
+    private final List<QuestObjective> objectives;
     
-    private String name;
-    private String description;
+    @NotNull private Component name;
+    @NotNull private Component description;
     
-    private boolean isRepeatable;
+    @NotNull private QuestFormatter formatter;
     
-    @Nonnull private QuestFormatter formatter;
-    
+    @Nullable private QuestStartBehaviour startBehaviour;
     @Nullable private QuestPreRequirement preRequirement;
     
-    public Quest(@Nonnull JavaPlugin plugin, @Nonnull Key key) {
-        this.plugin = plugin;
+    /**
+     * Creates a new {@link Quest}.
+     *
+     * <p>
+     * The quest will be automatically registered in the given registry.
+     * </p>
+     *
+     * @param registry   - The registry this quest belongs to.
+     * @param key        - The key of the quest.
+     * @param objectives - The objectives to complete.
+     */
+    public Quest(@NotNull QuestRegistry registry, @NotNull Key key, @NotNull @Size(from = 1, to = Byte.MAX_VALUE) List<? extends QuestObjective> objectives) {
+        this.registry = registry;
         this.key = key;
-        this.name = "Unnamed Quest";
-        this.description = "No description.";
-        this.objectives = Lists.newLinkedList();
+        this.name = Named.defaultValue();
+        this.description = Described.defaultValue();
+        this.objectives = copyObjectives(objectives);
         this.formatter = QuestFormatter.DEFAULT;
-        this.startBehaviours = Sets.newHashSet();
         this.preRequirement = null;
-        this.isRepeatable = false;
+        this.startBehaviour = null;
+        
+        // Register the quest
+        this.registry.register(this);
     }
     
     /**
-     * Gets an immutable {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
+     * Gets the {@link QuestRegistry} this {@link Quest} belongs to.
      *
-     * @return an immutable {@link Set} of {@link QuestStartBehaviour} applicable to this quest, or an empty {@link Set} if this quest it started manually.
+     * @return the registry this quest belongs to.
      */
-    @Nonnull
-    public Set<QuestStartBehaviour> getStartBehaviours() {
-        return Set.copyOf(startBehaviours);
-    }
-    
-    /**
-     * Adds a {@link QuestStartBehaviour} to this quest.
-     *
-     * @param startBehaviour - The start behaviour to add.
-     */
-    public void addStartBehaviour(@Nonnull QuestStartBehaviour startBehaviour) {
-        this.startBehaviours.add(startBehaviour);
-    }
-    
-    /**
-     * Returns {@code true} if this quest has {@link QuestStartBehaviour}, {@code false} otherwise.
-     *
-     * @return {@code true} if this quest has {@link QuestStartBehaviour}, {@code false} otherwise.
-     */
-    public boolean hasStartBehaviours() {
-        return !startBehaviours.isEmpty();
-    }
-    
-    /**
-     * Gets the pre-requirement that must be met before the {@link Quest} can be started, or {@code null} if none.
-     *
-     * @return the pre-requirement that must be met before the {@link Quest} can be started, or {@code null} if none.
-     */
-    @Nullable
-    public QuestPreRequirement getPreRequirement() {
-        return preRequirement;
-    }
-    
-    /**
-     * Sets the {@link Quest} pre-requirement that must be met before the {@link Quest} can be started.
-     *
-     * @param preRequirement - New pre-requirement.
-     */
-    public void setPreRequirement(@Nullable QuestPreRequirement preRequirement) {
-        this.preRequirement = preRequirement;
-    }
-    
-    /**
-     * Returns {@code true} if this {@link Quest} is repeatable, false otherwise.
-     * <p>
-     * Repeatable quests don't call {@link QuestHandler#completeQuest(Player, Quest)} whenever the player completes the {@link Quest}.
-     * </p>
-     *
-     * @return {@code true} if this {@link Quest} is repeatable, false otherwise.
-     */
-    public boolean isRepeatable() {
-        return isRepeatable;
-    }
-    
-    /**
-     * Sets if this {@link Quest} is repeatable.
-     * <p>
-     * Repeatable quests don't call {@link QuestHandler#completeQuest(Player, Quest)} whenever the player completes the {@link Quest}.
-     * </p>
-     *
-     * @param repeatable - Is repeatable.
-     */
-    public void setRepeatable(boolean repeatable) {
-        isRepeatable = repeatable;
-    }
-    
-    /**
-     * Gets the {@link JavaPlugin} owning this {@link Quest}.
-     *
-     * @return the plugin owning this quest.
-     */
-    @Nonnull
-    public final JavaPlugin getPlugin() {
-        return plugin;
+    @NotNull
+    public final QuestRegistry getRegistry() {
+        return registry;
     }
     
     /**
@@ -141,65 +79,10 @@ public class Quest implements Keyed, Described {
      *
      * @return the key of this quest.
      */
-    @Nonnull
+    @NotNull
     @Override
     public final Key getKey() {
         return this.key;
-    }
-    
-    /**
-     * Gets the {@link QuestFormatter} for this {@link Quest}.
-     *
-     * @return the formatter for this quest.
-     */
-    @Nonnull
-    public QuestFormatter getFormatter() {
-        return formatter;
-    }
-    
-    /**
-     * Sets the {@link QuestFormatter} for this {@link Quest}.
-     *
-     * @param formatter - The new formatter.
-     */
-    public void setFormatter(@Nonnull QuestFormatter formatter) {
-        this.formatter = Objects.requireNonNull(formatter, "QuestFormatter must not be null!");
-    }
-    
-    /**
-     * Gets the {@link QuestObjective} at the given stage, or {@code null} if there is no objective at the given.
-     *
-     * @param stage - Stage of the quest.
-     * @return the objective at the given stage, or {@code null} if there is no objective at the given stage.
-     */
-    @Nullable
-    public QuestObjective getObjective(int stage) {
-        return stage >= 0 && stage < objectives.size() ? objectives.get(stage) : null;
-    }
-    
-    /**
-     * Gets the first {@link QuestObjective} of this {@link Quest}.
-     *
-     * @return the first objective of this quest.
-     * @throws IllegalStateException If there are no objectives yet.
-     */
-    @Nonnull
-    public QuestObjective getFirstObjective() throws IllegalStateException {
-        if (objectives.isEmpty()) {
-            throw new IllegalStateException("Quest must contain at least one objective!");
-        }
-        
-        return objectives.getFirst();
-    }
-    
-    /**
-     * Adds a {@link QuestObjective} to this {@link Quest}.
-     *
-     * @param objective - Objective to add.
-     */
-    public Quest addObjective(@Nonnull QuestObjective objective) {
-        this.objectives.add(objective);
-        return this;
     }
     
     /**
@@ -207,9 +90,9 @@ public class Quest implements Keyed, Described {
      *
      * @return the name of this quest.
      */
-    @Nonnull
     @Override
-    public String getName() {
+    @NotNull
+    public Component getName() {
         return this.name;
     }
     
@@ -219,7 +102,7 @@ public class Quest implements Keyed, Described {
      * @param name - The name to set.
      */
     @Override
-    public void setName(@Nonnull String name) {
+    public void setName(@NotNull Component name) {
         this.name = name;
     }
     
@@ -228,9 +111,9 @@ public class Quest implements Keyed, Described {
      *
      * @return the description of this quest.
      */
-    @Nonnull
     @Override
-    public String getDescription() {
+    @NotNull
+    public Component getDescription() {
         return this.description;
     }
     
@@ -240,55 +123,184 @@ public class Quest implements Keyed, Described {
      * @param description - The description to set.
      */
     @Override
-    public void setDescription(@Nonnull String description) {
+    public void setDescription(@NotNull Component description) {
         this.description = description;
     }
     
     /**
-     * Starts this {@link Quest} for the given {@link Player}.
+     * Gets the {@link QuestStartBehaviour} of this {@link Quest}, or {@code null} if the {@link Quest} must be started manually.
      *
-     * @param player - Player to start the quest for.
-     * @see QuestManager#startQuestIfPossible(Player, Quest, boolean, boolean)
+     * @return the start behaviour, or {@code null} if the quest must be started manually.
      */
-    public void start(@Nonnull Player player) {
-        Eterna.getManagers().quest.startQuestIfPossible(player, this, true, true);
+    @Nullable
+    public QuestStartBehaviour getStartBehaviour() {
+        return startBehaviour;
     }
     
     /**
-     * Returns {@code true} if the given {@link Player} has completed this {@link Quest}, {@code false} otherwise.
+     * Sets the {@link QuestStartBehaviour} of this {@link Quest}.
      *
-     * @param player - The player to check for.
-     * @return {@code true} if the given {@link Player} has completed this {@link Quest}, {@code false} otherwise.
+     * @param startBehaviour - The start behaviour to set, or {@code null} to remove.
      */
-    public boolean hasCompleted(@Nonnull Player player) {
-        return Eterna.getManagers().quest.getHandler(getPlugin()).hasCompleted(player, this);
-    }
-    
-    @EventLike
-    public void onStart(@Nonnull Player player, @Nonnull QuestData data) {
-    }
-    
-    @EventLike
-    public void onObjectiveComplete(@Nonnull Player player, @Nonnull QuestData data, @Nonnull QuestObjective objective) {
+    public void setStartBehaviour(@Nullable QuestStartBehaviour startBehaviour) {
+        this.startBehaviour = startBehaviour;
     }
     
     /**
-     * Called whenever the {@link Player} completes this {@link Quest}.
+     * Gets the {@link QuestPreRequirement} for this {@link Quest}.
      *
-     * @param player - Player who has completed the quest.
-     * @param data   - The data handling the quest completion.
+     * @return the pre-requirements for this quest.
      */
-    @EventLike
-    public void onComplete(@Nonnull Player player, @Nonnull QuestData data) {
+    @Nullable
+    public QuestPreRequirement getPreRequirement() {
+        return preRequirement;
     }
     
     /**
-     * Returns {@code true} if the given object is a {@link Quest} and it's {@link JavaPlugin} and {@link Key} matching this one,
-     * {@code false} otherwise.
+     * Sets the {@link QuestPreRequirement} for this {@link Quest}.
      *
-     * @param object - Object to compare to.
-     * @return {@code true} if the given object is a {@link Quest} and it's {@link JavaPlugin} and {@link Key} matching this one,
-     * {@code false} otherwise.
+     * @param preRequirement - The pre-requirements to set, or {@code null} to remove.
+     */
+    public void setPreRequirement(@Nullable QuestPreRequirement preRequirement) {
+        this.preRequirement = preRequirement;
+    }
+    
+    /**
+     * Gets the {@link QuestFormatter} for this {@link Quest}.
+     *
+     * @return the formatter for this quest.
+     */
+    @NotNull
+    public QuestFormatter getFormatter() {
+        return formatter;
+    }
+    
+    /**
+     * Sets the {@link QuestFormatter} for this {@link Quest}.
+     *
+     * @param formatter - The formatter to set.
+     */
+    public void setFormatter(@NotNull QuestFormatter formatter) {
+        this.formatter = Objects.requireNonNull(formatter, "QuestFormatter must not be null!");
+    }
+    
+    /**
+     * Gets the total number of {@link QuestObjective} for this {@link Quest}.
+     *
+     * @return the total number of objectives for this quest.
+     */
+    public int getObjectiveCount() {
+        return objectives.size();
+    }
+    
+    /**
+     * Gets the {@link QuestObjective} at the given {@code stage} (index).
+     *
+     * @param stage - The objective stage.
+     * @return the objective for the given stage, or {@code null} if out of bounds.
+     */
+    @Nullable
+    public QuestObjective getObjective(int stage) {
+        return stage < 0 || stage >= objectives.size() ? null : objectives.get(stage);
+    }
+    
+    /**
+     * Gets the first {@link QuestObjective} for this {@link Quest}.
+     *
+     * @return the first objective for this quest.
+     */
+    @NotNull
+    public QuestObjective getFirstObjective() {
+        return objectives.getFirst();
+    }
+    
+    /**
+     * Gets the last {@link QuestObjective} for this {@link Quest}.
+     *
+     * @return the last objective for this quest.
+     */
+    @NotNull
+    public QuestObjective getLastObjective() {
+        return objectives.getLast();
+    }
+    
+    /**
+     * Attempts to start this {@link Quest} for the given {@link Player}.
+     *
+     * @param player - The player for whom to start the quest.
+     * @return the {@link QuestStartResponse}.
+     */
+    @NotNull
+    public QuestStartResponse start(@NotNull Player player) {
+        return registry.startQuest(player, this, false);
+    }
+    
+    /**
+     * Gets whether the given {@link Player} can start this {@link Quest}.
+     *
+     * @param player - The player to check.
+     * @return the {@link QuestStartResponse}.
+     */
+    @NotNull
+    public QuestStartResponse canStart(@NotNull Player player) {
+        return registry.canStartQuest(player, this);
+    }
+    
+    /**
+     * Gets whether the given {@link Player} has completed this {@link Quest}.
+     *
+     * @param player - The player to check.
+     * @return {@code true} if the given player has completed this quest; {@code false} otherwise.
+     */
+    public boolean hasCompleted(@NotNull Player player) {
+        return registry.hasCompletedQuest(player, this);
+    }
+    
+    /**
+     * An event-like method that is called whenever a {@link Player} starts this {@link Quest}.
+     *
+     * @param player - The player who started the quest.
+     * @param data   - The quest data for the quest.
+     */
+    @EventLike
+    public void onStart(@NotNull Player player, @NotNull QuestData data) {
+    }
+    
+    /**
+     * An event-like method that is called whenever a {@link Player} completes this {@link Quest}.
+     *
+     * @param player - The player who completed the quest.
+     * @param data   - The quest data for the quest.
+     */
+    @EventLike
+    public void onComplete(@NotNull Player player, @NotNull QuestData data) {
+    }
+    
+    /**
+     * An event-like method that is called whenever a {@link Player} fails this {@link Quest}.
+     *
+     * @param player - The player who failed the quest.
+     * @param data   - The quest data for the quest.
+     */
+    @EventLike
+    public void onFail(@NotNull Player player, @NotNull QuestData data) {
+    }
+    
+    /**
+     * Gets the hashcode fot this {@link Quest}.
+     *
+     * @return the hashcode for this quest.
+     */
+    @Override
+    public final int hashCode() {
+        return Objects.hash(this.registry.plugin, this.key);
+    }
+    
+    /**
+     * Compares the given {@link Object} to this {@link Quest}.
+     *
+     * @param object - The object to compare to.
+     * @return {@code true} if the given object is a quest, and it's plugin and key matches; {@code false} otherwise.
      */
     @Override
     public final boolean equals(Object object) {
@@ -301,16 +313,35 @@ public class Quest implements Keyed, Described {
         }
         
         final Quest that = (Quest) object;
-        return Objects.equals(this.plugin, that.plugin) && Objects.equals(this.key, that.key);
+        return Objects.equals(this.registry.plugin, that.registry.plugin) && Objects.equals(this.key, that.key);
     }
     
     /**
-     * Gets the hash code of this {@link Quest}.
+     * Gets a {@link TreeSet} of currently active {@link Quest} for the given {@link Player}, whether they're completed or not.
      *
-     * @return the hash code of this quest.
+     * <p>
+     * The {@link TreeSet} is sorted based on alphabetical value of the {@link Key}.
+     * </p>
+     *
+     * @param player - The player to get the quests for.
+     * @return active quests for the player.
      */
-    @Override
-    public final int hashCode() {
-        return Objects.hash(this.plugin, this.key);
+    @NotNull
+    public static TreeSet<QuestData> getActiveQuests(@NotNull Player player) {
+        return QuestHandler.handler.stream()
+                                   .filter(registry -> registry.playerData.containsKey(player))
+                                   .map(registry -> registry.playerData.get(player))
+                                   .flatMap(questData -> questData.data.values().stream())
+                                   .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(questData -> questData.getQuest().getKey()))));
     }
+    
+    @NotNull
+    private static List<QuestObjective> copyObjectives(@NotNull List<? extends QuestObjective> objectives) {
+        if (objectives.isEmpty()) {
+            throw new IllegalArgumentException("There must be at least one objective!");
+        }
+        
+        return List.copyOf(objectives);
+    }
+    
 }

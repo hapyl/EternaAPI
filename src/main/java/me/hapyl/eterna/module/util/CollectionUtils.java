@@ -1,770 +1,459 @@
 package me.hapyl.eterna.module.util;
 
-import me.hapyl.eterna.module.math.Numbers;
+import me.hapyl.eterna.module.annotate.UtilityClass;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
- * Utility class for collections, such as {@link Set}, {@link List}, {@link Map}, primitive arrays, etc...
+ * Represents a helper utility class for {@link Collection} operations.
  */
+@UtilityClass
 public class CollectionUtils {
-
-    /**
-     * Gets the first element of a list
-     *
-     * @param arrayList - list to get from.
-     * @param index     - index of the element to get.
-     * @param <E>       - type of the list.
-     * @return the element at the index, or null if the index is out of bounds.
-     */
-    @Nullable
-    public static <E> E get(@Nonnull List<E> arrayList, int index) {
-        return getFromIndexed(index, arrayList, List::size, List::get);
+    
+    private static final Random RANDOM = new Random();
+    
+    private CollectionUtils() {
+        UtilityClass.Validator.throwIt();
     }
-
+    
     /**
-     * Gets the element from a set, or null if the index is out of bounds.
+     * Retrieves the {@link E} at the given index from the given {@link List}.
      *
-     * @param hashSet - set to get from.
-     * @param index   - index of the element to get.
-     * @param <E>     - type of the set.
-     * @return the element at the index, or null if the index is out of bounds.
+     * <p>
+     * This method provides out-of-bounds safe element retrieval.
+     * </p>
+     *
+     * @param list  - The list to retrieve the element from.
+     * @param index - The index to retrieve at.
+     * @param <E>   - The element type.
+     * @return an element wrapped in an optional.
      */
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public static <E> E get(@Nonnull Collection<E> hashSet, int index) {
-        return getFromIndexed(index, hashSet, Collection::size, (s, i) -> (E) s.toArray()[i]);
+    @NotNull
+    public static <E> Optional<E> get(@NotNull List<E> list, int index) {
+        return get0(list, index, List::size, List::get);
     }
-
+    
     /**
-     * Gets the element from array index, or null if the index is out of bounds.
+     * Retrieves the {@link E} at the given index from the given {@code array}.
      *
-     * @param array - array to get from.
-     * @param index - index of the element to get.
-     * @param <E>   - type of the array.
-     * @return the element at the index, or null if the index is out of bounds.
+     * <p>
+     * This method provides out-of-bounds safe element retrieval.
+     * </p>
+     *
+     * @param array - The list to retrieve the element from.
+     * @param index - The index to retrieve at.
+     * @param <E>   - The element type.
+     * @return an element wrapped in an optional.
      */
-    @Nullable
-    public static <E> E get(@Nonnull E[] array, int index) {
-        return getFromIndexed(index, array, a -> a.length, (a, i) -> a[i]);
+    @NotNull
+    public static <E> Optional<E> get(@NotNull E[] array, int index) {
+        return get0(array, index, _array -> _array.length, (_array, _index) -> _array[_index]);
     }
-
+    
     /**
-     * Gets the element from list, or def if the index is out of bounds.
+     * Wraps the given {@link Collection} to {@link String} using the given {@link Wrap}.
      *
-     * @param arrayList - list to get from.
-     * @param index     - index of the element to get.
-     * @param def       - default value to return if the index is out of bounds.
-     * @param <E>       - type of the list.
-     * @return the element at the index, or def if the index is out of bounds.
+     * @param collection - The collection to wrap to string.
+     * @param wrap       - The wrap to use.
+     * @param <E>        - The element type.
+     * @return a string representation of the elements in the collection.
      */
-    @Nonnull
-    public static <E> E getOrDefault(@Nonnull List<E> arrayList, int index, @Nonnull E def) {
-        final E e = get(arrayList, index);
-
-        return e != null ? e : def;
+    @NotNull
+    public static <E> String wrapToString(@NotNull Collection<E> collection, @NotNull Wrap wrap) {
+        return collection.stream().map(String::valueOf).collect(wrap.asCollector());
     }
-
+    
     /**
-     * Gets the element from collection by index, or def if the index is out of bounds.
+     * Wraps the given {@link Collection} to {@link String} using the default {@link Wrap}.
      *
-     * @param collection - Collection.
-     * @param index      - Index.
-     * @param def        - Default value.
-     * @param <E>        - type of the collection.
-     * @return the element at index or def if the index is out of bounds.
+     * @param collection - The collection to wrap to string.
+     * @param <E>        - The element type.
+     * @return a string representation of the elements in the collection.
      */
-    @Nonnull
-    public static <E> E getOrDefault(@Nonnull Collection<E> collection, int index, @Nonnull E def) {
-        final E e = get(collection, index);
-
-        return e != null ? e : def;
-    }
-
-    /**
-     * Gets the element from array index, or def if the index is out of bounds.
-     *
-     * @param array - array to get from.
-     * @param index - index of the element to get.
-     * @param def   - default value to return if the index is out of bounds.
-     * @param <E>   - type of the array.
-     * @return the element at the index, or def if the index is out of bounds.
-     */
-    @Nonnull
-    public static <E> E getOrDefault(@Nonnull E[] array, int index, @Nonnull E def) {
-        final E e = get(array, index);
-
-        return e != null ? e : def;
-    }
-
-    /**
-     * Adds the element to list and returns the list.
-     *
-     * @param list  - list to add to.
-     * @param toAdd - element to add.
-     * @param <E>   - type of the list.
-     * @return the list.
-     */
-    @Nonnull
-    public static <E> E addAndGet(@Nonnull List<E> list, @Nonnull E toAdd) {
-        list.add(toAdd);
-        return toAdd;
-    }
-
-    /**
-     * Wraps a collection to string according to wrap.
-     *
-     * @param collection - collection to wrap.
-     * @param wrap       - wrap to use.
-     * @param <E>        - type of the collection.
-     * @return the wrapped string.
-     */
-    @Nonnull
-    public static <E> String wrapToString(@Nonnull Collection<E> collection, @Nonnull Wrap wrap) {
-        final StringBuilder builder = new StringBuilder(wrap.start());
-        int i = 0;
-
-        for (final E e : collection) {
-            if (i++ != 0) {
-                builder.append(wrap.between());
-            }
-
-            builder.append(e.toString());
-        }
-
-        return builder.append(wrap.end()).toString();
-    }
-
-    /**
-     * Wraps an array to string, according to wrapper.
-     *
-     * @param array - array to wrap.
-     * @param wrap  - wrap to use.
-     * @param <E>   - type of the array.
-     * @return the wrapped string.
-     */
-    @Nonnull
-    public static <E> String wrapToString(@Nonnull E[] array, @Nonnull Wrap wrap) {
-        final StringBuilder builder = new StringBuilder(wrap.start());
-
-        for (int i = 0; i < array.length; i++) {
-            if (i != 0) {
-                builder.append(wrap.between());
-            }
-
-            builder.append(array[i].toString());
-        }
-
-        return builder.append(wrap.end()).toString();
-    }
-
-    /**
-     * Wraps a collection to a string according to default wrap.
-     *
-     * @param collection - collection to wrap.
-     * @return the wrapped string.
-     */
-    @Nonnull
-    public static <E> String wrapToString(@Nonnull Collection<E> collection) {
+    @NotNull
+    public static <E> String wrapToString(@NotNull Collection<E> collection) {
         return wrapToString(collection, Wrap.DEFAULT);
     }
-
+    
     /**
-     * Wraps array to string using default wrap
+     * Wraps the given {@code array} to {@link String} using the given {@link Wrap}.
      *
-     * @param array - array to wrap.
-     * @param <E>   - type of the array.
-     * @return the wrapped string.
+     * @param array - The array to wrap to string.
+     * @param wrap  - The wrap to use.
+     * @param <E>   - The element type.
+     * @return a string representation of the elements in the array.
      */
-    @Nonnull
-    public static <E> String wrapToString(@Nonnull E[] array) {
+    @NotNull
+    public static <E> String wrapToString(@NotNull E[] array, @NotNull Wrap wrap) {
+        return Arrays.stream(array).map(String::valueOf).collect(wrap.asCollector());
+    }
+    
+    /**
+     * Wraps the given {@code array} to {@link String} using the default {@link Wrap}.
+     *
+     * @param array - The array to wrap to string.
+     * @param <E>   - The element type.
+     * @return a string representation of the elements in the array.
+     */
+    @NotNull
+    public static <E> String wrapToString(@NotNull E[] array) {
         return wrapToString(array, Wrap.DEFAULT);
     }
-
+    
     /**
-     * Wraps a map to a string according to a wrapper.
+     * Wraps the given {@link Map} to {@link String} using the given {@link Wrap}.
      *
-     * @param map  - Map to wrap.
-     * @param wrap - Wrapper.
-     * @param <K>  - Key type.
-     * @param <V>  - Value type.
-     * @return the wrapped string.
+     * @param map  - The map to wrap to string.
+     * @param wrap - The wrap to use.
+     * @param <K>  - The key element type.
+     * @param <V>  - The value element type.
+     * @return a string representation of the elements in the collection.
      */
-    @Nonnull
-    public static <K, V> String wrapToString(@Nonnull Map<K, V> map, @Nonnull MapWrap<K, V> wrap) {
-        final StringBuilder builder = new StringBuilder(wrap.start());
-
-        int i = 0;
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            if (i++ != 0) {
-                builder.append(wrap.between());
-            }
-
-            builder.append(wrap.keyToValue(entry.getKey(), entry.getValue()));
-        }
-
-        return builder.append(wrap.end()).toString();
+    @NotNull
+    public static <K, V> String wrapToString(@NotNull Map<K, V> map, @NotNull Wrap.MapWrap<K, V> wrap) {
+        return map.entrySet().stream().map(entry -> wrap.keyToValue(entry.getKey(), entry.getValue())).collect(wrap.asCollector());
     }
-
+    
     /**
-     * Wraps a map to a string using default wrap.
+     * Wraps the given {@link Map} to {@link String} using the default {@link Wrap}.
      *
-     * @param map - Map to wrap.
-     * @param <K> - Key type.
-     * @param <V> - Value type.
-     * @return the wrapped string.
+     * @param map - The map to wrap to string.
+     * @param <K> - The key element type.
+     * @param <V> - The value element type.
+     * @return a string representation of the elements in the collection.
      */
-    @Nonnull
-    public static <K, V> String wrapToString(@Nonnull Map<K, V> map) {
-        return wrapToString(map, MapWrap.ofDefault());
+    @NotNull
+    public static <K, V> String wrapToString(@NotNull Map<K, V> map) {
+        return wrapToString(map, Wrap.ofMap());
     }
-
+    
     /**
-     * Returns true if an array is null or empty.
+     * Gets whether the given {@code array} if {@code null} or empty.
      *
-     * @param array - array to check.
-     * @param <E>   - type of the array.
-     * @return true if an array is null or empty.
+     * @param array - The array to check.
+     * @param <E>   - The element type.
+     * @return {@code true} if the given array is null or empty; {@code false} otherwise.
      */
-    public static <E> boolean nullOrEmpty(@Nullable E[] array) {
+    public static <E> boolean isNullOrEmpty(@Nullable E[] array) {
         return array == null || array.length == 0;
     }
-
+    
     /**
-     * Returns the next value in the array.
-     * <br>
-     * This method will return the first element of the array if the next value is out of bounds.
+     * Gets the next {@link T} value in the given {@code array}, wrapping to the start if out-of-bounds.
      *
-     * @param values  - array to get from.
-     * @param current - current value.
-     * @param <T>     - type of the array.
-     * @return the next value.
-     */
-    @Nonnull
-    public static <T> T getNextValue(@Nonnull T[] values, @Nonnull T current) {
-        for (int i = 0; i < values.length; i++) {
-            final T t = values[i];
-
-            if (t.equals(current)) {
-                return values.length > (i + 1) ? values[i + 1] : values[0];
-            }
-        }
-        return current;
-    }
-
-    /**
-     * Returns the previous value in the array.
-     * <br>
-     * This method will return the last element is the previous value is out of bounds.
-     *
-     * @param values  - array to get from.
-     * @param current - current value.
-     * @param <T>     - type of the array.
-     * @return the previous value.
-     */
-    public static <T> T getPreviousValue(@Nonnull T[] values, @Nonnull T current) {
-        for (int i = 0; i < values.length; i++) {
-            final T t = values[i];
-
-            if (t.equals(current)) {
-                return i == 0 ? values[values.length - 1] : values[i - 1];
-            }
-        }
-        return current;
-    }
-
-    /**
-     * Iterates over the collection and then clears it.
-     * Useful to iterate over something like entities to remove them.
-     *
-     * @param collection - collection to iterate over.
-     * @param action     - action to perform.
-     * @param <E>        - type of the collection.
-     */
-    public static <E> void forEachAndClear(@Nonnull Collection<E> collection, @Nonnull Consumer<E> action) {
-        collection.forEach(action);
-        collection.clear();
-    }
-
-    /**
-     * Adds map integer value.
-     *
-     * @param hashMap - map to add to.
-     * @param value   - value to add.
-     * @param toAdd   - value to add.
-     * @param <K>     - Key type.
-     * @deprecated {@link Map#compute(Object, BiFunction)} exists
-     */
-    @Deprecated
-    public static <K> void addMapValue(@Nonnull Map<K, Integer> hashMap, @Nonnull K value, int toAdd) {
-        hashMap.put(value, hashMap.getOrDefault(value, 0) + toAdd);
-    }
-
-    /**
-     * Clamps map integer value.
-     *
-     * @param hashMap - map to clamp.
-     * @param value   - value to clamp.
-     * @param min     - min value.
-     * @param max     - max value.
-     * @param <K>     - Key type.
-     * @deprecated {@link Map#compute(Object, BiFunction)} exists
-     */
-    @Deprecated
-    public static <K> void clampMapValue(@Nonnull Map<K, Integer> hashMap, @Nonnull K value, int min, int max) {
-        final int integer = hashMap.getOrDefault(value, 0);
-        hashMap.put(value, Numbers.clamp(integer, min, max));
-    }
-
-    /**
-     * Adds an object to a set and returns it.
-     *
-     * @param set   - set to add to.
-     * @param toAdd - object to add.
-     * @param <E>   - type of the set.
-     * @return the object added.
-     */
-    public static <E> E addAndGet(@Nonnull Set<E> set, @Nonnull E toAdd) {
-        set.add(toAdd);
-        return toAdd;
-    }
-
-    /**
-     * Creates a new map and inserts the key and value.
-     *
-     * @param key   - key to insert.
-     * @param value - value to insert.
-     * @param <K>   - type of the key.
-     * @param <V>   - type of the value.
-     * @return the new map.
-     */
-    @Deprecated
-    public static <K, V> Map<K, V> newMapAndPut(@Nonnull K key, @Nonnull V value) {
-        final HashMap<K, V> newMap = new HashMap<>();
-        newMap.put(key, value);
-        return newMap;
-    }
-
-    /**
-     * Adds all the objects to the list.
-     *
-     * @param list  - list to add to.
-     * @param toAdd - objects to add.
-     * @param <E>   - type of the list.
-     */
-    @SafeVarargs
-    public static <E> void addAll(@Nonnull List<E> list, @Nonnull E... toAdd) {
-        list.addAll(Arrays.asList(toAdd));
-    }
-
-    /**
-     * Adds all elements to the collection.
-     *
-     * @param collection - collection to add to.
-     * @param elements   - elements to add.
-     * @param <E>        - type of the collection.
-     */
-    @SafeVarargs
-    public static <E> void addAll(@Nonnull Collection<E> collection, @Nonnull E... elements) {
-        collection.addAll(Arrays.asList(elements));
-    }
-
-    /**
-     * Returns a random element from the list.
-     *
-     * @param list - list to get from.
-     * @param <E>  - type of the list.
-     * @return a random element.
+     * @param values  - The array to retrieve the value from.
+     * @param current - The current element in the array.
+     * @param <T>     - The element type.
+     * @return the next value in the array.
      */
     @Nullable
-    public static <E> E randomElement(@Nonnull List<E> list) {
-        return randomElement(list, null);
-    }
-
-    /**
-     * Gets a random element from a given {@link List} or throws a {@link NullPointerException} if the collection is empty.
-     *
-     * @param list - list to get from.
-     * @return a random element.
-     */
-    @Nonnull
-    public static <E> E randomElementOrFirst(@Nonnull List<E> list) {
-        return Objects.requireNonNull(randomElement(list, null), "List must not be empty!");
-    }
-
-    /**
-     * Returns a random element from the list or default value if the list is empty.
-     *
-     * @param list - list to get from.
-     * @param def  - default value.
-     * @param <E>  - type of the list.
-     * @return a random element.
-     */
-    public static <E> E randomElement(@Nonnull List<E> list, E def) {
-        if (list.isEmpty()) {
-            return def;
+    public static <T> T getNextValue(@NotNull T[] values, @NotNull T current) {
+        for (int i = 0; i < values.length; i++) {
+            final T value = values[i];
+            
+            if (current.equals(value)) {
+                return values[(i + 1) % values.length];
+            }
         }
-
-        return getOrDefault(list, ThreadLocalRandom.current().nextInt(list.size()), def);
+        
+        return null;
     }
-
+    
     /**
-     * Returns a random element from the set.
+     * Gets the previous {@link T} value in the given {@code array}, wrapping to the end if out-of-bounds.
      *
-     * @param collection - set to get from.
-     * @param <E>        - type of the set.
-     * @return a random element.
+     * @param values  - The array to retrieve the value from.
+     * @param current - The current element in the array.
+     * @param <T>     - The element type.
+     * @return the next value in the array.
      */
     @Nullable
-    public static <E> E randomElement(@Nonnull Collection<E> collection) {
-        return randomElement(collection, null);
+    public static <T> T getPreviousValue(@NotNull T[] values, @NotNull T current) {
+        for (int i = 0; i < values.length; i++) {
+            final T value = values[i];
+            
+            if (current.equals(value)) {
+                return values[(i - 1 + values.length) % values.length];
+            }
+        }
+        
+        return null;
     }
-
+    
     /**
-     * Gets a random element from a given {@link Collection} or throws a {@link NullPointerException} if the collection is empty.
+     * Retrieves a random element from the given {@link Collection}.
      *
-     * @param collection - set to get from.
-     * @return a random element.
+     * @param collection - The collection from which to retrieve a random element.
+     * @param <E>        - The element type.
+     * @return a random element from the collection, or {@code null} if the collection is empty.
      */
-    @Nonnull
-    public static <E> E randomElementOrFirst(@Nonnull Collection<E> collection) {
-        return Objects.requireNonNull(randomElement(collection, null), "Collection must not be empty!");
-    }
-
-    /**
-     * Returns a random element from the set or def if a set is empty.
-     *
-     * @param collection - set to get from.
-     * @param def        - default value.
-     * @param <E>        - type of the set.
-     * @return a random element.
-     */
-    public static <E> E randomElement(@Nonnull Collection<E> collection, E def) {
+    @Nullable
+    public static <E> E randomElement(@NotNull Collection<E> collection) {
         if (collection.isEmpty()) {
-            return def;
+            return null;
         }
-
-        return getOrDefault(collection, ThreadLocalRandom.current().nextInt(collection.size()), def);
+        
+        final int randomElementIndex = RANDOM.nextInt(collection.size());
+        
+        return collection instanceof List<E> list
+               ? list.get(randomElementIndex)
+               : collection.stream().skip(randomElementIndex).findFirst().orElse(null);
     }
-
+    
     /**
-     * Returns a random element from the list.
+     * Retrieves a random element from the given {@link Collection}.
      *
-     * @param array - array to get from.
-     * @param <E>   - type of the array.
-     * @return a random element.
+     * @param collection   - The collection from which to retrieve a random element.
+     * @param defaultValue - The default value to use if the collection is empty or the retrieved element is {@code null}.
+     * @param <E>          - The element type.
+     * @return a random element from the collection, or {@code defaultValue} if the collection is empty or the retrieved element is {@code null}.
+     */
+    @NotNull
+    public static <E> E randomElement(@NotNull Collection<E> collection, @NotNull E defaultValue) {
+        final E value = randomElement(collection);
+        
+        return value != null ? value : defaultValue;
+    }
+    
+    /**
+     * Retrieves a random element from the given {@link Collection}, or the first element in the collection if the collection
+     * is empty or the retrieved element is {@code null}.
+     *
+     * @param collection - The collection from which to retrieve a random element.
+     * @param <E>        - The element type.
+     * @return a random element from the collection, or {@code null} if the collection is empty.
+     */
+    @NotNull
+    public static <E> E randomElementOrFirst(@NotNull Collection<E> collection) {
+        final E value = randomElement(collection);
+        
+        return value != null
+               ? value
+               : Objects.requireNonNull(
+                       collection instanceof List<E> list ? list.getFirst() : collection.stream().findFirst().orElse(null),
+                       "Collection must not be empty!"
+               );
+    }
+    
+    /**
+     * Retrieves a random element from the given {@code array}.
+     *
+     * @param array - The array from which to retrieve a random element.
+     * @param <E>   - The element type.
+     * @return a random element from the array, or {@code null} if the collection is empty.
      */
     @Nullable
-    public static <E> E randomElement(@Nonnull E[] array) {
-        return randomElement(array, null);
+    public static <E> E randomElement(@NotNull E[] array) {
+        return array.length == 0 ? null : array[RANDOM.nextInt(array.length)];
     }
-
+    
     /**
-     * Gets a random element from a given {@link Collection} or throws a {@link NullPointerException} if the collection is empty.
+     * Retrieves a random element from the given {@code array}.
      *
-     * @param array - array to get from.
-     * @return a random element.
+     * @param array        - The array from which to retrieve a random element.
+     * @param defaultValue - The default value to use if the array is empty or the retrieved element is {@code null}.
+     * @param <E>          - The element type.
+     * @return a random element from the array, or {@code null} if the collection is empty.
      */
-    @Nonnull
-    public static <E> E randomElementOrFirst(@Nonnull E[] array) {
-        return Objects.requireNonNull(randomElement(array, null), "Array must not be empty!");
+    @NotNull
+    public static <E> E randomElement(@NotNull E[] array, @NotNull E defaultValue) {
+        final E value = randomElement(array);
+        
+        return value != null ? value : defaultValue;
     }
-
+    
     /**
-     * Returns a random element from the list or default value if array is empty.
+     * Retrieves a random element from the given {@code array}, or the first element in the array if the array is empty or
+     * the retrieved element is {@code null}.
      *
-     * @param array - array to get from.
-     * @param def   - default value.
-     * @param <E>   - type of the array.
-     * @return a random element.
+     * @param array - The array from which to retrieve a random element.
+     * @param <E>   - The element type.
+     * @return a random element from the collection, or {@code null} if the collection is empty.
      */
-    public static <E> E randomElement(@Nonnull E[] array, E def) {
-        if (array.length == 0) {
-            return def;
-        }
-
-        return array[ThreadLocalRandom.current().nextInt(array.length)];
+    @NotNull
+    public static <E> E randomElementOrFirst(@NotNull E[] array) {
+        final E value = randomElement(array);
+        
+        return value != null ? value : Objects.requireNonNull(array[0], "Array must not be empty!");
     }
-
+    
     /**
-     * Removes all the provided elements from the collection.
+     * Gets whether the given {@code array} contains the given {@link T} element.
      *
-     * @param collection - collection to remove from.
-     * @param elements   - elements to remove.
-     * @param <E>        - type of the collection.
-     */
-    @SafeVarargs
-    public static <E> void removeAll(@Nonnull Collection<E> collection, @Nonnull E... elements) {
-        for (final E element : elements) {
-            collection.remove(element);
-        }
-    }
-
-    /**
-     * Converts array to list.
+     * <p>
+     * This method uses {@link Objects#equals(Object, Object)} check instead of identity check.
+     * </p>
      *
-     * @param array - array to convert.
-     * @param <E>   - type of the array.
-     * @return the list.
+     * @param array   - The array to check.
+     * @param element - The element to check.
+     * @param <T>     - The element type.
+     * @return {@code true} if the given element is in the given array; {@code false} otherwise.
      */
-    @Nonnull
-    public static <E> List<E> arrayToList(@Nonnull E[] array) {
-        return new ArrayList<>(Arrays.asList(array));
-    }
-
-    /**
-     * Converts set to array.
-     *
-     * @param hashSet - set to convert.
-     * @param <E>     - type of the set.
-     * @return the array.
-     * @deprecated {@link #collectionToArray(Collection)}
-     */
-    @Nonnull
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public static <E> E[] setToArray(@Nonnull Set<E> hashSet) {
-        return (E[]) hashSet.toArray();
-    }
-
-    /**
-     * Converts a {@link Collection} to array.
-     *
-     * @param collection - Collection.
-     * @return array.
-     */
-    @Nonnull
-    @SuppressWarnings("unchecked")
-    public static <E> E[] collectionToArray(@Nonnull Collection<E> collection) {
-        return (E[]) collection.toArray();
-    }
-
-    /**
-     * Converts an array to set.
-     *
-     * @param array - array to convert.
-     * @param <E>   - type of the array.
-     * @return the set.
-     */
-    @Nonnull
-    public static <E> Set<E> arrayToSet(@Nonnull E[] array) {
-        return new HashSet<>(Arrays.asList(array));
-    }
-
-    /**
-     * Converts an int array to list of integers.
-     *
-     * @param array - array to convert.
-     * @return the list.
-     */
-    @Nonnull
-    public static List<Integer> intArrayToList(@Nonnull int[] array) {
-        final List<Integer> list = new ArrayList<>();
-        for (final int i : array) {
-            list.add(i);
-        }
-        return list;
-    }
-
-    /**
-     * Attempts to find an element in a given {@link Collection} that matches the {@link Predicate}.
-     *
-     * @param collection - Collection.
-     * @param predicate  - Predicate.
-     * @return the first element that matches the predicate, or null if none does.
-     */
-    @Nullable
-    public static <T> T find(@Nonnull Collection<T> collection, @Nonnull Predicate<T> predicate) {
-        for (T t : collection) {
-            if (predicate.test(t)) {
-                return t;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Attempts to find an element in a given {@link Collection} that matches the {@link Predicate} and removes it.
-     *
-     * @param collection - Collection.
-     * @param predicate  - Predicate.
-     * @return the first element that matches the predicate, or null if none does.
-     */
-    @Nullable
-    public static <T> T findAndRemove(@Nonnull Collection<T> collection, @Nonnull Predicate<T> predicate) {
-        final Iterator<T> iterator = collection.iterator();
-
-        while (iterator.hasNext()) {
-            final T next = iterator.next();
-
-            if (predicate.test(next)) {
-                iterator.remove();
-                return next;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns <code>true</code> if the given array contains the given element.
-     *
-     * @param array   - Array to check.
-     * @param element - Element to check.
-     * @return true if the given array contains the given element.
-     */
-    public static <T> boolean contains(@Nullable T[] array, @Nonnull T element) {
+    public static <T> boolean contains(@Nullable T[] array, @NotNull T element) {
         if (array == null) {
             return false;
         }
-
-        for (T t : array) {
-            if (t.equals(element)) {
+        
+        for (@Nullable T value : array) {
+            if (Objects.equals(element, value)) {
                 return true;
             }
         }
-
+        
         return false;
     }
-
+    
     /**
-     * Creates a copy of an array.
+     * Creates a copy of the given {@code array}.
      *
-     * @param original - Original array.
-     * @return a copy of the original array.
+     * @param original - The array to copy.
+     * @return a copy of the given array.
      */
-    public static int[] arrayCopy(@Nonnull int[] original) {
+    public static int[] arrayCopy(int[] original) {
         final int[] copy = new int[original.length];
         System.arraycopy(original, 0, copy, 0, original.length);
+        
         return copy;
-    }
-
-    /**
-     * Creates a copy of an array.
-     *
-     * @param original - Original array.
-     * @return a copy of the original array.
-     */
-    public static long[] arrayCopy(@Nonnull long[] original) {
-        final long[] copy = new long[original.length];
-        System.arraycopy(original, 0, copy, 0, original.length);
-        return copy;
-    }
-
-    public static double[] arrayCopy(@Nonnull double[] original) {
-        final double[] copy = new double[original.length];
-        System.arraycopy(original, 0, copy, 0, original.length);
-        return copy;
-    }
-
-    /**
-     * Creates a copy of an array.
-     *
-     * @param original - Original array.
-     * @return a copy of the original array.
-     */
-    public static float[] arrayCopy(@Nonnull float[] original) {
-        final float[] copy = new float[original.length];
-        System.arraycopy(original, 0, copy, 0, original.length);
-        return copy;
-    }
-
-    /**
-     * Creates a copy of an array.
-     *
-     * @param original - Original array.
-     * @return a copy of the original array.
-     */
-    public static char[] arrayCopy(@Nonnull char[] original) {
-        final char[] copy = new char[original.length];
-        System.arraycopy(original, 0, copy, 0, original.length);
-        return copy;
-    }
-
-    /**
-     * Creates a copy of an array.
-     *
-     * @param original - Original array.
-     * @return a copy of the original array.
-     */
-    public static byte[] arrayCopy(@Nonnull byte[] original) {
-        final byte[] copy = new byte[original.length];
-        System.arraycopy(original, 0, copy, 0, original.length);
-        return copy;
-    }
-
-    /**
-     * Creates a copy of an array.
-     *
-     * @param original - Original array.
-     * @return a copy of the original array.
-     */
-    public static short[] arrayCopy(@Nonnull short[] original) {
-        final short[] copy = new short[original.length];
-        System.arraycopy(original, 0, copy, 0, original.length);
-        return copy;
-    }
-
-    /**
-     * Creates a copy of an array.
-     *
-     * @param original - Original array.
-     * @return a copy of the original array.
-     */
-    public static boolean[] arrayCopy(@Nonnull boolean[] original) {
-        final boolean[] copy = new boolean[original.length];
-        System.arraycopy(original, 0, copy, 0, original.length);
-        return copy;
-    }
-
-    /**
-     * Iterates over the given {@link Iterable}, performs the action specified by the given {@link BiConsumer} on each element.
-     * <br>
-     * Note that calling {@link Iterator#remove()} on an immutable {@link Iterable} will cause a {@link UnsupportedOperationException}!
-     * <pre>{@code
-     * Player player = ...
-     * List<String> list = Lists.newArrayList(
-     *         "Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do"
-     * );
-     *
-     * CollectionUtils.iterate(list, (iterator, item) -> {
-     *     if (item.equalsIgnoreCase("sit")) {
-     *         iterator.remove();
-     *         player.sendMessage("Removed " + item + "!");
-     *         return;
-     *     }
-     *
-     *     player.sendMessage("Current item: " + item);
-     * });
-     *
-     * info(player, list);
-     * }</pre>
-     *
-     * @param iterable - Iterable.
-     * @param consumer - Consumer
-     */
-    public static <E> void iterate(@Nonnull Iterable<E> iterable, @Nonnull BiConsumer<Iterator<E>, E> consumer) {
-        final Iterator<E> iterator = iterable.iterator();
-
-        while (iterator.hasNext()) {
-            final E next = iterator.next();
-            consumer.accept(iterator, next);
-        }
     }
     
-    private static <E, S> E getFromIndexed(int index, S s, Function<S, Integer> fnSize, BiFunction<S, Integer, E> fnGet) {
-        final Integer size = fnSize.apply(s);
-
-        if (index < 0 || index >= size) {
-            return null;
-        }
-
-        return fnGet.apply(s, index);
+    /**
+     * Creates a copy of the given {@code array}.
+     *
+     * @param original - The array to copy.
+     * @return a copy of the given array.
+     */
+    public static long[] arrayCopy(long[] original) {
+        final long[] copy = new long[original.length];
+        System.arraycopy(original, 0, copy, 0, original.length);
+        
+        return copy;
     }
-
+    
+    /**
+     * Creates a copy of the given {@code array}.
+     *
+     * @param original - The array to copy.
+     * @return a copy of the given array.
+     */
+    public static double[] arrayCopy(double[] original) {
+        final double[] copy = new double[original.length];
+        System.arraycopy(original, 0, copy, 0, original.length);
+        
+        return copy;
+    }
+    
+    /**
+     * Creates a copy of the given {@code array}.
+     *
+     * @param original - The array to copy.
+     * @return a copy of the given array.
+     */
+    public static float[] arrayCopy(float[] original) {
+        final float[] copy = new float[original.length];
+        System.arraycopy(original, 0, copy, 0, original.length);
+        
+        return copy;
+    }
+    
+    /**
+     * Creates a copy of the given {@code array}.
+     *
+     * @param original - The array to copy.
+     * @return a copy of the given array.
+     */
+    public static char[] arrayCopy(char[] original) {
+        final char[] copy = new char[original.length];
+        System.arraycopy(original, 0, copy, 0, original.length);
+        
+        return copy;
+    }
+    
+    /**
+     * Creates a copy of the given {@code array}.
+     *
+     * @param original - The array to copy.
+     * @return a copy of the given array.
+     */
+    public static byte[] arrayCopy(byte[] original) {
+        final byte[] copy = new byte[original.length];
+        System.arraycopy(original, 0, copy, 0, original.length);
+        
+        return copy;
+    }
+    
+    /**
+     * Creates a copy of the given {@code array}.
+     *
+     * @param original - The array to copy.
+     * @return a copy of the given array.
+     */
+    public static short[] arrayCopy(short[] original) {
+        final short[] copy = new short[original.length];
+        System.arraycopy(original, 0, copy, 0, original.length);
+        
+        return copy;
+    }
+    
+    /**
+     * Creates a copy of the given {@code array}.
+     *
+     * @param original - The array to copy.
+     * @return a copy of the given array.
+     */
+    public static boolean[] arrayCopy(boolean[] original) {
+        final boolean[] copy = new boolean[original.length];
+        System.arraycopy(original, 0, copy, 0, original.length);
+        
+        return copy;
+    }
+    
+    /**
+     * Creates a copy of range of the given {@code array}.
+     *
+     * @param source       - The original array.
+     * @param length       - The new length of the array.
+     * @param defaultValue - The supplier for supplementary value where the value of the element in the original array is {@code null}.
+     * @return a copy of the given array.
+     */
+    public static <T> @NotNull T @NotNull [] arrayCopy(@Nullable T @NotNull [] source, int length, @NotNull Supplier<T> defaultValue) {
+        final T[] arrayCopy = Arrays.copyOf(source, length);
+        
+        Arrays.setAll(
+                arrayCopy, i -> {
+                    final T value = arrayCopy[i];
+                    
+                    return value != null ? value : defaultValue.get();
+                }
+        );
+        
+        return arrayCopy;
+    }
+    
+    /**
+     * Converts the given varargs into a {@link List}.
+     *
+     * @param varargs - The varargs to convert into a list.
+     * @param <T>     - The element type.
+     * @return a list of varargs.
+     * @throws IllegalArgumentException if the given varargs are empty.
+     */
+    @NotNull
+    public static <T> List<T> varargsAsList(@NotNull T... varargs) throws IllegalArgumentException {
+        return Arrays.asList(Validate.varargs(varargs));
+    }
+    
+    @NotNull
+    private static <I, E> Optional<E> get0(@NotNull I indexed, int index, @NotNull Function<I, Integer> getLength, @NotNull BiFunction<I, Integer, E> get) {
+        final int length = getLength.apply(indexed);
+        
+        return index < 0 || index >= length
+               ? Optional.empty()
+               : Optional.ofNullable(get.apply(indexed, index));
+    }
+    
 }

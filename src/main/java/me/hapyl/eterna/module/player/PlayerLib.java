@@ -1,401 +1,410 @@
 package me.hapyl.eterna.module.player;
 
 import com.google.common.collect.Sets;
-import me.hapyl.eterna.module.inventory.ItemBuilder;
+import me.hapyl.eterna.module.annotate.UtilityClass;
+import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.registry.Key;
-import me.hapyl.eterna.module.registry.Keyed;
-import me.hapyl.eterna.module.util.Runnables;
+import me.hapyl.eterna.module.registry.KeyLike;
+import me.hapyl.eterna.Runnables;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemCooldowns;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Tiny player library to make player methods easier.
+ * A helpful utility class for {@link Player} interactions, mostly {@link Sound} / {@link Particle} related.
  */
+@UtilityClass
 public final class PlayerLib {
-
+    
     /**
-     * The default sound category {@link PlayerLib} plays the sounds to.
+     * Defines the {@link SoundCategory} used for the sound-related operations.
      */
-    public static final SoundCategory SOUND_CATEGORY = SoundCategory.RECORDS;
+    @NotNull
+    public static final SoundCategory SOUND_CATEGORY = SoundCategory.UI;
+    
     /**
-     * Default volume for global sounds.
+     * Defines the sound volume used for global sound-related operations.
      */
     public static final int WORLD_SOUND_VOLUME = 2;
+    
     /**
-     * Default volume for player-specific sounds.
+     * Defines the sound volume used for player sound-related operations.
      */
     public static final int PLAYER_SOUND_VOLUME = 1;
-
+    
     private PlayerLib() {
+        UtilityClass.Validator.throwIt();
     }
-
+    
     /**
-     * Plays a sound to the player.
+     * Plays the given {@link Sound} for the given {@link Player}.
      *
-     * @param player - Player to play a sound to.
-     * @param sound  - Sound to play.
-     * @param pitch  - Pitch of the sound. Will be clamped between 0.0f-2.0f.
+     * @param player - The player for whom to play the sound.
+     * @param sound  - The sound to play.
+     * @param pitch  - The pitch of the sound.
+     *               <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive).</p>
      */
-    public static void playSound(@Nonnull Player player, @Nonnull Sound sound, float pitch) {
-        player.playSound(player.getLocation(), sound, SOUND_CATEGORY, PLAYER_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
+    public static void playSound(@NotNull Player player, @NotNull Sound sound, final float pitch) {
+        player.playSound(player, sound, SOUND_CATEGORY, PLAYER_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
     }
-
+    
     /**
-     * Plays a sound at provided location.
-     * <br>
-     * Does nothing if the world is unloaded.
+     * Plays the given {@link Sound} for the given {@link Player} at the given {@link Location}.
      *
-     * @param location - Location to play sound at.
-     * @param sound    - Sound to play.
-     * @param pitch    - Pitch of the sound. Will be clamped between 0.0f-2.0f.
+     * @param player   - The player for whom to play the sound.
+     * @param location - The location where to play the sound.
+     * @param sound    - The sound to play.
+     * @param pitch    - The pitch of the sound.
+     *                 <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive).</p>
      */
-    public static void playSound(@Nonnull Location location, @Nonnull Sound sound, float pitch) {
-        final World world = location.getWorld();
-
-        if (world != null) {
-            world.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
-        }
+    public static void playSound(@NotNull Player player, @NotNull Location location, @NotNull Sound sound, final float pitch) {
+        player.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
     }
-
+    
     /**
-     * Plays a sound at provided location for a specific player.
-     * <br>
-     * Does nothing if the world is unloaded.
+     * Plays the given {@link Sound} for each online {@link Player}.
      *
-     * @param player   - PLayer.
-     * @param location - Location to play sound at.
-     * @param sound    - Sound to play.
-     * @param pitch    - Pitch of the sound. Will be clamped between 0.0f-2.0f.
+     * @param sound - The sound to play.
+     * @param pitch - The pitch of the sound.
+     *              <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive).</p>
      */
-    public static void playSound(@Nonnull Player player, @Nonnull Location location, @Nonnull Sound sound, float pitch) {
-        final World world = location.getWorld();
-
-        if (world != null) {
-            player.playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
-        }
-    }
-
-    /**
-     * Plays a sound to each online player.
-     *
-     * @param sound - Sound.
-     * @param pitch - Pitch.
-     */
-    public static void playSound(@Nonnull Sound sound, float pitch) {
+    public static void playSound(@NotNull Sound sound, final float pitch) {
         Bukkit.getOnlinePlayers().forEach(player -> playSound(player, sound, pitch));
     }
-
+    
     /**
-     * Plays a sound to a player, and stops it after a certain number of ticks passed.
+     * Plays the given {@link Sound} at the given {@link Location} globally.
      *
-     * @param player   - Player.
-     * @param sound    - Sound to play.
-     * @param pitch    - Pitch of the sound. Will be clamped between 0.0f-2.0f.
-     * @param cutAfter - Number of ticks to stop the sound after.
+     * @param location - The location where to play the sound.
+     * @param sound    - The sound to play.
+     * @param pitch    - The pitch of the sound.
+     *                 <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive).</p>
      */
-    public static void playSoundAndCut(@Nonnull Player player, @Nonnull Sound sound, float pitch, int cutAfter) {
+    public static void playSound(@NotNull Location location, @NotNull Sound sound, final float pitch) {
+        location.getWorld().playSound(location, sound, SOUND_CATEGORY, WORLD_SOUND_VOLUME, Math.clamp(pitch, 0.0f, 2.0f));
+    }
+    
+    /**
+     * Plays the given {@link Sound} for the given {@link Player} and cuts it after the given delay.
+     *
+     * @param player   - The player for whom to play the sound.
+     * @param sound    - The sound to play.
+     * @param pitch    - The pitch of the sound.
+     *                 <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive).</p>
+     * @param cutAfter - The delay after which to cut the sound.
+     */
+    public static void playSoundAndCut(@NotNull Player player, @NotNull Sound sound, float pitch, int cutAfter) {
         playSound(player, sound, pitch);
-
-        Runnables.runLater(() -> player.stopSound(sound, SOUND_CATEGORY), cutAfter);
+        
+        Runnables.later(() -> player.stopSound(sound, SOUND_CATEGORY), cutAfter);
     }
-
+    
     /**
-     * Plays a sound at a specific location, and stops it after a certain number of ticks passed.
+     * Plays the given {@link Sound} at the given {@link Location} globally and cuts it after the given delay.
      *
-     * @param location - Location to play sound at.
-     * @param sound    - Sound to play.
-     * @param pitch    - Pitch of the sound. Will be clamped between 0.0f-2.0f.
-     * @param cutAfter - Number of ticks to stop the sound after.
+     * @param location - The location where to play the sound.
+     * @param sound    - The sound to play.
+     * @param pitch    - The pitch of the sound.
+     *                 <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive)</p>
+     * @param cutAfter - The delay after which to cut the sound.
      */
-    public static void playSoundAndCut(@Nonnull Location location, @Nonnull Sound sound, float pitch, int cutAfter) {
-        final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-
-        players.forEach(player -> playSound(player, location, sound, pitch));
-        Runnables.runLater(() -> players.forEach(player -> player.stopSound(sound, SOUND_CATEGORY)), cutAfter);
-    }
-
-    /**
-     * Plays a sound at a specific location for the given player, and stops it after a certain number of ticks passed.
-     *
-     * @param player   - Player.
-     * @param location - Location to play sound at.
-     * @param sound    - Sound to play.
-     * @param pitch    - Pitch of the sound. Will be clamped between 0.0f-2.0f.
-     * @param cutAfter - Number of ticks to stop the sound after.
-     */
-    public static void playSoundAndCut(@Nonnull Player player, @Nonnull Location location, @Nonnull Sound sound, float pitch, int cutAfter) {
+    public static void playSoundAndCut(@NotNull Player player, @NotNull Location location, @NotNull Sound sound, float pitch, int cutAfter) {
         playSound(player, location, sound, pitch);
-
-        Runnables.runLater(() -> player.stopSound(sound, SOUND_CATEGORY), cutAfter);
+        
+        Runnables.later(() -> player.stopSound(sound, SOUND_CATEGORY), cutAfter);
     }
-
+    
     /**
-     * Stops specific sound for each online player.
+     * Plays the given {@link Sound} at the given {@link Location} for each online {@link Player} and cuts it after the given delay.
      *
-     * @param sound - Sound to stop.
+     * @param sound    - The sound to play.
+     * @param pitch    - The pitch of the sound.
+     *                 <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive)</p>
+     * @param cutAfter - The delay after which to cut the sound.
      */
-    public static void stopSound(@Nonnull Sound sound) {
+    public static void playSoundAndCut(@NotNull Sound sound, float pitch, int cutAfter) {
+        final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+        
+        // Not using `playSoundAndCut` internally so we only schedule one runnable instead of per-player runnable
+        players.forEach(player -> playSound(player, sound, pitch));
+        Runnables.later(() -> players.forEach(player -> player.stopSound(sound, SOUND_CATEGORY)), cutAfter);
+    }
+    
+    /**
+     * Plays the given {@link Sound} at the given {@link Location} globally and cuts it after the given delay.
+     *
+     * @param location - The location where to play the sound.
+     * @param sound    - The sound to play.
+     * @param pitch    - The pitch of the sound.
+     *                 <p>The pitch is clamped between {@code 0} - {@code 2} (inclusive)</p>
+     * @param cutAfter - The delay after which to cut the sound.
+     */
+    public static void playSoundAndCut(@NotNull Location location, @NotNull Sound sound, float pitch, int cutAfter) {
+        final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+        
+        // Not using `playSoundAndCut` internally so we only schedule one runnable instead of per-player runnable
+        players.forEach(player -> playSound(player, location, sound, pitch));
+        Runnables.later(() -> players.forEach(player -> player.stopSound(sound, SOUND_CATEGORY)), cutAfter);
+    }
+    
+    /**
+     * Spots the given {@link Sound} for each online {@link Player}.
+     *
+     * @param sound - The sound to stop.
+     */
+    public static void stopSound(@NotNull Sound sound) {
         Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(sound, SOUND_CATEGORY));
     }
-
+    
     /**
-     * Spawns a particle for the specific player.
-     * Only the given player will see the particle.
+     * Spawns the given {@link Particle} for the given {@link Player} at the given {@link Location}.
      *
-     * @param player       - Player.
-     * @param location     - Location.
-     * @param particle     - Particle.
-     * @param amount       - Number of particles; Some particles might use this value for size.
-     * @param x            - X Offset of the particle.
-     * @param y            - Y Offset of the particle.
-     * @param z            - Z Offset of the particle.
-     * @param speed        - Speed of the particle.
-     * @param particleData - Particle data.
+     * @param player       - The player for whom to display the particle.
+     * @param location     - The location where to display the particle.
+     * @param particle     - The particle to display.
+     * @param amount       - The amount of particles to display.
+     * @param offsetX      - The {@code x} offset.
+     * @param offsetY      - The {@code y} offset.
+     * @param offsetZ      - The {@code z} offset.
+     * @param speed        - The speed of the particle.
+     * @param particleData - The optional particle data.
+     * @param <T>          - The particle type.
+     * @implNote This method silently fails if the given particle doesn't support the given data, or data isn't {@code null} but the particle requires {@code null} data.
      */
-    public static <T> void spawnParticle(@Nonnull Player player, @Nonnull Location location, @Nonnull Particle particle, int amount, double x, double y, double z, float speed, @Nullable T particleData) {
-        player.spawnParticle(particle, location, amount, x, y, z, speed, particleData);
-    }
-
-    /**
-     * Spawns a particle for the specific player.
-     * Only the given player will see the particle.
-     *
-     * @param player   - Player.
-     * @param location - Location.
-     * @param particle - Particle.
-     * @param amount   - Number of particles; Some particles might use this value for size.
-     * @param x        - X Offset of the particle.
-     * @param y        - Y Offset of the particle.
-     * @param z        - Z Offset of the particle.
-     * @param speed    - Speed of the particle.
-     */
-    public static void spawnParticle(@Nonnull Player player, @Nonnull Location location, @Nonnull Particle particle, int amount, double x, double y, double z, float speed) {
-        player.spawnParticle(particle, location, amount, x, y, z, speed);
-    }
-
-    /**
-     * Spawns a particle for the specific player.
-     * Only the given player will see the particle.
-     *
-     * @param player   - Player.
-     * @param location - Location.
-     * @param particle - Particle.
-     * @param amount   - Number of particles.
-     */
-    public static void spawnParticle(@Nonnull Player player, @Nonnull Location location, @Nonnull Particle particle, int amount) {
-        player.spawnParticle(particle, location, amount, 0.0d, 0.0d, 0.0d, 0.0f);
-    }
-
-    /**
-     * /**
-     * Spawns a particle at the specific location.
-     * Every player will see the particle.
-     *
-     * @param location - Location.
-     * @param particle - Particle.
-     * @param amount   - Number of particles.
-     * @param x        - X Offset.
-     * @param y        - Y Offset.
-     * @param z        - Z Offset.
-     * @param speed    - Speed of the particle.
-     */
-    public static void spawnParticle(@Nonnull Location location, @Nonnull Particle particle, int amount, double x, double y, double z, float speed) {
-        final World world = location.getWorld();
-
-        if (world != null) {
-            world.spawnParticle(particle, location, amount, x, y, z, speed);
+    public static <T> void spawnParticle(
+            @NotNull Player player,
+            @NotNull Location location,
+            @NotNull Particle particle,
+            final int amount,
+            final double offsetX,
+            final double offsetY,
+            final double offsetZ,
+            final float speed,
+            @Nullable T particleData
+    ) {
+        if (shouldFailBecauseWrongParticleData(particle, particleData)) {
+            return;
         }
+        
+        player.spawnParticle(particle, location, amount, offsetX, offsetY, offsetZ, speed, particleData);
     }
-
+    
     /**
-     * Spawns a particle at the specific location.
+     * Spawns the given {@link Particle} for the given {@link Player} at the given {@link Location}.
      *
-     * @param location - Location.
-     * @param particle - Particle.
-     * @param amount   - Number of particles.
+     * @param player   - The player for whom to display the particle.
+     * @param location - The location where to display the particle.
+     * @param particle - The particle to display.
+     * @param amount   - The amount of particles to display.
+     * @param offsetX  - The {@code x} offset.
+     * @param offsetY  - The {@code y} offset.
+     * @param offsetZ  - The {@code z} offset.
+     * @param speed    - The speed of the particle.
      */
-    public static void spawnParticle(@Nonnull Location location, @Nonnull Particle particle, int amount) {
-        final World world = location.getWorld();
-
-        if (world != null) {
-            world.spawnParticle(particle, location, amount, 0.0d, 0.0d, 0.0d, 0.0f);
+    public static void spawnParticle(
+            @NotNull Player player,
+            @NotNull Location location,
+            @NotNull Particle particle,
+            final int amount,
+            final double offsetX,
+            final double offsetY,
+            final double offsetZ,
+            final float speed
+    ) {
+        spawnParticle(player, location, particle, amount, offsetX, offsetY, offsetZ, speed, null);
+    }
+    
+    /**
+     * Spawns the given {@link Particle} for the given {@link Player} at the given {@link Location}.
+     *
+     * @param player   - The player for whom to display the particle.
+     * @param location - The location where to display the particle.
+     * @param particle - The particle to display.
+     * @param amount   - The amount of particles to display.
+     */
+    public static void spawnParticle(@NotNull Player player, @NotNull Location location, @NotNull Particle particle, final int amount) {
+        spawnParticle(player, location, particle, amount, 0, 0, 0, 0f, null);
+    }
+    
+    /**
+     * Spawns the given {@link Particle} globally at the given {@link Location}.
+     *
+     * @param location     - The location where to display the particle.
+     * @param particle     - The particle to display.
+     * @param amount       - The amount of particles to display.
+     * @param offsetX      - The {@code x} offset.
+     * @param offsetY      - The {@code y} offset.
+     * @param offsetZ      - The {@code z} offset.
+     * @param speed        - The speed of the particle.
+     * @param particleData - The optional particle data.
+     * @param <T>          - The particle type.
+     * @implNote This method silently fails if the given particle doesn't support the given data, or data isn't {@code null} but the particle requires {@code null} data.
+     */
+    public static <T> void spawnParticle(
+            @NotNull Location location,
+            @NotNull Particle particle,
+            final int amount,
+            final double offsetX,
+            final double offsetY,
+            final double offsetZ,
+            final float speed,
+            @Nullable T particleData
+    ) {
+        if (shouldFailBecauseWrongParticleData(particle, particleData)) {
+            return;
         }
+        
+        location.getWorld().spawnParticle(particle, location, amount, offsetX, offsetY, offsetZ, speed, particleData);
     }
-
+    
     /**
-     * Adds potion effect to a player.
+     * Spawns the given {@link Particle} globally at the given {@link Location}.
      *
-     * @param player    - Player.
-     * @param type      - Effect type.
-     * @param duration  - Duration of the effect in ticks.
-     * @param amplifier - Level of the effect; Starts at 0.
+     * @param location - The location where to display the particle.
+     * @param particle - The particle to display.
+     * @param amount   - The amount of particles to display.
+     * @param offsetX  - The {@code x} offset.
+     * @param offsetY  - The {@code y} offset.
+     * @param offsetZ  - The {@code z} offset.
+     * @param speed    - The speed of the particle.
      */
-    public static void addEffect(@Nonnull Player player, @Nonnull PotionEffectType type, int duration, int amplifier) {
+    public static void spawnParticle(@NotNull Location location, @NotNull Particle particle, final int amount, final double offsetX, final double offsetY, final double offsetZ, final float speed) {
+        spawnParticle(location, particle, amount, offsetX, offsetY, offsetZ, speed, null);
+    }
+    
+    /**
+     * Spawns the given {@link Particle} globally at the given {@link Location}.
+     *
+     * @param location - The location where to display the particle.
+     * @param particle - The particle to display.
+     * @param amount   - The amount of particles to display.
+     */
+    public static void spawnParticle(@NotNull Location location, @NotNull Particle particle, final int amount) {
+        spawnParticle(location, particle, amount, 0, 0, 0, 0, null);
+    }
+    
+    /**
+     * Adds the given {@link PotionEffectType} to the given {@link Player}.
+     *
+     * @param player    - The player for whom to add the effect.
+     * @param type      - The effect type.
+     * @param duration  - The duration, in ticks.
+     * @param amplifier - The effect amplifier.
+     */
+    public static void addEffect(@NotNull Player player, @NotNull PotionEffectType type, final int duration, final int amplifier) {
         player.addPotionEffect(new PotionEffect(type, duration, amplifier, false, false));
     }
-
+    
     /**
-     * Removes potion effect from a player.
+     * Removes the given {@link PotionEffectType} from the given {@link Player}.
      *
-     * @param player - Player.
-     * @param type   - Effect Type.
+     * @param player - The player for whom to remove the effect.
+     * @param type   - The effect to remove.
      */
-    public static void removeEffect(@Nonnull Player player, @Nonnull PotionEffectType type) {
+    public static void removeEffect(@NotNull Player player, @NotNull PotionEffectType type) {
         player.removePotionEffect(type);
     }
-
-    // *=* Named sound methods *=* //
-
-    /**
-     * Plays a {@link Sound#ENTITY_VILLAGER_YES} sound to the given {@link Player}.
-     *
-     * @param player - Player.
-     */
-    public static void villagerYes(@Nonnull Player player) {
+    
+    // *-* Statically Types Sounds *-* //
+    
+    public static void villagerYes(@NotNull Player player) {
         playSound(player, Sound.ENTITY_VILLAGER_YES, 1.0f);
     }
-
-    /**
-     * Plays a {@link Sound#ENTITY_VILLAGER_NO} sound to the given {@link Player}.
-     *
-     * @param player - Player.
-     */
-    public static void villagerNo(@Nonnull Player player) {
+    
+    public static void villagerNo(@NotNull Player player) {
         playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0f);
     }
-
-    /**
-     * Plays a {@link Sound#BLOCK_LAVA_POP} sound to the given {@link Player}.
-     *
-     * @param player - Player.
-     */
-    public static void lavaPop(@Nonnull Player player) {
+    
+    public static void lavaPop(@NotNull Player player) {
         playSound(player, Sound.BLOCK_LAVA_POP, 0.0f);
     }
-
-    /**
-     * Plays a {@link Sound#BLOCK_NOTE_BLOCK_PLING} sound to the given {@link Player}.
-     *
-     * @param player - Player.
-     * @param pitch  - Pitch
-     */
-    public static void plingNote(@Nonnull Player player, float pitch) {
+    
+    public static void plingNote(@NotNull Player player, float pitch) {
         playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, pitch);
     }
-
-    /**
-     * Plays a {@link Sound#ENTITY_ENDERMAN_TELEPORT} sound to the given {@link Player}.
-     *
-     * @param player - Player.
-     * @param pitch  - Pitch
-     */
-    public static void endermanTeleport(@Nonnull Player player, float pitch) {
+    
+    public static void endermanTeleport(@NotNull Player player, float pitch) {
         playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, pitch);
     }
-
+    
     /**
-     * Sets the cooldown for the given {@link Key} for the given {@link Player}.
+     * Sets the cooldown for the given {@link Player}.
      *
-     * @param player   - The player to set the cooldown for.
-     * @param key      - The key.
-     * @param cooldown - The cooldown in Minecraft ticks.
+     * @param player   - The player for whom to set the cooldown.
+     * @param key      - The cooldown key.
+     * @param cooldown - The cooldown duration, in ticks.
      */
-    public static void setCooldown(@Nonnull Player player, @Nonnull Key key, int cooldown) {
+    public static void setCooldown(@NotNull Player player, @NotNull KeyLike key, final int cooldown) {
         player.setCooldown(ItemBuilder.createDummyCooldownItem(key), cooldown);
     }
-
+    
     /**
-     * Sets the cooldown for the given {@link Key} of the given {@link Keyed} item for the given {@link Player}.
+     * Gets the cooldown for the given {@link Player}.
      *
-     * @param player   - The player to set the cooldown for.
-     * @param keyed    - The keyed item.
-     * @param cooldown - The cooldown in Minecraft ticks.
+     * @param player - The player for whom to get the cooldown.
+     * @param key    - The cooldown key.
+     * @return the cooldown time left, or {@code 0} if not on cooldown.
      */
-    public static void setCooldown(@Nonnull Player player, @Nonnull Keyed keyed, int cooldown) {
-        setCooldown(player, keyed.getKey(), cooldown);
-    }
-
-    /**
-     * Gets the cooldown for the given {@link Key} for the given {@link Player}.
-     *
-     * @param player - The player to get the cooldown for.
-     * @param key    - The key.
-     * @return the cooldown for the given key for the given player.
-     */
-    public static int getCooldown(@Nonnull Player player, @Nonnull Key key) {
+    public static int getCooldown(@NotNull Player player, @NotNull KeyLike key) {
         return player.getCooldown(ItemBuilder.createDummyCooldownItem(key));
     }
-
+    
     /**
-     * Gets the cooldown for the given {@link Key} of the given {@link Keyed} item for the given {@link Player}.
+     * Gets whether the given {@link Player} is on cooldown.
      *
-     * @param player - The player to get the cooldown for.
-     * @param keyed  - The keyed item.
-     * @return the cooldown for the given key for the given player.
+     * @param player - The player to check.
+     * @param key    - The cooldown key.
+     * @return {@code true} if the given player is on cooldown, {@code false} otherwise.
      */
-    public static int getCooldown(@Nonnull Player player, @Nonnull Keyed keyed) {
-        return getCooldown(player, keyed.getKey());
-    }
-
-    /**
-     * Returns {@code true} if the given {@link Player} has a cooldown for the given {@link Key}.
-     *
-     * @param player - The player to check the cooldown for.
-     * @param key    - The key.
-     * @return {@code true} if the given player has a cooldown for given key.
-     */
-    public static boolean isOnCooldown(@Nonnull Player player, @Nonnull Key key) {
+    public static boolean isOnCooldown(@NotNull Player player, @NotNull KeyLike key) {
         return player.hasCooldown(ItemBuilder.createDummyCooldownItem(key));
     }
-
+    
     /**
-     * Returns {@code true} if the given {@link Player} has a cooldown for the given {@link Key} of the given {@link Keyed}.
+     * Stops <b>all</b> the cooldowns for the given {@link Player}.
      *
-     * @param player - The player to check the cooldown for.
-     * @param keyed  - The key item.
-     * @return {@code true} if the given player has a cooldown for given key of the given keyed item.
+     * @param player - The player for whom to stop the cooldowns.
      */
-    public static boolean isOnCooldown(@Nonnull Player player, @Nonnull Keyed keyed) {
-        return isOnCooldown(player, keyed.getKey());
+    public static void stopCooldowns(@NotNull Player player) {
+        stopCooldowns(player, k -> true);
     }
-
+    
     /**
-     * Stops <b>all the cooldowns</b> for the given {@link Player}.
+     * Stops the cooldowns that match the given {@link Predicate} for the given {@link Player}.
      *
-     * @param player - The player to stop the cooldowns for.
-     */
-    public static void stopCooldowns(@Nonnull Player player) {
-        stopCooldowns(player, t -> true);
-    }
-
-    /**
-     * Stops <b>all the cooldowns</b> that match the given {@link Predicate} for the given {@link Player}.
-     *
-     * @param player    - The player to stop the cooldowns for.
+     * @param player    - The player for whom to stop the cooldowns.
      * @param predicate - The predicate to match.
      */
-    public static void stopCooldowns(@Nonnull Player player, @Nonnull Predicate<Key> predicate) {
+    public static void stopCooldowns(@NotNull Player player, @NotNull Predicate<Key> predicate) {
         final ItemCooldowns cooldowns = Reflect.getHandle(player).getCooldowns();
         final Set<Identifier> keys = Sets.newHashSet(cooldowns.cooldowns.keySet());
-
-        keys.stream().filter(rl -> {
-            final String path = rl.getPath();
-            final Key key = Key.ofStringOrNull(path);
-
-            return key != null && predicate.test(key);
-        }).forEach(cooldowns::removeCooldown);
+        
+        keys.stream()
+            .filter(identifier -> {
+                final String path = identifier.getPath();
+                final Key key = Key.ofStringOrNull(path);
+                
+                return key != null && predicate.test(key);
+            })
+            .forEach(cooldowns::removeCooldown);
+        
         keys.clear();
     }
-
+    
+    private static <T> boolean shouldFailBecauseWrongParticleData(@NotNull Particle particle, @Nullable T data) {
+        final Class<?> dataType = particle.getDataType();
+        
+        return (dataType == Void.class && data != null) || (dataType != Void.class && data != null && !dataType.isAssignableFrom(data.getClass()));
+    }
+    
 }

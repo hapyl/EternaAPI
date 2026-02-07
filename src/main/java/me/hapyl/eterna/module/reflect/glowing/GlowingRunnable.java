@@ -1,22 +1,25 @@
 package me.hapyl.eterna.module.reflect.glowing;
 
-import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaKey;
-import me.hapyl.eterna.EternaLock;
-import me.hapyl.eterna.builtin.manager.GlowingManager;
+import me.hapyl.eterna.EternaKeyed;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
-public class GlowingRunnable extends EternaLock implements Runnable {
-    public GlowingRunnable(@Nonnull EternaKey key) {
+/**
+ * Represents an internal glowing runnable.
+ */
+@ApiStatus.Internal
+public final class GlowingRunnable extends EternaKeyed implements Runnable {
+    
+    public GlowingRunnable(@NotNull EternaKey key) {
         super(key);
     }
     
     @Override
     public void run() {
-        final GlowingManager manager = Eterna.getManagers().glowing;
+        final GlowingHandler handler = GlowingHandler.handler;
         
-        manager.emptyOrphans(); // Wild name
-        manager.forEach(Glowing::tick);
+        handler.emptyOrphans();
+        handler.forEach(GlowingImpl::tick);
     }
 }

@@ -1,104 +1,78 @@
 package me.hapyl.eterna.module.util;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.ForceLowercase;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A utility class for benchmarking execution time of different steps.
- * <br>
- * It records the time at the start and for each step, and provides methods to retrieve the results.
+ * Represents a class that allows measuring code execution on different steps in nanoseconds.
  */
 public class NanoBenchmark {
     
     private final Map<String, Long> steps;
-    private Long start;
+    private final long start;
     
     /**
-     * Constructs a new NanoBenchmark instance with an empty map of steps.
+     * Creates a new {@link NanoBenchmark} and starts it immediately.
      */
     public NanoBenchmark() {
         this.steps = Maps.newLinkedHashMap();
-    }
-    
-    /**
-     * Creates a new instance of {@link NanoBenchmark} and starts it immediately.
-     *
-     * @return A new {@link NanoBenchmark} instance that has been started.
-     */
-    @Nonnull
-    public static NanoBenchmark ofNow() {
-        final NanoBenchmark nanoBenchmark = new NanoBenchmark();
-        nanoBenchmark.start();
-        
-        return nanoBenchmark;
-    }
-    
-    /**
-     * Starts the benchmark by recording the current system nano time.
-     * <br>
-     * If the benchmark has already been started, this method does nothing.
-     */
-    public void start() {
-        if (this.start != null) {
-            return;
-        }
-        
         this.start = System.nanoTime();
     }
     
     /**
-     * Records a step with the given name and the current system nano time.
+     * Records a step by the given name with the current {@link System#nanoTime()}.
      *
      * @param name - The name of the step.
      */
-    public void step(@Nonnull @ForceLowercase String name) {
+    public void step(@NotNull @ForceLowercase String name) {
         this.steps.put(name.toLowerCase(), System.nanoTime());
     }
     
     /**
-     * Returns the list of results, each representing the time taken for a step relative to the start time.
+     * Gets a {@link List} of {@link Result}, or an empty {@link List} list if there are no steps recorded.
      *
-     * @return A list of {@link Result} objects representing each step.
-     * @throws IllegalStateException If the benchmark was not started or no steps have been recorded.
+     * @return a list of results.
      */
-    @Nonnull
-    public List<Result> getResult() {
-        Validate.isTrue(start != null, "The benchmark was not started!");
-        Validate.isTrue(!steps.isEmpty(), "The benchmark was not stepped!");
+    @NotNull
+    public List<Result> getResults() {
+        if (steps.isEmpty()) {
+            return List.of();
+        }
         
-        final List<Result> results = Lists.newArrayList();
-        steps.forEach((name, result) -> results.add(new Result(name, result - start)));
-        
-        return results;
+        return steps.entrySet()
+                    .stream()
+                    .map(entry -> new Result(entry.getKey(), entry.getValue()))
+                    .toList();
     }
     
     /**
-     * Returns the first result from the benchmark.
+     * Gets the first {@link Result} from this {@link NanoBenchmark}.
      *
-     * @return The first {@link Result} from the benchmark.
-     * @throws IllegalStateException If the benchmark was not started or no steps have been recorded.
+     * @return The first result from the benchmark.
      */
-    @Nonnull
-    public Result getFirstResult() {
-        return getResult().getFirst();
+    @NotNull
+    public Optional<Result> getFirstResult() {
+        final List<Result> results = getResults();
+        
+        return results.isEmpty() ? Optional.empty() : Optional.ofNullable(results.getFirst());
     }
     
     /**
-     * Returns a string representation of the benchmark results, listing the name and time for each step.
+     * Gets a {@link String} representation of this {@link NanoBenchmark}, listing the name and time for each steps in milliseconds.
      *
-     * @return A formatted string representing the benchmark results.
+     * @return a string representation of this benchmark.
      */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         
-        getResult().forEach(result -> {
+        getResults().forEach(result -> {
             builder.append("'%s' took %sms.".formatted(result.name, result.asMillis()));
             builder.append("\n");
         });
@@ -107,32 +81,43 @@ public class NanoBenchmark {
     }
     
     /**
-     * Represents the result of a step in the benchmark, including the name of the step
-     * and the duration it took.
+     * A static factory method for creating {@link NanoBenchmark} at this instant.
+     *
+     * @return a new nano benchmark.
+     */
+    @NotNull
+    public static NanoBenchmark ofNow() {
+        return new NanoBenchmark();
+    }
+    
+    /**
+     * Represents a {@link Result} for {@link NanoBenchmark}, consisting of the name of the step
+     * and the time it took to complete that step.
      */
     public static final class Result extends Duration {
         
         private final String name;
         
-        private Result(@Nonnull String name, long value) {
+        private Result(@NotNull String name, long value) {
             super(value, TimeUnit.NANOSECONDS);
+            
             this.name = name;
         }
         
         /**
-         * Returns the name of the step associated with this result.
+         * Gets the name of the step.
          *
          * @return The name of the step.
          */
-        @Nonnull
+        @NotNull
         public String name() {
             return name;
         }
         
         /**
-         * Returns a string representation of the result, formatted as the name and duration in milliseconds.
+         * Gets a {@link String} representation of the {@link Result}.
          *
-         * @return A string representing the result.
+         * @return a string representing the result.
          */
         @Override
         public String toString() {

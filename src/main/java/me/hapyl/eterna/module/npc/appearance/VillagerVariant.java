@@ -1,16 +1,15 @@
 package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.annotate.DefaultEnumValue;
-import me.hapyl.eterna.module.nms.NmsEnum;
+import me.hapyl.eterna.module.nms.NmsWrapper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.npc.villager.VillagerType;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a {@link AppearanceVillager} variant.
  */
-public enum VillagerVariant implements NmsEnum<ResourceKey<VillagerType>> {
+public enum VillagerVariant implements NmsWrapper<ResourceKey<VillagerType>> {
     
     /**
      * A desert variant.
@@ -50,11 +49,11 @@ public enum VillagerVariant implements NmsEnum<ResourceKey<VillagerType>> {
     
     private final ResourceKey<VillagerType> nms;
     
-    VillagerVariant(@Nonnull ResourceKey<VillagerType> nms) {
+    VillagerVariant(@NotNull ResourceKey<VillagerType> nms) {
         this.nms = nms;
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public ResourceKey<VillagerType> toNms() {
         return this.nms;

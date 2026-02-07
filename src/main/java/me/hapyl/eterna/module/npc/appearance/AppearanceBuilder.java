@@ -2,8 +2,8 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.reflect.Skin;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
 /**
@@ -20,11 +20,19 @@ public interface AppearanceBuilder<T extends Appearance> {
      * @param npc - The npc to build to appearance for.
      * @return the built appearance.
      */
-    @Nonnull
-    T build(@Nonnull Npc npc);
+    @NotNull
+    T build(@NotNull Npc npc);
     
-    @Nonnull
-    static <T extends Appearance> AppearanceBuilder<T> builder(@Nonnull AppearanceBuilder<T> builder, @Nonnull Consumer<T> consumer) {
+    /**
+     * A static factory method for creating {@link AppearanceBuilder}.
+     *
+     * @param builder  - The builder.
+     * @param consumer - The build action.
+     * @param <T>      - The appearance type.
+     * @return a new {@link AppearanceBuilder}.
+     */
+    @NotNull
+    static <T extends Appearance> AppearanceBuilder<T> builder(@NotNull AppearanceBuilder<T> builder, @NotNull Consumer<T> consumer) {
         return npc -> {
             final T appearance = builder.build(npc);
             consumer.accept(appearance);
@@ -39,8 +47,8 @@ public interface AppearanceBuilder<T extends Appearance> {
      * @param skin - The mannequin skin.
      * @return a new {@link AppearanceMannequin}.
      */
-    @Nonnull
-    static AppearanceBuilder<AppearanceMannequin> ofMannequin(@Nonnull Skin skin) {
+    @NotNull
+    static AppearanceBuilder<AppearanceMannequin> ofMannequin(@NotNull Skin skin) {
         return npc -> new AppearanceMannequin(npc, skin);
     }
     
@@ -50,8 +58,8 @@ public interface AppearanceBuilder<T extends Appearance> {
      * @param sheepColor - The sheep color.
      * @return a new {@link AppearanceSheep}.
      */
-    @Nonnull
-    static AppearanceBuilder<AppearanceSheep> ofSheep(@Nonnull SheepColor sheepColor) {
+    @NotNull
+    static AppearanceBuilder<AppearanceSheep> ofSheep(@NotNull SheepColor sheepColor) {
         return npc -> new AppearanceSheep(npc, sheepColor);
     }
     
@@ -61,8 +69,8 @@ public interface AppearanceBuilder<T extends Appearance> {
      * @param foxType - The fox type.
      * @return a new {@link AppearanceFox}.
      */
-    @Nonnull
-    static AppearanceBuilder<AppearanceFox> ofFox(@Nonnull FoxType foxType) {
+    @NotNull
+    static AppearanceBuilder<AppearanceFox> ofFox(@NotNull FoxType foxType) {
         return npc -> new AppearanceFox(npc, foxType);
     }
     
@@ -71,7 +79,7 @@ public interface AppearanceBuilder<T extends Appearance> {
      *
      * @return a new {@link AppearanceHusk}.
      */
-    @Nonnull
+    @NotNull
     static AppearanceBuilder<AppearanceHusk> ofHusk() {
         return AppearanceHusk::new;
     }
@@ -84,8 +92,8 @@ public interface AppearanceBuilder<T extends Appearance> {
      * @param level      - The villager level.
      * @return a new {@link AppearanceVillager}.
      */
-    @Nonnull
-    static AppearanceBuilder<AppearanceVillager> ofVillager(@Nonnull VillagerVariant variant, @Nonnull VillagerProfession profession, @Nonnull VillagerLevel level) {
+    @NotNull
+    static AppearanceBuilder<AppearanceVillager> ofVillager(@NotNull VillagerVariant variant, @NotNull VillagerProfession profession, @NotNull VillagerLevel level) {
         return npc -> new AppearanceVillager(npc, variant, profession, level);
     }
     

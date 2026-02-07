@@ -1,25 +1,29 @@
 package me.hapyl.eterna.module.util;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * An interface representing an object that can create a copy of itself.
+ * Represents an object that of which a copy may be created via explicitly calling a constructor of said object.
+ *
  * <p>
- * Unlike {@link Cloneable}, the copy created by {@link #createCopy()} is a new instance
- * created using {@code new()} and is not backed by the original object.
- * <p>
- * This ensures that changes to the copy do not affect the original, and vice versa.
+ * Unlike {@link Cloneable}, the copy created by {@link Copyable} is a new instance creating via the constructor of the object
+ * and is not backed by the original object in any way, which ensures that the copy does not mutate the origin, and vice versa.
+ * </p>
  */
 public interface Copyable {
-
+    
     /**
      * Creates a new instance that is a copy of this object.
+     *
      * <p>
      * The implementation must explicitly call the constructor to create a new object,
      * ensuring that the copy is entirely independent of the original.
-     * <pre>{@code
+     * </p>
      *
-     * // Implementation example.
+     * <p>
+     *
+     * <pre>{@code
+     * // Implementation example:
      * class MyObject {
      *      private int someValue;
      *      private List<Integer> someList;
@@ -29,7 +33,7 @@ public interface Copyable {
      *          this.someList = new ArrayList<>();
      *      }
      *
-     *      @Nonnull
+     *      @NotNull
      *      MyObject createCopy() {
      *          final MyObject copy = new MyObject();
      *          copy.someValue = this.someValue;
@@ -44,7 +48,7 @@ public interface Copyable {
      *
      * @return A new object that is a copy of this instance.
      */
-    @Nonnull
+    @NotNull
     Object createCopy();
-
+    
 }

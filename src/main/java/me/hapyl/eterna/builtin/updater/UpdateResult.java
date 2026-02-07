@@ -1,19 +1,26 @@
 package me.hapyl.eterna.builtin.updater;
 
-public enum UpdateResult {
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.jetbrains.annotations.NotNull;
 
-    INVALID("&cCould not check for update! Try again later."),
-    UP_TO_DATE("&aYou are using the latest version!"),
-    DEVELOPMENT("&aYou are using a development version!"),
-    OUTDATED("&eThere is a new version available!");
-
-    private final String message;
-
-    UpdateResult(String message) {
-        this.message = message;
+public enum UpdateResult implements ComponentLike {
+    
+    ERROR(Component.text("An errors has occurred whilst trying to check for updates.", NamedTextColor.RED)),
+    UP_TO_DATE(Component.text("You're using the latest version!", NamedTextColor.GREEN)),
+    OUTDATED(Component.text("You're using an outdated version, please update!", NamedTextColor.GOLD)),
+    DEVELOPMENT(Component.text("You're using a development version.", NamedTextColor.AQUA));
+    
+    private final Component component;
+    
+    UpdateResult(@NotNull Component component) {
+        this.component = component;
     }
-
-    public String getMessage() {
-        return message;
+    
+    @Override
+    @NotNull
+    public Component asComponent() {
+        return component;
     }
 }

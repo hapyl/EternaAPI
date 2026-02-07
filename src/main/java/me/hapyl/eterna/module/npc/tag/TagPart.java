@@ -3,9 +3,8 @@ package me.hapyl.eterna.module.npc.tag;
 import me.hapyl.eterna.module.npc.Npc;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a part of an {@link Npc} name tag.
@@ -15,12 +14,12 @@ public interface TagPart {
     /**
      * Gets the component for this part.
      *
-     * @param npc    - The {@link Npc} to which this tag belongs.
-     * @param player - The {@link Player} the tag is shown for.
+     * @param npc    - The npc to which this tag belongs.
+     * @param player - The player the tag is shown for.
      * @return the component to show, {@code null} to skip the component.
      */
     @Nullable
-    Component component(@Nonnull Npc npc, @Nonnull Player player);
+    Component component(@NotNull Npc npc, @NotNull Player player);
     
     /**
      * Gets the same {@link TagPart} provided.
@@ -38,8 +37,8 @@ public interface TagPart {
      * @param tagPart - The tag part.
      * @return the same tag part.
      */
-    @Nonnull
-    static TagPart of(@Nonnull TagPart tagPart) {
+    @NotNull
+    static TagPart of(@NotNull TagPart tagPart) {
         return tagPart;
     }
     
@@ -49,8 +48,8 @@ public interface TagPart {
      * @param component - The component.
      * @return A static, literal component.
      */
-    @Nonnull
-    static TagPart literal(@Nonnull Component component) {
+    @NotNull
+    static TagPart literal(@NotNull Component component) {
         return (npc, player) -> component;
     }
     
@@ -59,7 +58,7 @@ public interface TagPart {
      *
      * @return a tag part representing the {@link Npc} name.
      */
-    @Nonnull
+    @NotNull
     static TagPart name() {
         return Npc::getName;
     }
@@ -69,7 +68,7 @@ public interface TagPart {
      *
      * @return a linebreak.
      */
-    @Nonnull
+    @NotNull
     static TagPart linebreak() {
         return literal(Component.empty());
     }

@@ -1,174 +1,109 @@
 package me.hapyl.eterna.module.entity.packet;
 
-import com.google.common.collect.Sets;
-import me.hapyl.eterna.module.reflect.EntityDataType;
-import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.util.BukkitWrapper;
-import me.hapyl.eterna.module.util.TeamHelper;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerLevel;
+import me.hapyl.eterna.module.util.Disposable;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Objects;
-import java.util.Set;
-
-public class PacketEntity<T extends Entity> implements IPacketEntity, BukkitWrapper<org.bukkit.entity.Entity> {
+/**
+ * Represents an entity that are spawned via packets.
+ */
+public interface PacketEntity extends Showable, Disposable, BukkitWrapper<org.bukkit.entity.Entity> {
     
-    public final int entityId;
-    public final T entity;
+    /**
+     * Gets the minecraft {@link Entity}.
+     *
+     * @return the minecraft entity.
+     */
+    @NotNull
+    Entity getEntity();
     
-    private final Set<Player> players;
+    /**
+     * Gets the bukkit entity.
+     *
+     * @return the bukkit entity.
+     */
+    @NotNull
+    @Override
+    org.bukkit.entity.Entity bukkit();
     
-    public PacketEntity(@Nonnull T entity, @Nonnull Location location) {
-        this.entity = entity;
-        this.players = Sets.newHashSet();
-        this.entityId = Reflect.getEntityId(entity);
-        
-        Reflect.setEntityLocation(entity, location);
+    /**
+     * Gets the {@link PacketEntity} id.
+     *
+     * @return the entity id.
+     */
+    default int getId() {
+        return getEntity().getId();
     }
     
     /**
-     * Gets the bukkit entity of the packet entity.
+     * Shows this {@link PacketEntity} to the given {@link Player}.
      *
-     * @return the bukkit entity.
-     * @implNote Implementation may override this method to statically cast the entity.
-     * <pre>{@code
-     * @Nonnull
-     * @Override
-     * public final BlockDisplay bukkit() {
-     *      return (BlockDisplay) super.bukkit();
-     * }
-     * }</pre>
+     * @param player - The player for whom this entity should be shown.
      */
-    @Nonnull
     @Override
-    public org.bukkit.entity.Entity bukkit() {
-        return entity.getBukkitEntity();
-    }
+    void show(@NotNull Player player);
     
+    /**
+     * Hides this {@link PacketEntity} for the given {@link Player}.
+     *
+     * @param player - The player for whom this entity should be hidden.
+     */
     @Override
-    @Nonnull
-    public T getEntity() {
-        return entity;
-    }
+    void hide(@NotNull Player player);
     
+    /**
+     * Gets whether this {@link PacketEntity} is visible to the given {@link Player}.
+     *
+     * @param player - The player to check.
+     * @return {@code true} if this entity is visible, {@code false} otherwise.
+     */
     @Override
-    public boolean isShowingTo(@Nonnull Player player) {
-        return players.contains(player);
-    }
+    boolean isShowingTo(@NotNull Player player);
     
+    /**
+     * Destroys this {@link PacketEntity}, hiding it from all players who can see it.
+     */
     @Override
-    public void show(@Nonnull Player player) {
-        players.add(player);
-        
-        Reflect.createEntity(entity, player);
-        Reflect.updateEntityData(entity, player);
-    }
+    void dispose();
     
-    @Override
-    public void hide(@Nonnull Player player) {
-        players.remove(player);
-        hide0(player);
-    }
+    /**
+     * Sets whether this {@link PacketEntity} is visible.
+     * <p>Visibility refers to a physical visibility, just like an invisibility potion.</p>
+     *
+     * @param visibility - {@code true} if this entity should be visible; {@code false} otherwise.
+     */
+    void setVisible(boolean visibility);
     
-    @Override
-    public void destroy() {
-        players.forEach(this::hide0);
-        players.clear();
-    }
+    /**
+     * Sets whether this {@link PacketEntity} has collisions.
+     *
+     * @param collision - {@code true} if this entity should have collisions; {@code false} otherwise.
+     */
+    void setCollision(boolean collision);
     
-    @Override
-    public void setVisible(boolean visibility) {
-        final byte bitMask = getDataWatcherValue(EntityDataType.BYTE, 0, (byte) 0);
-        setDataWatcherValue(EntityDataType.BYTE, 0, (byte) (visibility ? (bitMask & ~0x20) : (bitMask | 0x20)));
-    }
+    /**
+     * Sets whether this {@link PacketEntity} is silent.
+     *
+     * @param silent - {@code true} if this entity should be silent; {@code false} otherwise.
+     */
+    void setSilent(boolean silent);
     
-    @Override
-    public void setCollision(boolean collision) {
-        players.forEach(player -> {
-            final String uuid = Reflect.getScoreboardEntityName(entity);
-            
-            TeamHelper.fetch(
-                    player.getScoreboard(), "packet_entity_" + uuid, team -> {
-                        team.setOption(Team.Option.COLLISION_RULE, collision ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
-                        team.addEntry(uuid);
-                    }
-            );
-        });
-    }
+    /**
+     * Sets whether this {@link PacketEntity} has gravity.
+     *
+     * @param gravity - {@code true} if this entity should have gravity; {@code false} otherwise.
+     */
+    void setGravity(boolean gravity);
     
-    @Override
-    public void setSilent(boolean silent) {
-        setDataWatcherValue(EntityDataType.BOOL, 4, silent);
-    }
-    
-    @Override
-    public void setGravity(boolean gravity) {
-        setDataWatcherValue(EntityDataType.BOOL, 5, !gravity);
-    }
-    
-    @Override
-    public void setMarker() {
-        setSilent(true);
-        setGravity(false);
-        setVisible(false);
-        setCollision(false);
-    }
-    
-    @Override
-    public void teleport(@Nonnull Location location) {
-        Reflect.setEntityLocation(entity, location);
-        players.forEach(player -> Reflect.updateEntityLocation(entity, player));
-    }
-    
-    @Override
-    public int getId() {
-        return entityId;
-    }
-    
-    @Nonnull
-    public Location getLocation() {
-        return Reflect.getEntityLocation(entity);
-    }
-    
-    protected void updateMetadata() {
-        players.forEach(player -> Reflect.updateEntityData(entity, player));
-    }
-    
-    protected <D> void setDataWatcherValue(@Nonnull EntityDataType<D> type, int key, D value) {
-        final SynchedEntityData dataWatcher = getDataWatcher();
-        
-        dataWatcher.set(type.createAccessor(key), value);
-        updateMetadata();
-    }
-    
-    @Nullable
-    protected <D> D getDataWatcherValue(@Nonnull EntityDataType<D> type, int key) {
-        return getDataWatcherValue(type, key, null);
-    }
-    
-    @Nonnull
-    protected <D> D getDataWatcherValue(@Nonnull EntityDataType<D> type, int key, D def) {
-        return Reflect.getEntityDataValue(entity, type, key).orElse(def);
-    }
-    
-    @Nonnull
-    protected SynchedEntityData getDataWatcher() {
-        return Reflect.getEntityData(entity);
-    }
-    
-    private void hide0(Player player) {
-        Reflect.destroyEntity(entity, player);
-    }
-    
-    @Nonnull
-    protected static ServerLevel getWorld(@Nonnull Location location) {
-        return Reflect.getHandle(Objects.requireNonNull(location.getWorld(), "World must be loaded."));
-    }
+    /**
+     * Teleports this {@link PacketEntity} to the given {@link Location}.
+     *
+     * @param location - The designated location.
+     */
+    void teleport(@NotNull Location location);
     
 }

@@ -2,9 +2,9 @@ package me.hapyl.eterna.module.reflect.access;
 
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.util.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -21,7 +21,7 @@ public class ReflectMethodAccess<T> implements ReflectAccess {
     private final MethodStruct<T> methodStruct;
     private final Method method;
     
-    ReflectMethodAccess(@Nonnull Class<?> clazz, @Nonnull Class<T> returnType, @Nonnull String methodName, @Nullable Class<?>[] parameters) {
+    ReflectMethodAccess(@NotNull Class<?> clazz, @NotNull Class<T> returnType, @NotNull String methodName, @Nullable Class<?>[] parameters) {
         this.methodStruct = new ReflectMethodAccess.MethodStruct<>(clazz, Validate.notPrimitive(returnType), methodName, parameters);
         this.method = methodStruct.fetch();
     }
@@ -30,12 +30,12 @@ public class ReflectMethodAccess<T> implements ReflectAccess {
      * Invokes the method and returns the returned value by the method.
      *
      * @param instance   - The object instance reference.
-     *                   <p>Refers to an object instance that this method belongs to; use {@link ObjectInstance#STATIC} for static methods.</p>
      * @param parameters - The parameters to invoke the method with; keep varargs {@code empty} for methods without parameters.
-     * @return an {@link Optional} containing the return value of the method, if any.
+     * @return the return value of the method wrapping in an optional.
+     * @see ObjectInstance
      */
-    @Nonnull
-    public Optional<T> invoke(@Nonnull ObjectInstance instance, @Nullable Object... parameters) {
+    @NotNull
+    public Optional<T> invoke(@NotNull ObjectInstance instance, @Nullable Object... parameters) {
         try {
             final Object object = this.method.invoke(instance.refer(), parameters);
             
@@ -57,8 +57,8 @@ public class ReflectMethodAccess<T> implements ReflectAccess {
         }
     }
     
-    private record MethodStruct<T>(@Nonnull Class<?> clazz, @Nonnull Class<T> returnType, @Nonnull String methodName, @Nullable Class<?>[] parameters) {
-        @Nonnull
+    private record MethodStruct<T>(@NotNull Class<?> clazz, @NotNull Class<T> returnType, @NotNull String methodName, @NotNull Class<?> @Nullable [] parameters) {
+        @NotNull
         @Override
         public String toString() {
             return "%s{%s %s(%s)}".formatted(
@@ -73,7 +73,7 @@ public class ReflectMethodAccess<T> implements ReflectAccess {
             );
         }
         
-        @Nonnull
+        @NotNull
         Method fetch() {
             Method method;
             

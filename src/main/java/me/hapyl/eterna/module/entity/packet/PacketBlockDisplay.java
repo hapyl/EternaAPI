@@ -1,91 +1,94 @@
 package me.hapyl.eterna.module.entity.packet;
 
-import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.util.Transformation;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
 
-public class PacketBlockDisplay extends PacketEntity<Display.BlockDisplay> {
-    public PacketBlockDisplay(@Nonnull Location location) {
+/**
+ * Represents a {@link Display.BlockDisplay} packet entity.
+ */
+public class PacketBlockDisplay extends AbstractPacketEntity<Display.BlockDisplay> {
+    
+    /**
+     * Creates a new {@link PacketBlockDisplay}.
+     *
+     * @param location - The initial location.
+     */
+    public PacketBlockDisplay(@NotNull Location location) {
         super(new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, getWorld(location)), location);
     }
-
+    
     /**
-     * Sets the block data of the display.
+     * Sets the block data of this {@link PacketBlockDisplay}.
      *
-     * @param material - The material to use the block data of.
+     * @param material - The material to set.
+     * @throws IllegalArgumentException if the material is not a block.
      */
-    public void setBlockData(@Nonnull Material material) {
+    public void setBlockData(@NotNull Material material) {
         Validate.isTrue(material.isBlock(), "Material must be a block!");
-
+        
         setBlockData(material.createBlockData());
     }
-
+    
     /**
-     * Sets the block data of the display.
+     * Sets the block data of this {@link PacketBlockDisplay}.
      *
      * @param data - The block data to set.
      */
-    public void setBlockData(@Nonnull BlockData data) {
-        entity.setBlockState(blockStateFromBlockData(data));
-        updateMetadata();
+    public void setBlockData(@NotNull BlockData data) {
+        this.entity.setBlockState(Reflect.getBlockStateFromBlockData(data));
+        this.updateEntityDataForAll();
     }
-
+    
     /**
-     * Sets the transformation of the display.
+     * Sets the transformation of this {@link PacketBlockDisplay}.
      *
-     * @param matrix - The matrix to set.
+     * @param matrix - The transformation matrix.
      */
-    public void setTransformation(@Nonnull Matrix4f matrix) {
-        setTransformation(new com.mojang.math.Transformation(matrix));
+    public void setTransformation(@NotNull Matrix4f matrix) {
+        setTransformation0(new com.mojang.math.Transformation(matrix));
     }
-
+    
     /**
-     * Sets the transformation of the display.
+     * Sets the transformation of this {@link PacketBlockDisplay}.
      *
-     * @param transformation - The transformation to set.
+     * @param transformation - The transformation.
      */
-    public void setTransformation(@Nonnull Transformation transformation) {
-        setTransformation(new com.mojang.math.Transformation(
+    public void setTransformation(@NotNull Transformation transformation) {
+        setTransformation0(new com.mojang.math.Transformation(
                 transformation.getTranslation(),
                 transformation.getLeftRotation(),
                 transformation.getScale(),
                 transformation.getRightRotation()
         ));
     }
-
+    
     /**
-     * Sets the transformation of the display.
+     * Gets the bukkit {@link BlockDisplay} entity.
      *
-     * @param transformation - The transformation to set.
+     * @return the bukkit entity.
      */
-    public void setTransformation(@Nonnull com.mojang.math.Transformation transformation) {
-        entity.setTransformation(transformation);
-        updateMetadata();
-    }
-
-    @Nonnull
+    @NotNull
     @Override
     public final BlockDisplay bukkit() {
         return (BlockDisplay) super.bukkit();
     }
-
-    @Nonnull
-    public static BlockState blockStateFromBlockData(@Nonnull BlockData data) {
-        try {
-            return (BlockState) data.getClass().getDeclaredMethod("getState").invoke(data);
-        } catch (Exception e) {
-            throw EternaLogger.acknowledgeException(e);
-        }
+    
+    @ApiStatus.Internal
+    private void setTransformation0(@NotNull com.mojang.math.Transformation transformation) {
+        this.entity.setTransformation(transformation);
+        this.updateEntityDataForAll();
     }
-
+    
 }

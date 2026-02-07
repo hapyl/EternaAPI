@@ -1,12 +1,12 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.function.Predicate;
 
 /**
- * A {@link Predicate} utility.
+ * Represents a utility class for {@link Predicate}.
  */
 @UtilityClass
 public final class Predicates {
@@ -21,7 +21,7 @@ public final class Predicates {
      * @param <T> - The predicate type.
      * @return an always {@code true} predicate.
      */
-    @Nonnull
+    @NotNull
     public static <T> Predicate<T> truthy() {
         return t -> true;
     }
@@ -32,20 +32,20 @@ public final class Predicates {
      * @param <T> - The predicate type.
      * @return an always {@code false} predicate.
      */
-    @Nonnull
+    @NotNull
     public static <T> Predicate<T> falsy() {
         return t -> false;
     }
     
     /**
-     * Gets a new negated {@link Predicate}.
+     * Gets a negated {@link Predicate}.
      *
-     * @param predicate - The predicate to {@link Predicate#negate()}.
+     * @param predicate - The predicate to negate.
      * @param <T>       - The predicate type.
-     * @return a new negated {@link Predicate}.
+     * @return a negated predicate.
      */
-    @Nonnull
-    public static <T> Predicate<T> not(@Nonnull Predicate<T> predicate) {
+    @NotNull
+    public static <T> Predicate<T> not(@NotNull Predicate<T> predicate) {
         return predicate.negate();
     }
 }

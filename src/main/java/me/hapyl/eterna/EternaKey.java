@@ -1,8 +1,7 @@
 package me.hapyl.eterna;
 
 import org.jetbrains.annotations.ApiStatus;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 public final class EternaKey {
@@ -21,7 +20,7 @@ public final class EternaKey {
         }
     }
     
-    @Nonnull
+    @NotNull
     @ApiStatus.Internal
     static EternaKey createSoleKey() {
         if (soleKey != null) {

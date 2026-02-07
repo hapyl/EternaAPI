@@ -3,38 +3,38 @@ package me.hapyl.eterna.module.reflect;
 import com.google.common.collect.ImmutableMultimap;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import me.hapyl.eterna.module.util.BukkitUtils;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.util.Base64;
 
 /**
- * Represents a minecraft skin with {@link #texture()} and a {@link #signature()}.
+ * Represents a minecraft skin with {@link #texture()} and {@link #signature()} in {@link Base64}.
  */
 public interface Skin {
     
     /**
-     * The skin's texture.
+     * Gets the {@link Skin} texture encoded in {@link Base64}.
      *
-     * @return the skin's texture.
+     * @return the skin texture encoded in base64.
      */
-    @Nonnull
+    @NotNull
     String texture();
     
     /**
-     * The skin's signature.
+     * Gets the {@link Skin} signature encoded in {@link Base64}.
      *
-     * @return the skin's signature.
+     * @return the skin signature encoded in base64.
      */
-    @Nonnull
+    @NotNull
     String signature();
     
     /**
-     * Creates a {@link PropertyMap} based on the {@link #texture()} and {@link #signature()}.
+     * Creates a vanilla-ready {@link PropertyMap} from the {@link #texture()} and {@link #signature()}.
      *
-     * @return a new {@link PropertyMap}.
+     * @return a new property map.
      */
-    @Nonnull
+    @NotNull
     default PropertyMap asPropertyMap() {
         return new PropertyMap(
                 ImmutableMultimap.of("textures", new Property("textures", texture(), signature()))
@@ -42,13 +42,29 @@ public interface Skin {
     }
     
     /**
-     * Creates new {@link Skin} based on the given {@link Property}.
+     * A static factory method for creating {@link Skin} from the given {@code texture} and {@code signature}.
+     *
+     * <p>
+     * You can generate both texture and signatures via <a href="https://mineskin.org/">MineSkin</a>
+     * </p>
+     *
+     * @param texture   - The skin texture in base64.
+     * @param signature - The skin signature in base64.
+     * @return a new skin.
+     */
+    @NotNull
+    static Skin of(@NotNull String texture, @NotNull String signature) {
+        return new SkinImpl(texture, signature);
+    }
+    
+    /**
+     * A static factory method for creating {@link Skin} from the given {@link Property}.
      *
      * @param textures - The texture property.
-     * @return a new {@link Skin}.
+     * @return a new skin.
      */
-    @Nonnull
-    static Skin ofProperty(@Nonnull Property textures) {
+    @NotNull
+    static Skin ofProperty(@NotNull Property textures) {
         final String value = textures.value();
         final String signature = textures.signature();
         
@@ -56,27 +72,19 @@ public interface Skin {
     }
     
     /**
-     * Creates a new {@link Skin} based on the given {@link Player}.
+     * A static factory method for creating {@link Skin} from the given {@link Player}.
      *
-     * @param player - The player to skin. <i>uhhh...?</i>
-     * @return a new {@link Skin}.
+     * @param player - The player whose textures to use.
+     * @return a new skin.
      */
-    @Nonnull
-    static Skin ofPlayer(@Nonnull Player player) {
-        return ofProperty(BukkitUtils.getPlayerTextures(player));
-    }
-    
-    /**
-     * Creates a new {@link Skin} based on the given texture and signature.
-     * <p>You can generate both texture and signatures via <a href="https://mineskin.org/">MineSkin</a></p>
-     *
-     * @param texture   - The texture.
-     * @param signature - The signature.
-     * @return a new {@link Skin}.
-     */
-    @Nonnull
-    static Skin of(@Nonnull String texture, @Nonnull String signature) {
-        return new SkinImpl(texture, signature);
+    @NotNull
+    static Skin ofPlayer(@NotNull Player player) {
+        return ofProperty(Reflect.getGameProfile(player)
+                                 .properties()
+                                 .get("textures")
+                                 .stream()
+                                 .findFirst()
+                                 .orElseThrow(() -> new IllegalArgumentException("Cannot find texture for player `%s`!".formatted(player.getName()))));
     }
     
 }

@@ -1,281 +1,368 @@
 package me.hapyl.eterna.module.particle;
 
-import me.hapyl.eterna.module.player.PlayerLib;
+import me.hapyl.eterna.module.annotate.SelfReturn;
 import org.bukkit.*;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Allows displaying particles.
- * <br>
- * Mainly used for "special" particles, such as {@link Particle#DUST} or {@link Particle#ENTITY_EFFECT}.
+ * Represents a {@link ParticleBuilder} builder-like holder of {@code type-based} {@link Particle}.
  *
- * @see #particle(Particle)
- * @see #redstoneDust(Color, int)
- * @see #blockBreak(Material)
- * @see #blockDust(Material)
- * @see #mobSpell(Color, boolean)
- * @see #itemBreak(ItemStack)
+ * <p>Intended to be used with particles that require an extra {@code data}, but also supports {@link #particle(Particle)}.</p>
  */
 public class ParticleBuilder {
-
-    @Nonnull
-    protected Particle particle;
-
-    public ParticleBuilder(@Nonnull Particle particle) {
+    
+    protected final Particle particle;
+    protected final Object data;
+    
+    private int count;
+    private double offsetX;
+    private double offsetY;
+    private double offsetZ;
+    private float speed;
+    
+    ParticleBuilder(@NotNull Particle particle, @Nullable Object data) {
         this.particle = particle;
+        this.data = data;
+        
+        // Validate particle type
+        final Class<?> particleDataType = particle.getDataType();
+        final boolean hasParticleData = particleDataType == Void.class;
+        
+        if (hasParticleData && data != null) {
+            throw new IllegalArgumentException("Particle `%s` does not require any data, but `%s` was given!".formatted(particle.name(), data.toString()));
+        }
+        else if (!hasParticleData && data != null && !particleDataType.isAssignableFrom(data.getClass())) {
+            throw new IllegalArgumentException("Particle `%s` uses `%s` data type, not `%s`!".formatted(particle.name(), particleDataType.getSimpleName(), data.getClass().getSimpleName()));
+        }
+        
+        this.count = 1;
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.offsetZ = 0;
+        this.speed = 0f;
     }
-
+    
     /**
-     * Displays the particle at the given {@link Location} for each online player.
+     * Sets the {@link Particle} count of this {@link ParticleBuilder}.
      *
-     * @param location - Location to display at.
+     * <p>
+     * Some particles, like {@link Particle#FLAME} may accept {@code 0} count as a magic value, which will change the {@code offset} values to be directional, rather than the offset.
+     * </p>
+     *
+     * @param count - The new count to set.
      */
-    public void display(@Nonnull Location location) {
-        forEach(player -> display(player, location, 1, 0, 0, 0, 1.0f));
+    @SelfReturn
+    public ParticleBuilder count(final int count) {
+        this.count = Math.max(0, count);
+        return this;
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for each online player.
+     * Sets the {@code x} offset of this {@link ParticleBuilder}.
      *
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
+     * @param offsetX - The {@code x} offset.
      */
-    public void display(@Nonnull Location location, int count) {
-        forEach(player -> display(player, location, count, 0, 0, 0, 1.0f));
+    @SelfReturn
+    public ParticleBuilder offsetX(final double offsetX) {
+        this.offsetX = offsetX;
+        return this;
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for each online player.
+     * Sets the {@code y} offset of this {@link ParticleBuilder}.
      *
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
-     * @param speed    - Speed.
+     * @param offsetY - The {@code y} offset.
      */
-    public void display(@Nonnull Location location, int count, float speed) {
-        forEach(player -> display(player, location, count, 0, 0, 0, speed));
+    @SelfReturn
+    public ParticleBuilder offsetY(final double offsetY) {
+        this.offsetY = offsetY;
+        return this;
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for each online player.
+     * Sets the {@code y} offset of this {@link ParticleBuilder}.
      *
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
-     * @param x        - X offset.
-     * @param y        - Y offset.
-     * @param z        - Z offset.
-     * @param speed    - Speed.
+     * @param offsetZ - The {@code y} offset.
      */
-    public void display(@Nonnull Location location, int count, double x, double y, double z, float speed) {
-        forEach(player -> display(player, location, count, x, y, z, speed, null));
+    @SelfReturn
+    public ParticleBuilder offsetZ(final double offsetZ) {
+        this.offsetZ = offsetZ;
+        return this;
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for each online player.
+     * Sets the {@code speed} of this {@link ParticleBuilder}.
      *
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
-     * @param x        - X offset.
-     * @param y        - Y offset.
-     * @param z        - Z offset.
-     * @param speed    - Speed.
-     * @param data     - Extra data if applicable to this particle.
+     * @param speed - The new speed to set.
      */
-    public <T> void display(@Nonnull Location location, int count, double x, double y, double z, float speed, @Nullable T data) {
-        forEach(player -> display0(player, location, count, x, y, z, speed, data));
+    @SelfReturn
+    public ParticleBuilder speed(final float speed) {
+        this.speed = speed;
+        return this;
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for the given {@link Player}.
+     * Displays the {@link Particle} at the given {@link Location} globally.
      *
-     * @param player   - Player.
-     * @param location - Location to display at.
+     * @param location - The location to display the particles at.
      */
-    public void display(@Nonnull Player player, @Nonnull Location location) {
-        display(player, location, 1, 0, 0, 0, 1.0f);
+    public void display(@NotNull Location location) {
+        location.getWorld().spawnParticle(particle, location, count, offsetX, offsetY, offsetZ, speed, data);
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for the given {@link Player}.
+     * Displays the {@link Particle} at the given {@link Location} for the given {@link Player}.
      *
-     * @param player   - Player.
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
+     * @param player   - The player for whom to display the particle.
+     * @param location - The location to display the particle at.
      */
-    public void display(@Nonnull Player player, @Nonnull Location location, int count) {
-        display(player, location, count, 0, 0, 0, 1.0f);
+    public void display(@NotNull Player player, @NotNull Location location) {
+        player.spawnParticle(particle, location, count, offsetX, offsetY, offsetZ, speed, data);
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for the given {@link Player}.
+     * A static factory method for creating a non-type based {@link ParticleBuilder}.
      *
-     * @param player   - Player.
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
-     * @param speed    - Speed.
+     * @param particle - The non-type based particle.
+     * @return a new {@link ParticleBuilder}.
+     * @throws IllegalArgumentException if the given particle requires a type.
      */
-    public void display(@Nonnull Player player, @Nonnull Location location, int count, float speed) {
-        display(player, location, count, 0, 0, 0, speed);
+    @NotNull
+    public static ParticleBuilder particle(@NotNull Particle particle) {
+        return new ParticleBuilder(particle, null);
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for the given {@link Player}.
+     * A static factory method for creating {@link Particle#EFFECT} {@link ParticleBuilder}.
      *
-     * @param player   - Player.
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
-     * @param x        - X offset.
-     * @param y        - Y offset.
-     * @param z        - Z offset.
-     * @param speed    - Speed.
+     * @param color - The particle color.
+     * @param power - The power of the particle.
+     *              <p>Positive values make the particle go down, while negative values make it go down.</p>
+     * @return a new {@link ParticleBuilder}.
      */
-    public void display(@Nonnull Player player, @Nonnull Location location, int count, double x, double y, double z, float speed) {
-        display(player, location, count, x, y, z, speed, null);
+    @NotNull
+    public static ParticleBuilder effect(@NotNull Color color, final float power) {
+        return new ParticleBuilder(Particle.EFFECT, new Particle.Spell(color, power));
     }
-
+    
     /**
-     * Displays a particle at the given {@link Location} for the given {@link Player}.
+     * A static factory method for creating {@link Particle#INSTANT_EFFECT} {@link ParticleBuilder}.
      *
-     * @param player   - Player.
-     * @param location - Location to display at.
-     * @param count    - Count or number of particles.
-     * @param x        - X offset.
-     * @param y        - Y offset.
-     * @param z        - Z offset.
-     * @param speed    - Speed.
-     * @param data     - Extra data if applicable to this particle.
+     * @param color - The particle color.
+     * @param power - The power of the particle.
+     *              <p>Positive values make the particle go down, while negative values make it go down.</p>
+     * @return a new {@link ParticleBuilder}.
      */
-    public <T> void display(@Nonnull Player player, @Nonnull Location location, int count, double x, double y, double z, float speed, @Nullable T data) {
-        display0(player, location, count, x, y, z, speed, data);
+    @NotNull
+    public static ParticleBuilder instantEffect(@NotNull Color color, final float power) {
+        return new ParticleBuilder(Particle.INSTANT_EFFECT, new Particle.Spell(color, power));
     }
-
+    
     /**
-     * Super display method.
+     * A static factory method for creating {@link Particle#ENTITY_EFFECT} {@link ParticleBuilder}.
      *
-     * @implNote Implementation must override this method to accurately spawn the particle.
-     * One example of this is {@link MobSpellParticleBuilder}.
+     * @param color - The particle color.
+     * @return a new {@link ParticleBuilder}.
      */
-    protected <T> void display0(@Nonnull Player player, @Nonnull Location location, int count, double x, double y, double z, float speed, @Nullable T particleData) {
-        PlayerLib.spawnParticle(player, location, particle, count, 0, 0, 0, speed, particleData);
+    @NotNull
+    public static ParticleBuilder entityEffect(@NotNull Color color) {
+        return new ParticleBuilder(Particle.ENTITY_EFFECT, color);
     }
-
+    
     /**
-     * Creates a normal particle builder.
+     * A static factory method for creating {@link Particle#DUST} {@link ParticleBuilder}.
      *
-     * @param particle - Particle.
+     * @param color - The particle color.
+     * @param size  - The size of the particle.
+     * @return a new {@link ParticleBuilder}.
      */
-    @Nonnull
-    public static ParticleBuilder particle(@Nonnull Particle particle) {
-        return new ParticleBuilder(particle);
+    @NotNull
+    public static ParticleBuilder dust(@NotNull Color color, final float size) {
+        return new ParticleBuilder(Particle.DUST, new Particle.DustOptions(color, size));
     }
-
+    
     /**
-     * Creates a {@link RedstoneParticleBuilder}.
+     * A static factory method for creating {@link Particle#ITEM} {@link ParticleBuilder}.
      *
-     * @param color - Color of a particle.
-     * @param size  - Size.
+     * @param itemStack - The item stack used for the particle.
+     * @return a new {@link ParticleBuilder}.
      */
-    @Nonnull
-    public static ParticleBuilder redstoneDust(@Nonnull Color color, int size) {
-        return new RedstoneParticleBuilder(color, size);
+    @NotNull
+    public static ParticleBuilder item(@NotNull ItemStack itemStack) {
+        return new ParticleBuilder(Particle.ITEM, itemStack);
     }
-
+    
     /**
-     * Creates a {@link BlockBreakParticleBuilder}.
+     * A static factory method for creating {@link Particle#BLOCK} {@link ParticleBuilder}.
      *
-     * @param material - Block to display the break particle of.
+     * @param material - The material used for the particle.
+     * @return a new {@link ParticleBuilder}.
      * @throws IllegalArgumentException if the given material is not a block.
      */
-    @Nonnull
-    public static ParticleBuilder blockBreak(@Nonnull Material material) {
-        return new BlockBreakParticleBuilder(material);
+    @NotNull
+    public static ParticleBuilder block(@NotNull Material material) {
+        return new ParticleBuilder(Particle.BLOCK, createBlockData(material));
     }
-
+    
     /**
-     * Creates a {@link BlockDustParticleBuilder}.
+     * A static factory method for creating {@link Particle#DRAGON_BREATH} {@link ParticleBuilder}.
      *
-     * @param material - Block to display the dust particle of.
+     * @param power - The power of the particle.
+     * @return a new {@link ParticleBuilder}.
+     */
+    @NotNull
+    public static ParticleBuilder dragonBreath(final float power) {
+        return new ParticleBuilder(Particle.DRAGON_BREATH, power);
+    }
+    
+    /**
+     * A static factory method for creating {@link Particle#FALLING_DUST} {@link ParticleBuilder}.
+     *
+     * @param material - The material used for the particle.
+     * @return a new {@link ParticleBuilder}.
      * @throws IllegalArgumentException if the given material is not a block.
      */
-    @Nonnull
-    public static ParticleBuilder blockDust(@Nonnull Material material) {
-        return new BlockDustParticleBuilder(material);
+    @NotNull
+    public static ParticleBuilder fallingDust(@NotNull Material material) {
+        return new ParticleBuilder(Particle.FALLING_DUST, createBlockData(material));
     }
-
+    
     /**
-     * Creates a {@link MobSpellParticleBuilder}.
+     * A static factory method for creating {@link Particle#FLASH} {@link ParticleBuilder}.
      *
-     * @param color   - Color of a particle.
-     * @param ambient - Is ambient?
-     *                Ambient particles are half-transparent.
+     * @param color - The particle color.
+     * @return a new {@link ParticleBuilder}.
      */
-    @Nonnull
-    public static ParticleBuilder mobSpell(@Nonnull Color color, boolean ambient) {
-        return new MobSpellParticleBuilder(color, ambient);
+    @NotNull
+    public static ParticleBuilder flash(@NotNull Color color) {
+        return new ParticleBuilder(Particle.FLASH, color);
     }
-
+    
     /**
-     * Creates a {@link ItemBreakParticleBuilder}.
+     * A static factory method for creating {@link Particle#DUST_COLOR_TRANSITION} {@link ParticleBuilder}.
      *
-     * @param stack - Item to display the break of.
+     * @param from - The {@code from} transition color.
+     * @param to   - The {@code to} transition color.
+     * @param size - The size of the particle.
+     * @return a new {@link ParticleBuilder}.
      */
-    @Nonnull
-    public static ParticleBuilder itemBreak(@Nonnull ItemStack stack) {
-        return new ItemBreakParticleBuilder(stack);
+    @NotNull
+    public static ParticleBuilder dustColorTransition(@NotNull Color from, @NotNull Color to, final float size) {
+        return new ParticleBuilder(Particle.DUST_COLOR_TRANSITION, new Particle.DustTransition(from, to, Math.clamp(size, 0.01f, 4.0f)));
     }
-
+    
     /**
-     * Creates a {@link DustTransitionParticleBuilder}.
+     * A static factory method for creating {@link Particle#VIBRATION} {@link ParticleBuilder}.
      *
-     * @param fromColor - Color to transition from.
-     * @param toColor   - Color to transition to.
-     * @param size      - Size of the particle.
+     * @param destination - The destination location.
+     * @param arrivalTime - The arrival time, in ticks.
+     * @return a new {@link ParticleBuilder}.
      */
-    @Nonnull
-    public static ParticleBuilder dustTransition(@Nonnull Color fromColor, @Nonnull Color toColor, float size) {
-        return new DustTransitionParticleBuilder(fromColor, toColor, size);
+    @NotNull
+    public static ParticleBuilder vibration(@NotNull Location destination, final int arrivalTime) {
+        return vibration0(new Vibration.Destination.BlockDestination(destination), arrivalTime);
     }
-
+    
     /**
-     * Creates a {@link VibrationParticleBuilder}.
+     * A static factory method for creating {@link Particle#VIBRATION} {@link ParticleBuilder}.
      *
-     * @param to          - Destination.
-     * @param arrivalTime - Arrival time in ticks.
+     * @param entity      - The entity destination.
+     * @param arrivalTime - The arrival time, in ticks.
+     * @return a new {@link ParticleBuilder}.
      */
-    @Nonnull
-    public static ParticleBuilder vibration(@Nonnull Location to, int arrivalTime) {
-        return VibrationParticleBuilder.of(to, arrivalTime);
+    @NotNull
+    public static ParticleBuilder vibration(@NotNull Entity entity, final int arrivalTime) {
+        return vibration0(new Vibration.Destination.EntityDestination(entity), arrivalTime);
     }
-
+    
     /**
-     * Creates a {@link VibrationParticleBuilder}.
+     * A static factory method for creating {@link Particle#SCULK_CHARGE} {@link ParticleBuilder}.
      *
-     * @param to          - Destination.
-     * @param arrivalTime - Arrival time in ticks.
+     * @param angleRad - The angle in radians.
+     * @return a new {@link ParticleBuilder}.
      */
-    @Nonnull
-    public static ParticleBuilder vibration(@Nonnull Entity to, int arrivalTime) {
-        return VibrationParticleBuilder.of(to, arrivalTime);
+    @NotNull
+    public static ParticleBuilder sculkCharge(final float angleRad) {
+        return new ParticleBuilder(Particle.SCULK_CHARGE, angleRad);
     }
-
+    
     /**
-     * Creates a {@link BlockMarkerParticleBuilder}.
+     * A static factory method for creating {@link Particle#TINTED_LEAVES} {@link ParticleBuilder}.
      *
-     * @param material - Block to display the dust particle of.
+     * @param color - The particle color.
+     * @return a new {@link ParticleBuilder}.
+     */
+    @NotNull
+    public static ParticleBuilder tintedLeaves(@NotNull Color color) {
+        return new ParticleBuilder(Particle.TINTED_LEAVES, color);
+    }
+    
+    /**
+     * A static factory method for creating {@link Particle#DUST_PILLAR} {@link ParticleBuilder}.
+     *
+     * @param material - The material used for the particle.
+     * @return a new {@link ParticleBuilder}.
      * @throws IllegalArgumentException if the given material is not a block.
      */
-    @Nonnull
-    public static ParticleBuilder blockMarker(@Nonnull Material material) {
-        return new BlockMarkerParticleBuilder(material);
+    @NotNull
+    public static ParticleBuilder dustPillar(@NotNull Material material) {
+        return new ParticleBuilder(Particle.DUST_PILLAR, createBlockData(material));
     }
-
-    private static void forEach(Consumer<Player> consumer) {
-        Bukkit.getOnlinePlayers().forEach(consumer);
+    
+    /**
+     * A static factory method for creating {@link Particle#BLOCK_CRUMBLE} {@link ParticleBuilder}.
+     *
+     * @param material - The material used for the particle.
+     * @return a new {@link ParticleBuilder}.
+     * @throws IllegalArgumentException if the given material is not a block.
+     */
+    @NotNull
+    public static ParticleBuilder blockCrumble(@NotNull Material material) {
+        return new ParticleBuilder(Particle.BLOCK_CRUMBLE, createBlockData(material));
     }
-
+    
+    /**
+     * A static factory method for creating {@link Particle#TRAIL} {@link ParticleBuilder}.
+     *
+     * @param destination - The destination location.
+     * @param color       - The particle color.
+     * @param duration    - The duration, in ticks.
+     * @return a new {@link ParticleBuilder}.
+     */
+    @NotNull
+    public static ParticleBuilder trail(@NotNull Location destination, @NotNull Color color, final int duration) {
+        return new ParticleBuilder(Particle.TRAIL, new Particle.Trail(destination, color, duration));
+    }
+    
+    /**
+     * A static factory method for creating {@link Particle#BLOCK_MARKER} {@link ParticleBuilder}.
+     *
+     * @param material - The material used for the particle.
+     * @return a new {@link ParticleBuilder}.
+     * @throws IllegalArgumentException if the given material is not a block.
+     */
+    @NotNull
+    public static ParticleBuilder blockMarker(@NotNull Material material) {
+        return new ParticleBuilder(Particle.BLOCK_MARKER, createBlockData(material));
+    }
+    
+    @NotNull
+    private static ParticleBuilder vibration0(@NotNull Vibration.Destination destination, final int arrivalTime) {
+        return new ParticleBuilder(Particle.VIBRATION, new Vibration(destination, arrivalTime));
+    }
+    
+    @NotNull
+    private static BlockData createBlockData(@NotNull Material material) {
+        if (!material.isBlock()) {
+            throw new IllegalArgumentException("Material must be a block!");
+        }
+        
+        return material.createBlockData();
+    }
+    
 }

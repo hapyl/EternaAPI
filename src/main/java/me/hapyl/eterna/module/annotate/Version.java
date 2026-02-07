@@ -1,14 +1,18 @@
 package me.hapyl.eterna.module.annotate;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nonnull;
 
 /**
- * Represents a major Minecraft version.
- * <p>If annotated by {@link TestedOn}, promises that that module was tested and should work as intended on the specified version.</p>
+ * Represents a major minecraft version.
+ * <p>When annotated by {@link TestedOn}, promises that that module was tested and should work as intended on the specified version.</p>
  *
  * @see TestedOn
  */
+@StrictEnumOrdinal
 public enum Version {
+    
     V1_21_11,
     @Deprecated V1_21_8,
     @Deprecated V1_21_7,
@@ -23,29 +27,29 @@ public enum Version {
     @Deprecated V1_19_4;
     
     /**
-     * Returns <code>true</code> if this version is the newest.
+     * Gets whether this version is the latest.
      *
-     * @return true if this version is the newest.
+     * @return {@code true} if this version is the latest; {@code false} otherwise.
      */
-    public boolean isNewest() {
+    public boolean isLatest() {
         return this.ordinal() == 0;
     }
     
     /**
-     * Returns <code>true</code> if this version is outdated.
+     * Gets whether this version is outdated.
      *
-     * @return true if this version is outdated.
+     * @return {@code true} if this version is outdated; {@code false} otherwise.
      */
     public boolean isOutdated() {
         return this.ordinal() != 0;
     }
     
     /**
-     * Gets the latest supported {@link Version}.
+     * Gets the latest {@link Version}.
      *
-     * @return the latest supported version.
+     * @return the latest version.
      */
-    @Nonnull
+    @NotNull
     public static Version latest() {
         return values()[0];
     }

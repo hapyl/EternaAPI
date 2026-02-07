@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.npc.appearance;
 import me.hapyl.eterna.module.npc.Npc;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.sheep.Sheep;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
@@ -14,7 +15,7 @@ public class AppearanceSheep extends Appearance {
     private SheepColor sheepColor;
     private boolean sheared;
     
-    public AppearanceSheep(@Nonnull Npc npc, @Nonnull SheepColor color) {
+    public AppearanceSheep(@NotNull Npc npc, @NotNull SheepColor color) {
         super(npc, new Sheep(EntityType.SHEEP, dummyWorld()));
         
         this.setColor(color);
@@ -25,7 +26,7 @@ public class AppearanceSheep extends Appearance {
      *
      * @return the {@link SheepColor}.
      */
-    @Nonnull
+    @NotNull
     public SheepColor getColor() {
         return this.sheepColor;
     }
@@ -35,7 +36,7 @@ public class AppearanceSheep extends Appearance {
      *
      * @param color - The new sheep color.
      */
-    public void setColor(@Nonnull SheepColor color) {
+    public void setColor(@NotNull SheepColor color) {
         this.sheepColor = color;
         this.updateEntityData();
     }
@@ -59,7 +60,7 @@ public class AppearanceSheep extends Appearance {
         this.updateEntityData();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public Sheep getHandle() {
         return (Sheep) super.getHandle();

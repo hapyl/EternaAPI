@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.command;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.util.Compute;
@@ -8,98 +7,83 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a {@link SimpleCommand} processor, which is used to register commands.
+ */
 public class CommandProcessor {
-
+    
     private static final Map<Plugin, List<SimpleCommand>> COMMANDS_BY_PLUGIN = Maps.newHashMap();
-
-    private final JavaPlugin plugin;
-
+    
+    private final Plugin plugin;
+    
     /**
-     * Creates a CommandProcessor with plugin owner of EternaAPI.
-     */
-    @Deprecated(forRemoval = true, since = "4.2.1")
-    private CommandProcessor() {
-        throw new IllegalArgumentException("Don't delegate commands to Eterna!");
-    }
-
-    /**
-     * Creates a CommandProcessor with provided plugin owner.
-     * Plugins will have provided plugins' signature. Ex: /plugin_name:command_name
+     * Creates a new {@link CommandProcessor} with the given plugin as delegate.
      *
-     * @param plugin - Plugin to register command for.
+     * @param plugin - The plugin delegate.
      */
-    public CommandProcessor(@Nonnull JavaPlugin plugin) {
+    public CommandProcessor(@NotNull Plugin plugin) {
         this.plugin = plugin;
     }
-
+    
     /**
-     * Registers a command.
+     * Registers the given {@link SimpleCommand}.
      *
-     * @param simpleCommand - Command to register.
-     * @throws IllegalArgumentException - If command is already registered for this plugin.
+     * @param simpleCommand - The command to register.
      */
-    public void registerCommand(@Nonnull SimpleCommand simpleCommand) {
+    public void registerCommand(@NotNull SimpleCommand simpleCommand) {
         this.registerCommand0(new SimpleCommand[] { simpleCommand });
     }
-
+    
     /**
-     * Registers multiple commands.
+     * Registers the given {@link SimpleCommand} varargs, in the exact order passed.
      *
-     * @param commands - Array of commands to register.
-     * @throws IllegalArgumentException - If command is already registered for this plugin.
+     * @param commands - The commands to register.
+     * @throws IllegalArgumentException if no commands are passed.
      */
-    public void registerCommands(@Nonnull SimpleCommand... commands) {
+    public void registerCommands(@NotNull SimpleCommand... commands) {
         this.registerCommand0(commands);
     }
-
-    private void registerCommand0(@Nonnull SimpleCommand[] commands) {
+    
+    @ApiStatus.Internal
+    private void registerCommand0(@NotNull SimpleCommand[] commands) {
         try {
             if (commands.length == 0) {
                 throw new IllegalArgumentException("There must be at least one command!");
             }
-
+            
             final CommandMap commandMap = Bukkit.getCommandMap();
-
+            
             for (final SimpleCommand simpleCommand : commands) {
                 final Command command = simpleCommand.createCommand();
-
+                
                 // Register Command
                 commandMap.register(plugin.getName(), command);
                 COMMANDS_BY_PLUGIN.compute(plugin, Compute.listAdd(simpleCommand));
             }
-
-        } catch (Exception exception) {
-            EternaLogger.acknowledgeException(exception);
+            
+        }
+        catch (Exception ex) {
+            throw EternaLogger.acknowledgeException(ex);
         }
     }
-
+    
     /**
-     * Gets the command map for this server.
+     * Gets an immutable view of all the {@link SimpleCommand} registered by the given {@link Plugin}.
      *
-     * @return command map for this server.
-     * @deprecated use {@link Bukkit#getCommandMap()}
+     * @param plugin - The plugin.
+     * @return an immutable view of all commands registered by the plugin.
      */
-    @Nonnull
-    @Deprecated
-    public static CommandMap getCommandMap() {
-        return Bukkit.getCommandMap();
+    @NotNull
+    public static List<SimpleCommand> getCommands(@NotNull Plugin plugin) {
+        final List<SimpleCommand> commands = COMMANDS_BY_PLUGIN.get(plugin);
+        
+        return commands != null ? List.copyOf(commands) : List.of();
     }
-
-    /**
-     * Gets an immutable list of commands registered by a plugin.
-     *
-     * @param plugin - Plugin.
-     * @return an immutable list of commands.
-     */
-    public static List<SimpleCommand> getCommands(@Nonnull Plugin plugin) {
-        return Collections.unmodifiableList(COMMANDS_BY_PLUGIN.computeIfAbsent(plugin, fn -> Lists.newArrayList()));
-    }
-
+    
 }

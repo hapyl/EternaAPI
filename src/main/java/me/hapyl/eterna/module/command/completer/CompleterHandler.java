@@ -1,97 +1,124 @@
 package me.hapyl.eterna.module.command.completer;
 
-import me.hapyl.eterna.module.chat.Chat;
-import org.bukkit.entity.Player;
+import com.google.common.collect.Lists;
+import me.hapyl.eterna.module.annotate.SelfReturn;
+import me.hapyl.eterna.module.util.Buildable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Completer Handler for SimpleCommand.
- * <p>
- * It is used to provide visual feedback to the user when they are typing a command.
- * Look at wiki for more details.
+ * Represents a tab-completer handler.
  */
-public class CompleterHandler {
-
-    private final int index;
-    private String valid;
-    private String invalid;
-
-    private Checker checker;
-
-    private CompleterHandler(int index) {
-        this.index = index - 1;
-    }
-
-    public static CompleterHandler of(int index) {
-        return new CompleterHandler(index);
-    }
-
+public interface CompleterHandler {
+    
     /**
-     * String to display if the value is valid.
+     * Gets the argument index of this handler.
      *
-     * @param string - String to display.
+     * @return the argument index of this handler.
      */
-    public CompleterHandler ifValidValue(String string) {
-        valid = string;
-        return this;
-    }
-
+    int index();
+    
     /**
-     * String to display if the value is invalid.
+     * Gets a {@link List} of completers for this argument.
      *
-     * @param string - String to display.
+     * @return a list of completers for this argument.
      */
-    public CompleterHandler ifInvalidValue(String string) {
-        invalid = string;
-        return this;
-    }
-
+    @NotNull
+    List<Completer> handle();
+    
     /**
-     * Adds custom checker to display.
+     * Gets a {@link CompleterTooltip} for this argument.
      *
-     * @param checker - Checker.
+     * @return a tooltip for this argument.
      */
-    public CompleterHandler custom(@Nonnull Checker checker) {
-        this.checker = checker;
-        return this;
+    @Nullable
+    CompleterTooltip tooltip();
+    
+    /**
+     * Creates a new {@link Builder}.
+     *
+     * @param index - The target argument index.
+     * @return a new builder.
+     */
+    @NotNull
+    static Builder builder(int index) {
+        return new Builder(index);
     }
-
-    public final void handle(Player player, String[] args, List<String> list) {
-        if (args.length <= index) {
-            return;
+    
+    class Builder implements Buildable<CompleterHandler> {
+        private final int index;
+        private final List<Completer> completers;
+        private CompleterTooltip tooltip;
+        
+        Builder(int index) {
+            this.index = index;
+            this.completers = Lists.newArrayList();
         }
-
-        final String arg = args[index];
-
-        // Custom checker
-        if (checker != null) {
-            final String check = checker.check(player, arg, args);
-
-            if (check != null) {
-                list.add(format(check, arg));
-            }
+        
+        /**
+         * Adds a literal argument.
+         *
+         * @param literal - The literal argument.
+         */
+        @SelfReturn
+        public Builder literal(@NotNull String literal) {
+            this.completers.add((sender, args, index) -> List.of(literal));
+            return this;
         }
-
-        // Type check
-        if (list.contains(arg.toLowerCase(Locale.ROOT))) {
-            if (valid != null && !valid.isEmpty()) {
-                list.add(format(valid, arg));
-            }
+        
+        /**
+         * Adds the given values to arguments.
+         *
+         * @param values - The values to add.
+         */
+        @SelfReturn
+        public Builder values(@NotNull Collection<String> values) {
+            this.completers.add((sender, args, index) -> List.copyOf(values));
+            return this;
         }
-        else if (invalid != null && !invalid.isEmpty()) {
-            list.add(format(invalid, arg));
+        
+        /**
+         * Sets the tooltip of this handler.
+         *
+         * @param tooltip - The tooltip to set.
+         */
+        @NotNull
+        public Builder tooltip(@NotNull CompleterTooltip tooltip) {
+            this.tooltip = tooltip;
+            return this;
+        }
+        
+        /**
+         * Builds the {@link CompleterHandler}.
+         *
+         * @return the built handler.
+         */
+        @NotNull
+        @Override
+        public CompleterHandler build() {
+            return new CompleterHandler() {
+                @Override
+                public int index() {
+                    return index;
+                }
+                
+                @NotNull
+                @Override
+                public List<Completer> handle() {
+                    return List.copyOf(completers);
+                }
+                
+                @Nullable
+                @Override
+                public CompleterTooltip tooltip() {
+                    return tooltip;
+                }
+            };
         }
     }
-
-    private String format(String str, String arg) {
-        return Chat.format(str).replace("{}", arg);
-    }
-
-    public final int getIndex() {
-        return index;
-    }
-
+    
 }

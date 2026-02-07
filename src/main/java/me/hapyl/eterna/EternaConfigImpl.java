@@ -1,53 +1,62 @@
 package me.hapyl.eterna;
 
-import org.bukkit.configuration.file.FileConfiguration;
+import me.hapyl.eterna.module.resource.YamlResourceLoader;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.Internal
-public final class EternaConfigImpl extends EternaLock implements EternaConfig {
+public final class EternaConfigImpl extends YamlResourceLoader implements EternaConfig {
     
-    private final FileConfiguration cfg;
-    private final TickRate tickRate;
+    private TickRate tickRate;
     
-    EternaConfigImpl(@Nonnull EternaKey key, @Nonnull EternaPlugin plugin) {
-        super(key);
+    EternaConfigImpl(@NotNull EternaKey key, @NotNull EternaPlugin plugin) {
+        super(plugin, "config.yml");
         
-        this.cfg = plugin.getConfig();
-        this.tickRate = new TickRate() {
-            private static final String parent = "tick-rate.";
-            
-            @Override
-            public int npc() {
-                return Math.max(1, cfg.getInt(parent + "npc"));
-            }
-            
-            @Override
-            public int parkour() {
-                return Math.max(1, cfg.getInt(parent + "parkour"));
-            }
-        };
+        key.validateKey();
     }
     
     @Override
     public boolean checkForUpdates() {
-        return cfg.getBoolean("check-for-updates");
+        return get("check-for-updates").toBoolean();
     }
     
     @Override
     public boolean keepTestCommands() {
-        return cfg.getBoolean("keep-test-commands");
+        return get("keep-test-commands").toBoolean();
     }
     
     @Override
-    public boolean printStackTraces() {
-        return cfg.getBoolean("print-stack-traces");
+    public boolean allowQuestJournal() {
+        return get("allow-quest-journal").toBoolean();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public TickRate tickRate() {
+        if (tickRate == null) {
+            tickRate = new TickRate() {
+                @Override
+                public int npc() {
+                    return Math.max(1, get("tick-rate.npc").toInt());
+                }
+                
+                @Override
+                public int parkour() {
+                    return Math.max(1, get("tick-rate.parkour").toInt());
+                }
+            };
+        }
+        
         return tickRate;
+    }
+    
+    @Override
+    @NotNull
+    public CompletableFuture<Void> reload() {
+        tickRate = null; // Schedule tickRate reload
+        
+        return super.reload();
     }
 }

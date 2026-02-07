@@ -1,206 +1,222 @@
 package me.hapyl.eterna.module.player.quest;
 
-import me.hapyl.eterna.Eterna;
-import me.hapyl.eterna.builtin.Debuggable;
-import me.hapyl.eterna.builtin.manager.QuestManager;
-import me.hapyl.eterna.module.util.Runnables;
+import me.hapyl.eterna.module.player.quest.objective.QuestObjective;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.Optional;
 
 /**
- * Represents the runtime quest data for the given player.
+ * Represents a {@link QuestData} for a given {@link Player} and {@link Quest}.
  */
-public class QuestData implements Debuggable {
+public class QuestData {
     
     private final Player player;
     private final Quest quest;
+    private final long startedAt;
     
     private int currentStage;
     private double currentStageProgress;
     
-    public QuestData(@Nonnull Player player, @Nonnull Quest quest) {
+    private long completedAt;
+    
+    QuestData(@NotNull Player player, @NotNull Quest quest, final long startedAt) {
         this.player = player;
         this.quest = quest;
+        this.startedAt = Math.max(0, startedAt);
+        this.completedAt = 0L;
     }
     
     /**
-     * Gets the player of this data.
+     * Gets the {@link Player} this data belongs to.
      *
-     * @return the player of this data.
+     * @return the player this data belongs to.
      */
-    @Nonnull
+    @NotNull
     public Player getPlayer() {
         return player;
     }
     
     /**
-     * Gets the quest of this data.
+     * Gets the {@link Quest} for this data.
      *
-     * @return the quest of this data.
+     * @return the quest for this data.
      */
-    @Nonnull
+    @NotNull
     public Quest getQuest() {
         return quest;
     }
     
     /**
-     * Gets the current objective, or {@code null} if there is no objective.
-     * <p>Realistically this will never returns null.</p>
+     * Gets the time, in millis, when the {@link Quest} was started.
      *
-     * @return the current objective.
+     * @return the time, in millis, when the quest was started.
      */
-    @Nullable
-    public QuestObjective getCurrentObjective() {
-        return quest.getObjective(currentStage);
+    public long getStartedAt() {
+        return startedAt;
     }
     
     /**
-     * Gets the current stage of the quest.
+     * Gets whether the {@link Quest} is completed.
      *
-     * @return the current stage of the quest.
+     * @return {@code true} if the quest is completed; {@code false} otherwise.
+     */
+    public boolean isCompleted() {
+        return completedAt > 0L;
+    }
+    
+    /**
+     * Gets the time, in millis, when this {@link Quest} was completed.
+     *
+     * <p>
+     * This method returns {@code 0L} if the quest is not completed yet.
+     * </p>
+     *
+     * @return the time, in millis, when this quest was completed.
+     */
+    public long getCompletedAt() {
+        return completedAt;
+    }
+    
+    /**
+     * Gets the current stage (index).
+     *
+     * @return the current stage (index).
      */
     public int getCurrentStage() {
-        return currentStage;
+        return this.currentStage;
     }
     
     /**
-     * Gets the current progress of the objective.
-     * <p>The objective is considered as 'complete' if player's progress {@code >=} than the goal.</p>
+     * Sets the current stage, which will be clamped between {@code 0} - {@code objectiveCount - 1}.
      *
-     * @return the current progress of the objective.
+     * @param currentStage - The stage to set.
+     */
+    public void setCurrentStage(int currentStage) {
+        this.currentStage = Math.clamp(currentStage, 0, quest.getObjectiveCount() - 1);
+    }
+    
+    /**
+     * Gets the current stage progress.
+     *
+     * @return the current stage progress.
      */
     public double getCurrentStageProgress() {
-        return currentStageProgress;
+        return this.currentStageProgress;
     }
     
     /**
-     * Attempts to increment the progress for the current objective if the objective is {@code instanceof} the given {@link Class},
-     * and the {@link QuestObjective#test(QuestData, QuestObjectArray)} returns {@link QuestObjective.Response#testSucceeded()}.
+     * Sets the current stage progress.
      *
-     * @param clazz    - Objective class.
-     * @param consumer - Consumer to accept.
-     * @param objects  - Object parameters if needed.
-     *                 Will be wrapped with {@link QuestObjectArray} before passing it to the objective.
+     * @param currentStageProgress - The progress to set.
      */
-    @ApiStatus.Internal // Do not call this method manually
-    public <T extends QuestObjective> void tryIncrementProgress(@Nonnull Class<T> clazz, @Nonnull BiConsumer<T, QuestObjective.Response> consumer, @Nullable Object[] objects) {
-        final QuestObjective currentObjective = quest.getObjective(currentStage);
-        final QuestFormatter formatter = quest.getFormatter();
-        
-        if (!clazz.isInstance(currentObjective)) {
-            return;
-        }
-        
-        final T objective = clazz.cast(currentObjective);
-        final QuestObjective.Response response = objective.test(this, new QuestObjectArray(objects));
-        
-        consumer.accept(objective, response);
-        
-        if (response.isObjectiveFailed()) {
-            currentStageProgress = 0.0d;
-            
-            objective.onFail(player);
-            formatter.sendObjectiveFailed(player, objective);
-            return;
-        }
-        else if (response.isTestFailed()) {
-            return;
-        }
-        else {
-            final double increment = response.getMagicNumber();
-            
-            objective.onIncrement(player, increment);
-            currentStageProgress += increment;
-        }
-        
-        // Objective complete, go next
-        if (currentStageProgress >= objective.getGoal()) {
-            // Calling nextObjective() forces the next objective, call onComplete() here
-            objective.onComplete(player);
-            quest.onObjectiveComplete(player, this, objective);
-            
-            nextObjective();
-        }
-    }
-    
-    public boolean isComplete() {
-        return quest.getObjective(currentStage) == null;
-    }
-    
-    @ApiStatus.Internal
-    protected void nextObjective() { // Should not call manually
-        final QuestFormatter formatter = quest.getFormatter();
-        final QuestObjective currentObjective = quest.getObjective(currentStage);
-        
-        if (currentObjective == null) {
-            return;
-        }
-        
-        currentStage++;
-        currentStageProgress = 0.0d;
-        
-        // Display the complete objective
-        formatter.sendObjectiveComplete(player, currentObjective);
-        
-        final QuestObjective nextObjective = quest.getObjective(currentStage);
-        
-        // Quest complete
-        if (nextObjective == null) {
-            final QuestManager questManager = Eterna.getManagers().quest;
-            
-            quest.onComplete(player, this);
-            
-            // Call handler if not repeatable
-            if (!quest.isRepeatable()) {
-                questManager.workHandlers(handler -> handler.completeQuest(player, quest));
-            }
-            
-            // Delay quest complete message
-            Runnables.runLater(() -> formatter.sendQuestCompleteFormat(player, quest), 30);
-            return;
-        }
-        
-        // Call onStart() right away
-        nextObjective.onStart(player);
-        
-        // Display the objective complete message and then the next objective with a little delay
-        Runnables.runLater(() -> formatter.sendObjectiveNew(player, nextObjective), 20);
-        
-    }
-    
-    @Nonnull
-    @Override
-    public String toDebugString() {
-        return "QuestData{" +
-                "quest=" + quest.getName() +
-                ", currentStage=" + currentStage +
-                ", currentStageProgress=" + currentStageProgress +
-                '}';
+    public void setCurrentStageProgress(double currentStageProgress) {
+        this.currentStageProgress = Math.max(0, currentStageProgress);
     }
     
     /**
-     * A factory method for loading {@link QuestData}.
-     * <p>This method should <b>only</b> be used to load quest data!</p>
+     * Gets the current {@link QuestObjective} wrapped in an {@link Optional}.
      *
-     * @param handler              - Quest handler, insures that unregistered loading isn't possible.
-     * @param player               - Player to load the data for.
-     * @param quest                - Quest.
-     * @param currentStage         - Current stage.
-     * @param currentStageProgress - Current progress.
+     * @return the current quest objective wrapped in an optional.
+     */
+    @NotNull
+    public Optional<QuestObjective> getCurrentObjective() {
+        return getCurrentObjective(QuestObjective.class);
+    }
+    
+    /**
+     * Gets the current {@link QuestObjective} wrapped in an {@link Optional}.
+     *
+     * <p>
+     * If the current objective is not of the {@code expectedClass} type, an empty {@link Optional} will be returned.
+     * </p>
+     *
+     * @param expectedClass - The expected objective class.
+     * @return the current quest objective wrapped in an optional.
+     */
+    @NotNull
+    public <Q extends QuestObjective> Optional<Q> getCurrentObjective(@NotNull Class<Q> expectedClass) {
+        final QuestObjective objective = quest.getObjective(currentStage);
+        
+        if (expectedClass.isInstance(objective)) {
+            return Optional.of(expectedClass.cast(objective));
+        }
+        
+        return Optional.empty();
+    }
+    
+    /**
+     * Gets the next {@link QuestObjective} wrapped in an {@link Optional}.
+     *
+     * <p>
+     * If there is no next objective, an empty {@link Optional} will be returned.
+     * </p>
+     *
+     * @return the next objective wrapped in an optional.
+     */
+    @NotNull
+    public Optional<QuestObjective> getNextObjective() {
+        return Optional.ofNullable(this.quest.getObjective(this.currentStage + 1));
+    }
+    
+    /**
+     * Gets the {@link String} representation of this {@link QuestData}.
+     *
+     * @return the string representation of this quest data.
+     */
+    @Override
+    public String toString() {
+        return "{player = %s, quest = %s, stage = %s, progress = %s, startedAt = %s, completedAt = %s}".formatted(
+                player.getName(),
+                quest.getKey(),
+                currentStage,
+                currentStageProgress,
+                startedAt,
+                completedAt
+        );
+    }
+    
+    /**
+     * Marks this {@link QuestData} as complete.
+     */
+    @ApiStatus.Internal
+    void markComplete() {
+        if (!isCompleted()) {
+            this.completedAt = System.currentTimeMillis();
+        }
+    }
+    
+    /**
+     * A static factory method for creating {@link QuestData}.
+     *
+     * <p>
+     * This method is designed to be used at {@link QuestRegistry#load(Player)} to load a runtime {@link QuestData} from a database of some sorts.
+     * </p>
+     *
+     * @param player               - The player to load the data for.
+     * @param quest                - The quest to load the data for.
+     * @param currentStage         - The current stage.
+     * @param currentStageProgress - The current stage progress.
+     * @param startedAt            - The timestamp at when the quest was started.
+     * @param completedAt          - The timestamp at when the quest was started, or {@code 0L} if not completed.
      * @return a new {@link QuestData}.
      */
-    @Nonnull
-    public static QuestData load(@Nonnull QuestHandler handler, @Nonnull Player player, @Nonnull Quest quest, int currentStage, double currentStageProgress) {
-        Objects.requireNonNull(handler, "Handler must not be null!"); // ensure existing handler
+    @NotNull
+    public static QuestData load(
+            @NotNull Player player,
+            @NotNull Quest quest,
+            final int currentStage,
+            final double currentStageProgress,
+            @Range(from = 0, to = Long.MAX_VALUE) final long startedAt,
+            @Range(from = 0, to = Long.MAX_VALUE) final long completedAt
+    ) {
+        final QuestData data = new QuestData(player, quest, startedAt);
         
-        final QuestData data = new QuestData(player, quest);
         data.currentStage = currentStage;
         data.currentStageProgress = currentStageProgress;
+        data.completedAt = completedAt;
         
         return data;
     }

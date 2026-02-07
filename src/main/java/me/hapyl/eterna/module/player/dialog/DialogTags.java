@@ -1,57 +1,63 @@
 package me.hapyl.eterna.module.player.dialog;
 
 import me.hapyl.eterna.module.annotate.ForceLowercase;
+import me.hapyl.eterna.module.annotate.RequiresVarargs;
+import me.hapyl.eterna.module.util.Validate;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Represents an optional {@link DialogTags}, in case special event before the {@link Dialog} started is needed.
+ * Represents an optional {@link DialogTags} that may be passed in a {@link Dialog}.
  */
-public final class DialogTags {
-
-    private static final Supplier<DialogTags> EMPTY = () -> new DialogTags(Set.of());
+public interface DialogTags {
     
-    private final Set<String> tags;
-
-    private DialogTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
     /**
-     * Returns {@code true} if the given tag is present, {@code false} otherwise.
+     * Gets whether the given {@link String} is tagged.
      *
-     * @param tag - Tag to check.
-     * @return {@code true} if the given tag is present, {@code false} otherwise.
+     * <p>
+     * The string is forcefully lower-cased before checking.
+     * </p>
+     *
+     * @param tag - The string to check.
+     * @return {@code true} if the given string is tagged; {@code false} otherwise.
      */
-    public boolean contains(@Nonnull @ForceLowercase String tag) {
-        return tags.contains(tag.toLowerCase());
-    }
-
+    boolean isTagged(@NotNull @ForceLowercase String tag);
+    
     /**
-     * Constructs a new {@link DialogTags} from the given tags.
+     * A static factory method for creating {@link DialogTags}.
      *
-     * @param tags - Tags.
+     * @param tags - The array of string tags.
      * @return a new {@link DialogTags}.
      */
-    @Nonnull
-    public static DialogTags of(@Nonnull @ForceLowercase String... tags) {
-        return new DialogTags(Arrays.stream(tags)
-                .map(String::toLowerCase)
-                .collect(Collectors.toUnmodifiableSet())
-        );
+    @NotNull
+    static DialogTags of(@NotNull @ForceLowercase @RequiresVarargs String... tags) {
+        return new DialogTagsImpl(Validate.varargs(tags));
     }
-
+    
     /**
-     * Gets an empty {@link DialogTags}.
+     * A static factory method for creating an empty {@link DialogTags}.
      *
-     * @return an empty {@link DialogTags}.
+     * @return a new {@link DialogTags}.
      */
-    @Nonnull
-    public static DialogTags empty() {
-        return EMPTY.get();
+    @NotNull
+    static DialogTags empty() {
+        return tag -> false;
     }
+    
+    final class DialogTagsImpl implements DialogTags {
+        private final Set<String> tags;
+        
+        DialogTagsImpl(@NotNull String[] tags) {
+            this.tags = Arrays.stream(tags).map(String::toLowerCase).collect(Collectors.toSet());
+        }
+        
+        @Override
+        public boolean isTagged(@NotNull @ForceLowercase String tag) {
+            return tags.contains(tag.toLowerCase());
+        }
+    }
+    
 }

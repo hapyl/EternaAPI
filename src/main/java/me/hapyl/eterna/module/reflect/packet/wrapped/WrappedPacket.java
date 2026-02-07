@@ -2,32 +2,62 @@ package me.hapyl.eterna.module.reflect.packet.wrapped;
 
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.protocol.Packet;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link WrappedPacket} is a collection of <b>statically</b> wrapped packets, with namespaces representing Mojang mappings.
- * <br>
- * {@link WrappedPacket}s are <b>not</b> backed up by the raw {@link Packet}, therefore, writing should be done into the <I>raw</I> packet!
+ * Represents a base {@link WrappedPacket}, which wraps a raw {@link Packet} into a readable and documented wrapper.
+ *
+ *
+ * <p>
+ * Note that wrapped packets are <b>immutable</b> and do not support mutations; any changes must be made to a raw {@link Packet} object.
+ * </p>
  */
 public class WrappedPacket<P> {
     
     protected final P packet;
     
-    public WrappedPacket(P packet) {
+    WrappedPacket(@NotNull P packet) {
         this.packet = packet;
     }
     
-    @Nonnull
+    /**
+     * Gets the raw {@link Packet}.
+     *
+     * @return the raw packet.
+     */
+    @NotNull
     public P getPacket() {
         return packet;
     }
     
-    protected <T> T readField(@Nonnull String fieldName, Class<T> clazz) {
-        return Reflect.readFieldValue(packet, fieldName, clazz).orElseThrow();
+    /**
+     * A helper method for reading raw {@link Packet} fields.
+     *
+     * <p>
+     * Note that this method is <b>sensitive</b> to both {@code fieldName} and the class type. If either
+     * don't match the actual field, an {@link IllegalArgumentException} is thrown!
+     * </p>
+     *
+     * @param fieldName - The field name.
+     * @param clazz     - The field type.
+     * @param <T>       - The field type.
+     * @return the field value.
+     */
+    @NotNull
+    public <T> T readField(@NotNull String fieldName, @NotNull Class<T> clazz) throws IllegalArgumentException {
+        return Reflect.readFieldValue(packet, fieldName, clazz).orElseThrow(
+                () -> new IllegalArgumentException("Cannot find field `%s` (%s) in `%s`!".formatted(fieldName, clazz.getSimpleName(), packet.getClass().getSimpleName()))
+        );
     }
     
-    protected <T> void writeField(@Nonnull String fieldName, T value) {
+    /**
+     * A helper method for writing a field value.
+     *
+     * @param fieldName - The field name.
+     * @param value     - The field type.
+     * @param <T>       - The field type.
+     */
+    public <T> void writeField(@NotNull String fieldName, @NotNull T value) {
         Reflect.writeFieldValue(packet, fieldName, value);
     }
     

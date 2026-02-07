@@ -8,10 +8,14 @@ import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
 
+/**
+ * Represents the rope data.
+ */
 @ApiStatus.Internal
 public class RopeData implements Disposable {
     
@@ -19,7 +23,7 @@ public class RopeData implements Disposable {
     private final PacketTeam packetTeam;
     private final LinkedList<Entity> linkedEntities;
     
-    RopeData(@Nonnull Player player, PacketTeam packetTeam, @Nonnull LinkedList<Entity> linkedEntities) {
+    RopeData(@NotNull Player player, PacketTeam packetTeam, @NotNull LinkedList<Entity> linkedEntities) {
         this.player = player;
         this.packetTeam = packetTeam;
         this.linkedEntities = linkedEntities;

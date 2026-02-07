@@ -1,30 +1,37 @@
 package me.hapyl.eterna.module.util;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.TimeUnit;
 
 /**
- * A immutable duration holder of a given {@link TimeUnit}.
+ * Represents an immutable duration holder of a given {@link TimeUnit}
  */
 public class Duration {
-
+    
     private final long value;
     private final TimeUnit timeUnit;
-
-    public Duration(long value, @Nonnull TimeUnit timeUnit) {
+    
+    /**
+     * Creates a new {@link Duration}.
+     *
+     * @param value    - The duration value.
+     * @param timeUnit - The time unit.
+     */
+    public Duration(long value, @NotNull TimeUnit timeUnit) {
         this.value = value;
         this.timeUnit = timeUnit;
     }
-
+    
     /**
-     * Gets the raw value.
+     * Gets the raw duration value.
      *
-     * @return the value.
+     * @return the duration value.
      */
     public long getValue() {
         return value;
     }
-
+    
     /**
      * Gets the value in {@link TimeUnit#NANOSECONDS}.
      *
@@ -33,7 +40,7 @@ public class Duration {
     public long asNanos() {
         return timeUnit.toNanos(value);
     }
-
+    
     /**
      * Gets the value in {@link TimeUnit#MILLISECONDS}.
      *
@@ -42,7 +49,7 @@ public class Duration {
     public long asMillis() {
         return timeUnit.toMillis(value);
     }
-
+    
     /**
      * Gets the value in {@link TimeUnit#SECONDS}.
      *
@@ -51,7 +58,7 @@ public class Duration {
     public long asSeconds() {
         return timeUnit.toSeconds(value);
     }
-
+    
     /**
      * Gets the value in {@link TimeUnit#MINUTES}.
      *
@@ -60,7 +67,7 @@ public class Duration {
     public long asMinutes() {
         return timeUnit.toMinutes(value);
     }
-
+    
     /**
      * Gets the value in {@link TimeUnit#HOURS}.
      *
@@ -69,7 +76,7 @@ public class Duration {
     public long asHours() {
         return timeUnit.toHours(value);
     }
-
+    
     /**
      * Gets the value in {@link TimeUnit#DAYS}.
      *

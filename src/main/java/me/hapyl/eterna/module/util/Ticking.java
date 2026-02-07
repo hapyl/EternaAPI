@@ -6,7 +6,7 @@ package me.hapyl.eterna.module.util;
 public interface Ticking {
     
     /**
-     * The tick method.
+     * Ticks this object.
      */
     void tick();
     

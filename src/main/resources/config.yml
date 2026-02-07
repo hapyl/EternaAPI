@@ -1,25 +1,27 @@
 ##################################
 ## EternaAPI Configuration File ##
 ##                              ##
-## Last Updated: 19.08.25       ##
+## Last Updated: 09.01.26       ##
 ##################################
 
-# Check for plugin updates when the server starts.
-# If an update is found, operators and the console will be notified.
+# Whether to check for plugin updates when the server starts.
+# Recommended: `true` - for keeping up with the latest updates.
 check-for-updates: true
 
-# Keep development test commands enabled.
-# Recommended: false on production servers.
+# Whether to keep the development tests.
+# Recommended: `false` - for production servers.
 keep-test-commands: true
 
-# Print full stack traces when errors occur.
-# Recommended: true, as this makes debugging and reporting issues easier.
-print-stack-traces: true
+# Whether to allow a default quest journal.
+# Recommended: `true` - unless another plugin implements its own journal.
+allow-quest-journal: true
 
-# Tick rates for module updates.
+# Defines the tick-rate for modules.
 tick-rate:
-  # How often to update Npc visibility and head rotations.
+  # Defines how ofter to update npc visibility and head rotations.
+  # Default value: `2`
   npc: 2
 
-  # How often to update the Parkour UI.
+  # Defines how often to update parkour ui.
+  # Default value: `2`
   parkour: 2

@@ -1,15 +1,14 @@
 package me.hapyl.eterna.module.npc.appearance;
 
-import me.hapyl.eterna.module.nms.NmsEnum;
+import me.hapyl.eterna.module.nms.NmsWrapper;
 import net.minecraft.resources.ResourceKey;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a {@link AppearanceVillager} profession.
  * <p>The profession may look different based on {@link VillagerVariant}.</p>
  */
-public enum VillagerProfession implements NmsEnum<ResourceKey<net.minecraft.world.entity.npc.villager.VillagerProfession>> {
+public enum VillagerProfession implements NmsWrapper<ResourceKey<net.minecraft.world.entity.npc.villager.VillagerProfession>> {
     
     /**
      * No profession has no profession.
@@ -88,11 +87,11 @@ public enum VillagerProfession implements NmsEnum<ResourceKey<net.minecraft.worl
     
     private final ResourceKey<net.minecraft.world.entity.npc.villager.VillagerProfession> nms;
     
-    VillagerProfession(@Nonnull ResourceKey<net.minecraft.world.entity.npc.villager.VillagerProfession> nms) {
+    VillagerProfession(@NotNull ResourceKey<net.minecraft.world.entity.npc.villager.VillagerProfession> nms) {
         this.nms = nms;
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public ResourceKey<net.minecraft.world.entity.npc.villager.VillagerProfession> toNms() {
         return nms;

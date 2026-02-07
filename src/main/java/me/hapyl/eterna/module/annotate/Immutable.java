@@ -6,10 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the annotated parameter must not be mutated.
+ * Indicates that the annotated element is immutable, and will throw {@link UnsupportedOperationException} (or similar) upon trying to mutate it.
+ *
+ * <p>
+ * If annotated on a method, it applies to it's return value.
+ * </p>
  */
-@Retention(RetentionPolicy.SOURCE)
-@Target({ ElementType.PARAMETER })
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER })
 public @interface Immutable {
-    
 }

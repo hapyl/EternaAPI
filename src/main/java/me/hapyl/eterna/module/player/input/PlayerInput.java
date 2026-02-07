@@ -1,101 +1,117 @@
 package me.hapyl.eterna.module.player.input;
 
-import com.google.common.collect.Sets;
+import me.hapyl.eterna.module.annotate.RequiresVarargs;
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import me.hapyl.eterna.module.util.CollectionUtils;
 import org.bukkit.Input;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A helper class that allows testing whether a player is <b>holding</b> a certain key.
+ * Represents a utility class that allows checking {@link Player} current held {@link InputKey}.
  */
 @UtilityClass
 public final class PlayerInput {
-
+    
     private PlayerInput() {
         UtilityClass.Validator.throwIt();
     }
-
+    
     /**
-     * Returns {@code true} if the given {@link Player} is holding the given {@link InputKey}.
+     * Gets whether the given {@link InputKey} is currently held by the given {@link Player}.
      *
      * @param player   - The player to check.
      * @param inputKey - The key to check.
-     * @return {@code true} if the given {@link Player} is holding the given {@link InputKey}.
+     * @return {@code true} if the given key is held; {@code false} otherwise.
      */
-    public static boolean isKeyHeld(@Nonnull Player player, @Nonnull InputKey inputKey) {
+    public static boolean isKeyHeld(@NotNull Player player, @NotNull InputKey inputKey) {
         return getHeldKeys0(player).contains(inputKey);
     }
-
+    
     /**
-     * Returns {@code true} if the given {@link Player} is holding all the given {@link InputKey}s.
+     * Gets whether <b>all</b> the given {@link InputKey} are currently held by the given {@link Player}.
      *
      * @param player    - The player to check.
      * @param inputKeys - The keys to check.
-     * @return {@code true} if the given {@link Player} is holding all the given {@link InputKey}s.
+     * @return {@code true} if <b>all</b> the given input keys are currently held by the player; {@code false} otherwise.
      */
-    public static boolean isAllKeysHeld(@Nonnull Player player, @Nonnull Collection<InputKey> inputKeys) {
+    public static boolean isAllKeysHeld(@NotNull Player player, @NotNull Collection<? extends InputKey> inputKeys) {
         return getHeldKeys0(player).containsAll(inputKeys);
     }
-
+    
     /**
-     * Returns {@code true} if the given {@link Player} is holding any of the given {@link InputKey}s.
+     * Gets whether <b>all</b> the given {@link InputKey} are currently held by the given {@link Player}.
      *
      * @param player    - The player to check.
      * @param inputKeys - The keys to check.
-     * @return {@code true} if the given {@link Player} is holding any of the given {@link InputKey}s.
+     * @return {@code true} if <b>all</b> the given input keys are currently held by the player; {@code false} otherwise.
      */
-    public static boolean isAnyKeyHeld(@Nonnull Player player, @Nonnull Collection<InputKey> inputKeys) {
-        final Set<InputKey> heldKeys = getHeldKeys0(player);
-
-        for (InputKey inputKey : inputKeys) {
-            if (heldKeys.contains(inputKey)) {
-                return true;
-            }
-        }
-
-        return false;
+    public static boolean isAllKeysHeld(@NotNull Player player, @NotNull @RequiresVarargs InputKey... inputKeys) {
+        return isAllKeysHeld(player, CollectionUtils.varargsAsList(inputKeys));
     }
-
+    
     /**
-     * Returns {@code true} if the given {@link Player} is not holding any keys.
-     * <br><br>
-     * Note that is player has "Toggle Sprint" enabled, and they have toggled their sprint,
-     * this method will return {@code false}, because the key is <i>technically</i> being held.
+     * Gets whether <b>any</b> of the given {@link InputKey} are currently held by the given {@link Player}.
+     *
+     * @param player    - The player to check.
+     * @param inputKeys - The keys to check.
+     * @return {@code true} if <b>any</b> of the given input keys are currently held by the player; {@code false} otherwise.
+     */
+    public static boolean isAnyKeyHeld(@NotNull Player player, @NotNull Collection<? extends InputKey> inputKeys) {
+        return !Collections.disjoint(getHeldKeys0(player), inputKeys);
+    }
+    
+    /**
+     * Gets whether <b>any</b> of the given {@link InputKey} are currently held by the given {@link Player}.
+     *
+     * @param player    - The player to check.
+     * @param inputKeys - The keys to check.
+     * @return {@code true} if <b>any</b> of the given input keys are currently held by the player; {@code false} otherwise.
+     */
+    public static boolean isAnyKeyHeld(@NotNull Player player, @NotNull @RequiresVarargs InputKey... inputKeys) {
+        return isAnyKeyHeld(player, CollectionUtils.varargsAsList(inputKeys));
+    }
+    
+    /**
+     * Gets whether <b>no</b> keys are currently held by the given {@link Player}.
+     *
+     * <p><b>
+     * Please see {@link DefaultInputKey#CONTROL} for details about "Toggle Sprint".
+     * </b></p>
      *
      * @param player - The player to check.
-     * @return {@code true} if the given {@link Player} is not holding any keys.
+     * @return {@code true} of <b>no</b> keys are currently held by the player; {@code false} otherwise.
      */
-    public static boolean isNoKeyHeld(@Nonnull Player player) {
+    public static boolean isNoKeyHeld(@NotNull Player player) {
         return getHeldKeys0(player).isEmpty();
     }
-
+    
     /**
-     * Gets an unmodifiable {@link Set} of every {@link InputKey} the player is holding.
+     * Gets an <b>immutable</b> {@link Set} containing all currently held {@link InputKey} by the given {@link Player}.
      *
-     * @param player - The player to get the keys for.
-     * @return an unmodifiable {@link Set} of every {@link InputKey} the player is holding.
+     * @param player - The player to check.
+     * @return an <b>immutable</b> set containing all currently held keys by the player.
      */
-    @Nonnull
-    public static Set<InputKey> getHeldKeys(@Nonnull Player player) {
+    @NotNull
+    public static Set<? extends InputKey> getHeldKeys(@NotNull Player player) {
         return getHeldKeys0(player).stream().collect(Collectors.toUnmodifiableSet());
     }
-
-    private static Set<InputKey> getHeldKeys0(Player player) {
+    
+    @ApiStatus.Internal
+    @NotNull
+    private static Set<? extends InputKey> getHeldKeys0(Player player) {
         final Input input = player.getCurrentInput();
-        final Set<InputKey> heldKeys = Sets.newHashSet();
-
-        for (InputKey inputKey : InputKey.values()) {
-            if (inputKey.predicate.test(input)) {
-                heldKeys.add(inputKey);
-            }
-        }
-
-        return heldKeys;
+        
+        return Arrays.stream(DefaultInputKey.values())
+                     .filter(key -> key.testInput(input))
+                     .collect(Collectors.toUnmodifiableSet());
     }
-
+    
 }

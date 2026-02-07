@@ -1,142 +1,128 @@
 package me.hapyl.eterna.builtin.command;
 
-import me.hapyl.eterna.*;
-import me.hapyl.eterna.builtin.gui.QuestJournal;
+import me.hapyl.eterna.Eterna;
+import me.hapyl.eterna.EternaKey;
+import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.builtin.menu.QuestJournal;
 import me.hapyl.eterna.builtin.updater.UpdateResult;
 import me.hapyl.eterna.builtin.updater.Updater;
-import me.hapyl.eterna.module.chat.Chat;
+import me.hapyl.eterna.module.command.ArgumentList;
 import me.hapyl.eterna.module.command.SimpleAdminCommand;
-import me.hapyl.eterna.module.util.ArgumentList;
+import me.hapyl.eterna.module.registry.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import test.EternaRuntimeTest;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import test.EternaTest;
+import test.EternaTestRegistry;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.List;
 
+@ApiStatus.Internal
 public final class EternaCommand extends SimpleAdminCommand {
-    public EternaCommand(String name) {
+    
+    public EternaCommand(@NotNull EternaKey key, @NotNull String name) {
         super(name);
         
+        key.validateKey();
+        
         setDescription("API management administrative command.");
-        addCompleterValues(1, "update", "version", "quest", "reload", "test", "class");
+        setCompleterValues(0, "update", "quest", "reload", "test");
     }
     
     @Override
-    protected void execute(CommandSender sender, String[] args) {
+    protected void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
         if (args.length == 0) {
-            sendInvalidUsageMessage(sender);
+            sendCommandUsage(sender);
             return;
         }
         
-        switch (args[0].toLowerCase()) {
+        switch (args.get(0).toString()) {
             case "update" -> {
                 final Updater updater = Eterna.getUpdater();
-                final UpdateResult result = updater.checkForUpdates();
-                
-                if (result == UpdateResult.OUTDATED) {
-                    updater.broadcastLink();
-                }
-                else {
-                    EternaLogger.sendMessage(sender, result.getMessage());
-                }
-            }
-            
-            case "version" -> {
-                final Updater updater = Eterna.getUpdater();
-                
-                EternaLogger.sendMessage(sender, "&aYour version: " + updater.getPluginVersion());
-                
-                if (updater.getLastResult() == UpdateResult.OUTDATED) {
-                    EternaLogger.sendMessage(sender, "&aLatest version: " + updater.getLatestVersion());
-                    EternaLogger.sendMessage(sender, "&aDownload here: &e" + updater.getDownloadUrl());
-                }
-                else if (updater.getLastResult() == UpdateResult.UP_TO_DATE) {
-                    EternaLogger.sendMessage(sender, "&aYou're up to date!");
-                }
+                updater.checkForUpdates()
+                       .thenAccept(response -> {
+                           EternaLogger.message(sender, response.result().asComponent());
+                           
+                           if (response.result() == UpdateResult.OUTDATED) {
+                               EternaLogger.message(sender, response.downloadUrl());
+                           }
+                       });
             }
             
             case "quest" -> {
-                if (sender instanceof Player player) {
-                    if (Rule.ALLOW_QUEST_JOURNAL.isFalse()) {
-                        EternaLogger.sendMessage(player, "&cThis server does not allow Quest Journal!");
-                        return;
-                    }
-                    
-                    new QuestJournal(player);
+                if (!(sender instanceof Player player)) {
+                    EternaLogger.message(sender, Component.text("Only players may complete quests!", NamedTextColor.RED));
+                }
+                else if (!Eterna.getConfig().allowQuestJournal()) {
+                    EternaLogger.message(player, Component.text("This server does not allow Quest Journal!", NamedTextColor.RED));
                 }
                 else {
-                    EternaLogger.sendMessage(sender, "&cThis command can only be executed by players.");
+                    new QuestJournal(player);
                 }
             }
             
             case "reload" -> {
                 if (args.length < 2) {
-                    EternaPlugin.getPlugin().reloadConfig();
-                    EternaLogger.sendMessage(sender, "Reloaded config!");
+                    EternaLogger.message(sender, Component.text("Reloading config...", NamedTextColor.YELLOW));
+                    
+                    Eterna.getConfig().reload()
+                          .thenRun(() -> {
+                              EternaLogger.message(sender, Component.text("Successfully reloaded config!", NamedTextColor.GREEN));
+                          })
+                          .exceptionally(ex -> {
+                              EternaLogger.message(
+                                      sender,
+                                      Component.text("Error reloading config! ", NamedTextColor.DARK_RED).append(Component.text(ex.getCause().getMessage(), NamedTextColor.YELLOW))
+                              );
+                              
+                              return null;
+                          });
                 }
             }
             
             case "test" -> {
                 if (!Eterna.getConfig().keepTestCommands()) {
-                    EternaLogger.sendMessage(sender, "&cTests are disabled on this server.");
+                    EternaLogger.message(sender, Component.text("Tests are disabled on this server!", NamedTextColor.RED));
                     return;
                 }
                 
-                final String testName = getArgument(args, 1).toString();
+                final String testStringKey = args.get(1).toString();
+                final Key testKey = Key.ofStringOrNull(testStringKey);
                 
-                if (testName.isEmpty()) {
-                    EternaLogger.sendMessage(sender, "Invalid test.");
+                if (testKey == null) {
+                    EternaLogger.message(sender, Component.text("Invalid key format, must match `%s` pattern!".formatted(Key.PATTERN.pattern()), NamedTextColor.RED));
                     return;
                 }
                 
-                if (!EternaRuntimeTest.testExists(testName)) {
-                    EternaLogger.sendMessage(sender, "&cInvalid test.");
+                final EternaTest test = EternaTestRegistry.get(testKey);
+                
+                if (test == null) {
+                    EternaLogger.message(sender, Component.text("Invalid test `%s`!".formatted(testKey), NamedTextColor.RED));
                     return;
                 }
                 
                 if (!(sender instanceof Player player)) {
-                    Chat.sendMessage(sender, "&4You must be a player to use this!");
+                    EternaLogger.message(sender, Component.text("Only players can execute tests!", NamedTextColor.RED));
                     return;
                 }
                 
-                EternaRuntimeTest.test(this, player, testName, new ArgumentList(Arrays.copyOfRange(args, 2, args.length)));
+                test.test0(player, ArgumentList.copyOfRange(args, 2, args.length));
             }
             
-            case "class" -> {
-                if (args.length < 2) {
-                    EternaLogger.sendMessage(sender, "&cMissing class name! Make sure it contains the FULL package.");
-                    return;
-                }
-                final String classToFind = args[1];
-                
-                try {
-                    final Class<?> clazz = Class.forName(classToFind);
-                    
-                    EternaLogger.sendMessage(sender, "&aFound class!");
-                    EternaLogger.sendMessage(sender, " &3package &b%s".formatted(clazz.getPackage().getName()));
-                    EternaLogger.sendMessage(sender, " &3name &b%s".formatted(clazz.getSimpleName()));
-                    EternaLogger.sendMessage(sender, " &3loader &b%s".formatted(clazz.getClassLoader().getName()));
-                }
-                catch (ClassNotFoundException ex) {
-                    EternaLogger.sendMessage(sender, "&cCould not find class &4%s&c!".formatted(classToFind));
-                }
-            }
-            
-            default -> {
-                EternaLogger.sendMessage(sender, "&4Invalid usage! " + getUsage());
-            }
+            default -> super.sendCommandUsage(sender);
         }
     }
     
-    @Nullable
+    @NotNull
     @Override
-    protected List<String> tabComplete(CommandSender sender, String[] args) {
-        if (matchArgs(args, "test")) {
-            return completerSort(EternaRuntimeTest.listTests(), args, false);
+    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+        if (Eterna.getConfig().keepTestCommands() && args.get(0).toString().equals("test")) {
+            return EternaTestRegistry.listTests();
         }
         
-        return null;
+        return super.tabComplete(sender, args);
     }
 }

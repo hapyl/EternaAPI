@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.component.builder;
 
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -19,16 +20,16 @@ public interface ComponentSupplier {
      *
      * @param components - The resolved placeholder components.
      */
-    @Nonnull
-    Component supply(@Nonnull Map<String, Component> components);
+    @NotNull
+    Component supply(@NotNull Map<String, Component> components);
     
     /**
      * Creates a supplier that always returns the given literal {@link Component}.
      *
      * @param component - The literal component to supply.
      */
-    @Nonnull
-    static ComponentSupplier ofLiteral(@Nonnull Component component) {
+    @NotNull
+    static ComponentSupplier ofLiteral(@NotNull Component component) {
         return new ComponentSupplierLiteral(component);
     }
     
@@ -37,8 +38,8 @@ public interface ComponentSupplier {
      *
      * @param placeholder - The placeholder key.
      */
-    @Nonnull
-    static ComponentSupplier ofPlaceholder(@Nonnull String placeholder) {
+    @NotNull
+    static ComponentSupplier ofPlaceholder(@NotNull String placeholder) {
         return new ComponentSupplierPlaceholder(placeholder);
     }
     

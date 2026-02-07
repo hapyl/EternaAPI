@@ -1,578 +1,343 @@
 package me.hapyl.eterna.module.command;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.module.chat.Chat;
-import me.hapyl.eterna.module.command.completer.Checker;
-import me.hapyl.eterna.module.command.completer.CheckerNoArgs;
+import me.hapyl.eterna.module.annotate.CaughtExceptions;
+import me.hapyl.eterna.module.annotate.ForceLowercase;
 import me.hapyl.eterna.module.command.completer.CompleterHandler;
+import me.hapyl.eterna.module.command.completer.CompleterSortMethod;
+import me.hapyl.eterna.module.util.Cooldown;
 import me.hapyl.eterna.module.util.Handle;
-import me.hapyl.eterna.module.util.TypeConverter;
+import me.hapyl.eterna.module.util.Validate;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
- * Creates a SimpleCommand.
+ * Represents a {@link Command} builder.
  *
- * @author hapyl
+ * <p>Commands made via {@link SimpleCommand} must be registered via {@link CommandProcessor} and they do not require declaring them in {@code plugin.yml}.</p>
  */
-public abstract class SimpleCommand implements Handle<Command> {
+public abstract class SimpleCommand implements Handle<Command>, Cooldown {
     
     private final String name;
-    private final Map<Integer, List<String>> completerValues;
     private final Map<Integer, CompleterHandler> completerHandlers;
+    private final CommandCooldown cooldown;
     
-    private String permission;
-    private String description;
-    private String usage;
-    private String[] aliases;
+    @Nullable private Permission permission;
+    @NotNull private String description;
+    @NotNull private String usage;
+    @NotNull private String[] aliases;
+    
     private boolean allowOnlyOp;
     private boolean allowOnlyPlayer;
-    private int cooldownTick;
-    private CommandCooldown cooldown;
+    
     private CommandHandle handle;
     private CommandFormatter formatter;
     
-    private SimpleCommand() {
-        throw new NullPointerException();
-    }
-    
     /**
-     * Creates a new simple command
+     * Creates a new {@link SimpleCommand}.
      *
-     * @param name - Name of the command.
+     * @param name - The name of the command.
      */
-    public SimpleCommand(@Nonnull String name) {
+    public SimpleCommand(@NotNull @ForceLowercase String name) {
         this.name = name.toLowerCase();
         this.aliases = new String[] { };
-        this.permission = "";
+        this.permission = null;
         this.usage = "/" + name;
-        this.description = "Made using SimpleCommand by EternaAPI.";
+        this.description = "Default SimpleCommand by EternaAPI.";
         this.allowOnlyPlayer = false;
         this.allowOnlyOp = false;
-        this.cooldownTick = 0;
-        this.cooldown = null;
-        this.completerValues = Maps.newHashMap();
+        this.cooldown = new CommandCooldown();
         this.completerHandlers = Maps.newHashMap();
         this.formatter = CommandFormatter.DEFAULT;
     }
     
-    @Nonnull
+    /**
+     * Sends the command usage to the given {@link CommandSender} via {@link CommandFormatter}.
+     *
+     * @param sender - The sender for whom to send the usage.
+     */
+    public void sendCommandUsage(@NotNull CommandSender sender) {
+        formatter.invalidUsage(sender, usage);
+    }
+    
+    /**
+     * Gets the {@link CompleterSortMethod} for this command.
+     *
+     * @return the completer sort method for this command.
+     */
+    @NotNull
+    public CompleterSortMethod completerSortMethod() {
+        return CompleterSortMethod.STARTS_WITH;
+    }
+    
+    /**
+     * Gets the handle of this command.
+     *
+     * @return the handle of this command.
+     * @throws NullPointerException if the command has not yet been registered.
+     */
+    @NotNull
     @Override
     public Command getHandle() {
-        if (handle == null) {
-            throw new IllegalStateException("Command is not registered yet! (%s)".formatted(getName()));
-        }
-        
-        return handle;
+        return Objects.requireNonNull(handle, "Unregistered command! (%s)".formatted(name));
     }
     
     /**
-     * Adds a new completer handler.
+     * Sets the {@link CompleterHandler} for a given {@code index}.
      *
-     * @param handler - Handler to add.
+     * @param handler - The handler to set.
      */
-    public void addCompleterHandler(CompleterHandler handler) {
-        this.completerHandlers.put(handler.getIndex(), handler);
+    public void setCompleterHandler(@NotNull CompleterHandler handler) {
+        this.completerHandlers.put(handler.index(), handler);
     }
     
     /**
-     * Adds a new completer handler.
+     * Sets the tab-completer values for the given {@code index}.
      *
-     * @param index   - Index of the argument.
-     * @param checker - Checker to use.
+     * @param index  - The index to set the tab-completer values.
+     * @param values - The values to set.
+     * @throws IllegalArgumentException if varargs are empty.
      */
-    public void addCompleterHandler(int index, CheckerNoArgs checker) {
-        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    public void setCompleterValues(int index, @NotNull String... values) {
+        this.completerHandlers.put(index, CompleterHandler.builder(index).values(Arrays.asList(Validate.varargs(values))).build());
     }
     
     /**
-     * Adds a new completer handler.
+     * Gets a {@link CompleterHandler} for the given {@code index}.
      *
-     * @param index   - Index of the argument.
-     * @param checker - Checker to use.
+     * @param index - The index to retrieve a handler.
+     * @return the handler at the given index, or {@code null} if no handler at that {@code index}.
      */
-    public void addCompleterHandler(int index, Checker checker) {
-        this.completerHandlers.put(index, CompleterHandler.of(index).custom(checker));
+    @Nullable
+    public CompleterHandler getCompleterHandler(int index) {
+        return completerHandlers.get(index);
     }
     
     /**
-     * Adds a new completer handler.
+     * Gets whether this command is only allowed for {@link Player}.
      *
-     * @param index     - Index of the argument.
-     * @param ifValid   - Value to arg if valid.
-     * @param ifInvalid - Value to arg if invalid.
+     * @return {@code true} if this command is only allowed for players; {@code false} otherwise.
      */
-    public void addCompleterHandler(int index, String ifValid, String ifInvalid) {
-        this.completerHandlers.put(index, CompleterHandler.of(index).ifValidValue(ifValid).ifInvalidValue(ifInvalid));
-    }
-    
-    /**
-     * Adds a value to index of tab completer.
-     * Note that completer values will be automatically sorted
-     * using {@link SimpleCommand#completerSort(List, String[])} AFTER
-     * {@link SimpleCommand#tabComplete(CommandSender, String[])} is called.
-     *
-     * @param index - Index. <b>Starts at 1 for first argument (args[0])</b>
-     * @param value - Value to add. Will be forced to lower case.
-     */
-    public void addCompleterValue(int index, String value) {
-        addCompleterValues(index, value);
-    }
-    
-    /**
-     * Adds values to index of tab completer.
-     *
-     * @param index  - Index. <b>Starts at 1 for first argument (args[0])</b>
-     * @param values - Values to add. Will be forced to lower case.
-     */
-    public void addCompleterValues(int index, String... values) {
-        index = Math.max(1, index);
-        final List<String> list = getCompleterValues(index);
-        for (String value : values) {
-            list.add(value.toLowerCase());
-        }
-        completerValues.put(index, list);
-    }
-    
-    /**
-     * Adds values to index of tab completer.
-     *
-     * @param index  - Index of the argument.
-     * @param values - Values to add.
-     * @param <T>    - Type of the values.
-     */
-    public <T> void addCompleterValues(int index, @Nonnull Collection<T> values) {
-        addCompleterValues(
-                index, values, str -> {
-                    if (str instanceof Enum) {
-                        return ((Enum<?>) str).name();
-                    }
-                    
-                    return str.toString();
-                }
-        );
-    }
-    
-    /**
-     * Adds values to index of tab completer.
-     *
-     * @param index    - Index of the argument.
-     * @param values   - Values to add.
-     * @param toString - Function to convert values to string.
-     * @param <T>      - Type of the values.
-     */
-    public <T> void addCompleterValues(int index, @Nonnull Collection<T> values, @Nonnull Function<T, String> toString) {
-        final String[] strings = new String[values.size()];
-        
-        int i = 0;
-        for (T value : values) {
-            strings[i++] = toString.apply(value);
-        }
-        
-        addCompleterValues(index, strings);
-    }
-    
-    /**
-     * Adds values to index of tab completer.
-     *
-     * @param index - Index of the argument.
-     * @param array - Array of values.
-     * @param <T>   - Type of the values.
-     */
-    public <T extends Enum<T>> void addCompleterValues(int index, Enum<T>[] array) {
-        for (Enum<T> tEnum : array) {
-            addCompleterValue(index, tEnum.name());
-        }
-    }
-    
-    /**
-     * Returns a list of strings of tab completer if present or empty list is not.
-     *
-     * @param index - Index. (Length of arguments)
-     * @return a list of strings of tab completer if present or empty list is not.
-     */
-    public List<String> getCompleterValues(int index) {
-        return completerValues.computeIfAbsent(index, (s) -> Lists.newArrayList());
-    }
-    
-    /**
-     * Returns true if completer values are present on index.
-     *
-     * @param index - Index or arguments length.
-     * @return true if completer values are present on index.
-     */
-    public boolean hasCompleterValues(int index) {
-        return completerValues.get(index) != null;
-    }
-    
-    /**
-     * Sets if command can only be executed by a player.
-     *
-     * @param flag - boolean flag
-     */
-    public void setAllowOnlyPlayer(boolean flag) {
-        this.allowOnlyPlayer = flag;
-    }
-    
-    /**
-     * If command has cooldown.
-     *
-     * @return true if command has cooldown, else otherwise.
-     */
-    public boolean hasCooldown() {
-        return this.cooldownTick > 0 && this.cooldown != null;
-    }
-    
-    public CommandCooldown getCooldown() {
-        return cooldown;
-    }
-    
-    /**
-     * Returns cooldown in ticks or 0 if no cooldown.
-     *
-     * @return cooldown in ticks or 0 if no cooldown.
-     */
-    public int getCooldownTick() {
-        return cooldownTick;
-    }
-    
-    /**
-     * Sets cooldown of command in ticks.
-     *
-     * @param cooldownTick - cooldown.
-     */
-    public void setCooldownTick(int cooldownTick) {
-        this.cooldownTick = cooldownTick;
-        this.cooldown = new CommandCooldown(this);
-    }
-    
-    /**
-     * Returns true if this command can only be called by players, false otherwise.
-     *
-     * @return true if this command can only be called by players, false otherwise.
-     */
-    public boolean isOnlyForPlayers() {
+    public boolean isAllowOnlyPlayer() {
         return allowOnlyPlayer;
     }
     
     /**
-     * Returns description of this command if present, <code>Made using SimpleCommand by EternaAPI.</code> otherwise.
+     * Sets whether this command is only allowed for {@link Player}.
      *
-     * @return Returns description of this command if present, 'Made using SimpleCommand by EternaAPI.' otherwise.
+     * @param allowOnlyPlayer - {@code true} if the command is restricted to players only, {@code false} otherwise.
      */
-    @Nonnull
-    public String getDescription() {
-        return description;
+    public void setAllowOnlyPlayer(boolean allowOnlyPlayer) {
+        this.allowOnlyPlayer = allowOnlyPlayer;
     }
     
     /**
-     * Sets a description of the command.
+     * Gets whether this command is only allowed for operators.
      *
-     * @param info - new description
-     */
-    public void setDescription(String info) {
-        this.description = info;
-    }
-    
-    /**
-     * Returns name of this command, aka the actual command.
-     *
-     * @return name of this command.
-     */
-    @Nonnull
-    public String getName() {
-        return name;
-    }
-    
-    /**
-     * Returns permission for this command.
-     *
-     * @return permission for this command.
-     */
-    @Nonnull
-    public String getPermission() {
-        return permission;
-    }
-    
-    /**
-     * Sets a command permission
-     *
-     * @param permission - new permission
-     */
-    public void setPermission(String permission) {
-        this.permission = permission;
-    }
-    
-    /**
-     * Returns aliases of this command.
-     *
-     * @return aliases of this command.
-     */
-    @Nonnull
-    public String[] getAliases() {
-        return aliases;
-    }
-    
-    /**
-     * Sets a command aliases.
-     *
-     * @param aliases - new aliases
-     */
-    public void setAliases(String... aliases) {
-        this.aliases = new String[aliases.length];
-        
-        for (int i = 0; i < aliases.length; i++) {
-            this.aliases[i] = aliases[i].toLowerCase();
-        }
-    }
-    
-    /**
-     * Returns true if this command can only be used by sever operators, false otherwise.
-     *
-     * @return true if this command can only be used by sever operators, false otherwise.
+     * @return {@code true} if this command is only allowed for operators, {@code false} otherwise.
      */
     public boolean isAllowOnlyOp() {
         return allowOnlyOp;
     }
     
     /**
-     * Sets if this command is only allowed to be run by sever operators.
+     * Sets whether this command is only allowed for operators.
      *
-     * @param bool - New value.
+     * @param bool - {@code true} if the command is restricted to operators only, {@code false} otherwise.
      */
     public void setAllowOnlyOp(boolean bool) {
         this.allowOnlyOp = bool;
     }
     
     /**
-     * Returns usage of this command, which is '/(CommandName)' by default.
+     * Gets the command cooldown.
      *
-     * @return usage of this command, which is '/(CommandName)' by default.
+     * @return the command cooldown, or {@code 0} if unset.
      */
+    @Override
+    public int getCooldown() {
+        return this.cooldown.getCooldown();
+    }
+    
+    /**
+     * Sets the command cooldown, in ticks.
+     *
+     * @param cooldown - The cooldown to set.
+     */
+    @Override
+    public void setCooldown(int cooldown) {
+        this.cooldown.setCooldown(cooldown);
+    }
+    
+    /**
+     * Gets the {@link CommandCooldown}.
+     *
+     * @return the command cooldown.
+     */
+    @NotNull
+    public CommandCooldown getCommandCooldown() {
+        return this.cooldown;
+    }
+    
+    /**
+     * Gets the description of this command.
+     *
+     * @return the description of this command.
+     */
+    @NotNull
+    public String getDescription() {
+        return this.description;
+    }
+    
+    /**
+     * Sets the description of this command.
+     *
+     * @param description - The description to set.
+     */
+    public void setDescription(@NotNull String description) {
+        this.description = description;
+    }
+    
+    /**
+     * Gets the name of this command.
+     *
+     * @return the name of this command.
+     */
+    @NotNull
+    public String getName() {
+        return name;
+    }
+    
+    /**
+     * Gets the {@link Permission} for this command.
+     * <p>Players within the permission cannot execute the command and are shown an error message.</p>
+     *
+     * @return the permission for this command, or {@code null} if unset.
+     */
+    @Nullable
+    public Permission getPermission() {
+        return permission;
+    }
+    
+    /**
+     * Sets the {@link Permission} for this command.
+     * <p>Players within the permission cannot execute the command and are shown an error message.</p>
+     *
+     * @param permission - The permission to set.
+     */
+    public void setPermission(@Nullable Permission permission) {
+        this.permission = permission;
+    }
+    
+    /**
+     * Gets a copy of command aliases.
+     *
+     * @return a copy of command aliases.
+     */
+    @NotNull
+    public String[] getAliases() {
+        return Arrays.copyOf(aliases, aliases.length);
+    }
+    
+    /**
+     * Sets the command aliases.
+     *
+     * @param aliases - The aliases to set.
+     * @throws IllegalArgumentException if varargs are empty.
+     */
+    public void setAliases(@NotNull String... aliases) {
+        this.aliases = Arrays.stream(Validate.varargs(aliases))
+                             .map(String::toLowerCase)
+                             .toArray(String[]::new);
+    }
+    
+    /**
+     * Gets the command usage.
+     *
+     * @return the command usage.
+     */
+    @NotNull
     public String getUsage() {
         return usage;
     }
     
     /**
-     * Sets command usage.
+     * Sets the command usage.
      *
-     * @param usage - New usage, slash will be removed.
+     * @param usage - The usage to set.
      */
-    public void setUsage(String usage) {
-        if (usage.startsWith("/")) {
-            usage = usage.replace("/", "");
-        }
-        this.usage = "/" + usage;
-    }
-    
-    @Nonnull
-    public final Command createCommand() {
-        if (handle == null) {
-            handle = new CommandHandle(this);
-        }
-        
-        return handle;
+    public void setUsage(@NotNull String usage) {
+        this.usage = usage;
     }
     
     /**
-     * Gets the formatter for this command.
+     * Gets the {@link CommandFormatter}.
      *
-     * @return the formatter.
+     * @return the command formatter.
      */
-    @Nonnull
+    @NotNull
     public CommandFormatter getFormatter() {
         return formatter;
     }
     
     /**
-     * Sets the formatter for this command.
+     * Sets the {@link CommandFormatter}.
      *
-     * @param formatter - New formatter.
+     * @param formatter - The formatter to set.
      */
-    public void setFormatter(@Nonnull CommandFormatter formatter) {
+    public void setFormatter(@NotNull CommandFormatter formatter) {
         this.formatter = formatter;
     }
     
     /**
-     * Returns mapped index-value completer values.
+     * Attempts to execute this command.
      *
-     * @return mapped index-value completer values.
+     * @param sender - The command sender.
+     * @param args   - The command arguments.
      */
-    protected Map<Integer, List<String>> getCompleterValues() {
-        return completerValues;
+    @CaughtExceptions
+    protected abstract void execute(@NotNull CommandSender sender, @NotNull ArgumentList args);
+    
+    /**
+     * Gets a static list of tab-completers.
+     *
+     * @param sender - The command sender.
+     * @param args   - The command arguments.
+     * @return a list of tab-completers.
+     * @see CompleterHandler
+     */
+    @NotNull
+    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+        return List.of();
     }
     
     /**
-     * Executes the command
+     * Creates the command handle.
      *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
+     * @return the command handle.
      */
-    protected abstract void execute(CommandSender sender, String[] args);
-    
-    /**
-     * Tab-Completes the command
-     *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
-     * @return Sorted list with valid arguments
-     */
-    @Nullable
-    protected List<String> tabComplete(CommandSender sender, String[] args) {
-        return Lists.newArrayList();
-    }
-    
-    /**
-     * Pre-tab complete, called before {@link SimpleCommand#tabComplete(CommandSender, String[])}.
-     *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
-     * @return New list of completes.
-     */
-    @Nonnull
-    protected List<String> preTabComplete(CommandSender sender, String[] args) {
-        return Lists.newArrayList();
-    }
-    
-    /**
-     * Post-tab complete, called after {@link SimpleCommand#tabComplete(CommandSender, String[])}.
-     *
-     * @param sender - Who send the command, you can safely case sender to a player if setAllowOnlyPlayer(boolean flag) is used
-     * @param args   - Arguments of the command
-     * @return New list of completes.
-     */
-    @Nonnull
-    protected List<String> postTabComplete(CommandSender sender, String[] args) {
-        return Lists.newArrayList();
-    }
-    
-    /**
-     * Sort input lists so there are only strings that can finish the string you are typing.
-     *
-     * @param list           - List to sort
-     * @param args           - Command args
-     * @param forceLowerCase - Forces input and args to be in lower case
-     */
-    protected List<String> completerSort(List<String> list, String[] args, boolean forceLowerCase) {
-        return Chat.tabCompleterSort(list, args, forceLowerCase);
-    }
-    
-    protected List<String> completerSort(List<String> list, String[] args) {
-        return completerSort(list, args, true);
-    }
-    
-    protected <E> List<String> completerSort(E[] array, String[] args) {
-        return completerSort(arrayToList(array), args);
-    }
-    
-    protected <E> List<String> completerSort(Collection<E> list, String[] args) {
-        return Chat.tabCompleterSort(eToString(list), args);
-    }
-    
-    protected List<String> completerSort2(List<String> list, String[] args, boolean forceLowerCase) {
-        return Chat.tabCompleterSort0(list, args, forceLowerCase, false);
-    }
-    
-    protected List<String> completerSort2(List<String> list, String[] args) {
-        return completerSort2(list, args, true);
-    }
-    
-    protected <E> List<String> completerSort2(E[] array, String[] args) {
-        return completerSort2(arrayToList(array), args);
-    }
-    
-    /**
-     * Returns true if argument of provided index is present and is equals to string.
-     *
-     * @param args   - Array of strings to check.
-     * @param index  - Index of argument to match.
-     * @param string - String to match.
-     * @return true if the argument of provided index is present and is equals to string.
-     */
-    protected boolean matchArgs(@Nonnull String[] args, int index, @Nonnull String string) {
-        return index < args.length && args[index].equalsIgnoreCase(string);
-    }
-    
-    protected boolean matchArgs(@Nonnull String[] args, @Nonnull String... strings) {
-        for (int i = 0; i < strings.length; i++) {
-            if (i >= args.length) {
-                return false;
-            }
-            
-            if (!args[i].equalsIgnoreCase(strings[i])) {
-                return false;
-            }
+    @NotNull
+    @ApiStatus.Internal
+    final Command createCommand() {
+        if (this.handle == null) {
+            this.handle = new CommandHandle(this);
+        }
+        else {
+            throw new IllegalStateException("Command already registered! (%s)".formatted(name));
         }
         
-        return true;
-    }
-    
-    @Nonnull
-    protected TypeConverter getArgument(String[] args, int index) {
-        return TypeConverter.from(index >= args.length ? "" : args[index]);
-    }
-    
-    /**
-     * Converts a set of strings to list of strings.
-     *
-     * @param set - Set to convert.
-     * @return List of strings with set values.
-     */
-    protected List<String> setToList(Set<String> set) {
-        return new ArrayList<>(set);
-    }
-    
-    /**
-     * Converts an array to a list of strings.
-     *
-     * @param array - Array to convert.
-     * @return List of strings with array values.
-     */
-    protected <T> List<String> arrayToList(T[] array) {
-        return Chat.arrayToList(array);
-    }
-    
-    /**
-     * Sends <code>Invalid Usage!</code> message with the correct usage of this command
-     * to the sender.
-     *
-     * @param sender - Receiver actually.
-     */
-    protected void sendInvalidUsageMessage(CommandSender sender) {
-        Chat.sendMessage(sender, "&cInvalid Usage! &e%s.".formatted(this.usage));
-    }
-    
-    private <E> List<String> eToString(Collection<E> list) {
-        List<String> str = new ArrayList<>();
-        for (final E e : list) {
-            str.add(e.toString());
-        }
-        return str;
-    }
-    
-    protected void completerHandler(Player player, int index, String[] array, List<String> list) {
-        final CompleterHandler handler = completerHandlers.get(index);
-        if (handler == null) {
-            return;
-        }
-        
-        handler.handle(player, array, list);
-    }
-    
-    /**
-     * Returns true if this command has permissions; false otherwise.
-     *
-     * @return true if this command has permissions; false otherwise.
-     */
-    public boolean hasPermission() {
-        return permission != null && !permission.isEmpty();
+        return this.handle;
     }
     
 }

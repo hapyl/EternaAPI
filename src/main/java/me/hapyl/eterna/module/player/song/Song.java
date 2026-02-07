@@ -1,88 +1,144 @@
 package me.hapyl.eterna.module.player.song;
 
 import com.google.common.collect.Lists;
-import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.util.Named;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.google.common.collect.Maps;
+import me.hapyl.eterna.module.component.Components;
+import me.hapyl.eterna.module.component.Described;
+import me.hapyl.eterna.module.component.Named;
+import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * Represents a parsed cached and playable .nbs song.
+ * Represents a parsed {@code .nbs} (Note Block Studio) song instance, that may be played to players.
  */
-public class Song implements Named {
+public class Song implements Named, Described {
     
     private final String fileName;
-    private final String name;
-    private final String author;
-    private final String originalAuthor;
     
-    private final long length;
-    private final int tempo;
+    private final Component name;
+    private final Component description;
+    
+    private final Component author;
+    private final Component originalAuthor;
     
     private final Map<Integer, List<SongNote>> notes;
     
+    private final long duration;
+    private final int tempo;
+    
     private boolean okOctave;
     
-    public Song(@Nonnull String fileName, @Nonnull String name, @Nonnull String author, @Nonnull String originalAuthor, long length, int tempo) {
+    Song(
+            @NotNull String fileName,
+            @NotNull String name,
+            @NotNull String description,
+            @NotNull String author,
+            @NotNull String originalAuthor,
+            final long duration,
+            final int tempo
+    ) {
         this.fileName = fileName;
-        this.name = name;
-        this.author = author;
-        this.originalAuthor = originalAuthor;
-        this.length = length;
+        this.name = Component.text(name);
+        this.description = Component.text(description);
+        this.author = Components.textOrDefault(author, "Unknown");
+        this.originalAuthor = Components.textOrDefault(originalAuthor, "Unknown");
+        this.notes = Maps.newHashMap();
+        this.duration = duration;
         this.tempo = tempo;
         this.okOctave = true;
-        this.notes = new HashMap<>();
     }
     
     /**
-     * Gets the file name of this song.
+     * Gets the file name of this {@link Song}.
      *
      * @return the file name of this song.
      */
-    @Nonnull
-    public String fileName() {
+    @NotNull
+    public String getFileName() {
         return fileName;
     }
     
     /**
-     * Returns {@code true} if all notes in the song within Minecraft limits.
+     * Gets the name of this {@link Song}.
      *
-     * @return {@code true} if all notes in the song within Minecraft limits.
+     * @return the name of this song.
+     */
+    @Override
+    @NotNull
+    public Component getName() {
+        return name;
+    }
+    
+    /**
+     * Gets the description of this {@link Song}.
+     *
+     * @return the description of this song.
+     */
+    @NotNull
+    @Override
+    public Component getDescription() {
+        return description;
+    }
+    
+    /**
+     * Gets the author of this {@link Song}.
+     *
+     * <p>
+     * Author refers to whoever made the {@code .nbs} file, for song author, use {@link #getOriginalAuthor()}.
+     * </p>
+     *
+     * @return the author of this {@link Song}.
+     */
+    @NotNull
+    public Component getAuthor() {
+        return author;
+    }
+    
+    /**
+     * Gets the original author of this {@link Song}.
+     *
+     * <p>
+     * Original author refers to whoever made the actual song.
+     * </p>
+     *
+     * @return the original author of this song.
+     */
+    @NotNull
+    public Component getOriginalAuthor() {
+        return originalAuthor;
+    }
+    
+    /**
+     * Gets whether all notes in this {@link Song} are within minecraft limits.
+     *
+     * @return {@code true} if all notes in this song are within minecraft limits; {@code false} otherwise.
      */
     public boolean isOkOctave() {
         return okOctave;
     }
     
     /**
-     * Returns {@code true} if the tempo of the song is divisible by {@code 20}, meaning the song is played in perfect tempo.
+     * Gets the duration of this {@link Song}, in ticks.
      *
-     * @return {@code true} if the tempo of the song is divisible by {@code 20}, meaning the song is played in perfect tempo.
+     * @return the duration of the song in ticks.
      */
-    public boolean isOkTempo() {
-        return 20 % tempo == 0;
+    public long getDuration() {
+        return duration;
     }
     
     /**
-     * Returns {@code true} if the song is vanilla compatible; false otherwise.
+     * Gets the duration of this {@link Song}, in seconds.
      *
-     * @return {@code true} if the song is vanilla compatible; false otherwise.
+     * @return the duration of this song, in seconds.
      */
-    public boolean isPerfect() {
-        return isOkOctave() && isOkTempo();
-    }
-    
-    /**
-     * Gets the length of the song in ticks.
-     *
-     * @return the length of the song in ticks.
-     */
-    public long getLength() {
-        return length;
+    public float getDurationIsSeconds() {
+        return (float) duration / tempo;
     }
     
     /**
@@ -90,114 +146,70 @@ public class Song implements Named {
      *
      * @return the tempo of the song, in ticks per second.
      */
-    public int tempo() {
+    public int getTempo() {
         return tempo;
     }
     
     /**
-     * Gets the author of the <b>.nbs</b> file.
+     * Gets an <b>immutable</b> {@link List} copy of {@link SongNote} for the given index.
      *
-     * @return the author of the <b>.nbs</b> file.
-     */
-    @Nonnull
-    public String getAuthor() {
-        return author;
-    }
-    
-    /**
-     * Gets the original author of the song.
-     *
-     * @return the original author of the song.
-     */
-    @Nonnull
-    public String getOriginalAuthor() {
-        return originalAuthor;
-    }
-    
-    /**
-     * Gets either the original author of song, or the <b>.nbs</b> author with a {@code *} suffixes or Unknown if neither is known.
-     *
-     * @return either the original author of song, or the <b>.nbs</b> author with a {@code *} suffixes or Unknown if neither is known.
-     */
-    @Nonnull
-    public String getEitherOriginalAuthorOrAuthorWithAsteriskOrUnknownIfAuthorNotSpecified() {
-        return !originalAuthor.isEmpty() ? originalAuthor : !author.isEmpty() ? author + "*" : "Unknown";
-    }
-    
-    /**
-     * Gets the notes at the given index.
-     *
-     * @param index - The index.
-     * @return the notes at the given index.
+     * @param index - The index to retrieve the notes at.
+     * @return an <b>immutable</b> list copy of song notes for the given index.
      */
     @Nullable
-    public List<SongNote> getNotes(int index) {
-        return this.notes.get(index);
+    public List<SongNote> notesAt(int index) {
+        return List.copyOf(notes.get(index));
     }
     
     /**
-     * Gets all the notes of this song.
+     * Creates a new {@link SongInstance}.
      *
-     * @return all the notes of this song.
-     */
-    @Nonnull
-    public Map<Integer, List<SongNote>> getNotes() {
-        return notes;
-    }
-    
-    /**
-     * Gets the name of this song.
-     *
-     * @return the name of this song.
-     */
-    @Nonnull
-    @Override
-    public String getName() {
-        return name;
-    }
-    
-    /**
-     * Gets the formatted name of this song, following the <i>Artist - Name</i> format.
-     *
-     * @return the formatted name of this song, following the <i>Artist - Name</i> format.
-     */
-    @Nonnull
-    public String getNameFormatted() {
-        return "&a%s - &6%s".formatted(getEitherOriginalAuthorOrAuthorWithAsteriskOrUnknownIfAuthorNotSpecified(), getName());
-    }
-    
-    /**
-     * Creates a new {@link SongInstance} of this song for the given plugin.
-     *
-     * @param plugin - The plugin.
      * @return a new song instance.
      */
-    @Nonnull
-    public SongInstance newInstance(@Nonnull JavaPlugin plugin) {
-        return new SongInstance(this, plugin);
+    @NotNull
+    public SongInstance newInstance() {
+        return new SongInstance(this);
     }
     
     /**
-     * Creates a new {@link SongInstance} of this song using {@link EternaPlugin}.
+     * Gets the hash code of this {@link Song}, which is its {@code fileName}.
      *
-     * @deprecated Prefer providing a plugin.
+     * @return the hash code of this song.
      */
-    @Nonnull
-    @Deprecated
-    public SongInstance newInstance() {
-        return newInstance(EternaPlugin.getPlugin());
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.fileName);
     }
     
-    protected void setNote(int index, @Nonnull SongNote note) {
+    /**
+     * Gets whether the given object is a {@link Song} and their {@code fileName} matches.
+     *
+     * @param object - The object to compare to.
+     * @return {@code true} if the given {@code object} is a song and their {@code fileName} matches; {@code false} otherwise.
+     */
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+        
+        final Song that = (Song) object;
+        return Objects.equals(this.fileName, that.fileName);
+    }
+    
+    @Nullable
+    @ApiStatus.Internal
+    List<SongNote> notesAt0(int tick) {
+        return notes.get(tick);
+    }
+    
+    @ApiStatus.Internal
+    void setNote(int index, @NotNull SongNote note) {
         this.notes.computeIfAbsent(index, i -> Lists.newArrayList()).add(note);
     }
     
-    protected void markInvalidOctave() {
+    @ApiStatus.Internal
+    void markInvalidOctave() {
         this.okOctave = false;
     }
-    
-    protected int taskPeriod() {
-        return 20 / tempo;
-    }
-    
 }

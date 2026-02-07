@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.component.builder;
 
 import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -25,8 +26,8 @@ public interface ComponentResolver {
      * @param supplier - The component supplier to resolve.
      * @return The resolved {@link Component}.
      */
-    @Nonnull
-    Component resolve(@Nonnull ComponentSupplier supplier);
+    @NotNull
+    Component resolve(@NotNull ComponentSupplier supplier);
     
     /**
      * Returns a {@link ComponentResolver} that renders components literally.
@@ -34,7 +35,7 @@ public interface ComponentResolver {
      *
      * @return a literal resolver.
      */
-    @Nonnull
+    @NotNull
     static ComponentResolver literal() {
         return supplier -> supplier.supply(Map.of());
     }
@@ -44,7 +45,7 @@ public interface ComponentResolver {
      *
      * @return a resolver builder.
      */
-    @Nonnull
+    @NotNull
     static Builder builder() {
         return new Builder();
     }
@@ -68,8 +69,8 @@ public interface ComponentResolver {
          * @param placeholder - The placeholder key.
          * @param component   - The {@link Component} to substitute.
          */
-        @Nonnull
-        public Builder resolve(@Nonnull String placeholder, @Nonnull Component component) {
+        @NotNull
+        public Builder resolve(@NotNull String placeholder, @NotNull Component component) {
             this.resolved.put(placeholder, component);
             return this;
         }
@@ -80,9 +81,9 @@ public interface ComponentResolver {
          * @param supplier - The component supplier to resolve.
          * @throws IllegalStateException if a placeholder is encountered without a resolved component
          */
-        @Nonnull
+        @NotNull
         @Override
-        public Component resolve(@Nonnull ComponentSupplier supplier) throws IllegalStateException {
+        public Component resolve(@NotNull ComponentSupplier supplier) throws IllegalStateException {
             if (supplier instanceof ComponentSupplierPlaceholder placeholderSupplier) {
                 final String placeholder = placeholderSupplier.getKey();
                 final Component component = resolved.get(placeholder);

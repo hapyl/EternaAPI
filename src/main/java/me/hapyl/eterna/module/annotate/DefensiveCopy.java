@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the annotated parameter is defensively copied, meaning
- * no modification to the provided parameter are made.
- * <p>If this annotation is applied to method, its return type is defensively copied.</p>
+ * Indicates that the annotated parameter is defensively copied, meaning no modifications to the actual object are made.
+ *
+ * <p>If this annotation is applied to method, its return value is defensively copied.</p>
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target({ ElementType.PARAMETER, ElementType.METHOD })

@@ -1,14 +1,16 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
- * A somewhat helpful utility class to deal with {@code null} (and non-{@code null}!) objects.
+ * Represents a helper utility class to deal with {@code null} and non-{@code null} objects.
  */
 @UtilityClass
 public class Nulls {
@@ -23,21 +25,21 @@ public class Nulls {
      * @param object - The object to check.
      * @param action - The action to perform.
      */
-    public static <E> void acceptNonNull(@Nullable E object, @Nonnull Consumer<E> action) {
+    public static <E> void acceptNonNull(@Nullable E object, @NotNull Consumer<E> action) {
         if (object != null) {
             action.accept(object);
         }
     }
     
     /**
-     * Accepts the given {@link Runnable} if, and only if, the given {@code E} is {@code null}.
+     * Runs the given {@link Runnable} if, and only if, the given {@code E} is {@code null}.
      *
-     * @param object - The object to check.
-     * @param action - The action to perform.
+     * @param object   - The object to check.
+     * @param runnable - The runnable to run.
      */
-    public static <E> void acceptNull(@Nullable E object, @Nonnull Runnable action) {
+    public static <E> void acceptNull(@Nullable E object, @NotNull Runnable runnable) {
         if (object == null) {
-            action.run();
+            runnable.run();
         }
     }
     
@@ -45,7 +47,7 @@ public class Nulls {
      * Gets whether the given array or <b>any</b> of its elements are {@code null}.
      *
      * @param array - The array to check.
-     * @return {@code true} if the given array or any of its elements are {@code null}, {@code false} otherwise.
+     * @return {@code true} if the given array or any of its elements are {@code null}; {@code false} otherwise.
      */
     public static boolean anyNull(@Nullable Object... array) {
         if (array == null) {
@@ -65,7 +67,7 @@ public class Nulls {
      * Gets whether the given array and <b>all</b> of its elements are {@code null}.
      *
      * @param array - The array to check.
-     * @return {@code true} if the array is null or all of its elements are {@code null}, {@code false} otherwise.
+     * @return {@code true} if the array is null or all of its elements are {@code null}; {@code false} otherwise.
      */
     public static boolean allNull(@Nullable Object... array) {
         if (array == null) {
@@ -85,7 +87,7 @@ public class Nulls {
      * Gets whether the given array and all of its elements are non-{@code null}.
      *
      * @param array - The array to check.
-     * @return {@code true} if the array is non-null and all of its elements are non-{@code null}, {@code false} otherwise.
+     * @return {@code true} if the array is non-null and all of its elements are non-{@code null}; {@code false} otherwise.
      */
     public static boolean allNonNull(@Nullable Object... array) {
         if (array == null) {
@@ -105,16 +107,16 @@ public class Nulls {
      * Gets the given value if it is non-{@code null}; otherwise returns the default value.
      *
      * @param object       - The value to check.
-     * @param defaultValue - The value to return if {@code t} is {@code null}.
+     * @param defaultValue - The value to return if {@link T} is {@code null}.
      * @return The non-{@code null} value.
      */
-    @Nonnull
-    public static <T> T nonNull(@Nullable T object, @Nonnull T defaultValue) {
+    @NotNull
+    public static <T> T nonNull(@Nullable T object, @NotNull T defaultValue) {
         return object != null ? object : defaultValue;
     }
     
     /**
-     * Applies the given {@link Function} to the given {@code T} if it is non-{@code null}, returning the result if also non-{@code null};
+     * Applies the given {@link Function} to the given {@link T} if it is non-{@code null}, returning the result if also non-{@code null};
      * otherwise returns the default value.
      *
      * @param object             - The object to unwrap.
@@ -122,7 +124,7 @@ public class Nulls {
      * @param defaultValue       - The value to return if either {@code object} or the result of the function is {@code null}.
      * @return The unwrapped value or {@code defaultValue} if unavailable.
      */
-    public static <T, R> R unwrap(@Nullable T object, @Nonnull Function<T, R> unwrappingFunction, @Nullable R defaultValue) {
+    public static <T, R> R unwrap(@Nullable T object, @NotNull Function<T, R> unwrappingFunction, @Nullable R defaultValue) {
         if (object == null) {
             return null;
         }
@@ -132,15 +134,28 @@ public class Nulls {
     }
     
     /**
-     * Applies the given {@link Function} to the given {@code T} if it is non-{@code null}, returning the result.
+     * Applies the given {@link Function} to the given {@link T} if it is non-{@code null}, returning the result.
      *
      * @param object             - The object to unwrap.
      * @param unwrappingFunction - The unwrapping function.
      * @return the unwrapped object, or {@code null}.
      */
     @Nullable
-    public static <T, R> R unwrap(@Nullable T object, @Nonnull Function<T, R> unwrappingFunction) {
+    public static <T, R> R unwrap(@Nullable T object, @NotNull Function<T, R> unwrappingFunction) {
         return unwrap(object, unwrappingFunction, null);
     }
     
+    /**
+     * Gets either the provided {@code element} if it's non-{@code null}; the element from the {@code orSupplier} supplier otherwise.
+     * <p>The element from the supplier <b>must</b> not be {@code null}.</p>
+     *
+     * @param element    - The element.
+     * @param orSupplier - The default element supplier.
+     * @param <T>        - The element type.
+     * @return either the provided {@code element} if it's non-{@code null}; the element from the {@code orSupplier} supplier otherwise.
+     */
+    @NotNull
+    public static <T> T or(@Nullable T element, @NotNull Supplier<T> orSupplier) {
+        return element != null ? element : Objects.requireNonNull(orSupplier.get(), "Supplier element must not be null!");
+    }
 }

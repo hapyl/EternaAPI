@@ -1,48 +1,73 @@
 package me.hapyl.eterna.module.registry;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents an object that can be identified with a {@link Key}.
+ * Represents an {@link Object} that may be identified with a {@link Key}.
  */
-public interface Keyed {
-
+public interface Keyed extends KeyLike {
+    
     /**
      * Gets the {@link Key} of this {@link Keyed} object.
      *
-     * @return the key of this object.
-     * @implNote It's generally a good practice to finalize the method, to prevent overriding it.
-     * <pre>{@code
-     * @Nonnull
-     * @Override
-     * public final Key getKey() {
-     *     return this.key;
-     * }
-     * }</pre>
+     * <p>
+     * It is a good practice to {@code finalize} the method, preventing overringing it.
+     * </p>
      */
-    @Nonnull
+    @NotNull
     Key getKey();
-
+    
     /**
-     * Gets the {@link String} of the {@link Key} of this object.
-     * <br>
-     * This is identical to:
-     * <pre>{@code
-     * keyed.getKey().getKey();
-     * }</pre>
-     * as a string is fine, but prefer calling this method.
+     * Gets the {@link Key} of this {@link Keyed}, as per {@link KeyLike} definition.
+     *
+     * @return the key of this keyed.
+     */
+    @NotNull
+    @Override
+    default Key key() {
+        return this.getKey();
+    }
+    
+    /**
+     * Gets the {@link Key} of this {@link Keyed} as a {@link String}.
+     *
+     * <p>
+     * This is a convenience method to avoid chain calling {@code getKey()}:
+     * <pre>{@code keyed.getKey().getKey()}</pre>
+     * </p>
      *
      * @return the string of the key if this object.
      */
-    @Nonnull
+    @NotNull
     default String getKeyAsString() {
         return getKey().getKey();
     }
-
+    
     /**
-     * {@link Keyed} should generally implement {@link Object#equals(Object)} and compare the {@link Key}s.
-     * (optional operation)
+     * Gets the hash code of this {@link Keyed}.
+     *
+     * <p>
+     * Implementation should generally override and {@code finalize} this method to compare the hash code of the underlying {@link Key}.
+     * </p>
+     *
+     * <pre>{@code
+     * @Override
+     * public final int hashCode() {
+     *     return Objects.hashCode(this.key);
+     * }
+     * }</pre>
+     *
+     * @return the hash code of the key.
+     */
+    int hashCode();
+    
+    /**
+     * Gets whether the given {@link Object} matches this {@link Keyed}.
+     *
+     * <p>
+     * Implementation should generally override and {@code finalize} this method to compare the {@link Key} of both {@link Keyed} objects.
+     * </p>
      *
      * <pre>{@code
      * @Override
@@ -55,29 +80,13 @@ public interface Keyed {
      *         return false;
      *     }
      *
-     *     final Keyed other = (Keyed) object;
-     *     return Objects.equals(key, other.key);
+     *     final Keyed that = (Keyed) object;
+     *     return Objects.equals(this.key, that.key);
      * }
      * }</pre>
      *
-     * @param object - Object to compare to.
-     * @return true if the objects are identical, false otherwise.
+     * @param object - The object to compare to.
+     * @return {@code true} if the objects have identical keys; {@code false} otherwise.
      */
     boolean equals(@Nullable Object object);
-
-    /**
-     * {@link Keyed} should generally implement {@link Object#hashCode()} and return the hash code of the {@link Key}.
-     * (optional operation)
-     *
-     * <pre>{@code
-     * @Override
-     * public final int hashCode() {
-     *     return Objects.hashCode(key);
-     * }
-     * }</pre>
-     *
-     * @return the hash code of the key.
-     */
-    int hashCode();
-
 }

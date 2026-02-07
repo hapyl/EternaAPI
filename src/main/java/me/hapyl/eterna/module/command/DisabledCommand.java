@@ -1,8 +1,7 @@
 package me.hapyl.eterna.module.command;
 
 /**
- * Represents a disabled command.
- * SimpleCommand with this interface will be registered but not executed.
+ * Indicates that the {@link SimpleCommand} is disabled and will not execute.
  */
 public interface DisabledCommand {
 }

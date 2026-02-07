@@ -1,136 +1,136 @@
 package me.hapyl.eterna.module.reflect.packet.wrapped;
 
-import me.hapyl.eterna.module.entity.packet.NMSEntityType;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Represents a wrapped {@link ClientboundAddEntityPacket}.
+ *
+ * <p>
+ * This packet is sent whenever an {@link Entity} is spawned.
+ * </p>
+ */
 public class WrappedClientboundAddEntityPacket extends WrappedPacket<ClientboundAddEntityPacket> {
-
+    
     private final EntityType entityType;
-
-    public WrappedClientboundAddEntityPacket(ClientboundAddEntityPacket packet) {
+    
+    @SuppressWarnings("UnstableApiUsage")
+    WrappedClientboundAddEntityPacket(@NotNull ClientboundAddEntityPacket packet) {
         super(packet);
-
-        this.entityType = NMSEntityType.fromNmsOr(packet.getType(), EntityType.EGG);
+        
+        this.entityType = Objects.requireNonNull(
+                EntityType.fromName(net.minecraft.world.entity.EntityType.getKey(packet.getType()).getPath()),
+                "Could not determine entity type!"
+        );
     }
-
+    
     /**
-     * Gets the Id of the spawned entity.
+     * Gets the id of the spawned {@link Entity}.
      *
-     * @return the Id of the spawned entity.
+     * @return the id of the spawned entity.
      */
     public int getEntityId() {
         return packet.getId();
     }
-
+    
     /**
-     * Gets the {@link UUID} of the spawned entity.
+     * Gets the {@link UUID} of the spawned {@link Entity}.
      *
-     * @return the UUID of the spawned entity.
+     * @return the uuid of the spawned entity.
      */
-    @Nonnull
+    @NotNull
     public UUID getEntityUuid() {
         return packet.getUUID();
     }
-
+    
     /**
-     * Gets {@link EntityType} of the spawned entity.
-     * <br>
-     * This method may sometimes wrongly return {@link EntityType#EGG} as a type even if it's not. This is a fail-safe to make this method {@link Nonnull}.
+     * Gets the {@link EntityType} of the spawned {@link Entity}.
      *
      * @return the entity type of the spawned entity.
      */
-    @Nonnull
+    @NotNull
     public EntityType getEntityType() {
         return entityType;
     }
-
+    
     /**
-     * Gets the X coordinate of the spawned entity.
+     * Gets the {@code x} coordinate of the spawned {@link Entity}.
      *
-     * @return the X coordinate of the spawned entity.
+     * @return the {@code x} coordinate of the spawned entity.
      */
     public double getX() {
         return packet.getX();
     }
-
+    
     /**
-     * Gets the Y coordinate of the spawned entity.
+     * Gets the {@code y} coordinate of the spawned {@link Entity}.
      *
-     * @return the Y coordinate of the spawned entity.
+     * @return the {@code y} coordinate of the spawned entity.
      */
     public double getY() {
         return packet.getY();
     }
-
+    
     /**
-     * Gets the Z coordinate of the spawned entity.
+     * Gets the {@code z} coordinate of the spawned {@link Entity}.
      *
-     * @return the Z coordinate of the spawned entity.
+     * @return the {@code z} coordinate of the spawned entity.
      */
     public double getZ() {
         return packet.getZ();
     }
-
+    
     /**
-     * Gets a {@link Location} of the spawned entity in {@link Player}'s current {@link World}.
+     * Gets the bukkit {@link Entity} that is being spawned.
      *
-     * @param player - Player.
-     * @return a location of the spawned entity.
-     * @apiNote The packet doesn't have the world entity is spawned in.
+     * <p>
+     * Note that this may return an empty optional in cases where a non-bukkit (packet entity) is being spawned!
+     * </p>
+     *
+     * @return the bukkit entity that is being spawned wrapped in an optional.
      */
-    @Nonnull
-    public Location getLocation(@Nonnull Player player) {
-        return new Location(player.getWorld(), getX(), getY(), getZ());
+    @NotNull
+    public Optional<Entity> getEntity() {
+        return Optional.ofNullable(Bukkit.getEntity(packet.getUUID()));
     }
-
+    
     /**
-     * Gets ths pitch of the spawned entity.
+     * Gets the {@code yaw} of the spawned {@link Entity}.
      *
-     * @return the pitch of the spawned entity.
-     */
-    public float getPitch() {
-        return packet.getXRot();
-    }
-
-    /**
-     * Gets the yaw of the spawned entity.
-     *
-     * @return the yaw of the spawned entity.
+     * @return the {@code yaw} of the spawned entity.
      */
     public float getYaw() {
+        return packet.getXRot();
+    }
+    
+    /**
+     * Gets the {@code pitch} of the spawned {@link Entity}.
+     *
+     * @return the {@code pitch} of the spawned entity.
+     */
+    public float getPitch() {
         return packet.getYRot();
     }
-
+    
     /**
-     * Gets the head rotation of the spawned entity.
-     * <br>
-     * The head rotation is calculated as following:
-     * <pre><code>
-     *     yHeadRot * 360 / 256
-     * </code></pre>
+     * Gets the head rotation of the spawned {@link Entity}.
+     *
+     * <p>
+     * The head rotation is calculated as follows:
+     * <pre>{@code yHeadRot * 360 / 256}</pre>
+     * </p>
      *
      * @return the head rotation of the spawned entity.
      */
     public float getHeadRotation() {
         return packet.getYHeadRot();
     }
-
-    /**
-     * Gets some magic data of this packet.
-     *
-     * @return some magic data of this packet.
-     * @deprecated magic value.
-     */
-    @Deprecated
-    public int getData() {
-        return packet.getData();
-    }
-
+    
 }

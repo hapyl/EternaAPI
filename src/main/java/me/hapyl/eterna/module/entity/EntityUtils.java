@@ -1,113 +1,81 @@
 package me.hapyl.eterna.module.entity;
 
-import com.google.common.collect.Sets;
+import me.hapyl.eterna.module.annotate.PacketOperation;
+import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.util.TeamHelper;
-import org.bukkit.Bukkit;
+import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 /**
- * This util class allows to manipulate entities (Hide using packets, remove collision)
- *
- * @author hapyl
+ * A small utility class allowing entity manipulations via packets.
  */
-public class EntityUtils {
+@UtilityClass
+public final class EntityUtils {
     
-    /**
-     * Hides entity using packets.
-     *
-     * @param entity  - Entity to hide.
-     * @param viewers - Viewers.
-     */
-    public static void hideEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
-        final net.minecraft.world.entity.Entity handle = Reflect.getHandle(entity);
-        
-        viewers.forEach(player -> Reflect.destroyEntity(handle, player));
+    private EntityUtils() {
+        UtilityClass.Validator.throwIt();
     }
     
     /**
-     * Hides entity using packets.
+     * Hides the given {@link Entity} for the given {@link Player}.
+     * <p>This doesn't actually kill the entity, only removes it for the client.</p>
      *
-     * @param entity - Entity to hide.
-     * @param player - Viewers.
+     * @param player - The player for whom to hide the entity.
+     * @param entity - The entity to hide.
      */
-    public static void hideEntity(@Nonnull Entity entity, @Nonnull Player player) {
+    @PacketOperation
+    public static void hide(@NotNull Player player, @NotNull Entity entity) {
         Reflect.destroyEntity(Reflect.getHandle(entity), player);
     }
     
     /**
-     * Shows hidden entity using packets.
+     * Shows the given {@link Entity} for the given {@link Player}.
      *
-     * @param entity  - Entity to show.
-     * @param viewers - Viewers.
+     * @param player - The player for whom to show the entity.
+     * @param entity - The entity to show.
      */
-    public static void showEntity(@Nonnull Entity entity, @Nonnull Collection<Player> viewers) {
-        final net.minecraft.world.entity.Entity handle = Reflect.getHandle(entity);
-        
-        viewers.forEach(player -> Reflect.createEntity(handle, player));
-    }
-    
-    /**
-     * Shows hidden entity using packets.
-     *
-     * @param entity - Entity to show.
-     * @param player - Viewers.
-     */
-    public static void showEntity(@Nonnull Entity entity, @Nonnull Player player) {
+    @PacketOperation
+    public static void show(@NotNull Player player, @NotNull Entity entity) {
         Reflect.createEntity(Reflect.getHandle(entity), player);
     }
     
     /**
-     * Changes collision of entity. This method uses scoreboards and will not work if scoreboard is changed.
+     * Sets the {@link Entity} collision for the given {@link Player}.
+     * <p>Minecraft collision are handles by the client via {@link Team}, and this method uses {@link PacketTeam} to handle collisions, meaning relogging will break the collision.</p>
      *
-     * @param entity  - Entity to change collision for.
-     * @param flag    - if true, collision will be removed, added otherwise.
-     * @param viewers - Who will be affected by collision change.
+     * @param player    - The player for whom the collision changes.
+     * @param entity    - The entity for whom to change the collision.
+     * @param collision - The new collision.
      */
-    public static void setCollision(@Nonnull Entity entity, @Nonnull Collision flag, @Nonnull Collection<Player> viewers) {
+    @PacketOperation
+    public static void collision(@NotNull Player player, @NotNull Entity entity, @NotNull Collision collision) {
         final UUID uuid = entity.getUniqueId();
+        final String scoreboardName = entity.getScoreboardEntryName();
+        final Team existingTeam = player.getScoreboard().getEntryTeam(scoreboardName);
         
-        for (final Player viewer : viewers) {
-            TeamHelper.fetch(
-                    viewer.getScoreboard(), "fake_entity_" + uuid, team -> {
-                        team.setOption(Team.Option.COLLISION_RULE, flag == Collision.ALLOW ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
-                        team.addEntry(uuid.toString());
-                    }
-            );
-        }
+        final PacketTeam packetTeam = new PacketTeam("collision_" + uuid, existingTeam);
+        packetTeam.create(player);
+        packetTeam.entry(player, scoreboardName);
+        packetTeam.option(player, Team.Option.COLLISION_RULE, collision == Collision.ALLOW ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
     }
     
     /**
-     * Changes collision of entity. This method uses scoreboards and will not work if scoreboard is changed.
-     *
-     * @param entity - Entity to change collision for.
-     * @param flag   - if true, collision will be removed, added otherwise.
-     */
-    public static void setCollision(@Nonnull Entity entity, @Nonnull Collision flag) {
-        setCollision(entity, flag, Sets.newHashSet(Bukkit.getOnlinePlayers()));
-    }
-    
-    public static void setCollision(@Nonnull Entity entity, @Nonnull Collision flag, @Nonnull Player player) {
-        setCollision(entity, flag, List.of(player));
-    }
-    
-    /**
-     * Collision status.
+     * Entity collision status.
      */
     public enum Collision {
         /**
-         * Allows collision. (default)
+         * Allows entity collisions.
          */
         ALLOW,
+        
         /**
-         * Deny collision.
+         * Deny entity collisions.
          */
         DENY
     }

@@ -1,12 +1,12 @@
 package me.hapyl.eterna.module.block.display.animation;
 
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.EternaPlugin;
+import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -16,7 +16,7 @@ import java.util.Map;
 public class DisplayEntityAnimation extends BukkitRunnable {
 
     protected final DisplayEntity entity;
-    protected final JavaPlugin plugin;
+    protected final Plugin plugin;
     protected final Map<Integer, AnimationFrame> frames;
 
     protected double theta;
@@ -30,7 +30,7 @@ public class DisplayEntityAnimation extends BukkitRunnable {
      * @param entity - The entity to animate.
      * @param plugin - The plugin handling the animation.
      */
-    public DisplayEntityAnimation(@Nonnull DisplayEntity entity, @Nonnull JavaPlugin plugin) {
+    public DisplayEntityAnimation(@NotNull DisplayEntity entity, @NotNull Plugin plugin) {
         this.entity = entity;
         this.plugin = plugin;
         this.frames = Maps.newHashMap();
@@ -41,8 +41,8 @@ public class DisplayEntityAnimation extends BukkitRunnable {
      *
      * @param entity - The entity to animate.
      */
-    public DisplayEntityAnimation(@Nonnull DisplayEntity entity) {
-        this(entity, EternaPlugin.getPlugin());
+    public DisplayEntityAnimation(@NotNull DisplayEntity entity) {
+        this(entity, Eterna.getPlugin());
     }
 
     /**
@@ -50,7 +50,7 @@ public class DisplayEntityAnimation extends BukkitRunnable {
      *
      * @param frame - The frame to add.
      */
-    public DisplayEntityAnimation addFrame(@Nonnull AnimationFrame frame) {
+    public DisplayEntityAnimation addFrame(@NotNull AnimationFrame frame) {
         this.frames.put(frames.size(), frame);
         return this;
     }
@@ -60,7 +60,7 @@ public class DisplayEntityAnimation extends BukkitRunnable {
      *
      * @param builder - The builder used to create the frame.
      */
-    public DisplayEntityAnimation addFrame(@Nonnull AnimationFrame.Builder builder) {
+    public DisplayEntityAnimation addFrame(@NotNull AnimationFrame.Builder builder) {
         return addFrame(builder.build());
     }
 

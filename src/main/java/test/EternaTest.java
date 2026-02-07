@@ -1,155 +1,169 @@
 package test;
 
+import com.google.common.collect.Lists;
+import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.module.command.ArgumentList;
+import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.registry.Key;
-import me.hapyl.eterna.module.registry.Keyed;
-import me.hapyl.eterna.module.util.ArgumentList;
-import me.hapyl.eterna.module.util.Runnables;
+import me.hapyl.eterna.module.scheduler.Scheduler;
+import me.hapyl.eterna.module.util.TypeConverter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
 
-public abstract class EternaTest implements Keyed {
+@ApiStatus.Internal
+public abstract class EternaTest {
     
     private final Key key;
     
-    boolean skipFail = false;
-    
-    EternaTest(@Nonnull String key) {
-        this.key = Key.ofString(key);
+    @ApiStatus.Internal
+    EternaTest(@NotNull Key key) {
+        this.key = key;
     }
     
-    @Nonnull
-    @Override
-    public final Key getKey() {
-        return key;
-    }
-    
-    @Override
-    public final boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    public final void test0(@NotNull Player player, @NotNull ArgumentList args) {
+        final List<Component> warnings = Lists.newArrayList();
+        final CompletableFuture<Void> future = new CompletableFuture<>();
         
-        final EternaTest that = (EternaTest) o;
-        return Objects.equals(this.key, that.key);
-    }
-    
-    @Override
-    public final int hashCode() {
-        return Objects.hashCode(this.key);
-    }
-    
-    @Override
-    public final String toString() {
-        return key.toString();
-    }
-    
-    public abstract boolean test(@Nonnull Player player, @Nonnull ArgumentList args) throws EternaTestException;
-    
-    protected boolean doShowFeedback() {
-        return true;
-    }
-    
-    // *=* Helpers *=* //
-    
-    protected void info(@Nonnull Object info) {
-        EternaLogger.test("&7&o " + info);
-    }
-    
-    protected void later(int delay, @Nonnull Runnable... runnables) {
+        future.thenRun(() -> {
+                  if (warnings.isEmpty()) {
+                      EternaLogger.test(player, Component.text("Test `%s` passed!".formatted(key), NamedTextColor.GREEN));
+                  }
+                  else {
+                      EternaLogger.test(player, Component.text("Test `%s` passed with %s warnings!".formatted(key, warnings.size()), NamedTextColor.GOLD));
+                      
+                      for (int i = 0; i < warnings.size(); i++) {
+                          final Component warning = warnings.get(i);
+                          
+                          EternaLogger.test(
+                                  player,
+                                  Component.text("%s. ".formatted(i + 1), NamedTextColor.YELLOW).append(Components.normalizeStyle(warning, Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC)))
+                          );
+                      }
+                  }
+              })
+              .exceptionally(ex -> {
+                  EternaLogger.test(player, Component.text("Test `%s` failed!".formatted(key), NamedTextColor.DARK_RED));
+                  EternaLogger.test(player, Component.text(" " + ex.getCause().getMessage(), NamedTextColor.RED));
+                  
+                  return null;
+              });
+        
         try {
-            int total = 0;
+            EternaLogger.test(player, Component.text("Testing `%s`...".formatted(key), NamedTextColor.YELLOW));
             
-            for (Runnable runnable : runnables) {
-                Runnables.runLater(runnable, total += delay);
-            }
+            test(new EternaTestContext() {
+                @Override
+                @NotNull
+                public Player player() {
+                    return player;
+                }
+                
+                @Override
+                @NotNull
+                public TypeConverter argument(int index) {
+                    return args.get(index);
+                }
+                
+                @Override
+                public void info(@NotNull Component info) {
+                    EternaLogger.test(player, Component.text(" ", NamedTextColor.GRAY, TextDecoration.ITALIC).append(info));
+                }
+                
+                @Override
+                public void warning(@NotNull Component warning) {
+                    warnings.add(warning);
+                }
+                
+                @Override
+                @NotNull
+                public Scheduler scheduler() {
+                    return new Scheduler(Eterna.getPlugin());
+                }
+                
+                @Override
+                public void assertTestPassed() {
+                    future.complete(null);
+                }
+                
+                @Override
+                public void assertTestFailed(@NotNull String reason) {
+                    assertTestFailed(new EternaTestException(EternaTest.this, reason));
+                }
+                
+                @Override
+                public void assertTestFailed(@NotNull Throwable throwable) {
+                    future.completeExceptionally(throwable);
+                }
+                
+                @Override
+                public void assertEquals(@Nullable Object a, @Nullable Object b) {
+                    if (!Objects.equals(a, b)) {
+                        assertTestFailed("Objects are not the same! (Expected `%s`, got `%s`)".formatted(a, b));
+                    }
+                }
+                
+                @Override
+                public void assertNotEquals(@Nullable Object a, @Nullable Object b) {
+                    if (Objects.equals(a, b)) {
+                        assertTestFailed("Object are the same! (Expected `%s` != `%s)".formatted(a, b));
+                    }
+                }
+                
+                @Override
+                public void assertTrue(boolean condition, @NotNull String reason) {
+                    if (!condition) {
+                        assertTestFailed(reason);
+                    }
+                }
+                
+                @Override
+                public void assertFalse(boolean condition, @NotNull String reason) {
+                    if (condition) {
+                        assertTestFailed(reason);
+                    }
+                }
+                
+                @Override
+                public void assertNull(@Nullable Object object) {
+                    if (object != null) {
+                        assertTestFailed("Expected `null`, got `%s`!".formatted(object));
+                    }
+                }
+                
+                @Override
+                public void assertNotNull(@Nullable Object object) {
+                    if (object == null) {
+                        assertTestFailed("Object must not be null!");
+                    }
+                }
+                
+                @Override
+                public void assertThrows(@NotNull Runnable runnable, @NotNull String reason) {
+                    try {
+                        runnable.run();
+                        assertTestFailed(reason);
+                    }
+                    catch (Exception ignored) {
+                    }
+                }
+            });
         }
-        catch (Exception ex) {
-            throw new EternaTestException(this, ex.getMessage());
+        catch (EternaTestException ex) {
+            future.completeExceptionally(ex);
         }
     }
     
-    // *=* Assertions *=* //
-    
-    protected void assertTestPassed() {
-        EternaRuntimeTest.staticTest.handleTestPassed();
-    }
-    
-    protected void assertSkipFail() {
-        this.skipFail = true;
-    }
-    
-    protected void assertFail(String reason) {
-        throw new EternaTestException(this, reason);
-    }
-    
-    protected void assertEquals(@Nonnull Object a, @Nullable Object b) {
-        if (!a.equals(b)) {
-            throw new EternaTestException(this, "Objects are not the same! (Expected '%s', got '%s'!)".formatted(b, a));
-        }
-    }
-    
-    protected void assertNotEquals(@Nonnull Object a, @Nullable Object b) {
-        if (a.equals(b)) {
-            throw new EternaTestException(this, "Objects are the same! (Expected '%s' != '%s')".formatted(a, b));
-        }
-    }
-    
-    protected void assertNull(@Nullable Object a) {
-        if (a != null) {
-            throw new EternaTestException(this, "Object '%s' must be null!".formatted(a));
-        }
-    }
-    
-    protected void assertNotNull(@Nullable Object a) {
-        if (a == null) {
-            throw new EternaTestException(this, "Object must be null!");
-        }
-    }
-    
-    protected void assertTrue(boolean val) {
-        assertTrue(val, "Expected 'true', but got 'false'!");
-    }
-    
-    protected void assertTrue(boolean val, @Nonnull String reason) {
-        if (!val) {
-            throw new EternaTestException(this, reason);
-        }
-    }
-    
-    protected <O> void assertTrue(O o, Function<O, Boolean> predicate) {
-        final Boolean apply = predicate.apply(o);
-        
-        if (!apply) {
-            throw new EternaTestException(this, "Object check failed! " + o);
-        }
-    }
-    
-    protected void assertFalse(boolean val) {
-        assertFalse(val, "Expected 'false', but got 'true'!");
-    }
-    
-    protected void assertFalse(boolean val, @Nonnull String reason) {
-        if (val) {
-            throw new EternaTestException(this, reason);
-        }
-    }
-    
-    protected void assertThrows(@Nonnull Runnable runnable) {
-        assertThrows(runnable, "Should have thrown an error, but didn't!");
-    }
-    
-    protected void assertThrows(@Nonnull Runnable runnable, @Nonnull String reason) {
-        try {
-            runnable.run();
-            assertFail(reason);
-        }
-        catch (Exception ignored) {
-        }
-    }
+    protected abstract void test(@NotNull EternaTestContext context) throws EternaTestException;
     
 }

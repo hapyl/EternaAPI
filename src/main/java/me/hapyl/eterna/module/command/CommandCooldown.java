@@ -1,115 +1,115 @@
 package me.hapyl.eterna.module.command;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
+import me.hapyl.eterna.module.util.Cooldown;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+import javax.annotation.Nonnull;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 /**
- * Represents command cooldown.
+ * Represents a {@link SimpleCommand} cooldown.
+ *
+ * <p>Note that cooldowns are only applicable to players.</p>
  */
-public class CommandCooldown {
-
-    private final SimpleCommand command;
+public class CommandCooldown implements Cooldown {
+    
     private final Map<UUID, Long> usedAt;
-    private final Set<String> ignoreCooldownPermissions;
-
-    public CommandCooldown(SimpleCommand command) {
-        this.command = command;
-        this.ignoreCooldownPermissions = Sets.newHashSet();
-        this.usedAt = new HashMap<>();
+    
+    private int cooldown;
+    private Permission ignoreCooldownPermission;
+    
+    CommandCooldown() {
+        this.usedAt = Maps.newHashMap();
     }
-
+    
     /**
-     * Adds permission to cooldown ignore list.
+     * Sets the ignore cooldown {@link Permission}.
+     * <p>Players with that permission ignore the cooldown.</p>
      *
-     * @param permission - Permission to add.
+     * @param permission - The permission to set, or {@code null} to unset the permission.
      */
-    public void addIgnoreCooldownPermission(String permission) {
-        ignoreCooldownPermissions.add(permission);
+    public void setIgnoreCooldownPermission(@Nullable Permission permission) {
+        this.ignoreCooldownPermission = permission;
     }
-
+    
     /**
-     * Removes permission from cooldown ignore list.
+     * Gets the ignore cooldown {@link Permission}.
+     * <p>Players with that permission ignore the cooldown.</p>
      *
-     * @param permission - Permissions to remove.
-     * @return if permission was removed.
+     * @return the ignore cooldown permission.
      */
-    public boolean removeIgnoreCooldownPermission(String permission) {
-        return ignoreCooldownPermissions.remove(permission);
+    @Nullable
+    public Permission getIgnoreCooldownPermission() {
+        return ignoreCooldownPermission;
     }
-
+    
     /**
-     * @param player - Player to test permissions.
-     * @return - True if player has permission of ignoring cooldown.
-     * <b>NOTE that if player is OP AND there is NO ignored permissions, it will return false!</b>
-     */
-    public boolean canIgnoreCooldown(Player player) {
-        if (player.isOp() && ignoreCooldownPermissions.isEmpty()) {
-            return false;
-        }
-        for (String permission : ignoreCooldownPermissions) {
-            if (player.hasPermission(permission)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns true if player is currently on cooldown and stops the cooldown if it's over.
+     * Gets whether the given {@link Player} can ignore the cooldown, be it because the ignore cooldown permission is unset or the player has the permission.
      *
-     * @param player - Player to test.
-     * @return - True if player is on cooldown, false otherwise.
+     * @param player - The player to check.
+     * @return {@code true} if the given player can ignore cooldown; {@code false} otherwise.
      */
-    public boolean hasCooldown(Player player) {
-        final long passed = System.currentTimeMillis() - getCooldown(player);
-        if (passed >= (this.command.getCooldownTick() * 50L)) {
-            this.stopCooldown(player);
-            return false;
-        }
-        return true;
+    public boolean canIgnoreCooldown(@NotNull Player player) {
+        return ignoreCooldownPermission != null && player.hasPermission(ignoreCooldownPermission);
     }
-
+    
     /**
-     * Returns time left in milliseconds.
+     * Gets whether the given {@link Player} is on cooldown.
      *
-     * @param player - Player to test.
-     * @return - Time left in milliseconds.
+     * @param player - The player to check.
+     * @return {@code true} if the given player is on cooldown; {@code false} otherwise.
      */
-    public long getTimeLeft(Player player) {
-        return (this.command.getCooldownTick() * 50L) - (System.currentTimeMillis() - getCooldown(player));
+    public boolean isOnCooldown(@NotNull Player player) {
+        return getCooldown(player) > 0;
     }
-
+    
     /**
-     * Returns time when player used the command at in millis.
+     * Gets the remaining cooldown time in ticks for the given {@link Player}.
      *
-     * @param player - Player to test.
-     * @return - Time when player used the command at in millis.
+     * @param player - The player to check.
+     * @return the number of ticks left in the cooldown, or {@code 0} if not on cooldown.
      */
-    private long getCooldown(Player player) {
-        return this.usedAt.getOrDefault(player.getUniqueId(), 0L);
+    public int getCooldown(@NotNull Player player) {
+        final long millis = System.currentTimeMillis();
+        final long usedAt = this.usedAt.getOrDefault(player.getUniqueId(), 0L);
+        
+        final long differenceInTicks = (millis - usedAt) / 50;
+        
+        return (int) Math.max(0, (cooldown - differenceInTicks));
     }
-
+    
     /**
-     * Starts cooldown for player.
+     * Starts the cooldown for the given {@link Player}.
      *
-     * @param player - Player to start cooldown for.
+     * @param player - The player for whom to start the cooldown.
      */
-    public void startCooldown(Player player) {
+    public void startCooldown(@NotNull Player player) {
         this.usedAt.put(player.getUniqueId(), System.currentTimeMillis());
     }
-
+    
     /**
-     * Stops cooldown for player.
+     * Gets the command cooldown.
      *
-     * @param player - Player to stop cooldown for.
+     * @return the command cooldown.
      */
-    public void stopCooldown(Player player) {
-        this.usedAt.remove(player.getUniqueId());
+    @Override
+    public int getCooldown() {
+        return this.cooldown;
     }
-
+    
+    /**
+     * Sets the command cooldown.
+     *
+     * @param cooldown - The cooldown to set.
+     */
+    @Override
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
+    }
+    
 }

@@ -1,16 +1,19 @@
 package me.hapyl.eterna.module.util.array;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+@ApiStatus.Internal
 public final class ArrayImpl<E> implements Array<E> {
     
     private final E[] array;
     
-    ArrayImpl(@Nonnull E[] array) {
+    ArrayImpl(@NotNull E[] array) {
         this.array = array;
     }
     
@@ -34,19 +37,19 @@ public final class ArrayImpl<E> implements Array<E> {
         array[index] = e;
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public List<E> asList() {
         return List.of(array);
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public Stream<E> stream() {
         return Arrays.stream(array);
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public String toString() {
         return Arrays.toString(array);

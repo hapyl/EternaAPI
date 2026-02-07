@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.component;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
@@ -14,7 +15,7 @@ public interface ComponentListSupplier {
      *
      * @param player - The player to supply the components for.
      */
-    @Nonnull
-    ComponentList supply(@Nonnull Player player);
+    @NotNull
+    ComponentList supply(@NotNull Player player);
     
 }

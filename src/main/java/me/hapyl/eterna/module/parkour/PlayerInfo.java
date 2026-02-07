@@ -1,35 +1,41 @@
 package me.hapyl.eterna.module.parkour;
 
+import me.hapyl.eterna.module.util.StrictReference;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.List;
 
 /**
- * Stores all player info <b>before</b> starting the {@link Parkour} to restore later.
+ * Stores player-related info before the starting the {@link Parkour} so we can restore it.
  */
+@ApiStatus.Internal
 public class PlayerInfo {
     
     private final Player player;
-    private final GameMode gamemode;
-    private final Collection<PotionEffect> effects;
-    private final ItemStack[] inventory;
     
-    public PlayerInfo(@Nonnull Player player) {
+    private final StrictReference<GameMode> gameMode;
+    private final StrictReference<Collection<PotionEffect>> potionEffects;
+    private final StrictReference<ItemStack[]> inventoryContents;
+    private final StrictReference<Boolean> invulnerable;
+    
+    PlayerInfo(@NotNull Player player) {
         this.player = player;
         
-        // Store player data
-        this.gamemode = player.getGameMode();
-        this.effects = List.copyOf(player.getActivePotionEffects());
-        this.inventory = player.getInventory().getContents();
+        // Store the data
+        this.gameMode = StrictReference.refer(player::getGameMode);
+        this.potionEffects = StrictReference.refer(player::getActivePotionEffects);
+        this.inventoryContents = StrictReference.refer(() -> player.getInventory().getContents());
+        this.invulnerable = StrictReference.refer(player::isInvulnerable);
         
-        // Prepare player
+        // Clear the data
         player.setGameMode(GameMode.ADVENTURE);
+        player.setInvulnerable(true);
         
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
@@ -39,21 +45,26 @@ public class PlayerInfo {
         player.getInventory().clear();
     }
     
+    @ApiStatus.Internal
     public void restore() {
-        player.setGameMode(gamemode);
+        final GameMode gameMode = this.gameMode.refer();
+        final Collection<PotionEffect> potionEffects = this.potionEffects.refer();
+        final ItemStack[] inventoryContents = this.inventoryContents.refer();
+        final boolean invulnerable = this.invulnerable.refer();
+        
+        this.player.setGameMode(gameMode);
+        this.player.setInvulnerable(invulnerable);
         
         // Make sure to remove our invisibility BEFORE restoring the effects
-        player.removePotionEffect(PotionEffectType.INVISIBILITY);
+        this.player.removePotionEffect(PotionEffectType.INVISIBILITY);
         
-        for (PotionEffect effect : player.getActivePotionEffects()) {
-            player.removePotionEffect(effect.getType());
+        // Return player's effects
+        for (PotionEffect effect : potionEffects) {
+            this.player.addPotionEffect(effect);
         }
         
-        for (PotionEffect effect : effects) {
-            player.addPotionEffect(effect);
-        }
-        
-        player.getInventory().setContents(inventory);
+        // Return player's inventory
+        this.player.getInventory().setContents(inventoryContents);
     }
     
 }

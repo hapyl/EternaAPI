@@ -1,196 +1,176 @@
 package me.hapyl.eterna.module.reflect.glowing;
 
-import com.google.common.collect.Maps;
-import me.hapyl.eterna.Eterna;
-import me.hapyl.eterna.module.util.Ticking;
-import net.minecraft.world.scores.Scoreboard;
+import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Provides per-player entity glowing with color changing support.
- * <p>
- * <h2>Note!</h2>
- * Because Minecraft is a stupid game, the glowing color is client-side and based on the entity's team.
- * This module using packet teams, but changing the <b>actual</b> entity team might break the glowing; I either can't or won't fix it. -h
  *
- * @see #setGlowing(Player, Entity, GlowingColor, int)
- * @see #stopGlowing(Player, Entity)
+ * <h2>Note!</h2>
+ * <p>
+ * Because Minecraft is a stupid game, the glowing color is client-side and based on the entity's team.
+ * </p>
+ *
+ * <p>
+ * The module uses packet teams, but changing the <b>actual</b> entity team might break the glowing or even result in a crash; I either can't or won't fix it. -h
+ * </p>
+ *
+ * @see Glowing#setGlowing(Player, Entity, PacketTeamColor, int)
+ * @see Glowing#stopGlowing(Player, Entity)
  */
-public class Glowing implements Ticking {
-    
-    protected static final byte BITMASK = 0x40;
-    protected static final int INFINITE_DURATION = -1;
-    protected static final GlowingColor DEFAULT_COLOR = GlowingColor.WHITE;
-    
-    protected final Scoreboard scoreboard;
-    
-    private final Player player;
-    private final Map<Entity, GlowingInstance> entityMap;
-    
-    private Glowing(@Nonnull Player player) {
-        this.player = player;
-        this.scoreboard = new net.minecraft.world.scores.Scoreboard();
-        this.entityMap = Maps.newConcurrentMap(); // We're dealing with packets so concurrent it is
-    }
-    
-    @Nonnull
-    public Player player() {
-        return player;
-    }
-    
-    @Override
-    public void tick() {
-        final Collection<GlowingInstance> values = entityMap.values();
-        
-        for (final Iterator<GlowingInstance> iterator = values.iterator(); iterator.hasNext(); ) {
-            final GlowingInstance instance = iterator.next();
-            
-            if (instance.shouldRemove()) {
-                iterator.remove();
-                instance.remove();
-            }
-        }
-        
-        values.forEach(GlowingInstance::tick);
-    }
+@ApiStatus.NonExtendable
+public interface Glowing {
     
     /**
-     * Gets the {@link GlowingInstance} for the given entity by that entity's id.
-     *
-     * @param entityId - The entity id.
-     * @return the instance for the entity with the given id or {@code null} if not glowing.
+     * Defines the magic value for an infinite glowing duration.
      */
-    @Nullable
-    public GlowingInstance byId(int entityId) {
-        for (GlowingInstance instance : entityMap.values()) {
-            // jesus fuck I spent 4 hours looks for a bug and THIS
-            if (instance.entity().getEntityId() == entityId) {
-                return instance;
-            }
-        }
-        
-        return null;
-    }
+    int INFINITE_DURATION = -1;
     
     /**
-     * Sets the glowing for the given {@link Entity} for the given {@link Player}.
-     * <p>If the entity is already glowing for the player, the {@link GlowingColor} and {@code duration} will replace the previous color and duration.</p>
+     * Defines the default {@link PacketTeamColor} used for glowing.
+     */
+    @NotNull
+    PacketTeamColor DEFAULT_COLOR = PacketTeamColor.WHITE;
+    
+    
+    /**
+     * Sets the glowing for the given {@link Player}.
      *
-     * @param player   - The player to glow for.
+     * <p>
+     * If the entity is already glowing for the player, it's color or/and duration will be modified.
+     * </p>
+     *
+     * @param player   - The entity for whom to glow the entity.
      * @param entity   - The entity to glow.
      * @param color    - The glowing color.
-     * @param duration - The duration of glowing.
+     * @param duration - The glowing duration.
      */
-    public static void setGlowing(@Nonnull Player player, @Nonnull Entity entity, @Nonnull GlowingColor color, int duration) {
+    static void setGlowing(@NotNull Player player, @NotNull Entity entity, @NotNull PacketTeamColor color, int duration) {
         setGlowing0(player, entity, color, duration);
     }
     
     /**
-     * Sets the glowing for the given {@link Entity} for the given {@link Player} indefinitely.
-     * <p>If the entity is already glowing for the player, the {@link GlowingColor} will replace the previous color and duration.</p>
+     * Sets the glowing for the given {@link Player}.
      *
-     * @param player - The player to glow for.
+     * <p>
+     * If the entity is already glowing for the player, it's color or/and duration will be modified.
+     * </p>
+     *
+     * @param player - The entity for whom to glow the entity.
      * @param entity - The entity to glow.
      * @param color  - The glowing color.
      */
-    public static void setGlowing(@Nonnull Player player, @Nonnull Entity entity, @Nonnull GlowingColor color) {
+    static void setGlowing(@NotNull Player player, @NotNull Entity entity, @NotNull PacketTeamColor color) {
         setGlowing0(player, entity, color, null);
     }
     
     /**
-     * Sets the glowing for the given {@link Entity} for the given {@link Player}.
-     * <p>If the entity is already glowing for the player, the duration will replace the previous color and duration.</p>
+     * Sets the glowing for the given {@link Player}.
      *
-     * @param player   - The player to glow for.
+     * <p>
+     * If the entity is already glowing for the player, it's color or/and duration will be modified.
+     * </p>
+     *
+     * @param player   - The entity for whom to glow the entity.
      * @param entity   - The entity to glow.
-     * @param duration - The duration of glowing.
+     * @param duration - The glowing duration.
      */
-    public static void setGlowing(@Nonnull Player player, @Nonnull Entity entity, int duration) {
+    static void setGlowing(@NotNull Player player, @NotNull Entity entity, int duration) {
         setGlowing0(player, entity, null, duration);
     }
     
     /**
-     * Stops the glowing for the given {@link Entity} for the given {@link Player}.
+     * Stops the glowing for the given {@link Player}.
      *
-     * @param player - The player to stop glowing for.
+     * @param player - The player for whom to stop the glowing.
      * @param entity - The entity to stop glowing.
      */
-    public static void stopGlowing(@Nonnull Player player, @Nonnull Entity entity) {
-        final GlowingInstance instance = playerGlowing(player).entityMap.remove(entity);
-        
-        if (instance != null) {
-            instance.remove();
-        }
-    }
-    
-    /**
-     * Stops any existing glowing instances for the given {@link Player}.
-     *
-     * @param player - The player to stop instances for.
-     */
-    public static void stopGlowing(@Nonnull Player player) {
-        for (final Iterator<GlowingInstance> iterator = playerGlowing(player).entityMap.values().iterator(); iterator.hasNext(); ) {
-            final GlowingInstance instance = iterator.next();
+    static void stopGlowing(@NotNull Player player, @NotNull Entity entity) {
+        GlowingHandler.handler.get(player).ifPresent(glowing -> {
+            final GlowingInstance glowingInstance = glowing.entityMap.remove(entity);
             
-            instance.remove(); // Remove instance first because it will ignore the packet
-            iterator.remove();
-        }
-    }
-    
-    /**
-     * Stops any existing glowing instance of the given {@link Entity} for any player it's glowing for.
-     *
-     * @param entity - The entity to stop instance of.
-     */
-    public static void stopGlowing(@Nonnull Entity entity) {
-        Eterna.getManagers().glowing.forEach(glowing -> {
-            final GlowingInstance instance = glowing.entityMap.remove(entity);
-            
-            if (instance != null) {
-                instance.remove();
+            if (glowingInstance != null) {
+                glowingInstance.remove();
             }
         });
     }
     
     /**
-     * Gets the {@link GlowingInstance} for the given {@link Player} and {@link Entity}.
+     * Stops all the glowing for the given {@link Player}.
      *
-     * @param player - The player.
-     * @param entity - The entity.
-     * @return an existing instance or {@code null} if none.
+     * @param player - The player for whom to stop the glowing.
      */
-    @Nullable
-    public static GlowingInstance getGlowing(@Nonnull Player player, @Nonnull Entity entity) {
-        return playerGlowing(player).entityMap.get(entity);
+    static void stopGlowing(@NotNull Player player) {
+        final GlowingImpl glowing = GlowingHandler.handler.unregister(player);
+        
+        if (glowing != null) {
+            glowing.entityMap.values().forEach(GlowingInstance::remove);
+            glowing.entityMap.clear();
+        }
     }
     
     /**
-     * Gets whether the given {@link Entity} is currently glowing for the given {@link Player}.
+     * Stops all the glowing for the given {@link Entity}.
      *
-     * @param player - The player.
-     * @param entity - The entity.
-     * @return {@code true} if the entity is glowing, {@code false} otherwise.
+     * <p>
+     * This will stop entity from glowing for any players who it is glowing for.
+     * </p>
+     *
+     * @param entity - The entity to stop glowing.
      */
-    public static boolean isGlowing(@Nonnull Player player, @Nonnull Entity entity) {
-        return playerGlowing(player).entityMap.containsKey(entity);
+    static void stopGlowing(@NotNull Entity entity) {
+        GlowingHandler.handler.forEach(glowing -> {
+            final GlowingInstance glowingInstance = glowing.entityMap.remove(entity);
+            
+            if (glowingInstance != null) {
+                glowingInstance.remove();
+            }
+        });
     }
     
-    private static void setGlowing0(Player player, Entity entity, @Nullable GlowingColor color, @Nullable Integer duration) {
+    /**
+     * Gets a {@link GlowingInstance} for the given {@link Player}.
+     *
+     * @param player - The player for whom to retrieve the glowing.
+     * @param entity - The entity for whom to retrieve the glowing.
+     * @return a glowing instance wrapped in an optional.
+     */
+    @NotNull
+    static Optional<GlowingInstance> getGlowing(@NotNull Player player, @NotNull Entity entity) {
+        final GlowingImpl glowing = GlowingHandler.handler.get(player).orElse(null);
+        
+        return glowing != null ? Optional.ofNullable(glowing.entityMap.get(entity)) : Optional.empty();
+    }
+    
+    /**
+     * Gets whether the given {@link Entity} is glowing the given {@link Player}.
+     *
+     * @param player - The player to check.
+     * @param entity - The entity to check.
+     * @return {@code true} if the given entity is glowing for the given player; {@code false} otherwise.
+     */
+    static boolean isGlowing(@NotNull Player player, @NotNull Entity entity) {
+        return GlowingHandler.handler.get(player).map(glowing -> glowing.entityMap.containsKey(entity)).orElse(false);
+    }
+    
+    private static void setGlowing0(@NotNull Player player, @NotNull Entity entity, @Nullable PacketTeamColor color, @Nullable Integer duration) {
         if (Objects.equals(player, entity)) {
             throw new IllegalArgumentException("Cannot set glowing for self!");
         }
         
-        final Glowing glowing = playerGlowing(player);
+        final GlowingImpl glowing = GlowingHandler.handler.getOrCompute(player, GlowingImpl::new);
         final GlowingInstance instance = glowing.entityMap.computeIfAbsent(
                 entity,
-                e -> new GlowingInstance(
+                _entity -> new GlowingInstance(
                         player,
-                        e,
+                        _entity,
                         color != null ? color : DEFAULT_COLOR,
                         duration != null ? duration : INFINITE_DURATION
                 )
@@ -204,15 +184,6 @@ public class Glowing implements Ticking {
         if (duration != null) {
             instance.setDuration(duration);
         }
-    }
-    
-    @Override
-    public String toString() {
-        return entityMap.toString();
-    }
-    
-    private static Glowing playerGlowing(Player player) {
-        return Eterna.getManagers().glowing.get(player, Glowing::new);
     }
     
 }

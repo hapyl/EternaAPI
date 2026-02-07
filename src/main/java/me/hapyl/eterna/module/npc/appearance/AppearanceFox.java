@@ -1,13 +1,12 @@
 package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.util.Bitmask;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.fox.Fox;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
@@ -20,7 +19,7 @@ public class AppearanceFox extends Appearance {
     private final Set<FoxBehaviour> behaviours;
     private FoxType foxType;
     
-    public AppearanceFox(@Nonnull Npc npc, @Nonnull FoxType foxType) {
+    public AppearanceFox(@NotNull Npc npc, @NotNull FoxType foxType) {
         super(npc, new Fox(EntityType.FOX, dummyWorld()));
         
         this.behaviours = EnumSet.noneOf(FoxBehaviour.class);
@@ -32,7 +31,7 @@ public class AppearanceFox extends Appearance {
      *
      * @return the fox type.
      */
-    @Nonnull
+    @NotNull
     public FoxType getFoxType() {
         return foxType;
     }
@@ -42,7 +41,7 @@ public class AppearanceFox extends Appearance {
      *
      * @param foxType - The new fox type.
      */
-    public void setFoxType(@Nonnull FoxType foxType) {
+    public void setFoxType(@NotNull FoxType foxType) {
         this.foxType = foxType;
         this.updateEntityData();
     }
@@ -52,7 +51,7 @@ public class AppearanceFox extends Appearance {
      *
      * @return a copy of current fox behaviours.
      */
-    @Nonnull
+    @NotNull
     public Set<FoxBehaviour> getBehaviours() {
         return Set.copyOf(behaviours);
     }
@@ -62,13 +61,13 @@ public class AppearanceFox extends Appearance {
      *
      * @param behaviours - The new behaviours.
      */
-    public void setBehaviours(@Nonnull FoxBehaviour... behaviours) {
+    public void setBehaviours(@NotNull FoxBehaviour... behaviours) {
         this.behaviours.clear();
         this.behaviours.addAll(Arrays.asList(Validate.varargs(behaviours, "There must be at least one behaviour!")));
         this.updateEntityData();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public Fox getHandle() {
         return (Fox) super.getHandle();
@@ -79,8 +78,8 @@ public class AppearanceFox extends Appearance {
         final SynchedEntityData metadata = super.getEntityData();
         
         // Write fox type & behaviours
-        metadata.set(foxType.getAccessor(), foxType.getAccessorValue());
-        metadata.set(FoxBehaviour.SITTING.getAccessor(), Bitmask.make(behaviours, FoxBehaviour::getAccessorValue));
+        metadata.set(foxType.getAccessor(), foxType.getValue());
+        metadata.set(FoxBehaviour.SITTING.getAccessor(), (byte) behaviours.stream().mapToInt(FoxBehaviour::getValue).reduce(0, (mask, value) -> mask | value));
         
         super.updateEntityData();
     }

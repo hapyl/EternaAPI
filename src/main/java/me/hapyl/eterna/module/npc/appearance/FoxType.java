@@ -1,23 +1,20 @@
 package me.hapyl.eterna.module.npc.appearance;
 
-import me.hapyl.eterna.module.annotate.DefaultEnumValue;
 import me.hapyl.eterna.module.annotate.StrictEnumOrdinal;
-import me.hapyl.eterna.module.reflect.MetadataProvider;
+import me.hapyl.eterna.module.reflect.EntityDataProvider;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a fox type for {@link AppearanceFox}.
  */
 @StrictEnumOrdinal
-public enum FoxType implements MetadataProvider<Integer> {
+public enum FoxType implements EntityDataProvider<Integer> {
     
     /**
      * A red fox appearance.
      */
-    @DefaultEnumValue
     RED,
     
     /**
@@ -25,13 +22,13 @@ public enum FoxType implements MetadataProvider<Integer> {
      */
     WHITE;
     
-    @Nonnull
+    @NotNull
     @Override
-    public Integer getAccessorValue() {
+    public Integer getValue() {
         return this.ordinal();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public EntityDataAccessor<Integer> getAccessor() {
         class Holder {

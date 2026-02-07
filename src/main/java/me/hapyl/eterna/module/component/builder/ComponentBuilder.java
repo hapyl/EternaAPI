@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -29,7 +30,7 @@ public class ComponentBuilder {
      * @see ComponentSupplier#ofPlaceholder(String)
      */
     @SelfReturn
-    public ComponentBuilder append(@Nonnull ComponentSupplier supplier) {
+    public ComponentBuilder append(@NotNull ComponentSupplier supplier) {
         this.suppliers.add(supplier);
         return this;
     }
@@ -42,8 +43,8 @@ public class ComponentBuilder {
      * @see ComponentResolver#literal()
      * @see ComponentResolver#builder()
      */
-    @Nonnull
-    public Component build(@Nonnull ComponentResolver resolver) {
+    @NotNull
+    public Component build(@NotNull ComponentResolver resolver) {
         final TextComponent.Builder builder = Component.text();
         
         for (ComponentSupplier supplier : suppliers) {

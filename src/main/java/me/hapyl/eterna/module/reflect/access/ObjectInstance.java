@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.reflect.access;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a wrapper for an object to refer to it on reflection access.
