@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.npc;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
@@ -15,7 +16,7 @@ public enum LookAnchor implements Function<LivingEntity, Location> {
      */
     EYES {
         @Override
-        public Location apply(LivingEntity entity) {
+        public Location apply(@NotNull LivingEntity entity) {
             return entity.getEyeLocation();
         }
     },
@@ -25,7 +26,7 @@ public enum LookAnchor implements Function<LivingEntity, Location> {
      */
     FEET {
         @Override
-        public Location apply(LivingEntity entity) {
+        public Location apply(@NotNull LivingEntity entity) {
             return entity.getLocation();
         }
     }

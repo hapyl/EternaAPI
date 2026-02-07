@@ -1,15 +1,14 @@
 package me.hapyl.eterna.module.npc.appearance;
 
-import me.hapyl.eterna.module.reflect.MetadataProvider;
+import me.hapyl.eterna.module.reflect.EntityDataProvider;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a {@link AppearanceMannequin} skin part.
  */
-public enum SkinPart implements MetadataProvider<Byte> {
+public enum SkinPart implements EntityDataProvider<Byte> {
     
     /**
      * Whether the cape is visible.
@@ -52,13 +51,13 @@ public enum SkinPart implements MetadataProvider<Byte> {
         this.bit = bit;
     }
     
-    @Nonnull
+    @NotNull
     @Override
-    public Byte getAccessorValue() {
+    public Byte getValue() {
         return bit;
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public EntityDataAccessor<Byte> getAccessor() {
         class Holder {

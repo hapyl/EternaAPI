@@ -2,13 +2,13 @@ package me.hapyl.eterna.module.reflect.access;
 
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.util.Validate;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.Optional;
 
 /**
- * Represents a {@link Field} accessor.
+ * Represents a {@link Field} reflect accessor.
  *
  * @param <T> - The field type.
  */
@@ -17,7 +17,7 @@ public class ReflectFieldAccess<T> implements ReflectAccess {
     private final FieldStruct<T> fieldStruct;
     private final Field field;
     
-    public ReflectFieldAccess(@Nonnull Class<?> clazz, @Nonnull Class<T> fieldType, @Nonnull String fieldName) {
+    ReflectFieldAccess(@NotNull Class<?> clazz, @NotNull Class<T> fieldType, @NotNull String fieldName) {
         this.fieldStruct = new FieldStruct<>(clazz, Validate.notPrimitive(fieldType), fieldName);
         this.field = fieldStruct.fetch();
     }
@@ -26,11 +26,11 @@ public class ReflectFieldAccess<T> implements ReflectAccess {
      * Attempts to retrieve the field value as an {@link Optional}.
      *
      * @param instance - The object reference.
-     *                 <p>Refers to an object instance that this field belongs to; use {@link ObjectInstance#STATIC} for static fields.</p>
-     * @return an {@link Optional} with the {@link Field} value.
+     * @return the field value wrapping in an optional.
+     * @see ObjectInstance
      */
-    @Nonnull
-    public Optional<T> get(@Nonnull ObjectInstance instance) {
+    @NotNull
+    public Optional<T> get(@NotNull ObjectInstance instance) {
         try {
             final Object object = this.field.get(instance.refer());
             
@@ -52,8 +52,8 @@ public class ReflectFieldAccess<T> implements ReflectAccess {
         }
     }
     
-    private record FieldStruct<T>(@Nonnull Class<?> clazz, @Nonnull Class<T> fieldType, @Nonnull String fieldName) {
-        @Nonnull
+    private record FieldStruct<T>(@NotNull Class<?> clazz, @NotNull Class<T> fieldType, @NotNull String fieldName) {
+        @NotNull
         @Override
         public String toString() {
             return "%s{%s %s}".formatted(clazz.getSimpleName(), fieldType.getSimpleName(), fieldName);

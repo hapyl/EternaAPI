@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.component.builder;
 
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Map;
 public final class ComponentSupplierPlaceholder implements ComponentSupplier {
     private final String key;
     
-    ComponentSupplierPlaceholder(@Nonnull String key) {
+    ComponentSupplierPlaceholder(@NotNull String key) {
         this.key = key;
     }
     
@@ -20,14 +21,14 @@ public final class ComponentSupplierPlaceholder implements ComponentSupplier {
      *
      * @return the placeholder key.
      */
-    @Nonnull
+    @NotNull
     public String getKey() {
         return key;
     }
     
-    @Nonnull
+    @NotNull
     @Override
-    public Component supply(@Nonnull Map<String, Component> components) {
+    public Component supply(@NotNull Map<String, Component> components) {
         return components.getOrDefault(key, Component.text("{%s}".formatted(key)));
     }
 }

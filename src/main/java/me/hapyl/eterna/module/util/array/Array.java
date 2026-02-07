@@ -1,9 +1,9 @@
 package me.hapyl.eterna.module.util.array;
 
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -13,8 +13,11 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 /**
- * A generic wrapper around a standard Java array.
- * <p>Differs from {@link List} in a way being stricter and unresizable.</p>
+ * Represents an un-resizable standard {@code array} array.
+ *
+ * <p>
+ * The {@link Array} permits {@code null} elements.
+ * </p>
  *
  * @param <E> - The array type.
  * @see #of(Object[])
@@ -26,8 +29,7 @@ public interface Array<E> extends IndexingIterable<E> {
      * Retrieves the element at the given index.
      *
      * @param index – The index of the element to return.
-     * @return The element at the specified index, or {@code null} if none is present.
-     * @implNote Implementations may perform explicit bounds checking or throw a {@link ArrayIndexOutOfBoundsException} if the index is out of range.
+     * @return the element at the specified index, or {@code null} if none is present.
      */
     @Nullable
     E get(int index);
@@ -37,12 +39,11 @@ public interface Array<E> extends IndexingIterable<E> {
      *
      * @param index – The index of the element to set.
      * @param e     – The element to set at the specified index; may be {@code null}.
-     * @implNote Implementations may perform explicit bounds checking or throw a {@link ArrayIndexOutOfBoundsException} if the index is out of range.
      */
     void set(int index, @Nullable E e);
     
     /**
-     * Gets the length of this array.
+     * Gets the length of this {@link Array}.
      *
      * @return the length of this array.
      */
@@ -50,7 +51,10 @@ public interface Array<E> extends IndexingIterable<E> {
     
     /**
      * Gets whether this array is empty.
-     * <p>This does not exclude {@code null} elements; meaning an array containing a {@code null} element will <b>not</b> be empty.</p>
+     *
+     * <p>
+     * This does not exclude {@code null} elements; meaning an array containing a {@code null} element will <b>not</b> be empty.
+     * </p>
      *
      * @return {@code true} if this array is empty, {@code false} otherwise.
      */
@@ -59,12 +63,12 @@ public interface Array<E> extends IndexingIterable<E> {
     }
     
     /**
-     * Gets whether this array contains the given element.
+     * Gets whether this {@link Array} contains the given {@link E}.
      *
      * @param element - The element to check.
      * @return {@code true} if this array contains the given element, {@code false} otherwise.
      */
-    default boolean contains(@Nonnull E element) {
+    default boolean contains(@NotNull E element) {
         if (isEmpty()) {
             return false;
         }
@@ -83,7 +87,7 @@ public interface Array<E> extends IndexingIterable<E> {
      *
      * @return an {@link IndexingIterable} for this array.
      */
-    @Nonnull
+    @NotNull
     @Override
     default IndexingIterator<E> iterator() {
         return new ArrayIterator<>(this);
@@ -94,7 +98,7 @@ public interface Array<E> extends IndexingIterable<E> {
      *
      * @return immutable {@link List} containing all the elements from this {@link Array}.
      */
-    @Nonnull
+    @NotNull
     List<E> asList();
     
     /**
@@ -102,7 +106,7 @@ public interface Array<E> extends IndexingIterable<E> {
      *
      * @return {@link Stream} of the elements in this {@link Array}.
      */
-    @Nonnull
+    @NotNull
     Stream<E> stream();
     
     /**
@@ -110,7 +114,7 @@ public interface Array<E> extends IndexingIterable<E> {
      *
      * @return a string representation of the object.
      */
-    @Nonnull
+    @NotNull
     String toString();
     
     /**
@@ -120,7 +124,7 @@ public interface Array<E> extends IndexingIterable<E> {
      * @param <T>    - The element type.
      * @return A newly created {@link Array} instance of the given length.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("unchecked")
     static <T> Array<T> of(int length) {
         return new ArrayImpl<>((T[]) new Object[length]);
@@ -135,8 +139,8 @@ public interface Array<E> extends IndexingIterable<E> {
      * @return A newly created {@link Array} instance.
      */
     @SafeVarargs
-    @Nonnull
-    static <T> Array<T> of(@Nonnull T... array) {
+    @NotNull
+    static <T> Array<T> of(@NotNull T... array) {
         return new ArrayImpl<>(Arrays.copyOf(array, array.length));
     }
     
@@ -149,8 +153,8 @@ public interface Array<E> extends IndexingIterable<E> {
      * @return A newly created {@link Array} instance.
      */
     @SafeVarargs
-    @Nonnull
-    static <T> ImmutableArray<T> ofImmutable(@Nonnull T... array) {
+    @NotNull
+    static <T> ImmutableArray<T> ofImmutable(@NotNull T... array) {
         return new ImmutableArray<>(Arrays.copyOf(array, array.length));
     }
     
@@ -167,8 +171,8 @@ public interface Array<E> extends IndexingIterable<E> {
      * @param <T>          - The element type.
      * @param <A>          - The resulting {@link Array} subtype.
      */
-    @Nonnull
-    static <T, A extends Array<T>> Collector<T, List<T>, A> collector(@Nonnull IntFunction<T[]> arrayFactory, @Nonnull Function<T[], A> arrayFn) {
+    @NotNull
+    static <T, A extends Array<T>> Collector<T, List<T>, A> collector(@NotNull IntFunction<T[]> arrayFactory, @NotNull Function<T[], A> arrayFn) {
         return Collector.of(
                 Lists::newArrayList,
                 List::add,
@@ -190,7 +194,7 @@ public interface Array<E> extends IndexingIterable<E> {
         private final Array<E> array;
         private int index;
         
-        ArrayIterator(@Nonnull Array<E> array) {
+        ArrayIterator(@NotNull Array<E> array) {
             this.array = array;
             this.index = 0;
         }

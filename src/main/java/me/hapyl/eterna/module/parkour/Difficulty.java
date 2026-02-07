@@ -1,41 +1,79 @@
 package me.hapyl.eterna.module.parkour;
 
-import me.hapyl.eterna.module.util.Named;
-
-import javax.annotation.Nonnull;
+import me.hapyl.eterna.module.component.Named;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Defines the arbitrary {@link Parkour} difficulty.
- * <p>Does not affect anything, only exists for display purposes.</p>
+ * Defines an arbitrary {@link Parkour} difficulty, used purely for display purposes.
  */
 public interface Difficulty extends Named {
     
-    Difficulty VERY_EASY = of("&aVery Easy");
-    Difficulty EASY = of("&aEasy");
-    Difficulty NORMAL = of("&2Normal");
-    Difficulty HARD = of("&6Hard");
-    Difficulty VERY_HARD = of("&cVery Hard");
-    Difficulty IMPOSSIBLE = of("&4Impossible");
+    /**
+     * Defines a very easy difficulty.
+     */
+    @NotNull
+    Difficulty VERY_EASY = of(Component.text("Very East", NamedTextColor.GREEN));
     
-    @Nonnull
+    /**
+     * Defines an easy difficulty.
+     */
+    @NotNull
+    Difficulty EASY = of(Component.text("Easy", NamedTextColor.GREEN));
+    
+    /**
+     * Defines a normal difficulty.
+     */
+    @NotNull
+    Difficulty NORMAL = of(Component.text("Normal", NamedTextColor.GOLD));
+    
+    /**
+     * Defines a hard difficulty.
+     */
+    @NotNull
+    Difficulty HARD = of(Component.text("Hard", NamedTextColor.GOLD));
+    
+    /**
+     * Defines a very hard difficulty.
+     */
+    Difficulty VERY_HARD = of(Component.text("Very Hard", NamedTextColor.RED));
+    
+    /**
+     * Defines an impossible difficulty.
+     */
+    Difficulty IMPOSSIBLE = of(Component.text("Impossible", NamedTextColor.DARK_RED));
+    
+    /**
+     * Gets the name of this {@link Difficulty}.
+     *
+     * @return the name of this difficulty.
+     */
     @Override
-    String getName();
+    @NotNull
+    Component getName();
     
-    static Difficulty of(@Nonnull String name) {
+    /**
+     * A static factory method for creating {@link Difficulty}.
+     *
+     * @param name - The name of the difficulty.
+     * @return a new {@link Difficulty}.
+     */
+    @NotNull
+    static Difficulty of(@NotNull Component name) {
         return new DifficultyImpl(name);
     }
     
     class DifficultyImpl implements Difficulty {
+        private final Component name;
         
-        private final String name;
-        
-        DifficultyImpl(@Nonnull String name) {
+        DifficultyImpl(@NotNull Component name) {
             this.name = name;
         }
         
-        @Nonnull
         @Override
-        public String getName() {
+        @NotNull
+        public Component getName() {
             return name;
         }
     }

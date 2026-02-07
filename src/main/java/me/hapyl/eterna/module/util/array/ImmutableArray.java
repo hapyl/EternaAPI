@@ -1,16 +1,19 @@
 package me.hapyl.eterna.module.util.array;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+@ApiStatus.Internal
 public final class ImmutableArray<T> implements Array<T> {
     
     private final T[] array;
     
-    ImmutableArray(@Nonnull T[] array) {
+    ImmutableArray(@NotNull T[] array) {
         this.array = array;
     }
     
@@ -31,19 +34,19 @@ public final class ImmutableArray<T> implements Array<T> {
         throw new UnsupportedOperationException();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public List<T> asList() {
         return List.of(array);
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public Stream<T> stream() {
         return Arrays.stream(array);
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public String toString() {
         return Arrays.toString(array);

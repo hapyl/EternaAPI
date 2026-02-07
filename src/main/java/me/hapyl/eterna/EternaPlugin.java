@@ -3,75 +3,86 @@ package me.hapyl.eterna;
 import me.hapyl.eterna.builtin.command.EternaCommand;
 import me.hapyl.eterna.builtin.command.NoteBlockStudioCommand;
 import me.hapyl.eterna.builtin.command.SelectDialogOptionCommand;
-import me.hapyl.eterna.builtin.manager.EternaManagers;
+import me.hapyl.eterna.builtin.updater.UpdateResult;
 import me.hapyl.eterna.builtin.updater.Updater;
+import me.hapyl.eterna.module.command.CommandHandler;
 import me.hapyl.eterna.module.command.CommandProcessor;
-import me.hapyl.eterna.module.event.PlayerMoveOneBlockEvent;
-import me.hapyl.eterna.module.inventory.ItemBuilderListener;
-import me.hapyl.eterna.module.inventory.SignListener;
-import me.hapyl.eterna.module.inventory.gui.GUIListener;
+import me.hapyl.eterna.module.inventory.builder.ItemBuilderHandler;
+import me.hapyl.eterna.module.inventory.menu.PlayerMenuHandler;
+import me.hapyl.eterna.module.inventory.sign.SignHandler;
+import me.hapyl.eterna.module.npc.NpcHandler;
 import me.hapyl.eterna.module.npc.NpcRunnable;
-import me.hapyl.eterna.module.parkour.ParkourListener;
+import me.hapyl.eterna.module.parkour.ParkourHandler;
 import me.hapyl.eterna.module.parkour.ParkourRunnable;
-import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolEntitySpawnListener;
-import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolMetadataListener;
+import me.hapyl.eterna.module.player.dialog.DialogHandler;
+import me.hapyl.eterna.module.player.quest.QuestHandler;
+import me.hapyl.eterna.module.player.song.SongHandler;
+import me.hapyl.eterna.module.reflect.glowing.GlowingHandler;
+import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolEntitySpawnHandler;
+import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolMetadataHandler;
 import me.hapyl.eterna.module.reflect.glowing.GlowingRunnable;
-import me.hapyl.eterna.module.npc.NpcListener;
-import me.hapyl.eterna.module.util.Runnables;
 import me.hapyl.eterna.protocol.EternaProtocol;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 
 /**
- * Represents EternaAPI plugin.
+ * Represents the Eterna {@link JavaPlugin}.
  */
 public /*final*/ class EternaPlugin extends JavaPlugin {
     
     private static EternaPlugin plugin;
+    private static EternaKey soleKey;
     
-    protected EternaManagers managers;
     protected Updater updater;
     protected EternaConfig config;
     protected EternaProtocol protocol;
+    
+    @Override
+    public void onDisable() {
+        ParkourHandler.dispose0(soleKey);
+    }
     
     @Override
     public void onEnable() {
         plugin = Eterna.plugin = this;
         
         // Create soleKey
-        final EternaKey soleKey = EternaKey.createSoleKey();
+        soleKey = EternaKey.createSoleKey();
         
         // Check if the server is running paper
-        validateUsingPaper();
+        this.validateUsingPaper();
         
         // Init protocol
         this.protocol = new EternaProtocol(soleKey, this);
         
-        // Init managers
-        this.managers = new EternaManagers(soleKey, this);
-        
+        // Init handlers
         final PluginManager manager = this.getServer().getPluginManager();
         
-        manager.registerEvents(new ItemBuilderListener(soleKey), this);
-        manager.registerEvents(new GUIListener(soleKey), this);
-        manager.registerEvents(new ParkourListener(soleKey), this);
-        manager.registerEvents(new SignListener(soleKey), this);
-        manager.registerEvents(new NpcListener(soleKey), this);
-        manager.registerEvents(new GlowingProtocolMetadataListener(soleKey), this);
-        manager.registerEvents(new GlowingProtocolEntitySpawnListener(soleKey), this);
-        manager.registerEvents(new PlayerMoveOneBlockEvent.Handler(soleKey), this);
+        new GlowingHandler(soleKey, this);
+        new SongHandler(soleKey, this);
+        
+        manager.registerEvents(new ItemBuilderHandler(soleKey), this);
+        manager.registerEvents(new PlayerMenuHandler(soleKey), this);
+        
+        manager.registerEvents(new ParkourHandler(soleKey, this), this);
+        manager.registerEvents(new DialogHandler(soleKey, this), this);
+        manager.registerEvents(new NpcHandler(soleKey, this), this);
+        manager.registerEvents(new QuestHandler(soleKey, this), this);
+        
+        manager.registerEvents(new SignHandler(soleKey), this);
+        manager.registerEvents(new GlowingProtocolMetadataHandler(soleKey), this);
+        manager.registerEvents(new GlowingProtocolEntitySpawnHandler(soleKey), this);
+        manager.registerEvents(new CommandHandler(soleKey), this);
         
         final BukkitScheduler scheduler = Bukkit.getScheduler();
         
         // Load config
-        getConfig().options().copyDefaults(true);
-        saveConfig();
-        
         this.config = new EternaConfigImpl(soleKey, this);
         
         // Schedule tasks
@@ -84,9 +95,9 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         
         // Load built-in commands
         final CommandProcessor commandProcessor = new CommandProcessor(this);
-        commandProcessor.registerCommand(new EternaCommand("eterna"));
-        commandProcessor.registerCommand(new NoteBlockStudioCommand("nbs"));
-        commandProcessor.registerCommand(new SelectDialogOptionCommand("selectdialogoption"));
+        commandProcessor.registerCommand(new EternaCommand(soleKey, "eterna"));
+        commandProcessor.registerCommand(new NoteBlockStudioCommand(soleKey, "nbs"));
+        commandProcessor.registerCommand(new SelectDialogOptionCommand(soleKey, "selectdialogoption"));
         
         try {
             new File(this.getDataFolder() + "/songs").mkdir();
@@ -94,30 +105,19 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         catch (Exception ignored) {
         }
         
-        // Load dependencies
-        EternaAPI.loadAll();
-        
         // Check for updates
         this.updater = new Updater(soleKey);
         
         if (this.config.checkForUpdates()) {
-            Runnables.runLaterAsync(() -> this.updater.checkForUpdatesAndGiveLink(), 20L);
+            this.updater.checkForUpdates().thenAccept(response -> {
+                if (response.result() == UpdateResult.OUTDATED) {
+                    final Component downloadUrl = response.downloadUrl();
+                    
+                    Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(player -> player.sendMessage(downloadUrl));
+                    Bukkit.getConsoleSender().sendMessage(downloadUrl);
+                }
+            });
         }
-    }
-    
-    @Override
-    public void onDisable() {
-        managers.dispose();
-    }
-    
-    /**
-     * Gets the {@link EternaPlugin}.
-     *
-     * @return the plugin.
-     */
-    @Nonnull
-    public static EternaPlugin getPlugin() {
-        return plugin;
     }
     
     private void validateUsingPaper() {
@@ -131,7 +131,7 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
             EternaLogger.severe("** https://papermc.io/downloads/paper");
             EternaLogger.severe("");
             
-            Bukkit.getPluginManager().disablePlugins();
+            Bukkit.getServer().shutdown();
         }
     }
     

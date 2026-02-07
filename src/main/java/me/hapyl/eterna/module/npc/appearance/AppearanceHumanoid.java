@@ -9,9 +9,8 @@ import net.minecraft.world.entity.LivingEntity;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a humanoid appearance, which includes unique features:
@@ -25,14 +24,14 @@ public class AppearanceHumanoid extends Appearance {
     
     @Nullable private Equipment equipment;
     
-    public AppearanceHumanoid(@Nonnull Npc npc, @Nonnull LivingEntity handle) {
+    public AppearanceHumanoid(@NotNull Npc npc, @NotNull LivingEntity handle) {
         super(npc, handle);
         
         this.equipment = null;
     }
     
     @Override
-    public void show(@Nonnull Player player, @Nonnull Location location) {
+    public void show(@NotNull Player player, @NotNull Location location) {
         super.show(player, location);
         this.updateEquipment(player);
     }
@@ -42,7 +41,7 @@ public class AppearanceHumanoid extends Appearance {
      *
      * @param equipment - The new equipment.
      */
-    public void setEquipment(@Nonnull Equipment equipment) {
+    public void setEquipment(@NotNull Equipment equipment) {
         this.equipment = equipment;
         
         this.npc.showingTo().forEach(this::updateEquipment);
@@ -53,13 +52,13 @@ public class AppearanceHumanoid extends Appearance {
      *
      * @return a copy of entity {@link Equipment}.
      */
-    @Nonnull
+    @NotNull
     public Equipment getEquipment() {
         return Equipment.copyOf(equipment);
     }
     
     @ApiStatus.Internal
-    protected void updateEquipment(@Nonnull Player player) {
+    protected void updateEquipment(@NotNull Player player) {
         if (equipment == null) {
             return;
         }

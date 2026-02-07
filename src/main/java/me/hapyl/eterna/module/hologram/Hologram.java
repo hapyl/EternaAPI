@@ -2,90 +2,97 @@ package me.hapyl.eterna.module.hologram;
 
 import me.hapyl.eterna.module.component.ComponentListSupplier;
 import me.hapyl.eterna.module.entity.Showable;
-import me.hapyl.eterna.module.locaiton.Located;
-import me.hapyl.eterna.module.util.Destroyable;
+import me.hapyl.eterna.module.location.Located;
+import me.hapyl.eterna.module.util.Disposable;
 import org.bukkit.Location;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
-
-import javax.annotation.Nonnull;
+import org.bukkit.entity.TextDisplay;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a hologram that can display multiple lines of text to players.
- * <p>
- * The lines are defined as a {@link ComponentListSupplier}, allowing each player to see personalized content.
+ * Represents a {@link Hologram} that can display multiple lines of text to a {@link Player}.
+ *
+ * <p>The lines are defines as a {@link ComponentListSupplier}, allowing each player to see personalized content.</p>
  */
-public interface Hologram extends Showable, Located, Destroyable {
+public interface Hologram extends Showable, Located, Disposable {
     
     /**
-     * Sets the kines of this {@link Hologram}.
-     * Each line is generated dynamically for each {@link Player} using the provided {@link ComponentListSupplier}.
+     * Sets the lines of this {@link Hologram}.
+     * <p>Each line is generated dynamically for each {@link Player} using the provided {@link ComponentListSupplier}.</p>
+     * <p>Lines are always anchored at the bottom, meaning when there are more than one line, the bottom one will be at the {@link #getLocation()}.</p>
      *
-     * @param supplier - The supplier.
+     * @param supplier - The component list supplier.
      */
-    void setLines(@Nonnull ComponentListSupplier supplier);
+    void setLines(@NotNull ComponentListSupplier supplier);
     
     /**
-     * Gets a copy of the location of this {@link Hologram}.
+     * Gets a copy of the {@link Location} of this {@link Hologram}.
      *
-     * @return a copy of the location of this {@link Hologram}.
+     * @return a copy of the location of this hologram.
      */
-    @Nonnull
+    @NotNull
     @Override
     Location getLocation();
     
     /**
-     * Teleports this {@link Hologram} to the given destination.
+     * Teleports this {@link Hologram} to the given {@link Location}.
      *
-     * @param location - The new location.
+     * @param location - The designated location.
      */
-    void teleport(@Nonnull Location location);
+    void teleport(@NotNull Location location);
     
+    /**
+     * Teleports this {@link Hologram} to the given {@link Location}.
+     *
+     * @param location - The designated location.
+     */
     @Override
-    default void setLocation(@Nonnull Location location) {
+    default void setLocation(@NotNull Location location) {
         teleport(location);
     }
     
     /**
-     * Shows this {@link Hologram} for the given player.
+     * Shows this {@link Hologram} for the given {@link Player}.
      *
      * @param player - The player for whom this entity should be shown.
      */
     @Override
-    void show(@Nonnull Player player);
+    void show(@NotNull Player player);
     
     /**
-     * Hides this {@link Hologram} for the give player.
+     * Hides this {@link Hologram} for the give {@link Player}.
      *
      * @param player - The player for whom this entity should be hidden.
      */
     @Override
-    void hide(@Nonnull Player player);
+    void hide(@NotNull Player player);
     
     /**
      * Destroys this {@link Hologram} for all players who can see it.
      */
     @Override
-    void destroy();
+    void dispose();
     
     /**
-     * Creates a new {@link Hologram} backed by armor stands.
+     * Creates a new {@link Hologram} backed by {@link ArmorStand}
      *
-     * @param location - The base {@link Location} of the hologram.
+     * @param location - The initial location of the hologram.
      * @return a new armor stand based hologram.
      */
-    @Nonnull
-    static Hologram ofArmorStand(@Nonnull Location location) {
+    @NotNull
+    static Hologram ofArmorStand(@NotNull Location location) {
         return new HologramImplArmorStand(location);
     }
     
     /**
-     * Creates a new {@link Hologram} backed by text display entities.
+     * Creates a new {@link Hologram} backed by {@link TextDisplay}.
      *
-     * @param location - The base {@link Location} of the hologram.
+     * @param location - The initial location of the hologram.
      * @return a new text display based hologram.
      */
-    @Nonnull
-    static Hologram ofTextDisplay(@Nonnull Location location) {
+    @NotNull
+    static Hologram ofTextDisplay(@NotNull Location location) {
         return new HologramImplTextDisplay(location);
     }
 }

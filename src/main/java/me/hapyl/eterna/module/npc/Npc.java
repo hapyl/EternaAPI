@@ -2,19 +2,17 @@ package me.hapyl.eterna.module.npc;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.module.annotate.DefensiveCopy;
 import me.hapyl.eterna.module.annotate.EventLike;
-import me.hapyl.eterna.module.annotate.Immutable;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.builder.ComponentBuilder;
 import me.hapyl.eterna.module.component.builder.ComponentResolver;
 import me.hapyl.eterna.module.component.builder.ComponentSupplier;
 import me.hapyl.eterna.module.entity.Showable;
-import me.hapyl.eterna.module.event.PlayerClickAtNpcEvent;
+import me.hapyl.eterna.module.event.PlayerInteractNpcEvent;
 import me.hapyl.eterna.module.hologram.Hologram;
-import me.hapyl.eterna.module.locaiton.Located;
-import me.hapyl.eterna.module.locaiton.LocationHelper;
+import me.hapyl.eterna.module.location.Located;
+import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.npc.appearance.Appearance;
 import me.hapyl.eterna.module.npc.appearance.AppearanceBuilder;
@@ -23,8 +21,8 @@ import me.hapyl.eterna.module.npc.tag.TagPart;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
-import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.util.Destroyable;
+import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
+import me.hapyl.eterna.module.util.Disposable;
 import me.hapyl.eterna.module.util.Ticking;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -33,24 +31,24 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.Entity;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.*;
 
 /**
  * Represents a very customizable npc implementation.
  */
-public class Npc implements Located, Showable, Destroyable, Ticking {
+public class Npc implements Located, Showable, Disposable, Ticking {
     
     public static final double CHAIR_Y_OFFSET;
+    
     private static final ComponentBuilder DEFAULT_MESSAGE_FORMAT;
     
     static {
@@ -71,16 +69,16 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
     private final NpcProperties properties;
     private final PacketTeam packetTeam;
     
-    @Nonnull private final Component defaultName;
+    @NotNull private final Component defaultName;
     
     private final int entityId;
     
-    @Nonnull private Location location;
-    @Nonnull private TagLayout tagLayout;
+    @NotNull private Location location;
+    @NotNull private TagLayout tagLayout;
     
     @Nullable private AreaEffectCloud chairEntity;
     
-    public Npc(@Nonnull @DefensiveCopy Location location, @Nonnull Component defaultName, @Nonnull AppearanceBuilder<? extends Appearance> builder) {
+    public Npc(@NotNull @DefensiveCopy Location location, @NotNull Component defaultName, @NotNull AppearanceBuilder<? extends Appearance> builder) {
         // Build appearance
         final Appearance appearance = builder.build(this);
         
@@ -88,7 +86,7 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         this.entityId = appearance.getHandle().getId();
         
         this.defaultName = defaultName;
-        this.location = BukkitUtils.newLocation(location);
+        this.location = LocationHelper.copyOf(location);
         this.tagLayout = TagLayout.DEFAULT;
         this.properties = new NpcProperties();
         
@@ -100,30 +98,55 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         this.packetTeam = new PacketTeam("npc_" + UUID.randomUUID());
         
         // Register npc by the entity Id, because mojang still uses this system
-        Eterna.getManagers().npc.register(entityId, this);
+        NpcHandler.handler.register(entityId, this);
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link Hologram} used by this {@link Npc}.
+     *
+     * @return the hologram used by this npc.
+     */
+    @NotNull
     public Hologram getHologram() {
         return hologram;
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link PacketTeam} used by this {@link Npc}.
+     *
+     * @return the packet team used by this npc.
+     */
+    @NotNull
     public PacketTeam getPacketTeam() {
         return packetTeam;
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link NpcPose} of this {@link Npc}.
+     *
+     * @return the npc pose of this npc.
+     */
+    @NotNull
     public NpcPose getPose() {
         return this.appearance.getPose();
     }
     
-    public void setPose(@Nonnull NpcPose pose) {
+    /**
+     * Sets the {@link NpcPose} for this {@link Npc}.
+     *
+     * @param pose - The new npc pose.
+     */
+    public void setPose(@NotNull NpcPose pose) {
         if (this.appearance.setPose(pose)) {
             this.syncHologram();
         }
     }
     
+    /**
+     * Gets whether this {@link Npc} is currently sitting.
+     *
+     * @return {@code true} if this npc is currently sitting; {@code false} otherwise.
+     */
     public boolean isSitting() {
         return this.chairEntity != null;
     }
@@ -162,13 +185,25 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         this.syncHologram();
     }
     
+    /**
+     * Forcefully syncs the {@link Hologram} location.
+     */
     public void syncHologram() {
         this.hologram.teleport(getHologramLocation());
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link Hologram} location of this {@link Npc}.
+     *
+     * <p>
+     * The default implementation dynamically offsets the {@link Location} based on the {@link Appearance} height and whether the {@link Npc} is sitting.
+     * </p>
+     *
+     * @return the hologram location of this npc.
+     */
+    @NotNull
     public Location getHologramLocation() {
-        final Location location = BukkitUtils.newLocation(this.location);
+        final Location location = LocationHelper.copyOf(this.location);
         
         // Offset the location by height
         location.add(0, appearance.getHeight(), 0);
@@ -181,12 +216,29 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         return location;
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link NpcProperties}.
+     * <p><b>
+     * Note that properties must be set before {@link #show(Player)} the {@link Npc}!
+     * </b></p>
+     *
+     * @return the npc properties.
+     */
+    @NotNull
     public NpcProperties getProperties() {
         return properties;
     }
     
-    @Nonnull
+    /**
+     * Gets the <i>default name</i> of this {@link Npc}.
+     *
+     * <p>
+     * Since {@link Npc} names are per-player ({@link #getName(Player)}), we might need to have a default name for an {@link Npc} where {@link Player} isn't available.
+     * </p>
+     *
+     * @return the default name of this npc.
+     */
+    @NotNull
     public String getDefaultName() {
         if (defaultName instanceof TextComponent textComponent) {
             return textComponent.content();
@@ -195,17 +247,37 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         return "Invalid Name";
     }
     
-    @Nonnull
-    public Component getName(@Nonnull Player player) {
+    /**
+     * Gets the name of this {@link Npc} for the given {@link Player}.
+     *
+     * <p>
+     * This method is meant to be overridden for retrieve a different name for a different player.
+     * </p>
+     *
+     * @param player - The player for whom to retrieve the name.
+     * @return the name of this npc for the given player.
+     */
+    @NotNull
+    public Component getName(@NotNull Player player) {
         return defaultName;
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link TagLayout} of this {@link Npc}.
+     *
+     * @return the tag layout of this npc.
+     */
+    @NotNull
     public TagLayout getTagLayout() {
         return tagLayout;
     }
     
-    public void setTagLayout(@Nonnull TagLayout tagLayout) {
+    /**
+     * Sets the {@link TagLayout} of this {@link Npc}.
+     *
+     * @param tagLayout - The new layout of this npc.
+     */
+    public void setTagLayout(@NotNull TagLayout tagLayout) {
         this.tagLayout = tagLayout;
         this.updateHologram();
     }
@@ -213,52 +285,51 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
     /**
      * Gets the {@link Appearance} of this {@link Npc} as a base class.
      *
-     * @return the {@link Appearance} of this {@link Npc} as a base class.
+     * @return the {@code appearance} of this {@code npc} as a base class.
      */
-    @Nonnull
+    @NotNull
     public Appearance getAppearance() {
         return appearance;
     }
     
     /**
-     * Gets the {@link Appearance} of this {@link Npc} cast to a given {@code class}.
+     * Gets the {@link Appearance} of this {@link Npc} cast to a given {@link Class}.
      *
      * @param appearanceClass - The class to cast to.
      * @param <T>             - The appearance type.
-     * @return the {@link Appearance} of this {@link Npc} cast to a given {@code class}.
-     * @throws InputMismatchException if the given class isn't the same as the npc appearance.
+     * @return the {@code appearance} of this {@code npc} cast to a given {@code class}.
+     * @throws IllegalArgumentException if the given class isn't the same as the npc appearance.
      */
-    @Nonnull
-    public <T extends Appearance> T getAppearance(@Nonnull Class<T> appearanceClass) {
+    @NotNull
+    public <T extends Appearance> T getAppearance(@NotNull Class<T> appearanceClass) {
         if (!appearanceClass.isInstance(appearance)) {
-            throw new InputMismatchException("Appearance mismatch! Expected \"%s\", got \"%s\".".formatted(appearance.getClass().getSimpleName(), appearanceClass.getSimpleName()));
+            throw new IllegalArgumentException("Appearance mismatch! Expected `%s`, got `%s`.".formatted(appearance.getClass().getSimpleName(), appearanceClass.getSimpleName()));
         }
         
         return appearanceClass.cast(appearance);
     }
     
     /**
-     * Gets the entity Id associated with this {@link Npc}.
-     * <p>
-     * The Id belongs to the {@link Appearance} entity and manager by the server.
-     * </p>
+     * Gets the {@code entityId} associated with this {@link Npc}.
      *
-     * @return the entity Id associated with this {@link Npc}.
+     * <p>The id belongs to the {@link Appearance} entity and is managed by the server.</p>
+     *
+     * @return the entity Id associated with this {@code npc}.
      */
     public int getEntityId() {
         return entityId;
     }
     
     /**
-     * Gets the current {@link Location} of this {@link Npc}.
+     * Gets a copy of the current {@link Location} of this {@link Npc}.
      *
-     * @return the current {@link Location} of this {@link Npc}.
+     * @return a copy of the current {@code location} of this {@code npc}.
      */
-    @Nonnull
+    @NotNull
     @DefensiveCopy
     @Override
     public Location getLocation() {
-        return BukkitUtils.newLocation(location);
+        return LocationHelper.copyOf(this.location);
     }
     
     /**
@@ -270,15 +341,16 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
      * @param location - The new location to set.
      */
     @Override
-    public void setLocation(@Nonnull @DefensiveCopy Location location) {
-        this.location = BukkitUtils.newLocation(location);
+    public void setLocation(@NotNull @DefensiveCopy Location location) {
+        this.location = LocationHelper.copyOf(location);
         
         // Synchronize appearance & hologram
         this.appearance.setLocation(location);
         this.syncHologram();
         
         // Call eventlike
-        this.playerData.keySet().forEach(player -> this.onTeleport(player, location));
+        final Location copyOf = LocationHelper.copyOf(location);
+        this.playerData.keySet().forEach(player -> this.onTeleport(player, copyOf));
     }
     
     /**
@@ -287,7 +359,7 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
      * @param player - The player for whom this entity should be shown.
      */
     @Override
-    public void show(@Nonnull Player player) {
+    public void show(@NotNull Player player) {
         this.show0(player);
         
         // Visibility defaults to VISIBLE so just compute it
@@ -303,7 +375,7 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
      * @param player - The player for whom this entity should be hidden.
      */
     @Override
-    public void hide(@Nonnull Player player) {
+    public void hide(@NotNull Player player) {
         this.hide0(player);
         
         this.playerData.remove(player);
@@ -317,43 +389,58 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
      *
      * @return an immutable view of all players who can see this {@link Npc}.
      */
-    @Nonnull
+    @NotNull
     @Override
     public Set<Player> showingTo() {
         return Set.copyOf(playerData.keySet());
     }
     
     /**
-     * Gets whether this {@link Npc} is showing for a given player.
+     * Gets whether this {@link Npc} is showing for a given {@link Player}.
      *
      * @param player - The player to check.
-     * @return {@code true} if this {@link Npc} is showing for the given player, {@code false} otherwise.
+     * @return {@code true} if this npc is showing for the given player, {@code false} otherwise.
      */
     @Override
-    public boolean isShowingTo(@Nonnull Player player) {
+    public boolean isShowingTo(@NotNull Player player) {
         return playerData.containsKey(player);
     }
     
     /**
      * Completely destroys this {@link Npc}, removing the {@link Appearance} entity, clearing {@link Hologram}, etc.
-     * <p>
-     * Calling any methods after destroying the {@link Npc} is undefined and subject to not work.
-     * </p>
+     *
+     * <p>Calling any methods after destroying the {@link Npc} is undefined and subject to not work.</p>
      */
     @Override
-    public void destroy() {
+    public void dispose() {
         this.playerData.keySet().forEach(player -> {
             this.appearance.hide(player);
             this.packetTeam.destroy(player);
         });
-        this.playerData.clear();
         
-        this.hologram.destroy();
+        this.playerData.clear();
+        this.hologram.dispose();
         
         // Unregister
-        Eterna.getManagers().npc.unregister(appearance.getHandle().getId());
+        NpcHandler.handler.unregister(entityId);
     }
     
+    /**
+     * Gets the hashcode of this {@link Npc}.
+     *
+     * @return the hashcode of this npc.
+     */
+    @Override
+    public final int hashCode() {
+        return Objects.hashCode(this.entityId);
+    }
+    
+    /**
+     * Compares the given {@link Object} to this {@link Npc}.
+     *
+     * @param object - The reference object with which to compare.
+     * @return {@code true} if the given object if a npc and has the same id as this npc.
+     */
     @Override
     public final boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) {
@@ -364,32 +451,61 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         return this.entityId == that.entityId;
     }
     
-    @Override
-    public final int hashCode() {
-        return Objects.hashCode(this.entityId);
-    }
-    
+    /**
+     * An event-like method that is called whenever a {@link Player} clicks on this {@link Npc}.
+     *
+     * @param player    - The player who clicked at the npc.
+     * @param clickType - The click type used.
+     */
     @EventLike
-    public void onClick(@Nonnull Player player, @Nonnull ClickType clickType) {
+    public void onClick(@NotNull Player player, @NotNull ClickType clickType) {
     }
     
+    /**
+     * An event-like method that is called whenever this {@link Npc} is shown for a {@link Player}.
+     *
+     * <p>This method is <b>not</b> called for when the npc is shown due to being out of visible distance.</p>
+     *
+     * @param player - The player for whom this npc is being shown.
+     */
     @EventLike
-    public void onSpawn(@Nonnull Player player) {
+    public void onSpawn(@NotNull Player player) {
     }
     
+    /**
+     * An event-like method that is called whenever this {@link Npc} is hidden for a {@link Player}.
+     *
+     * <p>This method is <b>not</b> called for when the npc is shown due to being out of visible distance.</p>
+     *
+     * @param player - The player for whom this npc is being hidden.
+     */
     @EventLike
-    public void onDespawn(@Nonnull Player player) {
+    public void onDespawn(@NotNull Player player) {
     }
     
+    /**
+     * An event-like method that is called whenever this {@link Npc} location is changed.
+     *
+     * <p>This method is called for each {@link Player} who can see the {@link Npc} upon teleportation.</p>
+     *
+     * @param player   - The player for whom the location has changed.
+     * @param location - The new location.
+     *                 <p>The location passed is a defensive copy of the actual location, but it should <b>not</b> be mutated regardless.</p>
+     */
     @EventLike
-    public void onTeleport(@Nonnull Player player, @Nonnull @Immutable Location location) {
+    public void onTeleport(@NotNull Player player, @NotNull @DefensiveCopy Location location) {
     }
     
+    /**
+     * Updates the {@link Hologram} of this {@link Npc}.
+     *
+     * <p>This method should generally not be called by programmers, since it's automatically called on {@link #setTagLayout(TagLayout)}.</p>
+     */
     public void updateHologram() {
         this.hologram.setLines(player -> {
             final ComponentList lines = ComponentList.empty();
             
-            for (@Nonnull TagPart part : tagLayout.parts()) {
+            for (@NotNull TagPart part : tagLayout.parts()) {
                 // We skip null components, use Component.empty() for linebreak
                 final Component component = part.component(this, player);
                 
@@ -402,6 +518,9 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         });
     }
     
+    /**
+     * Ticks this {@link Npc}.
+     */
     @Override
     @OverridingMethodsMustInvokeSuper
     public void tick() {
@@ -428,7 +547,12 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         final double lookAtClosePlayerDistance = properties.getLookAtClosePlayerDistance();
         
         if (lookAtClosePlayerDistance > 0) {
-            final Player closestPlayer = BukkitUtils.getNearestEntity(location, lookAtClosePlayerDistance, lookAtClosePlayerDistance, lookAtClosePlayerDistance, Player.class);
+            final Player closestPlayer = playerData.values()
+                                                   .stream()
+                                                   .filter(data -> data.visibility == Visibility.VISIBLE)
+                                                   .map(data -> data.player)
+                                                   .min(Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(location)))
+                                                   .orElse(null);
             
             // Look at the closest player
             if (closestPlayer != null) {
@@ -445,19 +569,38 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         }
     }
     
-    public void lookAt(@Nonnull @DefensiveCopy Location lookAt) {
+    /**
+     * Makes this {@link Npc} look at the given {@link Location}.
+     *
+     * @param lookAt - The desired location for npc to look at.
+     */
+    public void lookAt(@NotNull @DefensiveCopy Location lookAt) {
         // Calculate yaw & pitch
         final Location location = getLocation();
-        location.setDirection(lookAt.clone().subtract(location).toVector());
+        location.setDirection(LocationHelper.copyOf(lookAt).subtract(location).toVector());
         
         // Update position via packets
         setHeadRotation(location.getYaw(), location.getPitch());
     }
     
-    public void lookAt(@Nonnull LivingEntity entity, @Nonnull LookAnchor anchor) {
+    /**
+     * Makes this {@link Npc} look at the given {@link LivingEntity}.
+     *
+     * @param entity - The entity at which to look.
+     * @param anchor - The look anchor.
+     */
+    public void lookAt(@NotNull LivingEntity entity, @NotNull LookAnchor anchor) {
         this.lookAt(anchor.apply(entity));
     }
     
+    /**
+     * Sets the head rotation of this {@link Npc}.
+     *
+     * <p>This is a convenience method that does not trigger any location updates other than the head.</p>
+     *
+     * @param yaw   - The desired yaw.
+     * @param pitch - The desired pitch.
+     */
     public void setHeadRotation(float yaw, float pitch) {
         final Entity handle = appearance.getHandle();
         
@@ -470,13 +613,20 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         this.location.setYaw(yaw);
         this.location.setPitch(pitch);
         
-        sendPackets(
-                PacketFactory.makePacketRotateHead(handle, yaw),
-                PacketFactory.makePacketMoveEntityRot(handle, yaw, pitch)
-        );
+        sendPacketToAll(PacketFactory.makePacketRotateHead(handle, yaw));
+        sendPacketToAll(PacketFactory.makePacketMoveEntityRot(handle, yaw, pitch));
     }
     
-    public void sendMessage(@Nonnull Player player, @Nonnull Component message) {
+    /**
+     * Sends the given {@link Component} message to the given {@link Player}, formatted according to {@link #getNpcMessageFormat()}.
+     *
+     * <p>The message component supports custom {@link NpcPlaceholder}.</p>
+     *
+     * @param player  - The player for whom to send the message.
+     * @param message - The message to send.
+     * @see NpcPlaceholder
+     */
+    public void sendMessage(@NotNull Player player, @NotNull Component message) {
         // Apply static placeholders
         message = NpcPlaceholder.doPlacehold(message, this, player);
         
@@ -489,26 +639,56 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         player.sendMessage(component);
     }
     
-    @Nonnull
+    /**
+     * Gets the {@link ComponentBuilder} for this {@link Npc}, which defines how the npc messages should be formatted.
+     *
+     * @return the npc message format.
+     */
+    @NotNull
     public ComponentBuilder getNpcMessageFormat() {
         return DEFAULT_MESSAGE_FORMAT;
     }
     
-    public void playAnimation(@Nonnull NpcAnimation animation) {
-        this.sendPackets(animation.makePacket(appearance.getHandle()));
+    /**
+     * Plays the given {@link NpcAnimation}.
+     *
+     * @param animation - The animation to play.
+     */
+    public void playAnimation(@NotNull NpcAnimation animation) {
+        this.sendPacketToAll(animation.makePacket(appearance.getHandle()));
     }
     
-    @Nonnull
-    protected NpcPlayerData playerData(@Nonnull Player player) {
+    /**
+     * Sets whether this {@link Npc} is shaking.
+     *
+     * @param shaking - {@code true} to make the npc shake; {@code false} otherwise.
+     */
+    public void setShaking(boolean shaking) {
+        this.appearance.setShaking(shaking);
+    }
+    
+    /**
+     * Gets the {@link NpcPlayerData} for the given {@link Player}.
+     *
+     * @param player - The player for whom to retrieve the data.
+     * @return the existing or newly computed data.
+     */
+    @NotNull
+    protected NpcPlayerData playerData(@NotNull Player player) {
         return playerData.computeIfAbsent(player, NpcPlayerData::new);
     }
     
+    /**
+     * Shows this {@link Npc} for the given {@link Player} <b>without</b> calling any event-like methods or computing data.
+     *
+     * @param player - The player for whom to show the npc.
+     */
     @OverridingMethodsMustInvokeSuper
-    protected void show0(@Nonnull Player player) {
+    protected void show0(@NotNull Player player) {
         // Prepare team
         this.packetTeam.create(player);
         this.packetTeam.entry(player, appearance.getScoreboardEntry());
-        this.packetTeam.color(player, ChatColor.DARK_PURPLE);
+        this.packetTeam.color(player, PacketTeamColor.DARK_PURPLE);
         
         this.packetTeam.option(player, Team.Option.COLLISION_RULE, properties.isCollidable() ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER);
         
@@ -523,8 +703,13 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         this.hologram.show(player);
     }
     
+    /**
+     * Hides this {@link Npc} for the given {@link Player} <b>without</b> calling any event-like methods.
+     *
+     * @param player - The player for whom to hide the npc.
+     */
     @OverridingMethodsMustInvokeSuper
-    protected void hide0(@Nonnull Player player) {
+    protected void hide0(@NotNull Player player) {
         this.appearance.hide(player);
         this.hologram.hide(player);
         
@@ -535,31 +720,30 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
     }
     
     @ApiStatus.Internal
-    private void updateSitting(@Nonnull Player player) {
+    private void updateSitting(@NotNull Player player) {
         // Explicit chair check
         if (chairEntity == null) {
             return;
         }
         
         // Create the chair entity to the player
-        Reflect.sendPacket(
-                player,
-                PacketFactory.makePacketAddEntity(chairEntity),
-                PacketFactory.makePacketSetEntityData(chairEntity),
-                PacketFactory.makePacketTeleportEntity(chairEntity),
-                PacketFactory.makePacketSetPassengers(chairEntity)
-        );
+        Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(chairEntity));
+        Reflect.sendPacket(player, PacketFactory.makePacketSetEntityData(chairEntity));
+        Reflect.sendPacket(player, PacketFactory.makePacketTeleportEntity(chairEntity));
+        Reflect.sendPacket(player, PacketFactory.makePacketSetPassengers(chairEntity));
     }
     
-    final void sendPackets(Packet<?>... packets) {
+    @ApiStatus.Internal
+    final void sendPacketToAll(@NotNull Packet<?> packet) {
         playerData.values().forEach(playerData -> {
             if (playerData.visibility == Visibility.VISIBLE) {
-                Reflect.sendPacket(playerData.player, packets);
+                Reflect.sendPacket(playerData.player, packet);
             }
         });
     }
     
-    final void onClick0(@Nonnull Player player, @Nonnull ClickType clickType) {
+    @ApiStatus.Internal
+    final void onClick0(@NotNull Player player, @NotNull ClickType clickType) {
         // Check for interaction cooldown
         final NpcPlayerData playerData = playerData(player);
         final long interactionDelayMillis = properties.getInteractionDelay() * 50L;
@@ -573,21 +757,20 @@ public class Npc implements Located, Showable, Destroyable, Ticking {
         }
         
         // Call event
-        final PlayerClickAtNpcEvent event = new PlayerClickAtNpcEvent(player, this, clickType);
+        final PlayerInteractNpcEvent event = new PlayerInteractNpcEvent(player, this, clickType);
         event.callEvent();
         
-        final PlayerClickAtNpcEvent.ClickResponse response = event.getResponse();
+        final PlayerInteractNpcEvent.ClickResponse response = event.getResponse();
         
-        if (response == PlayerClickAtNpcEvent.ClickResponse.CANCEL) {
+        if (response == PlayerInteractNpcEvent.ClickResponse.DENY) {
             return;
         }
         
-        // Start the cooldown either way, can only be HOLD or OK which both
-        // start the cooldown
+        // Start the cooldown either way, can only be `HOLD` or `OK` which both start the cooldown
         playerData.lastInteraction = System.currentTimeMillis();
         
         // Only pass the onClick() is response is OK
-        if (response == PlayerClickAtNpcEvent.ClickResponse.OK) {
+        if (response == PlayerInteractNpcEvent.ClickResponse.OK) {
             onClick(player, clickType);
         }
     }

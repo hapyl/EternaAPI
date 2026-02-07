@@ -1,101 +1,117 @@
 package me.hapyl.eterna.module.player.tablist;
 
 import com.google.common.collect.Maps;
-import com.mojang.authlib.properties.Property;
 import me.hapyl.eterna.module.reflect.Skin;
-import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.CollectionUtils;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
  * Static textures for {@link TablistEntry}.
+ *
  * <p>
- * You can generate or browse textures <a href="https://mineskin.org/">here</a>.
+ * You can generate textures with signature at <a href="https://mineskin.org/">MineSkin</a>.
+ * </p>
  */
 public final class EntryTexture implements Skin {
     
     /**
      * Equivalent to {@link NamedTextColor#BLACK}.
      */
+    @NotNull
     public static final EntryTexture BLACK;
     
     /**
      * Equivalent to {@link NamedTextColor#DARK_BLUE}.
      */
+    @NotNull
     public static final EntryTexture DARK_BLUE;
     
     /**
      * Equivalent to {@link NamedTextColor#DARK_GREEN}.
      */
+    @NotNull
     public static final EntryTexture DARK_GREEN;
     
     /**
      * Equivalent to {@link NamedTextColor#DARK_AQUA}.
      */
+    @NotNull
     public static final EntryTexture DARK_AQUA;
     
     /**
      * Equivalent to {@link NamedTextColor#DARK_RED}.
      */
+    @NotNull
     public static final EntryTexture DARK_RED;
     
     /**
      * Equivalent to {@link NamedTextColor#DARK_PURPLE}.
      */
+    @NotNull
     public static final EntryTexture DARK_PURPLE;
     
     /**
      * Equivalent to {@link NamedTextColor#GOLD}.
      */
+    @NotNull
     public static final EntryTexture GOLD;
     
     /**
      * Equivalent to {@link NamedTextColor#GRAY}.
      */
+    @NotNull
     public static final EntryTexture GRAY;
     
     /**
      * Equivalent to {@link NamedTextColor#DARK_GRAY}.
      */
+    @NotNull
     public static final EntryTexture DARK_GRAY;
     
     /**
      * Equivalent to {@link NamedTextColor#BLUE}.
      */
+    @NotNull
     public static final EntryTexture BLUE;
     
     /**
      * Equivalent to {@link NamedTextColor#GREEN}.
      */
+    @NotNull
     public static final EntryTexture GREEN;
     
     /**
      * Equivalent to {@link NamedTextColor#AQUA}.
      */
+    @NotNull
     public static final EntryTexture AQUA;
     
     /**
      * Equivalent to {@link NamedTextColor#RED}.
      */
+    @NotNull
     public static final EntryTexture RED;
     
     /**
      * Equivalent to {@link NamedTextColor#LIGHT_PURPLE}.
      */
+    @NotNull
     public static final EntryTexture LIGHT_PURPLE;
     
     /**
      * Equivalent to {@link NamedTextColor#YELLOW}.
      */
+    @NotNull
     public static final EntryTexture YELLOW;
     
     /**
      * Equivalent to {@link NamedTextColor#WHITE}.
      */
+    @NotNull
     public static final EntryTexture WHITE;
     
     // Maps default minecraft colors to a texture
@@ -207,7 +223,7 @@ public final class EntryTexture implements Skin {
     
     private final String[] value;
     
-    public EntryTexture(@Nonnull String value, @Nonnull String signature) {
+    public EntryTexture(@NotNull String value, @NotNull String signature) {
         this.value = new String[] { value, signature };
     }
     
@@ -216,7 +232,7 @@ public final class EntryTexture implements Skin {
      *
      * @return the value of this texture.
      */
-    @Nonnull
+    @NotNull
     @Override
     public String texture() {
         return value[0];
@@ -227,7 +243,7 @@ public final class EntryTexture implements Skin {
      *
      * @return the signature of this texture.
      */
-    @Nonnull
+    @NotNull
     @Override
     public String signature() {
         return value[1];
@@ -240,8 +256,8 @@ public final class EntryTexture implements Skin {
      * @param signature - Signature.
      * @return an entry texture.
      */
-    @Nonnull
-    public static EntryTexture of(@Nonnull String value, @Nonnull String signature) {
+    @NotNull
+    public static EntryTexture of(@NotNull String value, @NotNull String signature) {
         return new EntryTexture(value, signature);
     }
     
@@ -251,23 +267,21 @@ public final class EntryTexture implements Skin {
      * @param player - Player.
      * @return an entry texture.
      */
-    @Nonnull
-    public static EntryTexture of(@Nonnull Player player) {
+    @NotNull
+    public static EntryTexture of(@NotNull Player player) {
         EntryTexture texture = cachedPlayerTextures.get(player);
         
         if (texture == null) {
-            final Property textures = BukkitUtils.getPlayerTextures(player);
-            final String signature = textures.signature();
+            final Skin skin = Skin.ofPlayer(player);
             
-            texture = new EntryTexture(textures.value(), signature != null ? signature : "");
-            cachedPlayerTextures.put(player, texture);
+            cachedPlayerTextures.put(player, texture = new EntryTexture(skin.texture(), skin.signature()));
         }
         
         return texture;
     }
     
-    @Nonnull
-    public static EntryTexture of(@Nonnull NamedTextColor color) {
+    @NotNull
+    public static EntryTexture of(@NotNull NamedTextColor color) {
         final EntryTexture texture = chatColorMapped.get(color);
         
         if (texture != null) {
@@ -277,7 +291,7 @@ public final class EntryTexture implements Skin {
         throw new IllegalArgumentException("Cannot get texture for %s!".formatted(color));
     }
     
-    @Nonnull
+    @NotNull
     public static EntryTexture random() {
         return CollectionUtils.randomElementOrFirst(chatColorMapped.values());
     }

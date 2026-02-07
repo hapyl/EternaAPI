@@ -6,23 +6,23 @@ package me.hapyl.eterna.module.player.tablist;
 public enum TablistColumn {
     
     /**
-     * The first column, from index {@code 0}-{@code 19}.
+     * Defines the first column, from index {@code 0} - {@code 19}.
      */
     FIRST,
     
     /**
-     * The second column, from index {@code 20}-{@code 39}.
+     * Defines the second column, from index {@code 20} - {@code 39}.
      */
     SECOND,
     
     /**
-     * The third column, from index {@code 40}-{@code 59}.
+     * Defines the third column, from index {@code 40} - {@code 59}.
      */
     THIRD,
     
     /**
-     * The fourth column, from index {@code 60}-{@code 79}.
+     * Defines the fourth column, from index {@code 60} - {@code 79}.
      */
-    FOURTH;
+    FOURTH
     
 }

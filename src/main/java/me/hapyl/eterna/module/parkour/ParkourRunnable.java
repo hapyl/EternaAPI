@@ -1,41 +1,34 @@
 package me.hapyl.eterna.module.parkour;
 
-import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaKey;
-import me.hapyl.eterna.EternaLock;
-import me.hapyl.eterna.builtin.manager.ParkourManager;
+import me.hapyl.eterna.EternaKeyed;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
-public abstract class ParkourRunnable extends EternaLock implements Runnable {
+public sealed abstract class ParkourRunnable extends EternaKeyed implements Runnable {
     
-    protected final ParkourManager parkourManager;
-    
-    public ParkourRunnable(@Nonnull EternaKey key) {
+    public ParkourRunnable(@NotNull EternaKey key) {
         super(key);
-        
-        this.parkourManager = Eterna.getManagers().parkour;
     }
     
-    public static class Actionbar extends ParkourRunnable {
-        public Actionbar(@Nonnull EternaKey key) {
+    public static final class Actionbar extends ParkourRunnable {
+        public Actionbar(@NotNull EternaKey key) {
             super(key);
         }
         
         @Override
         public void run() {
-            parkourManager.getParkourData().forEach((player, playerData) -> playerData.getParkour().getFormatter().sendTickActionbar(playerData));
+            ParkourHandler.handler.forEachPlayerData(playerData -> playerData.getParkour().getFormatter().actionbar(playerData));
         }
     }
     
-    public static class Hologram extends ParkourRunnable {
-        public Hologram(@Nonnull EternaKey key) {
+    public static final class Hologram extends ParkourRunnable {
+        public Hologram(@NotNull EternaKey key) {
             super(key);
         }
         
         @Override
         public void run() {
-            parkourManager.forEach(Parkour::tickHolograms);
+            ParkourHandler.handler.forEach(Parkour::tick);
         }
     }
 }

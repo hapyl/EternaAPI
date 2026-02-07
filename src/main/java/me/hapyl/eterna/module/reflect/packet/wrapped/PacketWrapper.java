@@ -1,27 +1,32 @@
 package me.hapyl.eterna.module.reflect.packet.wrapped;
 
+import me.hapyl.eterna.module.event.protocol.PacketReceiveEvent;
+import me.hapyl.eterna.module.event.protocol.PacketSendEvent;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Represents a packet wrapper that converts raw packets into their wrapped form.
+ * Represents a {@link PacketWrapper} that converts raw {@link Packet} into their {@link WrappedPacket} form.
  *
- * @param <T> - The packet type.
- * @param <P> - The packet.
- * @param <W> - The wrapped packet.
+ * @param <T> - The packet listener type.
+ * @param <P> - The raw packet type.
+ * @param <W> - The wrapped packet type.
+ * @see PacketWrappers
+ * @see PacketSendEvent
+ * @see PacketReceiveEvent
  */
 public class PacketWrapper<T extends PacketListener, P extends Packet<T>, W extends WrappedPacket<P>> {
     
     private final Class<P> clazz;
     private final Function<P, W> function;
     
-    PacketWrapper(Class<P> clazz, Function<P, W> function) {
+    PacketWrapper(@NotNull Class<P> clazz, @NotNull Function<P, W> function) {
         this.clazz = clazz;
         this.function = function;
     }
@@ -31,55 +36,46 @@ public class PacketWrapper<T extends PacketListener, P extends Packet<T>, W exte
      *
      * @return the class of the packet.
      */
-    @Nonnull
+    @NotNull
     public Class<P> getClazz() {
         return clazz;
     }
     
     /**
-     * Wraps the given {@link Packet} if the type matches.
+     * Wraps the given {@link Packet} if its type is identical to the {@link #getClazz()}.
      *
-     * @param packet - Packet to warp.
-     * @return the wrapped packet or null.
+     * @param packet - The packet to wrap.
+     * @return the wrapped packet wrapped in an optional.
      */
-    @Nullable
-    public W wrap(@Nonnull Packet<?> packet) {
+    @NotNull
+    public Optional<W> wrap(@NotNull Packet<?> packet) {
         if (clazz.isInstance(packet)) {
-            return function.apply(clazz.cast(packet));
+            return Optional.of(function.apply(clazz.cast(packet)));
         }
         
-        return null;
+        return Optional.empty();
     }
     
     /**
-     * Wraps the given {@link Packet} if the type matches, throws an exception otherwise.
+     * Represents a client-side packet.
      *
-     * @param packet - Packet to wrap.
-     * @return the wrapped packet.
-     * @throws IllegalArgumentException if the packet type does not match.
+     * @param <P> - The raw packet type.
+     * @param <W> - The wrapped packet type.
      */
-    @Nonnull
-    public W wrapOrThrow(@Nonnull Packet<?> packet) {
-        final W wrapped = wrap(packet);
-        
-        if (wrapped != null) {
-            return wrapped;
-        }
-        
-        throw new IllegalArgumentException("Packet %s cannot be wrapped unto Wrapped%s!".formatted(
-                packet.getClass().getSimpleName(),
-                clazz.getSimpleName()
-        ));
-    }
-    
-    public static class Client<P extends Packet<ClientGamePacketListener>, W extends WrappedPacket<P>> extends PacketWrapper<ClientGamePacketListener, P, W> {
-        Client(@Nonnull Class<P> clazz, @Nonnull Function<P, W> function) {
+    public static class Client<P extends Packet<@NotNull ClientGamePacketListener>, W extends WrappedPacket<P>> extends PacketWrapper<ClientGamePacketListener, P, W> {
+        Client(@NotNull Class<P> clazz, @NotNull Function<P, W> function) {
             super(clazz, function);
         }
     }
     
-    public static final class Server<P extends Packet<ServerGamePacketListener>, W extends WrappedPacket<P>> extends PacketWrapper<ServerGamePacketListener, P, W> {
-        Server(@Nonnull Class<P> clazz, @Nonnull Function<P, W> function) {
+    /**
+     * Represents a server-side packet.
+     *
+     * @param <P> - The raw packet type.
+     * @param <W> - The wrapped packet type.
+     */
+    public static final class Server<P extends Packet<@NotNull ServerGamePacketListener>, W extends WrappedPacket<P>> extends PacketWrapper<ServerGamePacketListener, P, W> {
+        Server(@NotNull Class<P> clazz, @NotNull Function<P, W> function) {
             super(clazz, function);
         }
     }

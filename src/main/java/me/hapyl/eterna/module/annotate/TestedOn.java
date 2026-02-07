@@ -1,5 +1,7 @@
 package me.hapyl.eterna.module.annotate;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nonnull;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,13 +9,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that this method or class has been tested using {@link TestedOn#version()} Minecraft version.
+ * Indicates that the annotated method or class has been tested on {@link TestedOn#version()} and promises a complete functionality of it.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE, ElementType.METHOD })
 public @interface TestedOn {
     /**
-     * Gets the tested version for this build.
+     * Gets the version this method or class is tested on.
+     *
+     * @return the version this method or class is tested on.
      */
-    @Nonnull Version version();
+    @NotNull Version version();
 }

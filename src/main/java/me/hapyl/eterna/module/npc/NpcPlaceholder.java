@@ -5,8 +5,9 @@ import me.hapyl.eterna.module.annotate.ForceLowercase;
 import me.hapyl.eterna.module.annotate.Mutates;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -15,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * Represents a placeholder for {@link Npc} message.
  *
- * <p>Registered placeholder will replace via {@link Npc#sendMessage(Player, Component)}, as example:</p>
+ * <p>Registered placeholder will be replaced via {@link Npc#sendMessage(Player, Component)}, as example:</p>
  * <pre>{@code
  * Player player = player("hapyl");
  * Npc npc = npc("My Npc");
@@ -45,21 +46,21 @@ public abstract class NpcPlaceholder {
     
     private final Pattern pattern;
     
-    NpcPlaceholder(@Nonnull String key) {
+    NpcPlaceholder(@NotNull String key) {
         this.pattern = Pattern.compile("\\{%s\\}".formatted(key));
     }
     
     /**
      * Resolves placeholders using the given {@link Npc} and {@link Player} and returns the resulting {@link Component}.
      *
-     * @param npc    - The {@link Npc} used as a placeholder context.
-     * @param player - The {@link Player} used as a placeholder context.
+     * @param npc    - The npc used as a placeholder context.
+     * @param player - The npc used as a placeholder context.
      */
-    @Nonnull
-    public abstract Component placehold(@Nonnull Npc npc, @Nonnull Player player);
+    @NotNull
+    public abstract Component placehold(@NotNull Npc npc, @NotNull Player player);
     
     /**
-     * Gets the string representation of this placeholder, this being the placeholder key formatted as {@code {key}}.
+     * Gets the {@link String} representation of this placeholder, this being the placeholder key formatted as {@code {key}}.
      *
      * @return the string representation of this placeholder.
      */
@@ -95,17 +96,17 @@ public abstract class NpcPlaceholder {
     }
     
     /**
-     * Registers a new placeholder with the given key.
+     * A static factory method for registering a {@link NpcPlaceholder}.
      *
      * @param key - The key of the placeholder.
      * @param fn  - The placeholder function.
      * @throws IllegalStateException if the placeholder with that key is already registered.
      */
-    public static void register(@Nonnull @ForceLowercase String key, @Nonnull BiFunction<Npc, Player, Component> fn) {
+    public static void register(@NotNull @ForceLowercase String key, @NotNull BiFunction<Npc, Player, Component> fn) {
         final NpcPlaceholder placeholder = new NpcPlaceholder(key) {
-            @Nonnull
+            @NotNull
             @Override
-            public Component placehold(@Nonnull Npc npc, @Nonnull Player player) {
+            public Component placehold(@NotNull Npc npc, @NotNull Player player) {
                 return fn.apply(npc, player);
             }
         };
@@ -119,8 +120,9 @@ public abstract class NpcPlaceholder {
         placeholders.add(placeholder);
     }
     
-    @Nonnull
-    static Component doPlacehold(@Nonnull @Mutates Component original, @Nonnull Npc npc, @Nonnull Player player) {
+    @ApiStatus.Internal
+    @NotNull
+    static Component doPlacehold(@NotNull @Mutates Component original, @NotNull Npc npc, @NotNull Player player) {
         for (NpcPlaceholder placeholder : placeholders) {
             original = original.replaceText(
                     builder -> builder.match(placeholder.pattern).replacement(placeholder.placehold(npc, player))

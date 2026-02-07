@@ -1,111 +1,109 @@
 package me.hapyl.eterna.module.math;
 
 import me.hapyl.eterna.module.util.BukkitUtils;
-import org.bukkit.util.NumberConversions;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a number that can either be a fixed value or a random number
- * within a specified range.
+ * Represents a uniformly distributed numeric value within a fixed range.
+ *
+ * <p>
+ * Each call to a numeric accessor returns a value sampled uniformly between
+ * the {@code min} and {@code max}.
+ * </p>
  */
-public class UniformNumber {
-
+public class UniformNumber implements AsNumber {
+    
     private final double min;
     private final double max;
-
+    
     private UniformNumber(double min, double max) {
-        this.min = min;
-        this.max = max;
-    }
-
-    /**
-     * Returns the value as an <code>integer</code>.
-     * <p>If the range is fixed, the value will always be the fixed number.
-     * Otherwise, a random <code>integer</code> within the range is returned.</p>
-     *
-     * @return the value as an <code>integer</code>.
-     */
-    public int asInt() {
-        return (int) getValue();
-    }
-
-    /**
-     * Returns the value as a <code>long</code>.
-     * <p>If the range is fixed, the value will always be the fixed number.
-     * Otherwise, a random <code>long</code> within the range is returned.</p>
-     *
-     * @return the value as a <code>long</code>.
-     */
-    public long asLong() {
-        return (long) getValue();
-    }
-
-    /**
-     * Returns the value as a <code>double</code>.
-     * <p>If the range is fixed, the value will always be the fixed number.
-     * Otherwise, a random <code>double</code> within the range is returned.</p>
-     *
-     * @return the value as a <code>double</code>.
-     */
-    public double asDouble() {
-        return getValue();
-    }
-
-    /**
-     * Returns the value as a <code>float</code>.
-     * <p>If the range is fixed, the value will always be the fixed number.
-     * Otherwise, a random <code>float</code> within the range is returned.</p>
-     *
-     * @return the value as a <code>float</code>.
-     */
-    public float asFloat() {
-        return (float) getValue();
-    }
-
-    private double getValue() {
-        if (min == max) {
-            return min;
-        }
-
-        return BukkitUtils.RANDOM.nextDouble(min, max + 1);
-    }
-
-    /**
-     * Parses a string to create a {@link UniformNumber}.
-     * <p>The string can represent:
-     * <ul>
-     *     <li>A fixed value, e.g., "5" (min and max are the same).</li>
-     *     <li>A range, e.g., "1..5" (min is 1 and max is 5).</li>
-     * </ul>
-     * <p>Throws {@link IllegalArgumentException} if the parsed minimum
-     * value is greater than the maximum value.</p>
-     *
-     * @param string - the string to parse.
-     * @return a {@link UniformNumber} representing the parsed value or range.
-     */
-    @Nonnull
-    public static UniformNumber parse(@Nonnull String string) {
-        double min;
-        double max;
-
-        // Parse range 1..5 results in a random number between 1 and 5 (inclusive)
-        if (string.contains("..")) {
-            final String[] range = string.split("\\.\\.");
-
-            min = NumberConversions.toDouble(range[0]);
-            max = NumberConversions.toDouble(range[1]);
-        }
-        // Else parse normally
-        else {
-            min = NumberConversions.toDouble(string);
-            max = min;
-        }
-
         if (min > max) {
             throw new IllegalArgumentException("'min' (%s) cannot be greater than 'max' (%s)!".formatted(min, max));
         }
-
+        
+        this.min = min;
+        this.max = max;
+    }
+    
+    /**
+     * Gets a randomly sampled value as an {@code int}.
+     *
+     * @return The sampled value cast to {@code int}.
+     */
+    @Override
+    public int asInt() {
+        return (int) getValue();
+    }
+    
+    /**
+     * Gets a randomly sampled value as a {@code long}.
+     *
+     * @return The sampled value cast to {@code long}.
+     */
+    @Override
+    public long asLong() {
+        return (long) getValue();
+    }
+    
+    /**
+     * Gets a randomly sampled value as a {@code float}.
+     *
+     * @return The sampled value cast to {@code float}.
+     */
+    @Override
+    public float asFloat() {
+        return (float) getValue();
+    }
+    
+    @Override
+    public double asDouble() {
+        return getValue();
+    }
+    
+    private double getValue() {
+        return min == max ? min : BukkitUtils.RANDOM.nextDouble(min, max + 1);
+    }
+    
+    /**
+     * A static factory method for creating a {@link UniformNumber} from the given {@code double} bounds.
+     *
+     * @param min - The minimum bound.
+     * @param max - The maximum bound.
+     * @return A new {@link UniformNumber}.
+     */
+    @NotNull
+    public static UniformNumber from(final double min, final double max) {
+        return new UniformNumber(min, max);
+    }
+    
+    /**
+     * A static factory method for parsing a {@link UniformNumber} from a {@link String} representation.
+     *
+     * <p>
+     * Ranges may be specified using the {@code min..max} syntax; If no range is present, the value is treated as a constant.
+     * </p>
+     *
+     * @param string - The string to parse.
+     * @return The parsed {@link UniformNumber}.
+     */
+    @NotNull
+    public static UniformNumber parse(@NotNull String string) {
+        double min;
+        double max;
+        
+        // Parse range 1..5 results in a random number between 1 and 5 (inclusive)
+        if (string.contains("..")) {
+            final String[] range = string.split("\\.\\.");
+            
+            min = Numbers.toDouble(range[0]);
+            max = Numbers.toDouble(range[1]);
+        }
+        // Else parse normally
+        else {
+            min = Numbers.toDouble(string);
+            max = min;
+        }
+        
         return new UniformNumber(min, max);
     }
 }

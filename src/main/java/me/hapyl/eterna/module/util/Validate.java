@@ -1,14 +1,14 @@
 package me.hapyl.eterna.module.util;
 
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.function.Function;
 
 /**
- * A somewhat helpful validator class.
+ * Represents a helper utility class for validations.
  */
 @UtilityClass
 public final class Validate {
@@ -23,7 +23,7 @@ public final class Validate {
      * @param object  - The object to check.
      * @param message - The message of the exception.
      */
-    public static void nonNull(@Nullable Object object, @Nonnull String message) {
+    public static void nonNull(@Nullable Object object, @NotNull String message) {
         if (object == null) {
             throw new IllegalArgumentException(message);
         }
@@ -44,7 +44,7 @@ public final class Validate {
      * @param expression - The expression to check.
      * @param message    - The message of the exception.
      */
-    public static void isTrue(boolean expression, @Nonnull String message) {
+    public static void isTrue(boolean expression, @NotNull String message) {
         if (!expression) {
             throw new IllegalArgumentException(message);
         }
@@ -61,6 +61,7 @@ public final class Validate {
     
     /**
      * Requires that the given {@code object} satisfies the provided validation {@link Function}.
+     *
      * <p>
      * If the function returns {@code false}, an {@link IllegalArgumentException} is thrown with the specified message.
      * Otherwise, the original object is returned.
@@ -69,10 +70,10 @@ public final class Validate {
      * @param object  - The object to validate.
      * @param fn      - The validation function to apply.
      * @param message - The exception message if validation fails.
-     * @return The validated object.
+     * @return the validated object.
      */
-    @Nonnull
-    public static <E> E requireValid(@Nonnull E object, @Nonnull Function<E, Boolean> fn, @Nonnull String message) {
+    @NotNull
+    public static <E> E requireValid(@NotNull E object, @NotNull Function<E, Boolean> fn, @NotNull String message) {
         if (!fn.apply(object)) {
             throw new IllegalArgumentException(message);
         }
@@ -82,6 +83,7 @@ public final class Validate {
     
     /**
      * Returns one of the two given values depending on the evaluation of the given expression.
+     *
      * <p>
      * If the expression is {@code true}, the {@code ifTrue} value is returned;
      * otherwise, the {@code ifFalse} value is returned.
@@ -90,14 +92,15 @@ public final class Validate {
      * @param expression - The condition to evaluate.
      * @param ifTrue     - The value to return if the expression is {@code true}.
      * @param ifFalse    - The value to return if the expression is {@code false}.
-     * @return The value corresponding to the result of the expression.
+     * @return the value corresponding to the result of the expression.
      */
-    public static <T> T valueIf(boolean expression, @Nonnull T ifTrue, @Nonnull T ifFalse) {
+    public static <T> T valueIf(boolean expression, @NotNull T ifTrue, @NotNull T ifFalse) {
         return expression ? ifTrue : ifFalse;
     }
     
     /**
      * Gets whether the given {@link String} contains at least of the given {@link Object}.
+     *
      * <p>
      * Each object is converted into a string via {@link Object#toString()}.
      * </p>
@@ -106,7 +109,7 @@ public final class Validate {
      * @param objects - The objects to check.
      * @return {@code true} if the given string contains at least one of the given objects.
      */
-    public static boolean stringContainsAny(@Nonnull String string, @Nonnull Object... objects) {
+    public static boolean stringContainsAny(@NotNull String string, @NotNull Object... objects) {
         if (objects.length == 0) {
             return false;
         }
@@ -122,6 +125,7 @@ public final class Validate {
     
     /**
      * Gets whether the given {@link String} contains all the given {@link Object}.
+     *
      * <p>
      * Each object is converted into a string via {@link Object#toString()}.
      * </p>
@@ -130,7 +134,7 @@ public final class Validate {
      * @param objects - The objects to check.
      * @return {@code true} if the given string contains all the given objects.
      */
-    public static boolean stringContainsAll(@Nonnull String string, @Nonnull Object... objects) {
+    public static boolean stringContainsAll(@NotNull String string, @NotNull Object... objects) {
         if (objects.length == 0) {
             return false;
         }
@@ -150,7 +154,7 @@ public final class Validate {
      * @param array  - The array to check.
      * @param length - The length to expect.
      */
-    public static void arrayLength(@Nonnull Object[] array, int length) {
+    public static void arrayLength(@NotNull Object[] array, int length) {
         if (array.length != length) {
             throw new IllegalArgumentException("Array length must be %s, not %s!".formatted(length, array.length));
         }
@@ -163,7 +167,7 @@ public final class Validate {
      * @param min   - The minimum length of the array (inclusive).
      * @param max   - The maximum length of the array (inclusive).
      */
-    public static void arrayLength(@Nonnull Object[] array, int min, int max) {
+    public static void arrayLength(@NotNull Object[] array, int min, int max) {
         final int length = array.length;
         
         if (length < min) {
@@ -175,25 +179,29 @@ public final class Validate {
     }
     
     /**
-     * Validates that the given array is non-null and has at least of element.
+     * Checks whether the given array is varargs.
      *
      * @param varargs - The array to check.
-     * @return {@code true} if the given array is non-null and has a least of element; {@code false} otherwise.
+     * @param <T>     - The array type.
+     * @return the same array.
+     * @throws IllegalArgumentException if the given array is not varargs ({@code null} or empty).
      */
-    @Nonnull
-    public static <T> T[] varargs(@Nullable T[] varargs) {
+    @NotNull
+    public static <T> T[] varargs(@NotNull T @Nullable [] varargs) {
         return varargs(varargs, "There must be at least one argument!");
     }
     
     /**
-     * Validates that the given array is non-null and has at least of element.
+     * Checks whether the given array is varargs.
      *
      * @param varargs - The array to check.
      * @param message - The exception message.
-     * @return {@code true} if the given array is non-null and has a least of element; {@code false} otherwise.
+     * @param <T>     - The array type.
+     * @return the same array.
+     * @throws IllegalArgumentException if the given array is not varargs ({@code null} or empty).
      */
-    @Nonnull
-    public static <T> T[] varargs(@Nullable T[] varargs, @Nonnull String message) {
+    @NotNull
+    public static <T> T[] varargs(@NotNull T @Nullable [] varargs, @NotNull String message) {
         if (varargs == null || varargs.length == 0) {
             throw new IllegalArgumentException(message);
         }
@@ -203,15 +211,18 @@ public final class Validate {
     
     /**
      * Validates that the provided {@link Class} is not a primitive.
-     * <p>To be more precise, it checks whether the class is java primitive, not the object of the primitive.</p>
+     *
+     * <p>
+     * To be more precise, it checks whether the class is java primitive, not the object of the primitive.
+     * </p>
      *
      * @param clazz - The class to check.
      * @return the same class if it's not a primitive.
      */
-    @Nonnull
-    public static <T> Class<T> notPrimitive(@Nonnull Class<T> clazz) {
+    @NotNull
+    public static <T> Class<T> notPrimitive(@NotNull Class<T> clazz) {
         class Holder {
-            private static final Map<Class<?>, Class<?>> primitiveToObject = Map.of(
+            private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_OBJECT = Map.of(
                     boolean.class, Boolean.class,
                     byte.class, Byte.class,
                     short.class, Short.class,
@@ -224,8 +235,8 @@ public final class Validate {
             );
         }
         
-        if (Holder.primitiveToObject.containsKey(clazz)) {
-            throw new IllegalArgumentException("Provided class must not be primitive! (%s -> %s)".formatted(clazz.getSimpleName(), Holder.primitiveToObject.get(clazz).getSimpleName()));
+        if (Holder.PRIMITIVE_TO_OBJECT.containsKey(clazz)) {
+            throw new IllegalArgumentException("Provided class must not be primitive! (%s -> %s)".formatted(clazz.getSimpleName(), Holder.PRIMITIVE_TO_OBJECT.get(clazz).getSimpleName()));
         }
         
         return clazz;

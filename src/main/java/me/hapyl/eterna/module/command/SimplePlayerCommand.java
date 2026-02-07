@@ -1,23 +1,43 @@
 package me.hapyl.eterna.module.command;
 
+import me.hapyl.eterna.module.annotate.CaughtExceptions;
+import me.hapyl.eterna.module.annotate.MethodDelegate;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
+
+/**
+ * Creates a new {@link SimpleCommand} that is only available for {@link Player}.
+ */
 public abstract class SimplePlayerCommand extends SimpleCommand {
+    
     /**
-     * Creates a new simple command
+     * Creates a new {@link SimplePlayerCommand}.
      *
-     * @param name - Name of the command.
+     * @param name - The name of the command.
      */
-    public SimplePlayerCommand(String name) {
+    public SimplePlayerCommand(@NotNull String name) {
         super(name);
+        
         this.setAllowOnlyPlayer(true);
     }
-
-    protected abstract void execute(Player player, String[] args);
-
+    
+    /**
+     * Attempts to execute the command.
+     *
+     * @param player - The command sender.
+     * @param args   - The command arguments.
+     */
+    @CaughtExceptions
+    protected abstract void execute(@NotNull Player player, @NotNull ArgumentList args);
+    
     @Override
-    protected final void execute(CommandSender sender, String[] args) {
-        execute((Player) sender, args);
+    @MethodDelegate
+    protected final void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+        if (sender instanceof Player player) {
+            this.execute(player, args);
+        }
     }
 }

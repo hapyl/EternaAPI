@@ -6,266 +6,248 @@ import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.registry.Registry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.meta.When;
+import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * Represents a helper class that allows converts a raw {@link Object} into a type.
+ */
 public class TypeConverter {
     
-    private final Object obj;
-    
-    public TypeConverter(@Nonnull Object obj) {
-        this.obj = Objects.requireNonNull(obj, "Convertible object cannot be null!");
-    }
+    private final Object object;
     
     /**
-     * Converts this object to a string.
+     * Creates a new {@link TypeConverter}.
      *
-     * @return the string.
+     * @param object - The object to convert.
+     * @throws NullPointerException if the given object is {@code null}.
      */
-    @Nonnull
-    public String toString() {
-        return String.valueOf(obj);
+    public TypeConverter(@NotNull Object object) {
+        this.object = Objects.requireNonNull(object, "Convertible object cannot be null!");
     }
     
     /**
-     * Converts this object to a byte, or 0 if the object is not a byte.
+     * Converts the object to {@link String}.
      *
-     * @return the byte.
+     * @return the object as {@code string}.
+     */
+    @NotNull
+    public String toString() {
+        return String.valueOf(object);
+    }
+    
+    /**
+     * Converts the object to {@link Byte}.
+     *
+     * @return the object as a {@code byte}, or {@code 0} if object is not a {@code byte}.
      */
     public byte toByte() {
         return toByte((byte) 0);
     }
     
     /**
-     * Converts this object to a byte, or def if the object is not a byte.
+     * Converts the object to {@link Byte}.
      *
-     * @param def - Default value.
-     * @return the byte.
+     * @param defaultValue - The default value.
+     * @return the object as a {@code byte}, or {@code 0} if object is not a {@code byte}.
      */
-    public byte toByte(byte def) {
-        return Numbers.getByte(obj, def);
+    public byte toByte(byte defaultValue) {
+        return Numbers.toByte(object, defaultValue);
     }
     
     /**
-     * Converts this object to a short, or 0 if the object is not a byte.
+     * Converts the object to {@link Short}.
      *
-     * @return the short.
+     * @return the object as a {@code short}, or {@code 0} if object is not a {@code short}.
      */
     public short toShort() {
         return toShort((short) 0);
     }
     
     /**
-     * Converts this object to a short, or def if the object is not a byte.
+     * Converts the object to {@link Short}.
      *
-     * @param def - Default value.
-     * @return the short.
+     * @param defaultValue - The default value.
+     * @return the object as a {@code short}, or {@code defaultValue} if object is not a {@code short}.
      */
-    public short toShort(short def) {
-        return Numbers.getShort(obj, def);
+    public short toShort(short defaultValue) {
+        return Numbers.toShort(object, defaultValue);
     }
     
     /**
-     * Converts this object to an integer, or 0 if the object is not an integer.
+     * Converts the object to {@link Integer}.
      *
-     * @return the integer.
+     * @return the object as an {@code int}, or {@code 0} if object is not an {@code int}.
      */
     public int toInt() {
         return toInt(0);
     }
     
     /**
-     * Converts this object to an integer, or def if the object is not an integer.
+     * Converts the object to {@link Integer}.
      *
-     * @param def - Default value.
-     * @return the integer.
+     * @param defaultValue - The default value.
+     * @return the object as an {@code int}, or {@code defaultValue} if object is not a {@code int}.
      */
-    public int toInt(int def) {
-        return Numbers.getInt(obj, def);
+    public int toInt(int defaultValue) {
+        return Numbers.toInt(object, defaultValue);
     }
     
     /**
-     * Converts this object to a long, or 0L if the object is not a long.
+     * Converts the object to {@link Long}.
      *
-     * @return the long.
+     * @return the object as a {@code long}, or {@code 0} if object is not a {@code long}.
      */
     public long toLong() {
         return toLong(0);
     }
     
     /**
-     * Converts this object to a long, or def if the object is not a long.
+     * Converts the object to {@link Long}.
      *
-     * @param def - Default value.
-     * @return the long.
+     * @param defaultValue - The default value.
+     * @return the object as a {@code long}, or {@code defaultValue} if object is not a {@code long}.
      */
-    public long toLong(long def) {
-        return Numbers.getLong(obj, def);
+    public long toLong(long defaultValue) {
+        return Numbers.toLong(object, defaultValue);
     }
     
     /**
-     * Converts this object to a double, or 0 if the object is not a double.
+     * Converts the object to {@link Float}.
      *
-     * @return the double.
-     */
-    public double toDouble() {
-        return toDouble(0);
-    }
-    
-    /**
-     * Converts this object to a double, or def if the object is not a double.
-     *
-     * @param def - Default value.
-     * @return the double.
-     */
-    public double toDouble(double def) {
-        return Numbers.getDouble(obj, def);
-    }
-    
-    /**
-     * Converts this object to a float, or def if the object is not a float.
-     *
-     * @return the float.
+     * @return the object as a {@code float}, or {@code 0} if object is not a {@code float}.
      */
     public float toFloat() {
         return toFloat(0);
     }
     
     /**
-     * Converts this object to a float, or def if the object is not a float.
+     * Converts the object to {@link Float}.
      *
-     * @param def - Default value.
-     * @return the float.
+     * @param defaultValue - The default value.
+     * @return the object as a {@code float}, or {@code defaultValue} if object is not a {@code float}.
      */
-    public float toFloat(float def) {
-        return Numbers.getFloat(obj, def);
+    public float toFloat(float defaultValue) {
+        return Numbers.toFloat(object, defaultValue);
     }
     
     /**
-     * Converts this object to a boolean.
+     * Converts the object to {@link Double}.
      *
-     * @return the double.
+     * @return the object as a {@code double}, or {@code 0} if object is not a {@code double}.
+     */
+    public double toDouble() {
+        return toDouble(0);
+    }
+    
+    /**
+     * Converts the object to {@link Double}.
+     *
+     * @param defaultValue - The default value.
+     * @return the object as a {@code double}, or {@code defaultValue} if object is not a {@code double}.
+     */
+    public double toDouble(double defaultValue) {
+        return Numbers.toDouble(object, defaultValue);
+    }
+    
+    /**
+     * Converts the object to {@link Boolean}.
+     *
+     * @return the object as a {@code boolean}; {@code false} otherwise.
      */
     public boolean toBoolean() {
-        return "true".equalsIgnoreCase(obj.toString());
+        return "true".equalsIgnoreCase(object.toString());
     }
     
     /**
-     * Converts this object to an enum constant, or null if the enum doesn't have a constant by the given name.
+     * Converts the object to the given {@link Enum} constant.
+     * <p>This method assumes the enum constants are following the Java's namings conversions, and are in {@code SCREAMING_CASE}.</p>
      *
-     * @param clazz - Enum class.
-     * @param <T>   - Enum type.
-     * @return the enum constant.
+     * @param clazz - The enum class.
+     * @param <T>   - The enum type.
+     * @return the object as the {@code enum} constant, or {@code null} if there is no constant by that exact name.
      */
     @Nullable
-    public <T extends Enum<T>> T toEnum(@Nonnull Class<T> clazz) {
-        return toEnum(clazz, null);
+    public <T extends Enum<T>> T toEnum(@NotNull Class<T> clazz) {
+        return Enums.byName(clazz, object.toString());
     }
     
     /**
-     * Converts this object to an enum constant, or def if the enum doesn't have a constant by the given name.
+     * Converts the object to the given {@link Enum} constant.
      *
-     * @param clazz - Enum class.
-     * @param def   - Default value.
-     * @param <T>   - Enum type.
-     * @return the enum constant.
+     * <p>
+     * This method assumes the enum constants are following the Java's namings conversions, and are in {@code SCREAMING_CASE}.
+     * </p>
+     *
+     * @param clazz        - The enum class.
+     * @param defaultValue - The default value if there is no constant.
+     * @param <T>          - The enum type.
+     * @return the object as the {@code enum} constant, or {@code null} if there is no constant by that exact name.
      */
-    @Nonnull(when = When.MAYBE)
-    public <T extends Enum<T>> T toEnum(@Nonnull Class<T> clazz, T def) {
-        return Enums.byName(clazz, obj.toString(), def);
+    @NotNull
+    public <T extends Enum<T>> T toEnum(@NotNull Class<T> clazz, @NotNull T defaultValue) {
+        final T enumValue = toEnum(clazz);
+        
+        return enumValue != null ? enumValue : defaultValue;
     }
     
     /**
-     * Converts this object to an online player, or null if the player is not online.
+     * Converts the object to {@link Player}.
      *
-     * @return the player.
+     * @return the object as a {@link Player}, or {@code null} if no player exists by that exact name.
      */
     @Nullable
     public Player toPlayer() {
-        return Bukkit.getPlayer(toString());
+        return Bukkit.getPlayerExact(toString());
     }
     
     /**
-     * Converts this object to an online player, or def if the player is not online.
+     * Converts this object to {@link UUID}.
      *
-     * @param def - Default value.
-     * @return the player.
-     */
-    @Nonnull
-    public Player toPlayer(@Nonnull Player def) {
-        final Player player = toPlayer();
-        
-        return player == null ? def : player;
-    }
-    
-    /**
-     * Converts this object to a {@link UUID}, or null if invalid {@link UUID}.
-     *
-     * @return a UUID or null.
+     * @return the object as {@code uuid}, or {@code null} if the object cannot be converted to {@code uuid}.
      */
     @Nullable
-    public UUID toUUID() {
-        try {
-            return UUID.fromString(toString());
-        }
-        catch (IllegalArgumentException ignored0) {
-            return null;
-        }
+    public UUID toUuid() {
+        return BukkitUtils.getUuidFromString(toString());
     }
     
     /**
-     * Converts this object to a {@link UUID}, or def if invalid {@link UUID}.
+     * Converts this object to {@link UUID}.
      *
-     * @param def - Default value.
-     * @return UUID or def.
+     * @param defaultValue - The default value.
+     * @return the object as {@code uuid}, or {@code null} if the object cannot be converted to {@code uuid}.
      */
-    @Nonnull
-    public UUID toUUID(@Nonnull UUID def) {
-        final UUID uuid = toUUID();
+    @NotNull
+    public UUID toUuid(@NotNull UUID defaultValue) {
+        final UUID uuid = toUuid();
         
-        return uuid != null ? uuid : def;
+        return uuid != null ? uuid : defaultValue;
     }
     
     /**
-     * Converts this object into a formatted {@link String} with the given format.
-     * <pre>
-     *     final TypeConverter converter = TypeConverter.from(12.34);
+     * Converts the object to a {@link Registry} value.
      *
-     *     converter.toStringFormatted("%.1f"); // 12.3
-     * </pre>
-     *
-     * @param format - Format.
-     * @return the formatted string.
+     * @param registry - The registry to retrieve the value.
+     * @param <K>      - The registry type.
+     * @return the object as registry item, or {@code null} if invalid key or not registered.
      */
-    @Nonnull
-    public String toStringFormatted(@Nonnull String format) {
-        return format.formatted(obj);
-    }
-    
-    /**
-     * Converts this object into a {@link Key} and uses it to access the given {@link Registry} to retrieve an item.
-     *
-     * @param registry - Registry to access.
-     * @return the registered item or {@code null} if not registered or malformed {@link Key}.
-     */
-    @Nullable
-    public <K extends Keyed> K toRegistryItem(@Nonnull Registry<K> registry) {
+    @NotNull
+    public <K extends Keyed> Optional<K> toRegistryItem(@NotNull Registry<K> registry) {
         final Key key = Key.ofStringOrNull(toString());
         
-        return key != null ? registry.get(key) : null;
+        return key != null ? registry.get(key) : Optional.empty();
     }
     
     /**
-     * Converts this object into a {@link Key}.
+     * Converts the object to a {@link Key}.
      *
-     * @return the key, or {@code null} if key is malformed.
+     * @return the object as a {@code key}, or {@code null} if invalid key.
      */
     @Nullable
     public Key toKey() {
@@ -273,80 +255,113 @@ public class TypeConverter {
     }
     
     /**
-     * Converts this object into a custom {@link TypeConvertible}.
+     * Converts the object to a user-defined {@link Convertible}.
      *
      * @param convertible - The convertible.
      * @param <T>         - The convertible type.
-     * @return an {@code T}, or {@code null}.
+     * @return the object as a user-defined convertible object, or {@code null} if failed to convert.
      */
     @Nullable
-    public <T> T toConvertible(@Nonnull TypeConvertible<T> convertible) {
-        return convertible.convert(obj);
+    public <T> T toConvertible(@NotNull Convertible<T> convertible) {
+        return convertible.convert(object);
     }
     
     /**
-     * Converts this object into a given object and wrap it in {@link Optional}.
-     * <p>To be used as follows:</p>
+     * Converts the object into a {@code static} constant field from the given {@code targetClass}.
+     * <p>This is to be used as a helper method for "static-registries".</p>
+     *
+     * @param targetClass - The target class.
+     * @param fieldType   - The field type.
+     * @param <C>         - The target class.
+     * @param <F>         - The field type.
+     * @return a static constant value by the same name as this {@code object} string value wrapped in an optional.
+     */
+    @NotNull
+    public <C, F> Optional<F> toStaticConstant(@NotNull Class<C> targetClass, @NotNull Class<F> fieldType) {
+        try {
+            final Field field = targetClass.getDeclaredField(toString());
+            field.setAccessible(true);
+            
+            final Object value = field.get(null);
+            
+            return fieldType.isInstance(value) ? Optional.of(fieldType.cast(value)) : Optional.empty();
+        }
+        catch (NoSuchFieldException | IllegalAccessException ex) {
+            return Optional.empty();
+        }
+    }
+    
+    /**
+     * Converts the object with the given {@code converterFn} and wraps it in an {@link Optional}.
+     * <p>Meant to be used as follows:</p>
      * <pre>{@code
-     * TypeConverter.from("123")
-     *              .asOptional(TypeConverter::toInt);
+     * TypeConverter.from("69")
+     *              .asOptional(TypeConverter::toInt)
+     *              .get();
      * }</pre>
      *
-     * @param fn  - The function to convert the object.
-     * @param <T> - The object type.
-     * @return an optional wrapping the object.
+     * @param converterFn - The converter function to apply.
+     * @param <T>         - The object type.
+     * @return an {@code optional} containing the converted object, or an empty {@code optional} if failed to convert.
      */
-    @Nonnull
-    public <T> Optional<T> asOptional(@Nonnull Function<TypeConverter, T> fn) {
-        return Optional.ofNullable(fn.apply(this));
+    @NotNull
+    public <T> Optional<T> asOptional(@NotNull Function<TypeConverter, T> converterFn) {
+        return Optional.ofNullable(converterFn.apply(this));
     }
     
     /**
-     * Creates a new instance of {@link TypeConverter}.
+     * Creates a new {@link TypeConverter} for the given {@link Object}.
      *
-     * @param any - Object to convert.
-     * @param def - Default value if object is a null.
-     * @param <T> - Type of the object.
-     * @return a new instance of {@link TypeConverter}.
+     * @param object - The object for conversion.
+     * @return a new converter.
      */
-    @Nonnull
-    public static <T> TypeConverter from(@Nullable Object any, T def) {
-        return any != null ? new TypeConverter(any) : new TypeConverter(def);
+    @NotNull
+    public static TypeConverter from(@NotNull Object object) {
+        return new TypeConverter(object);
     }
     
     /**
-     * Creates a new instance of {@link TypeConverter}.
+     * Creates a new {@link TypeConverter} for the given {@link Object}.
      *
-     * @param any - Object to convert.
-     * @return a new instance of {@link TypeConverter}.
+     * @param object - The object for conversion.
+     * @return a new converter, or an empty converter if the object is {@code null}.
      */
-    @Nonnull
-    public static TypeConverter from(@Nonnull Object any) {
-        return new TypeConverter(any);
-    }
-    
-    /**
-     * Creates a new instance of {@link TypeConverter} from the given nullable object.
-     * If the object is {@code null}, an empty instance is created, a real instance is created otherwise.
-     *
-     * @param object - The object.
-     * @return a new instance of {@link TypeConverter} from the given nullable object.
-     */
-    @Nonnull
+    @NotNull
     public static TypeConverter fromNullable(@Nullable Object object) {
         return object != null ? new TypeConverter(object) : empty();
     }
     
     /**
-     * Creates a new empty instance of {@link TypeConverter}.
-     * <p>This is completely useless on its own and only used in {@link #fromNullable(Object)}</p>
+     * Gets an empty {@link TypeConverter}.
+     * <p>Entirely useless method at its own, only used for {@link #fromNullable(Object)}.</p>
      *
-     * @return a new empty instance of {@link TypeConverter}.
+     * @return the empty converter.
      */
-    @Nonnull
-    @ApiStatus.Internal
+    @NotNull
     public static TypeConverter empty() {
-        return new TypeConverter("");
+        class Holder {
+            private static final TypeConverter value = new TypeConverter("");
+        }
+        
+        return Holder.value;
     }
     
+    /**
+     * Represents a custom converter for {@link TypeConverter}.
+     *
+     * @param <T> - The converting type.
+     * @see TypeConverter#toConvertible(Convertible)
+     */
+    public interface Convertible<T> {
+        
+        /**
+         * Converts the given {@link Object} into a {@link T}.
+         *
+         * @param object - The object to convert.
+         * @return the object as {@link T}.
+         */
+        @Nullable
+        T convert(@NotNull Object object);
+        
+    }
 }

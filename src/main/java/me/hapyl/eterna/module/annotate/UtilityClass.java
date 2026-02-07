@@ -1,9 +1,15 @@
 package me.hapyl.eterna.module.annotate;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A utility annotation to annotate utility classes, with validation options to put in the constructor.
+ * Indicates that the annotated class is a utility class.
+ * <p>Supports a built-in validation utility:</p>
  * <pre>{@code
  *
  * @UtilityClass
@@ -22,26 +28,28 @@ import javax.annotation.Nonnull;
  * }
  * }</pre>
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE_USE })
 public @interface UtilityClass {
-
+    
     /**
-     * A validator methods to put in the constructor.
+     * A validator utility class.
      */
     final class Validator {
-
+        
         /**
          * Throws {@link IllegalStateException}.
          */
         public static void throwIt() {
             throw getIt();
         }
-
+        
         /**
          * Gets {@link IllegalStateException}.
          *
          * @return IllegalStateException.
          */
-        @Nonnull
+        @NotNull
         public static IllegalStateException getIt() {
             return new IllegalStateException("Do not instantiate utility classes!");
         }

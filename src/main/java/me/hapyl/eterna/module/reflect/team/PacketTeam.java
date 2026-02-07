@@ -1,33 +1,26 @@
 package me.hapyl.eterna.module.reflect.team;
 
-import me.hapyl.eterna.builtin.Debuggable;
+import io.papermc.paper.adventure.PaperAdventure;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.util.SupportsColorFormatting;
-import me.hapyl.eterna.module.util.TrackedValue;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
-import org.bukkit.ChatColor;
-import org.bukkit.craftbukkit.util.CraftChatMessage;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.UUID;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-/**
- * Represents a scoreboard {@link Team}, implemented using packets, rather than the API.
- * <p>This means the changes are <b>only</b> visual and does not reflect any actual team.
- * <p>Note that because this game is garbage, some stuff like glowing color is client-side and based on teams, so changing the packet team will break glowing color and etc.
- */
-@SuppressWarnings("deprecation" /* honestly paper can just suck my balls I ain't switching to adventure until you make it work for nms */)
-public class PacketTeam implements Debuggable {
+public class PacketTeam {
     
     private static final Scoreboard dummyScoreboard;
     
@@ -38,27 +31,17 @@ public class PacketTeam implements Debuggable {
     protected final String name;
     protected final PlayerTeam team;
     
-    @Nullable private final TeamOptionTracker teamOptionTracker;
+    @Nullable
+    private final OptionTracker optionTracker;
     
-    /**
-     * Creates a new packet team with the given name.
-     *
-     * @param name - The name of the team.
-     */
-    public PacketTeam(@Nonnull String name) {
+    public PacketTeam(@NotNull String name) {
         this(name, null);
     }
     
-    /**
-     * Creates a new packet team with the given name.
-     *
-     * @param name         - The name of the team.
-     * @param existingTeam - The existing team; if passed, all options are copied from the existing team.
-     */
-    public PacketTeam(@Nonnull String name, @Nullable Team existingTeam) {
+    public PacketTeam(@NotNull String name, @Nullable Team existingTeam) {
         this.name = name;
         this.team = new PlayerTeam(dummyScoreboard, name);
-        this.teamOptionTracker = existingTeam != null ? new TeamOptionTracker(existingTeam) : null;
+        this.optionTracker = existingTeam != null ? new OptionTracker(existingTeam) : null;
         
         // Copy options if existing team exists
         copyOptionsFromExistingTeam(PacketTeamSyncer.DEFAULT, true);
@@ -67,98 +50,44 @@ public class PacketTeam implements Debuggable {
         onCreate();
     }
     
-    /**
-     * Gets the dummy scoreboard this team belongs to.
-     *
-     * @return the dummy scoreboard this team belongs to.
-     */
-    @Nonnull
+    @NotNull
     public Scoreboard scoreboard() {
         return dummyScoreboard;
     }
     
-    /**
-     * Gets the name of this packet team.
-     *
-     * @return the name of this packet team.
-     */
-    @Nonnull
+    @NotNull
     public String name() {
         return name;
     }
     
-    /**
-     * Creates the team for the given player.
-     *
-     * @param player - The player to create the team for.
-     */
-    public void create(@Nonnull Player player) {
+    public void create(@NotNull Player player) {
         Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
     }
     
-    /**
-     * Destroys the team for the given player.
-     *
-     * @param player - The player to destroy the team for.
-     */
-    public void destroy(@Nonnull Player player) {
+    public void destroy(@NotNull Player player) {
         Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createRemovePacket(team));
     }
     
-    /**
-     * Adds the given entry to the team.
-     *
-     * @param player - The player to add the entry for.
-     * @param entry  - The entry to add.
-     *               <br>
-     *               For {@link Player}s, it's their {@link Player#getName()}.
-     *               For other {@link Entity}s it's their {@link UUID} in {@link String} form.
-     */
-    public void entry(@Nonnull Player player, @Nonnull String entry) {
+    public void entry(@NotNull Player player, @NotNull String entry) {
         Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createPlayerPacket(team, entry, ClientboundSetPlayerTeamPacket.Action.ADD));
     }
     
-    /**
-     * Sets the prefix for the given player.
-     *
-     * @param player - The player to set the prefix for.
-     * @param prefix - The prefix to set.
-     */
-    public void prefix(@Nonnull Player player, @SupportsColorFormatting @Nonnull String prefix) {
-        update(player, team -> team.setPlayerPrefix(componentFromString(prefix)));
+    public void prefix(@NotNull Player player, @NotNull Component prefix) {
+        update(player, team -> team.setPlayerPrefix(PaperAdventure.asVanilla(prefix)));
     }
     
-    /**
-     * Sets the suffix for the given player.
-     *
-     * @param player - The player to set the suffix for.
-     * @param suffix - The suffix to set.
-     */
-    public void suffix(@Nonnull Player player, @SupportsColorFormatting @Nonnull String suffix) {
-        update(player, team -> team.setPlayerSuffix(componentFromString(suffix)));
+    public void suffix(@NotNull Player player, @NotNull Component suffix) {
+        update(player, team -> team.setPlayerSuffix(PaperAdventure.asVanilla(suffix)));
     }
     
-    /**
-     * Sets the color for the given player.
-     *
-     * @param player - The player to set the color for.
-     * @param color  - The color to set.
-     */
-    public void color(@Nonnull Player player, @Nonnull ChatColor color) {
-        update(player, team -> team.setColor(ChatFormatting.getByCode(color.getChar())));
+    public void color(@NotNull Player player, @NotNull PacketTeamColor color) {
+        update(player, team -> team.setColor(color.getNmsColor()));
     }
     
-    /**
-     * Sets the option for the team.
-     *
-     * @param player - The player to set the option for.
-     * @param option - The option to set.
-     * @param status - The new option status to set.
-     */
-    public void option(@Nonnull Player player, @Nonnull Team.Option option, @Nonnull Team.OptionStatus status) {
+    public void option(@NotNull Player player, @NotNull Team.Option option, @NotNull Team.OptionStatus status) {
         update(
                 player, team -> {
-                    final PacketTeamOption packetOption = PacketTeamOption.of(status);
+                    final PacketTeamOption packetOption = PacketTeamOption.ofBukkit(status);
                     
                     switch (option) {
                         case NAME_TAG_VISIBILITY -> team.setNameTagVisibility(packetOption.visibility());
@@ -169,14 +98,8 @@ public class PacketTeam implements Debuggable {
         );
     }
     
-    /**
-     * Synchronizes options from the existing team (if exists) according to the given {@link PacketTeamSyncer}.
-     *
-     * @param player - The player to synchronize for.
-     * @param syncer - The syncer.
-     */
-    public void synchronize(@Nonnull Player player, @Nonnull PacketTeamSyncer syncer) {
-        if (teamOptionTracker == null) {
+    public void synchronize(@NotNull Player player, @NotNull PacketTeamSyncer syncer) {
+        if (optionTracker == null) {
             return;
         }
         
@@ -186,79 +109,103 @@ public class PacketTeam implements Debuggable {
         }
     }
     
-    @Nonnull
-    @Override
-    public String toDebugString() {
-        return "PacketTeam{%s}".formatted(team.pack());
-    }
-    
-    /**
-     * An event-like method that is called after the instance of {@link PacketTeam} is created.
-     */
     @EventLike
-    protected void onCreate() {
+    public void onCreate() {
     }
     
-    private boolean copyOptionsFromExistingTeam(PacketTeamSyncer syncer, boolean force) {
-        if (teamOptionTracker == null) {
+    private boolean copyOptionsFromExistingTeam(@NotNull PacketTeamSyncer syncer, boolean force) {
+        if (optionTracker == null) {
             return false;
         }
         
         boolean changed = false;
         
-        changed |= applyIfChanged(syncer.friendlyFire(), teamOptionTracker.friendlyFire, team::setAllowFriendlyFire, force);
-        changed |= applyIfChanged(syncer.friendlyInvisibles(), teamOptionTracker.friendlyInvisibles, team::setSeeFriendlyInvisibles, force);
-        changed |= applyIfChanged(syncer.collisionRule(), teamOptionTracker.collisionRule, team::setCollisionRule, force);
-        changed |= applyIfChanged(syncer.deathMessageVisibility(), teamOptionTracker.deathMessageVisibility, team::setDeathMessageVisibility, force);
-        changed |= applyIfChanged(syncer.nameTagVisibility(), teamOptionTracker.nameTagVisibility, team::setNameTagVisibility, force);
-        changed |= applyIfChanged(syncer.prefix(), teamOptionTracker.prefix, team::setPlayerPrefix, force);
-        changed |= applyIfChanged(syncer.suffix(), teamOptionTracker.suffix, team::setPlayerSuffix, force);
-        changed |= applyIfChanged(syncer.color(), teamOptionTracker.color, team::setColor, force);
+        changed |= setIfChanged(syncer.friendlyFire(), optionTracker.friendlyFire, team::setAllowFriendlyFire, force);
+        changed |= setIfChanged(syncer.friendlyInvisibles(), optionTracker.friendlyInvisibles, team::setSeeFriendlyInvisibles, force);
+        changed |= setIfChanged(syncer.collisionRule(), optionTracker.collisionRule, team::setCollisionRule, force);
+        changed |= setIfChanged(syncer.deathMessageVisibility(), optionTracker.deathMessageVisibility, team::setDeathMessageVisibility, force);
+        changed |= setIfChanged(syncer.nameTagVisibility(), optionTracker.nameTagVisibility, team::setNameTagVisibility, force);
+        changed |= setIfChanged(syncer.prefix(), optionTracker.prefix, team::setPlayerPrefix, force);
+        changed |= setIfChanged(syncer.suffix(), optionTracker.suffix, team::setPlayerSuffix, force);
+        changed |= setIfChanged(syncer.color(), optionTracker.color, team::setColor, force);
         
         return changed;
     }
     
-    private void update(Player player, Consumer<PlayerTeam> consumer) {
+    private void update(@NotNull Player player, @NotNull Consumer<PlayerTeam> consumer) {
         consumer.accept(team);
+        
         Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false));
     }
     
-    private <C> boolean applyIfChanged(boolean condition, TrackedValue<?, C> tracker, Consumer<C> setter, boolean force) {
+    private <C> boolean setIfChanged(boolean condition, @NotNull OptionTracker.Value<?, C> tracker, @NotNull Consumer<C> setter, boolean force) {
         if (condition && (force || tracker.hasChanged())) {
-            setter.accept(tracker.get());
+            setter.accept(tracker.getSynchronized());
             return true;
         }
         
         return false;
     }
     
-    private static Component componentFromString(String string) {
-        return CraftChatMessage.fromStringOrNull(string);
-    }
-    
-    private static class TeamOptionTracker {
-        private final Team team;
+    @ApiStatus.Internal
+    private static class OptionTracker {
         
-        private final TrackedValue<Boolean, Boolean> friendlyFire;
-        private final TrackedValue<Boolean, Boolean> friendlyInvisibles;
-        private final TrackedValue<Team.OptionStatus, net.minecraft.world.scores.Team.CollisionRule> collisionRule;
-        private final TrackedValue<Team.OptionStatus, net.minecraft.world.scores.Team.Visibility> deathMessageVisibility;
-        private final TrackedValue<Team.OptionStatus, net.minecraft.world.scores.Team.Visibility> nameTagVisibility;
-        private final TrackedValue<String, Component> prefix;
-        private final TrackedValue<String, Component> suffix;
-        private final TrackedValue<ChatColor, ChatFormatting> color;
+        private final Value<Boolean, Boolean> friendlyFire;
+        private final Value<Boolean, Boolean> friendlyInvisibles;
+        private final Value<Team.OptionStatus, net.minecraft.world.scores.Team.CollisionRule> collisionRule;
+        private final Value<Team.OptionStatus, net.minecraft.world.scores.Team.Visibility> deathMessageVisibility;
+        private final Value<Team.OptionStatus, net.minecraft.world.scores.Team.Visibility> nameTagVisibility;
+        private final Value<Component, net.minecraft.network.chat.Component> prefix;
+        private final Value<Component, net.minecraft.network.chat.Component> suffix;
+        private final Value<TextColor, ChatFormatting> color;
         
-        TeamOptionTracker(@Nonnull Team team) {
-            this.team = team;
+        OptionTracker(@NotNull Team team) {
+            this.friendlyFire = Value.track(team::allowFriendlyFire, Function.identity());
+            this.friendlyInvisibles = Value.track(team::canSeeFriendlyInvisibles, Function.identity());
+            this.collisionRule = Value.track(() -> team.getOption(Team.Option.COLLISION_RULE), option -> PacketTeamOption.ofBukkit(option).collision());
+            this.deathMessageVisibility = Value.track(() -> team.getOption(Team.Option.DEATH_MESSAGE_VISIBILITY), option -> PacketTeamOption.ofBukkit(option).visibility());
+            this.nameTagVisibility = Value.track(() -> team.getOption(Team.Option.NAME_TAG_VISIBILITY), option -> PacketTeamOption.ofBukkit(option).visibility());
+            this.prefix = Value.track(team::prefix, PaperAdventure::asVanilla);
+            this.suffix = Value.track(team::suffix, PaperAdventure::asVanilla);
+            this.color = Value.track(team::color, color -> Objects.requireNonNull(ChatFormatting.getByHexValue(color.value()), "Unsupported color: `%s`!".formatted(color.asHexString())));
+        }
+        
+        @ApiStatus.Internal
+        private static abstract class Value<B, N> {
             
-            this.friendlyFire = TrackedValue.of(team::allowFriendlyFire);
-            this.friendlyInvisibles = TrackedValue.of(team::canSeeFriendlyInvisibles);
-            this.collisionRule = TrackedValue.of(() -> team.getOption(Team.Option.COLLISION_RULE), collision -> PacketTeamOption.of(collision).collision());
-            this.deathMessageVisibility = TrackedValue.of(() -> team.getOption(Team.Option.DEATH_MESSAGE_VISIBILITY), collision -> PacketTeamOption.of(collision).visibility());
-            this.nameTagVisibility = TrackedValue.of(() -> team.getOption(Team.Option.NAME_TAG_VISIBILITY), collision -> PacketTeamOption.of(collision).visibility());
-            this.prefix = TrackedValue.of(team::getPrefix, PacketTeam::componentFromString);
-            this.suffix = TrackedValue.of(team::getSuffix, PacketTeam::componentFromString);
-            this.color = TrackedValue.of(team::getColor, color -> ChatFormatting.getByCode(color.getChar()));
+            private final Supplier<B> supplier;
+            private B value;
+            
+            Value(@NotNull Supplier<B> supplier) {
+                this.supplier = supplier;
+                this.value = supplier.get();
+            }
+            
+            public boolean hasChanged() {
+                final B value = supplier.get();
+                
+                return !Objects.equals(this.value, value);
+            }
+            
+            @NotNull
+            public N getSynchronized() {
+                return toNms(value = supplier.get());
+            }
+            
+            @NotNull
+            public abstract N toNms(@NotNull B b);
+            
+            @NotNull
+            static <T, C> Value<T, C> track(@NotNull Supplier<T> supplier, @NotNull Function<T, C> function) {
+                return new Value<>(supplier) {
+                    @NotNull
+                    @Override
+                    public C toNms(@NotNull T t) {
+                        return function.apply(t);
+                    }
+                };
+            }
+            
         }
     }
 }

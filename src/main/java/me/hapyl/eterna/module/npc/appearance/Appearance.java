@@ -2,12 +2,13 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.npc.NpcPose;
-import me.hapyl.eterna.module.reflect.EntityDataType;
-import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
@@ -15,8 +16,8 @@ import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.UUID;
 
@@ -30,8 +31,8 @@ public abstract class Appearance {
     // If something has to do with entity data and packets, delegate
     // the implementation to Appearance rather than to Npc class!
     
-    private static final EntityDataAccessor<Integer> ACCESSOR_SHAKING = EntityDataType.INT.createAccessor(7);
-    private static final EntityDataAccessor<Pose> ACCESSOR_POSE = EntityDataType.ENTITY_POSE.createAccessor(6);
+    private static final EntityDataAccessor<Integer> ACCESSOR_SHAKING = EntityDataSerializers.INT.createAccessor(7);
+    private static final EntityDataAccessor<Pose> ACCESSOR_POSE = EntityDataSerializers.POSE.createAccessor(6);
     
     protected final Npc npc;
     protected final Entity handle;
@@ -44,7 +45,7 @@ public abstract class Appearance {
      * @param npc    - The npc this appearance belongs to.
      * @param handle - The entity handle.
      */
-    public Appearance(@Nonnull Npc npc, @Nonnull Entity handle) {
+    public Appearance(@NotNull Npc npc, @NotNull Entity handle) {
         this.handle = handle;
         this.npc = npc;
         this.pose = NpcPose.STANDING;
@@ -60,9 +61,9 @@ public abstract class Appearance {
     }
     
     /**
-     * Gets the {@code Y} offset of when the {@link Npc} is sitting.
+     * Gets the {@code y} offset of when the {@link Npc} is sitting.
      *
-     * @return the {@code Y} offset of when the Npc is sitting.
+     * @return the {@code y} offset of when the Npc is sitting.
      */
     public double chairYOffset() {
         return 0;
@@ -73,7 +74,7 @@ public abstract class Appearance {
      *
      * @return the entity handle.
      */
-    @Nonnull
+    @NotNull
     public Entity getHandle() {
         return this.handle;
     }
@@ -83,7 +84,7 @@ public abstract class Appearance {
      *
      * @return the entity {@link UUID}.
      */
-    @Nonnull
+    @NotNull
     public UUID getUuid() {
         return handle.getUUID();
     }
@@ -103,7 +104,7 @@ public abstract class Appearance {
      *
      * @return the current {@link NpcPose}.
      */
-    @Nonnull
+    @NotNull
     public NpcPose getPose() {
         return this.pose;
     }
@@ -114,7 +115,7 @@ public abstract class Appearance {
      * @param pose - The new pose to set.
      * @return {@code ture} whether the pose was set, {@code false} otherwise.
      */
-    public boolean setPose(@Nonnull NpcPose pose) {
+    public boolean setPose(@NotNull NpcPose pose) {
         if (this.pose == pose) {
             return false;
         }
@@ -140,7 +141,7 @@ public abstract class Appearance {
      *
      * @return the scoreboard entity name.
      */
-    @Nonnull
+    @NotNull
     public String getScoreboardEntry() {
         return handle.getScoreboardName();
     }
@@ -152,7 +153,7 @@ public abstract class Appearance {
      * @param location - The location to show at.
      */
     @OverridingMethodsMustInvokeSuper
-    public void show(@Nonnull Player player, @Nonnull Location location) {
+    public void show(@NotNull Player player, @NotNull Location location) {
         Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(handle, location));
         Reflect.sendPacket(player, PacketFactory.makePacketSetEntityData(handle));
     }
@@ -163,17 +164,18 @@ public abstract class Appearance {
      * @param player - The player for whom to hide the appearance.
      */
     @OverridingMethodsMustInvokeSuper
-    public void hide(@Nonnull Player player) {
+    public void hide(@NotNull Player player) {
         Reflect.sendPacket(player, PacketFactory.makePacketRemoveEntity(handle));
     }
     
     /**
      * Sets the {@link Location} of this appearance.
+     *
      * <p>The location will be synced for each player who can see the {@link Npc}</p>
      *
      * @param location - The location to set.
      */
-    public void setLocation(@Nonnull Location location) {
+    public void setLocation(@NotNull Location location) {
         this.handle.absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.updateLocation();
     }
@@ -201,7 +203,7 @@ public abstract class Appearance {
      *
      * @return the entity data.
      */
-    @Nonnull
+    @NotNull
     public SynchedEntityData getEntityData() {
         return this.handle.getEntityData();
     }
@@ -216,7 +218,7 @@ public abstract class Appearance {
      * @param value - The new entity data value.
      * @param <T>   - The target entity data type.
      */
-    public <T> void setEntityDataValue(@Nonnull EntityDataType<T> type, int id, @Nonnull T value) {
+    public <T> void setEntityDataValue(@NotNull EntityDataSerializer<T> type, int id, @NotNull T value) {
         getEntityData().set(type.createAccessor(id), value);
     }
     
@@ -229,7 +231,7 @@ public abstract class Appearance {
      * @param <T>  - The target entity data type.
      * @return the entity data value.
      */
-    public <T> T getEntityDataValue(@Nonnull EntityDataType<T> type, int id) {
+    public <T> T getEntityDataValue(@NotNull EntityDataSerializer<T> type, int id) {
         return getEntityData().get(type.createAccessor(id));
     }
     
@@ -238,7 +240,7 @@ public abstract class Appearance {
      *
      * @return a dummy world.
      */
-    @Nonnull
+    @NotNull
     protected static Level dummyWorld() {
         class Holder {
             static final Level level = Reflect.getHandle(Bukkit.getWorlds().getFirst());

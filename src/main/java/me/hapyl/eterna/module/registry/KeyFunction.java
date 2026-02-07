@@ -3,11 +3,12 @@ package me.hapyl.eterna.module.registry;
 import java.util.function.Function;
 
 /**
- * A functional interface that extends {@link Function} to create elements of type {@code T}
+ * A functional interface that extends {@link Function} to create elements of type {@link K}
  * based on a {@link Key}.
  *
- * @param <T> - The type of elements that this function produces.
+ * @param <K> - The type of elements that this function produces.
+ * @see Registry#register(String, KeyFunction)
  */
 @FunctionalInterface
-public interface KeyFunction<T> extends Function<Key, T> {
+public interface KeyFunction<K> extends Function<Key, K> {
 }

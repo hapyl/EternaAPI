@@ -1,44 +1,41 @@
 package me.hapyl.eterna.module.player.dialog;
 
+import me.hapyl.eterna.module.annotate.EventLike;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Represents a {@link Dialog} summary that may be displayed to the player provided they {@link DialogInstance#skip()} the dialog.
+ * Represents a {@link DialogSkip} which handles how the {@link Dialog} should be skipped.
  */
 public interface DialogSkip {
     
     /**
-     * Prompts the skip summary and returns awaiting response.
+     * Prompts the given {@link Player} for the dialog skip and get the {@link CompletableFuture} that <b>must</b> be completed with a {@code boolean} the skip confirmation.
      *
-     * @param player - The player to display the summary to.
-     * @return A completable future that must be completed with either {@code true} or {@code false}, where:
-     * <p>
-     *     <ul>
-     *         <li>{@code true} - Confirmation, skips the dialog.
-     *         <li>{@code false} - Cancellation, resumes the dialog.
-     *     </ul>
-     * </p>
+     * @param player - The player to prompt.
+     * @return the completable future that must be completed with {@code true} or {@code false} in order to confirm / cancel the dialog skip.
      */
-    @Nonnull
-    CompletableFuture<Boolean> prompt(@Nonnull Player player);
+    @NotNull
+    CompletableFuture<Boolean> prompt(@NotNull Player player);
     
     /**
-     * Called once when a player confirms a dialog skip.
+     * An event-like method that is called whenever the {@link DialogSkip} is confirmed by the given {@link Player}.
      *
-     * @param player - The player who confirmed the dialog skip.
+     * @param player - The player who confirmed the skip.
      */
-    default void onConfirm(@Nonnull Player player) {
+    @EventLike
+    default void onConfirm(@NotNull Player player) {
     }
     
     /**
-     * Called once when a player cancels the dialog skip.
+     * An event-like method that is called whenever the {@link DialogSkip} is cancelled by the given {@link Player}.
      *
-     * @param player - The player who cancelled the dialog skip.
+     * @param player - The player who cancelled the skip.
      */
-    default void onCancel(@Nonnull Player player) {
+    @EventLike
+    default void onCancel(@NotNull Player player) {
     }
     
 }

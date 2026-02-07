@@ -6,35 +6,41 @@ import io.papermc.paper.adventure.PaperAdventure;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.ComponentListSupplier;
 import me.hapyl.eterna.module.component.Components;
-import me.hapyl.eterna.module.locaiton.LocationHelper;
-import me.hapyl.eterna.module.reflect.packet.PacketFactory;
+import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.util.BukkitUtils;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ * Represents an armor stand based {@link Hologram}.
+ */
 public class HologramImplArmorStand extends AbstractHologram {
     
-    public static final double defaultArmorStandOffset = 0.25;
+    /**
+     * Defines the default offset between armor stands.
+     */
+    public static final double DEFAULT_ARMOR_STAND_OFFSET = 0.25;
     
     private final Map<Player, List<PacketArmorStand>> showingTo;
     private double armorStandOffset;
     
-    public HologramImplArmorStand(@Nonnull Location location) {
+    @ApiStatus.Internal
+    HologramImplArmorStand(@NotNull Location location) {
         super(location);
         
         this.showingTo = Maps.newHashMap();
-        this.armorStandOffset = defaultArmorStandOffset;
+        this.armorStandOffset = DEFAULT_ARMOR_STAND_OFFSET;
     }
     
     /**
@@ -56,7 +62,7 @@ public class HologramImplArmorStand extends AbstractHologram {
     }
     
     @Override
-    public void setLines(@Nonnull ComponentListSupplier supplier) {
+    public void setLines(@NotNull ComponentListSupplier supplier) {
         super.setLines(supplier);
         
         // Update armor stands for all players
@@ -65,8 +71,8 @@ public class HologramImplArmorStand extends AbstractHologram {
     }
     
     @Override
-    public void teleport(@Nonnull Location location) {
-        this.location = BukkitUtils.newLocation(location);
+    public void teleport(@NotNull Location location) {
+        this.location = LocationHelper.copyOf(location);
         
         // Update location
         this.showingTo.values().forEach(holograms -> {
@@ -82,7 +88,7 @@ public class HologramImplArmorStand extends AbstractHologram {
     }
     
     @Override
-    public void show(@Nonnull Player player) {
+    public void show(@NotNull Player player) {
         if (isShowingTo(player)) {
             return;
         }
@@ -91,7 +97,7 @@ public class HologramImplArmorStand extends AbstractHologram {
     }
     
     @Override
-    public void hide(@Nonnull Player player) {
+    public void hide(@NotNull Player player) {
         final List<PacketArmorStand> existingLines = showingTo.remove(player);
         
         if (existingLines != null) {
@@ -101,18 +107,18 @@ public class HologramImplArmorStand extends AbstractHologram {
     }
     
     @Override
-    public void destroy() {
+    public void dispose() {
         this.showingTo.values().forEach(holograms -> holograms.forEach(PacketArmorStand::hide));
         this.showingTo.clear();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public Collection<Player> showingTo() {
         return Set.copyOf(showingTo.keySet());
     }
     
-    protected void createOrUpdate(@Nonnull Player player) {
+    protected void createOrUpdate(@NotNull Player player) {
         final ComponentList components = supplier.supply(player);
         final List<PacketArmorStand> existingLines = showingTo.computeIfAbsent(player, _player -> Lists.newArrayList());
         
@@ -146,7 +152,7 @@ public class HologramImplArmorStand extends AbstractHologram {
         private final Player player;
         private final net.minecraft.world.entity.decoration.ArmorStand armorStand;
         
-        PacketArmorStand(@Nonnull Player player, @Nonnull Location location, @Nullable Component text) {
+        PacketArmorStand(@NotNull Player player, @NotNull Location location, @Nullable Component text) {
             this.player = player;
             this.armorStand = new net.minecraft.world.entity.decoration.ArmorStand(
                     Reflect.getHandle(location.getWorld()),
@@ -157,14 +163,12 @@ public class HologramImplArmorStand extends AbstractHologram {
             
             this.armorStand.teleportTo(location.getX(), location.getY(), location.getZ());
             
-            text(text);
-            
             this.armorStand.setInvisible(true);
             this.armorStand.setSmall(true);
             this.armorStand.setMarker(true);
-            this.armorStand.setCustomNameVisible(true);
             
             this.show();
+            this.text(text);
         }
         
         @Override
@@ -174,31 +178,43 @@ public class HologramImplArmorStand extends AbstractHologram {
         
         protected void show() {
             Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(armorStand));
-            update();
+            
+            // We only need to update metadata for index 0 and 15, which are invisibility and armor stand data, like marker, small
+            Reflect.updateEntityData(
+                    player, armorStand, armorStand.getEntityData().packAll()
+                                                  .stream()
+                                                  .filter(dataValue -> {
+                                                      final int id = dataValue.id();
+                                                      
+                                                      return id == 0 || id == 15;
+                                                  })
+                                                  .toList()
+            );
         }
         
         protected void hide() {
             Reflect.sendPacket(player, PacketFactory.makePacketRemoveEntity(armorStand));
         }
         
-        protected void update() {
-            Reflect.updateEntityData(armorStand, player);
-        }
-        
         protected void text(@Nullable Component name) {
-            final boolean isEmpty = name == null || Components.isEmptyOrNewLine(name);
+            final boolean isEmpty = name == null || Components.isEmpty(name);
             
             // Set the name either to empty component or name
             armorStand.setCustomName(isEmpty ? net.minecraft.network.chat.Component.empty() : PaperAdventure.asVanilla(name));
             
-            // If the name is null, we actually hide the name of this armor stand to no see the | in the name
+            // Manually set the custom name visible bit
             armorStand.setCustomNameVisible(!isEmpty);
             
             // Refresh name
             update();
         }
         
-        protected void teleport(@Nonnull Location location) {
+        protected void update() {
+            // Explicitly use all values, because `isCustomNameVisible` defaults to `false`
+            Reflect.updateEntityData(player, armorStand, armorStand.getEntityData().packAll());
+        }
+        
+        protected void teleport(@NotNull Location location) {
             this.armorStand.teleportTo(location.getX(), location.getY(), location.getZ());
             Reflect.updateEntityLocation(armorStand, player);
         }

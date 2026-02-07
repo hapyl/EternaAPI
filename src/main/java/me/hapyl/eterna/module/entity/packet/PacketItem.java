@@ -5,53 +5,55 @@ import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
-public class PacketItem extends PacketEntity<ItemEntity> {
-
-    public PacketItem(@Nonnull Location location, @Nonnull ItemStack itemStack) {
+/**
+ * Represents a {@link ItemEntity} packet entity.
+ */
+public class PacketItem extends AbstractPacketEntity<@NotNull ItemEntity> {
+    
+    /**
+     * Creates a new {@link PacketItem}.
+     *
+     * @param location  - The initial location.
+     * @param itemStack - The initial item stack.
+     */
+    public PacketItem(@NotNull Location location, @NotNull ItemStack itemStack) {
         super(
                 new ItemEntity(
                         getWorld(location),
                         0, 0, 0,
-                        Reflect.bukkitItemToNMS(itemStack)
+                        Reflect.bukkitItemAsVanilla(itemStack)
                 ),
                 location
         );
-
+        
         entity.setPos(location.x(), location.y(), location.z());
         entity.setDeltaMovement(0, 0, 0);
         entity.age = -32768; // The item doesn't actually tick, so setting infinity age is useless, BUT, I will...
     }
-
+    
+    /**
+     * Shows this {@link PacketItem} to the given {@link Player}.
+     *
+     * @param player - The player for whom this entity should be shown.
+     */
     @Override
-    public void show(@Nonnull Player player) {
+    public void show(@NotNull Player player) {
         super.show(player);
-
+        
         // We have to teleport the item because it spawns weirdly for some reason ¯\_(ツ)_/¯
         teleport(getLocation());
     }
-
+    
     /**
-     * Sets the {@link ItemStack} of the entity.
+     * Sets the item stack of this {@link PacketItem}.
      *
-     * @param itemStack - The new item stack to set.
+     * @param itemStack - The item stack to set.
      */
-    public void setItem(@Nonnull ItemStack itemStack) {
-        entity.setItem(Reflect.bukkitItemToNMS(itemStack));
-        updateMetadata();
+    public void setItem(@NotNull ItemStack itemStack) {
+        this.entity.setItem(Reflect.bukkitItemAsVanilla(itemStack));
+        this.updateEntityDataForAll();
     }
-
-    /**
-     * Creates a {@link PacketItem}.
-     *
-     * @param location  - The location to create at.
-     * @param itemStack - The item stack to create with.
-     * @return a new {@link PacketItem}.
-     */
-    @Nonnull
-    public static PacketItem create(@Nonnull Location location, @Nonnull ItemStack itemStack) {
-        return new PacketItem(location, itemStack);
-    }
+    
 }

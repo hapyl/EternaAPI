@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the annotated enum constants are strictly ordered and must not be moved around.
+ * Indicates that the annotated {@link Enum} constants are strictly ordered.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE })

@@ -1,20 +1,20 @@
 package me.hapyl.eterna.module.util;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a class that wraps a bukkit value in some way.
+ * Represents an object that may be represented as a {@code bukkit} object in some way.
  *
- * @param <T> - The bukkit value.
+ * @param <B> - The bukkit object type.
  */
-public interface BukkitWrapper<T> {
-
+public interface BukkitWrapper<B> {
+    
     /**
-     * Gets the bukkit value.
+     * Gets the {@code bukkit} object.
      *
-     * @return the bukkit value.
+     * @return the bukkit object.
      */
-    @Nonnull
-    T bukkit();
-
+    @NotNull
+    B bukkit();
+    
 }

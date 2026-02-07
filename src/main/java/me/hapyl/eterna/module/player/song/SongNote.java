@@ -4,56 +4,35 @@ import org.bukkit.Instrument;
 import org.bukkit.Note;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-
-import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
- * Represents a note in a song.
+ * Represents a {@link SongNote} containing the {@link Instrument} and {@link Note}.
  */
-public record SongNote(@Nonnull Instrument instrument, @Nonnull Note note) {
-    
-    public static final float DEFAULT_VOLUME = 1.0f;
+public record SongNote(@NotNull Instrument instrument, @NotNull Note note) {
     
     /**
-     * Plays this note to the given players at the default volume.
-     *
-     * @param players - The players to play the note to.
+     * Defines the volume used for the sound.
      */
-    public void play(@Nonnull Collection<? extends Player> players) {
-        play(players, DEFAULT_VOLUME);
-    }
+    public static final float VOLUME = 3.0f;
     
     /**
-     * Plays this note to the given players at the default volume.
-     *
-     * @param players - The players to play the note to.
-     * @param volume  - The volume to play the note at.
-     */
-    public void play(@Nonnull Collection<? extends Player> players, float volume) {
-        players.forEach(player -> play(player, volume));
-    }
-    
-    /**
-     * Plays this note to the given player at the default volume.
+     * Plays this note to the give {@link Player}.
      *
      * @param player - The player to play the note to.
+     * @param volume - The volume multiplier.
      */
-    public void play(@Nonnull Player player) {
-        play(player, DEFAULT_VOLUME);
-    }
-    
-    /**
-     * Plays this note to the given player at the given volume.
-     *
-     * @param player - The player to play the note to.
-     * @param volume - The volume to play the note at.
-     */
-    public void play(@Nonnull Player player, float volume) {
-        final Sound sound = Objects.requireNonNull(instrument.getSound(), "Cannot use heads for notes!");
+    public void play(@NotNull Player player, @Range(from = 0, to = 1) final float volume) {
+        final Sound sound = instrument.getSound();
         
-        player.playSound(player.getLocation(), sound, volume, note.getPitch());
+        // Sound is `null` for player heads, which we don't support
+        if (sound == null) {
+            return;
+        }
+        
+        player.playSound(player, sound, VOLUME * volume, note.getPitch());
     }
+    
     
 }

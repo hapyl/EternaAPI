@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicate that the annotated enum value
+ * Indicate that the annotated {@link Enum} constant is to be considered as a {@code default} value.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE })

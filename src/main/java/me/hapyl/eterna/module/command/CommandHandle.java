@@ -2,22 +2,31 @@ package me.hapyl.eterna.module.command;
 
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.chat.Chat;
-import org.bukkit.Bukkit;
+import me.hapyl.eterna.module.command.completer.Completer;
+import me.hapyl.eterna.module.command.completer.CompleterHandler;
+import me.hapyl.eterna.module.command.completer.CompleterTooltip;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 
-public class CommandHandle extends Command {
+/**
+ * Represents a command handle for {@link SimpleCommand}.
+ */
+@ApiStatus.Internal
+public final class CommandHandle extends Command {
     
     private final SimpleCommand command;
     private final CommandFormatter formatter;
     
-    protected CommandHandle(SimpleCommand command) {
+    CommandHandle(@NotNull SimpleCommand command) {
         super(command.getName(), command.getDescription(), command.getUsage(), Arrays.asList(command.getAliases()));
         
         this.command = command;
@@ -25,96 +34,108 @@ public class CommandHandle extends Command {
     }
     
     @Override
-    public final boolean execute(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] args) {
-        // Disabled command check
+    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
+        // Check for disable command
         if (command instanceof DisabledCommand) {
-            formatter.sendDisabledCommand(sender);
+            formatter.disabledCommand(sender);
             return true;
         }
         
-        // Player command check
-        if (command.isOnlyForPlayers() && !(sender instanceof Player)) {
-            formatter.sendPlayerOnlyCommand(sender);
+        // Check for player only command
+        if (command.isAllowOnlyPlayer() && !(sender instanceof Player)) {
+            formatter.playerOnlyCommand(sender);
             return true;
         }
         
-        // Permissions check
-        if ((command.isAllowOnlyOp() && !sender.isOp()) || (command.hasPermission() && !sender.hasPermission(command.getPermission()))) {
-            formatter.sendNoPermissions(sender);
+        // Check for permissions
+        @Nullable final Permission permission = command.getPermission();
+        
+        if ((command.isAllowOnlyOp() && !sender.isOp()) || (permission != null && !sender.hasPermission(permission))) {
+            formatter.noPermissions(sender);
             return true;
         }
         
-        // Cooldown check
-        if (command.hasCooldown() && sender instanceof final Player playerSender) {
-            final CommandCooldown cooldown = command.getCooldown();
-            if (cooldown.hasCooldown(playerSender)) {
-                formatter.sendOnCooldown(playerSender, (int) (cooldown.getTimeLeft(playerSender) / 50));
+        // Check for cooldown
+        @NotNull final CommandCooldown cooldown = command.getCommandCooldown();
+        
+        if (cooldown.hasCooldown() && sender instanceof Player player) {
+            if (cooldown.isOnCooldown(player)) {
+                formatter.onCooldown(player, cooldown.getCooldown(player));
                 return true;
             }
-            if (!cooldown.canIgnoreCooldown(playerSender)) {
-                cooldown.startCooldown(playerSender);
+            
+            if (!cooldown.canIgnoreCooldown(player)) {
+                cooldown.startCooldown(player);
             }
         }
         
+        // Attempt to execute the command
         try {
-            command.execute(sender, args);
+            command.execute(sender, new ArgumentList(args));
         }
-        catch (Exception e) {
-            Chat.sendMessage(sender, "&4Error executing command! &c%s".formatted(e.getMessage()));
-            throw EternaLogger.acknowledgeException(e);
+        catch (Exception ex) {
+            formatter.executionError(sender, ex);
+            throw EternaLogger.acknowledgeException(ex);
         }
         
         return true;
     }
     
     @Override
-    @Nonnull
-    public List<String> tabComplete(@Nonnull CommandSender sender, @Nonnull String alias, @Nonnull String[] args) throws IllegalArgumentException {
-        if (command.isOnlyForPlayers() && !(sender instanceof Player)) {
-            return defaultCompleter(sender);
+    @NotNull
+    @SuppressWarnings("deprecation") // Legacy chat color
+    public List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+        // Check for player only command
+        if (command.isAllowOnlyPlayer() && !(sender instanceof Player)) {
+            return List.of();
         }
         
-        final List<String> strings = colorizeList(command.preTabComplete(sender, args));
-        final List<String> tabComplete = command.tabComplete(sender, args);
+        // Check for permissions
+        @Nullable final Permission permission = command.getPermission();
         
-        if (tabComplete != null) {
-            strings.addAll(tabComplete);
+        if ((command.isAllowOnlyOp() && !sender.isOp()) || (permission != null && !sender.hasPermission(permission))) {
+            return List.of();
         }
         
-        if (command.hasCompleterValues(args.length)) {
-            strings.addAll(command.completerSort(command.getCompleterValues(args.length), args));
-        }
+        final ArgumentList argumentList = new ArgumentList(args);
+        final List<String> completerList = Lists.newArrayList(command.tabComplete(sender, argumentList));
         
-        strings.addAll(colorizeList(command.postTabComplete(sender, args)));
+        // We offset by 1 because the index is arguments length, and we need to target the current argument
+        final int argumentIndex = args.length - 1;
+        final String lastArgument = args[argumentIndex];
         
-        if (sender instanceof Player player) {
-            command.completerHandler(player, args.length, args, strings);
-        }
+        // Apply completer handler
+        final CompleterHandler completerHandler = command.getCompleterHandler(argumentIndex);
+        final List<String> tooltipList = Lists.newArrayList();
         
-        return strings.isEmpty() ? defaultCompleter(sender) : strings;
-    }
-    
-    private static List<String> colorizeList(List<String> list) {
-        final List<String> newList = Lists.newArrayList();
-        
-        for (final String s : list) {
-            newList.add(Chat.format(s));
-        }
-        
-        return newList;
-    }
-    
-    private static List<String> defaultCompleter(CommandSender sender) {
-        final List<String> list = Lists.newArrayList();
-        
-        for (final Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (sender instanceof Player player && !player.canSee(onlinePlayer)) {
-                continue;
-            }
+        if (completerHandler != null) {
+            final List<Completer> completers = completerHandler.handle();
             
-            list.add(onlinePlayer.getName());
+            // Append completer values
+            completers.forEach(completer -> completerList.addAll(completer.complete(sender, argumentList, argumentIndex)));
+            
+            // Append tooltip if exists
+            final CompleterTooltip tooltip = completerHandler.tooltip();
+            
+            if (tooltip != null) {
+                tooltipList.add(tooltip.apply(argumentList.get(argumentIndex)));
+            }
         }
         
-        return list;
+        // First, remove completions that aren't applicable
+        completerList.removeIf(v -> !command.completerSortMethod().apply(v, lastArgument));
+        
+        // Then append tooltips at the end because they must be last
+        completerList.addAll(tooltipList);
+        
+        // Then finally colorize all and return
+        return completerList.stream()
+                            .map(obj -> {
+                                // Unfortunately there isn't a native support for completers in the bukkit command implementations, so we still
+                                // have to rely on magic chars ¯\_(ツ)_/¯
+                                return ChatColor.translateAlternateColorCodes('&', String.valueOf(obj));
+                            })
+                            .toList();
     }
+    
 }

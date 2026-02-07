@@ -2,12 +2,13 @@ package me.hapyl.eterna.module.entity.rope;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import me.hapyl.eterna.module.annotate.PacketOperation;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.entity.Showable;
-import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
-import me.hapyl.eterna.module.util.Destroyable;
+import me.hapyl.eterna.module.util.Disposable;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
@@ -18,8 +19,9 @@ import net.minecraft.world.level.Level;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
@@ -28,7 +30,7 @@ import java.util.Set;
 /**
  * Represents a rope made of leashed entities.
  */
-public class Rope implements Showable, Destroyable {
+public class Rope implements Showable, Disposable {
     
     private static final int minSizeToCreate = 2;
     
@@ -36,7 +38,7 @@ public class Rope implements Showable, Destroyable {
     private final Map<Player, RopeData> showingTo;
     
     /**
-     * Creates a new rope.
+     * Creates a new {@link Rope}.
      */
     public Rope() {
         this.points = Lists.newLinkedList();
@@ -49,7 +51,7 @@ public class Rope implements Showable, Destroyable {
      * @param location - A new point location.
      */
     @SelfReturn
-    public Rope addPoint(@Nonnull Location location) {
+    public Rope addPoint(@NotNull Location location) {
         this.points.add(new RopePoint(location.getX(), location.getY(), location.getZ()));
         return this;
     }
@@ -61,7 +63,8 @@ public class Rope implements Showable, Destroyable {
      * @throws IllegalStateException if there are less than {@link #minSizeToCreate} points.
      */
     @Override
-    public void show(@Nonnull Player player) {
+    @PacketOperation
+    public void show(@NotNull Player player) {
         if (this.points.size() < minSizeToCreate) {
             throw new IllegalStateException("There must be at least %s points to create a rope!".formatted(minSizeToCreate));
         }
@@ -114,7 +117,8 @@ public class Rope implements Showable, Destroyable {
      * @param player - The player for whom this entity should be hidden.
      */
     @Override
-    public void hide(@Nonnull Player player) {
+    @PacketOperation
+    public void hide(@NotNull Player player) {
         final RopeData ropeData = showingTo.remove(player);
         
         if (ropeData != null) {
@@ -127,7 +131,7 @@ public class Rope implements Showable, Destroyable {
      *
      * @return a copy of players for whom this {@link Rope} is visible.
      */
-    @Nonnull
+    @NotNull
     @Override
     public Collection<Player> showingTo() {
         return Set.copyOf(showingTo.keySet());
@@ -137,11 +141,13 @@ public class Rope implements Showable, Destroyable {
      * Destroys this {@link Rope}.
      */
     @Override
-    public void destroy() {
+    @PacketOperation
+    public void dispose() {
         this.showingTo.values().forEach(RopeData::dispose);
         this.showingTo.clear();
     }
     
+    @ApiStatus.Internal
     private static Entity makeRopeEntity(Level level, RopePoint point) {
         // We use CODs since in my testings, they have the smallest Y bounding box, making
         // the connections cleaner. I can't use scale attribute by the way, because it just

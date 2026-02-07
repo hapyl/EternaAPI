@@ -1,89 +1,115 @@
 package me.hapyl.eterna.module.player.quest;
 
-import me.hapyl.eterna.module.locaiton.Position;
+import me.hapyl.eterna.module.location.Position;
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import org.bukkit.entity.Player;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a start behaviour of a {@link Quest}.
+ * Represents a {@link QuestStartBehaviour} that defines how a {@link Quest} is started.
  */
+@ApiStatus.NonExtendable
 public interface QuestStartBehaviour {
     
     /**
-     * The quest will be started automatically whenever a player joins the server.
+     * Creates a new {@link QuestStartBehaviour} that will start a {@link Quest} upon {@link Player} joining.
+     *
+     * @return a new start behaviour that will start the quest upon player joining.
      */
-    @Nonnull
+    @NotNull
     static QuestStartBehaviour onJoin() {
-        return onJoin(true);
+        return onJoin(false);
     }
     
     /**
-     * The quest will be started automatically whenever a player joins the server.
+     * Creates a new {@link QuestStartBehaviour} that will start a {@link Quest} upon {@link Player} joining.
      *
-     * @param shouldNotify - Whether to send the {@link QuestFormatter#sendQuestStartedFormat(Player, Quest)} message to the player.
+     * @param silent - {@code true} to not send formatter start and errors messages; {@code false} otherwise.
+     * @return a new start behaviour that will start the quest upon player joining.
      */
-    @Nonnull
-    static QuestStartBehaviour onJoin(boolean shouldNotify) {
-        return new OnJoin(shouldNotify);
+    @NotNull
+    static QuestStartBehaviour onJoin(boolean silent) {
+        return new OnJoin(silent);
     }
     
     /**
-     * The quest will be started whenever a player finished the given {@link Dialog}.
-     * <p>The dialog will be automatically started whenever a player clicks at the given {@link Npc}.</p>
+     * Creates a new {@link QuestStartBehaviour} that will start a {@link Quest} upon {@link Player} completing the given {@link Dialog},
+     * that will be started upon player clicking at the given {@link Npc}.
      *
-     * @param npc    - The npc the player must interact with.
-     * @param dialog - The dialog to displays before starting the quest.
+     * @param npc    - The npc to interact with.
+     * @param dialog - The dialog to complete.
+     * @return a new start behaviour that will start the quest upon player talking to npc.
      */
-    @Nonnull
-    static QuestStartBehaviour talkToNpc(@Nonnull Npc npc, @Nonnull Dialog dialog) {
+    @NotNull
+    static QuestStartBehaviour talkToNpc(@NotNull Npc npc, @NotNull Dialog dialog) {
         return new TalkToNpc(npc, dialog);
     }
     
     /**
-     * The quest will be started whenever a player finished the given {@link Dialog}.
+     * Creates a new {@link QuestStartBehaviour} that will start a {@link Quest} upon {@link Player} completing the given {@link Dialog}.
      *
-     * @param dialog - The dialog to displays before starting the quest.
+     * <p>
+     * Note that the given {@link Dialog} must be started <b>manually</b>.
+     * </p>
+     *
+     * @param dialog - The dialog to complete.
+     * @return a new start behaviour that will start the quest upon player completing the dialog.
      */
-    @Nonnull
-    static QuestStartBehaviour completeDialog(@Nonnull Dialog dialog) {
+    @NotNull
+    static QuestStartBehaviour completeDialog(@NotNull Dialog dialog) {
         return new CompleteDialog(dialog);
     }
     
     /**
-     * The quest will be started whenever a player is within the given {@link Position}.
-     * <p>The quest will immediately start upon player reaching the given position.</p>
+     * Creates a new {@link QuestStartBehaviour} that will start a {@link Quest} upon {@link Player} reaching the given {@link Position}.
      *
-     * @param position - The position.
+     * @param position - The position to go to.
+     * @return a new start behaviour that will start the quest upon player reaching the given position.
      */
-    @Nonnull
-    static QuestStartBehaviour goTo(@Nonnull Position position) {
+    @NotNull
+    static QuestStartBehaviour goTo(@NotNull Position position) {
         return goTo(position, null);
     }
     
     /**
-     * The quest will be started whenever a player is within the given {@link Position}.
-     * <p>Whenever a player reaches the given position, the given dialog will be played and the quest will start after the dialog is finished.</p>
+     * Creates a new {@link QuestStartBehaviour} that will start a {@link Quest} upon {@link Player} completing the {@link Dialog},
+     * that will be started upon reaching the given {@link Position}.
      *
-     * @param position - The position.
+     * @param position - The position to go to.
+     * @param dialog   - The dialog to display upon reaching the position.
+     * @return a new start behaviour that will start the quest upon player reaching the given position.
      */
-    @Nonnull
-    static QuestStartBehaviour goTo(@Nonnull Position position, @Nullable Dialog dialog) {
+    @NotNull
+    static QuestStartBehaviour goTo(@NotNull Position position, @Nullable Dialog dialog) {
         return new GoTo(position, dialog);
     }
     
+    /**
+     * Represents an abstract {@link QuestStartBehaviour} that requires a {@link Dialog}.
+     */
     interface DialogStartBehaviour extends QuestStartBehaviour {
         @Nullable
         Dialog dialog();
     }
     
-    record OnJoin(boolean sendNotification) implements QuestStartBehaviour {
+    /**
+     * Represents a {@link QuestStartBehaviour} that will start a {@link Quest} upon {@link Player} joinig.
+     *
+     * @param silent - {@code true} to not send formatter start and errors messages; {@code false} otherwise.
+     */
+    record OnJoin(boolean silent) implements QuestStartBehaviour {
     }
     
-    record GoTo(@Nonnull Position position, @Nullable Dialog dialog) implements DialogStartBehaviour {
+    /**
+     * Represents a {@link QuestStartBehaviour} that will start a {@link Quest} upon reaching the given {@link Position}.
+     *
+     * @param position - The position to reach.
+     * @param dialog   - The dialog to display, or {@code null} to not display.
+     */
+    record GoTo(@NotNull Position position, @Nullable Dialog dialog) implements DialogStartBehaviour {
         @Nullable
         @Override
         public Dialog dialog() {
@@ -91,16 +117,27 @@ public interface QuestStartBehaviour {
         }
     }
     
-    record TalkToNpc(@Nonnull Npc npc, @Nonnull Dialog dialog) implements DialogStartBehaviour {
-        @Nonnull
+    /**
+     * Represents a {@link QuestStartBehaviour} that will start a {@link Quest} upon talking to the {@link Npc}.
+     *
+     * @param npc    - The npc to talk to.
+     * @param dialog - The dialog to display.
+     */
+    record TalkToNpc(@NotNull Npc npc, @NotNull Dialog dialog) implements DialogStartBehaviour {
+        @NotNull
         @Override
         public Dialog dialog() {
             return this.dialog;
         }
     }
     
-    record CompleteDialog(@Nonnull Dialog dialog) implements DialogStartBehaviour {
-        @Nonnull
+    /**
+     * Represents a {@link QuestStartBehaviour} that will start a {@link Quest} upon completing the {@link Dialog}.
+     *
+     * @param dialog - The dialog to complete.
+     */
+    record CompleteDialog(@NotNull Dialog dialog) implements DialogStartBehaviour {
+        @NotNull
         @Override
         public Dialog dialog() {
             return this.dialog;

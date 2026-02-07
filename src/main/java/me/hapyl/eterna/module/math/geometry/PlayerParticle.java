@@ -3,26 +3,24 @@ package me.hapyl.eterna.module.math.geometry;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Displays particle for specific player.
+ * Represents a {@link Drawable} that displays the given {@link Particle} for the specified {@link Player}.
+ *
+ * @see Drawable#playerParticle(Particle, Player)
  */
-public class PlayerParticle extends Draw {
+public class PlayerParticle extends AbstractDrawable {
+    
     private final Player player;
-
-    public PlayerParticle(Particle particle, Player player) {
+    
+    PlayerParticle(@NotNull Particle particle, @NotNull Player player) {
         super(particle);
         this.player = player;
     }
-
-    public Player getPlayer() {
-        return player;
-    }
-
+    
     @Override
-    public void draw(@Nonnull Location location) {
-        this.player.spawnParticle(this.getParticle(), location, 1, 0, 0, 0, 0);
+    public void draw(@NotNull Location location) {
+        this.player.spawnParticle(super.particle, location, super.count, super.offsetX, super.offsetY, super.offsetZ, super.speed, super.data);
     }
 }

@@ -1,22 +1,20 @@
 package me.hapyl.eterna.module.nms;
 
-import me.hapyl.eterna.module.reflect.packet.PacketFactory;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents an object which structure may be wrapped into a Nms variant, mostly used in {@link PacketFactory}.
+ * Represents a wrapper for an {@code object} that may be treated as an {@code nms} object.
  *
- * @param <N> - The Nms type.
+ * @param <N> - The {@code nms} type.
  */
 public interface NmsWrapper<N> {
     
     /**
-     * Wraps this object into Nms variant.
+     * Gets the {@code nms} object.
      *
-     * @return this object as Nms.
+     * @return the {@code nms} object.
      */
-    @Nonnull
-    N wrapToNms();
+    @NotNull
+    N toNms();
     
 }

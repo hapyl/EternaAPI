@@ -2,15 +2,24 @@ package me.hapyl.eterna.module.reflect.packet.wrapped;
 
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 /**
- * Represents a wrapped {@link ServerboundInteractPacket}.
+ * Represents a wrapped {@link ServerboundPlayerInputPacket}.
+ *
+ * <p>
+ * This packet is received whenever a {@link Player} interacts with an entity.
+ * </p>
  */
 public class WrappedServerboundInteractPacket extends WrappedPacket<ServerboundInteractPacket> {
     
@@ -20,7 +29,7 @@ public class WrappedServerboundInteractPacket extends WrappedPacket<ServerboundI
     private final int entityId;
     private final WrappedAction action;
     
-    public WrappedServerboundInteractPacket(ServerboundInteractPacket packet) {
+    WrappedServerboundInteractPacket(@NotNull ServerboundInteractPacket packet) {
         super(packet);
         
         entityId = super.readField("entityId", Integer.class);
@@ -28,9 +37,9 @@ public class WrappedServerboundInteractPacket extends WrappedPacket<ServerboundI
     }
     
     /**
-     * Gets the Id of the clicked entity.
+     * Gets the id of the clicked {@link Entity}.
      *
-     * @return the Id of the clicked entity.
+     * @return the id of the clicked entity.
      */
     public int getEntityId() {
         return entityId;
@@ -41,12 +50,13 @@ public class WrappedServerboundInteractPacket extends WrappedPacket<ServerboundI
      *
      * @return the action.
      */
-    @Nonnull
+    @NotNull
     public WrappedAction getAction() {
         return action;
     }
     
     // Mojang being annoying as always and `private`d the classes we need to check, so reflection it is
+    @NotNull
     private WrappedAction readAction() {
         final Object action = super.readField("action", Object.class);
         final Field enumHandField = Reflect.getField(action, "hand");
@@ -68,64 +78,72 @@ public class WrappedServerboundInteractPacket extends WrappedPacket<ServerboundI
         return makeAction(WrappedActionType.INTERACT_AT, enumHand, vec3D);
     }
     
-    private static WrappedAction makeAction(WrappedActionType type, InteractionHand enumHand, Vec3 vec3D) {
+    @NotNull
+    private static WrappedAction makeAction(@NotNull WrappedActionType type, @NotNull InteractionHand enumHand, @Nullable Vec3 vec3D) {
         return new WrappedAction() {
-            private final WrappedHand hand = WrappedHand.of(enumHand);
-            private final WrappedPosition vector = vec3D != null ? new WrappedPosition(vec3D) : null;
+            private final WrappedHand hand = WrappedHand.ofMinecraft(enumHand);
+            private final Optional<WrappedPosition> vector = Optional.ofNullable(vec3D != null ? new WrappedPosition(vec3D) : null);
             
-            @Nonnull
+            @NotNull
             @Override
             public WrappedActionType getType() {
                 return type;
             }
             
-            @Nonnull
+            @NotNull
             @Override
             public WrappedHand getHand() {
                 return hand;
             }
             
-            @Nullable
             @Override
-            public WrappedPosition getPosition() {
+            @NotNull
+            public Optional<WrappedPosition> getPosition() {
                 return vector;
             }
         };
     }
     
     /**
-     * Wraps an action type.
+     * Represents a wrapped action type.
      */
     public enum WrappedActionType {
+        
         /**
-         * Right-Clicked at entity.
+         * Defines the action for when a {@link Player} right-clicks an entity.
          */
         INTERACT,
+        
         /**
-         * Left-Clicked at entity.
+         * Defines the action for when a {@link Player} left-clicks an entity.
          */
         ATTACK,
+        
         /**
-         * Right-Clicked at entity.
+         * Defines the action for when a {@link Player} right-clicks an entity, with an
+         * additional {@link WrappedPosition} containing the position of the click.
          */
         INTERACT_AT
     }
     
     /**
-     * Wraps an interaction hand.
+     * Represents a wrapped hand.
      */
     public enum WrappedHand {
+        
         /**
-         * Main hand.
+         * Defines the {@link Player} main hand.
          */
         MAIN_HAND,
+        
         /**
-         * Offhand
+         * Defines the {@link Player} off-hand.
          */
         OFF_HAND;
         
-        @Nonnull
-        public static WrappedHand of(@Nonnull InteractionHand enumHand) {
+        @NotNull
+        @ApiStatus.Internal
+        static WrappedHand ofMinecraft(@NotNull InteractionHand enumHand) {
             return switch (enumHand) {
                 case MAIN_HAND -> MAIN_HAND;
                 case OFF_HAND -> OFF_HAND;
@@ -134,32 +152,37 @@ public class WrappedServerboundInteractPacket extends WrappedPacket<ServerboundI
     }
     
     /**
-     * Wraps an action.
+     * Represents a wrapped action.
      */
     public interface WrappedAction {
+        
         /**
-         * Gets the action type of this action.
+         * Gets the {@link WrappedActionType} of this {@link WrappedAction}.
          *
-         * @return the action type.
+         * @return the action type of this action.
          */
-        @Nonnull
+        @NotNull
         WrappedActionType getType();
         
         /**
-         * Gets the hand of this action.
+         * Gets the {@link WrappedHand} of this {@link WrappedAction}.
          *
          * @return the hand of this action.
          */
-        @Nonnull
+        @NotNull
         WrappedHand getHand();
         
         /**
-         * Gets the clicked position of {@link WrappedActionType} is {@link WrappedActionType#INTERACT_AT}, <code>null</code> otherwise.
+         * Gets the {@link WrappedPosition} of this {@link WrappedAction}.
          *
-         * @return the clicked position of the action type is {@link WrappedActionType#INTERACT_AT}, <code>null</code> otherwise.
+         * <p>
+         * The position only exists if the {@link #getType()} is {@link WrappedActionType#INTERACT_AT}.
+         * </p>
+         *
+         * @return the click position wrapped in an optional.
          */
-        @Nullable
-        WrappedPosition getPosition();
+        @NotNull
+        Optional<WrappedPosition> getPosition();
     }
     
     /**
@@ -170,27 +193,42 @@ public class WrappedServerboundInteractPacket extends WrappedPacket<ServerboundI
         private final double y;
         private final double z;
         
-        public WrappedPosition(Vec3 vec3D) {
+        WrappedPosition(@NotNull Vec3 vec3D) {
             this.x = vec3D.x();
             this.y = vec3D.y();
             this.z = vec3D.z();
         }
         
+        /**
+         * Gets the {@code x} coordinate.
+         *
+         * @return the {@code x} coordinate.
+         */
         public double getX() {
             return x;
         }
         
+        /**
+         * Gets the {@code y} coordinate.
+         *
+         * @return the {@code y} coordinate.
+         */
         public double getY() {
             return y;
         }
         
+        /**
+         * Gets the {@code z} coordinate.
+         *
+         * @return the {@code z} coordinate.
+         */
         public double getZ() {
             return z;
         }
         
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{x: %s, y: %s, z: %s}".formatted(x, y, z);
+            return getClass().getSimpleName() + "[%s, %s, %s]".formatted(x, y, z);
         }
     }
 }

@@ -6,36 +6,40 @@ import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrapper;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacket;
-import me.hapyl.eterna.module.util.Runnables;
+import me.hapyl.eterna.Runnables;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Fires before a {@link Packet} is delivered.
- * <h1>Packet events are always ASYNC!</h1>
+ * Represents an {@link Event} which is fired whenever a {@link Packet} is being sent/received.
+ *
+ * <p><b>Packet events are always asynchronous.</b></p>
  *
  * @see PacketReceiveEvent
  * @see PacketSendEvent
  */
 @Asynchronous
-public abstract class PacketEvent extends Event implements Cancellable {
+public abstract class PacketEvent<L extends PacketListener> extends PlayerEvent implements Cancellable {
     
-    private final Player player;
     private final Channel channel;
     private final Packet<?> packet;
     
     private boolean cancel;
     
-    PacketEvent(Player player, Channel channel, Packet<?> packet) {
-        super(true);
+    @ApiStatus.Internal
+    PacketEvent(@NotNull Player player, @NotNull Channel channel, @NotNull Packet<?> packet) {
+        super(player, true);
         
         this.player = player;
         this.channel = channel;
@@ -43,21 +47,11 @@ public abstract class PacketEvent extends Event implements Cancellable {
     }
     
     /**
-     * Gets the player associated with this event.
+     * Gets the netty {@link Channel} of this {@link Packet}.
      *
-     * @return the player.
+     * @return the netty channel.
      */
-    @Nonnull
-    public Player getPlayer() {
-        return player;
-    }
-    
-    /**
-     * Gets the {@link Channel} this packet is on.
-     *
-     * @return the channel.
-     */
-    @Nonnull
+    @NotNull
     public Channel getChannel() {
         return channel;
     }
@@ -67,42 +61,42 @@ public abstract class PacketEvent extends Event implements Cancellable {
      *
      * @return the packet.
      */
-    @Nonnull
+    @NotNull
     public Packet<?> getPacket() {
         return packet;
     }
     
     /**
-     * Gets the {@link Packet} if it matches the given class, <code>null</code> otherwise.
+     * Attempts to cast the {@link Packet} to the given {@code class} and wraps it in an {@link Optional}.
      *
-     * @param packetClass - Packet class to match.
-     * @return the packet or null.
+     * @param packetClass - The class for casting.
+     * @return an {@link Optional} containing either the cast packet, or an {@link Optional#empty()} optional if cannot be cast.
      */
-    @Nullable
-    public <T extends PacketListener, P extends Packet<T>> P getPacket(@Nonnull Class<P> packetClass) {
+    @NotNull
+    public <P extends Packet<? extends @NotNull L>> Optional<P> getPacket(@NotNull Class<P> packetClass) {
         if (packetClass.isInstance(packet)) {
-            return packetClass.cast(packet);
+            return Optional.of(packetClass.cast(packet));
         }
         
-        return null;
+        return Optional.empty();
     }
     
     /**
-     * Gets a {@link WrappedPacket} for the given {@link PacketWrapper}, or null, if {@link Packet} is not the correct type.
+     * Wraps the {@link Packet} into an {@link WrappedPacket} with the given {@link PacketWrapper}.
      *
-     * @param wrapper - Wrapper.
-     * @return a wrapped packet or null.
+     * @param wrapper - The wrapper.
+     * @return an {@link Optional} containing the wrapped packet, or {@link Optional#empty()} optional if the given wrapper isn't compatible with the packet.
      * @see PacketWrappers
      */
-    @Nullable
-    public <T extends PacketListener, P extends Packet<T>, W extends WrappedPacket<P>> W getWrappedPacket(@Nonnull PacketWrapper<T, P, W> wrapper) {
+    @NotNull
+    public <T extends PacketListener, P extends Packet<@NotNull T>, W extends WrappedPacket<P>> Optional<W> getWrappedPacket(@NotNull PacketWrapper<T, P, W> wrapper) {
         return wrapper.wrap(packet);
     }
     
     /**
-     * Gets a {@link WrappedBundlePacket} that contains a {@link List} of {@link Packet}, or null if the packet is not a bundle packet.
+     * Gets a {@link WrappedBundlePacket} that contains a {@link List} of {@link Packet}.
      *
-     * @return a wrapped bundle packet.
+     * @return a wrapped bundle packet, or {@code null} if the packet isn't a bundle packet.
      */
     @Nullable
     public WrappedBundlePacket getBundlePacket() {
@@ -114,11 +108,10 @@ public abstract class PacketEvent extends Event implements Cancellable {
     }
     
     /**
-     * Returns true if this event was cancelled.
-     * <br>
-     * Cancelled event will ignore the packet, as it was never sent/received.
+     * Gets whether this event is cancelled.
+     * <p>Cancelling the event will ignore the packet, as it was never send/received.</p>
      *
-     * @return true if this event was cancelled; false otherwise.
+     * @return {@code true} if this event is canceled; {@code false} otherwise.
      */
     @Override
     public boolean isCancelled() {
@@ -126,9 +119,11 @@ public abstract class PacketEvent extends Event implements Cancellable {
     }
     
     /**
-     * Sets if this event is cancelled.
-     * <br>
-     * Cancelled event will ignore the packet, as it was never sent/received.
+     * Sets whether this event is cancelled.
+     *
+     * <p>Cancelling the event will ignore the packet, as it was never send/received.</p>
+     *
+     * @param cancel - {@code true} to cancel the event; {@code false} otherwise.
      */
     @Override
     public void setCancelled(boolean cancel) {
@@ -136,11 +131,11 @@ public abstract class PacketEvent extends Event implements Cancellable {
     }
     
     /**
-     * A helper method that run the given {@link Runnable} synchronized on the main thread.
+     * A helper method to synchronize the given {@link Runnable} to the main thread.
      *
-     * @param runnable - The runnable to run.
+     * @param runnable - The runnable to synchronize.
      */
-    public void synchronize(@Nonnull Runnable runnable) {
-        Runnables.runSync(runnable);
+    public void synchronize(@NotNull Runnable runnable) {
+        Runnables.sync(runnable);
     }
 }

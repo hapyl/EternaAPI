@@ -2,46 +2,52 @@ package me.hapyl.eterna.module.player.dialog;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.Eterna;
-import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.builtin.manager.QuestManager;
-import me.hapyl.eterna.module.player.quest.QuestStartBehaviour;
-import me.hapyl.eterna.module.player.quest.objective.AbstractDialogQuestObjective;
+import me.hapyl.eterna.module.player.dialog.entry.DialogEntry;
+import me.hapyl.eterna.module.player.dialog.entry.DialogEntryOptions;
+import me.hapyl.eterna.module.player.dialog.entry.OptionIndex;
+import me.hapyl.eterna.module.player.quest.QuestHandler;
+import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.util.Compute;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
-import java.util.List;
+import java.util.Deque;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
- * Represents a {@link DialogInstance} for the given {@link Player}.
+ * Represents a {@link DialogInstance} that handles the {@link Dialog} execution.
  */
-public class DialogInstance extends BukkitRunnable {
+public final class DialogInstance extends BukkitRunnable {
     
+    /**
+     * Defines the option resting slot where to snap player cursor for when a {@link DialogEntryOptions} is shown.
+     */
     public static final int OPTION_RESTING_SLOT = 8;
-    
-    protected final ArrayDeque<DialogEntry> entries;
     
     private final Player player;
     private final Dialog dialog;
-    private final Map<DialogOptionEntry, Set<Integer>> selectedOptions;
+    private final Map<DialogEntryOptions, Set<OptionIndex>> selectedOptions;
     
-    protected boolean awaitInput;
-    protected DialogEntry currentEntry;
+    private Deque<DialogEntry> entries;
+    private DialogEntry currentEntry;
+    
+    private boolean awaitInput;
     
     private int tick;
     
     /**
-     * Constructs a new {@link DialogInstance} for the given {@link Player} with the given {@link Dialog}.
+     * Creates a new {@link DialogInstance}.
      *
-     * @param player - Player who to construct the instance for.
-     * @param dialog - Dialog of which the instance will be based on.
+     * @param player - The player for whom to create the instance.
+     * @param dialog - The dialog to handle.
      */
-    public DialogInstance(@Nonnull Player player, @Nonnull Dialog dialog) {
+    public DialogInstance(@NotNull Player player, @NotNull Dialog dialog) {
         this.player = player;
         this.dialog = dialog;
         this.entries = dialog.entriesCopy();
@@ -49,273 +55,278 @@ public class DialogInstance extends BukkitRunnable {
     }
     
     /**
-     * Gets the {@link Player} of this {@link DialogInstance}.
+     * Gets the {@link Player} for whom this {@link DialogInstance} belongs to.
      *
-     * @return the {@link Player} of this {@link DialogInstance}.
+     * @return the player for whom this dialog instance belongs to.
      */
-    @Nonnull
+    @NotNull
     public Player getPlayer() {
         return this.player;
     }
     
     /**
-     * Gets the {@link Dialog} on which this {@link DialogInstance} is based on.
+     * Gets the {@link Dialog} this {@link DialogInstance} handles.
      *
-     * @return the {@link Dialog} on which this {@link DialogInstance} is based on.
+     * @return the dialog this dialog instance handles.
      */
-    @Nonnull
+    @NotNull
     public Dialog getDialog() {
         return dialog;
     }
     
     /**
-     * Forcefully finished this dialog, and, if exists, displays the {@link Dialog#summary()}.
-     * <p>This method is equivalent to player finishing the dialog and it advanced quests.</p>
+     * Performs a dialog skip based on the {@link DialogSkip} of the handling {@link Dialog}
+     *
+     * @see Dialog#getDialogSkip(Player)
      */
     public void skip() {
-        // Don't re-skip dialog
-        if (awaitInput) {
-            return;
-        }
-        
-        // Force dialog to pause, this won't actually activate the input
-        awaitInput = true;
-        
-        final DialogSkip handler = dialog.skipHandler(player);
+        final DialogSkip handler = dialog.getDialogSkip(player);
         final CompletableFuture<Boolean> response = handler.prompt(player);
+        
+        // Save the previous input in case we're already awaiting input
+        final boolean previousAwait = awaitInput;
+        
+        // We have to forcefully await the input, so it pauses the dialog
+        awaitInput = true;
         
         response.whenComplete((success, _t) -> {
             if (success) {
                 handler.onConfirm(player);
-                dialogFinished();
+                cancel(DialogEndType.SKIPPED);
             }
             else {
                 handler.onCancel(player);
                 
                 tick = 15;
-                awaitInput = false;
+                awaitInput = previousAwait;
             }
         });
     }
     
     /**
-     * Skips the current dialog without any prompts.
-     * <p>This method is equivalent to player finishing the dialog and it advanced quests.</p>
+     * Forcefully skips this {@link Dialog} without any prompts.
      */
     public void skipNoPrompt() {
-        dialogFinished();
+        cancel(DialogEndType.SKIPPED);
     }
     
     /**
-     * Hijacks the given {@link DialogEntry} into this {@link DialogInstance}.
-     * <br>
-     * Hijacking the {@link DialogEntry} meaning putting it as the first element in the {@link DialogInstance} entries,
-     * making it the next {@link DialogEntry}.
+     * Hijacks the given {@link DialogEntry} to the start of the entry list, which makes it the next entry.
      *
-     * @param entry - Entry to hijack.
+     * @param entry - The entry to hijack.
      */
-    public void hijackEntry(@Nonnull DialogEntry entry) {
+    public void hijackEntry(@NotNull DialogEntry entry) {
         this.entries.addFirst(entry);
     }
     
     /**
-     * Hijacks the given {@link DialogEntry}s into this {@link DialogInstance}.
-     * <br>
-     * Hijacking the {@link DialogEntry} meaning putting it as the first element in the {@link DialogInstance} entries,
-     * making it the next {@link DialogEntry}.
-     * <br>
-     * The hijacking is done in reverse order, making {@link DialogEntry} maintain their order.
+     * Hijacks the given {@link DialogEntry} to the start of the entry list in the exact order passed, which makes them the next entries.
      *
-     * @param entries - Entries to hijack.
+     * @param entries - The entries to hijack.
      */
-    public void hijackEntries(@Nonnull DialogEntry[] entries) {
+    public void hijackEntries(@NotNull DialogEntry[] entries) {
         for (int i = entries.length - 1; i >= 0; i--) {
-            hijackEntry(entries[i]);
+            this.entries.addFirst(entries[i]);
         }
     }
     
     /**
-     * Hijacks the given {@link DialogEntry}s into this {@link DialogInstance}.
-     * <br>
-     * Hijacking the {@link DialogEntry} meaning putting it as the first element in the {@link DialogInstance} entries,
-     * making it the next {@link DialogEntry}.
-     * <br>
-     * The hijacking is done in reverse order, making {@link DialogEntry} maintain their order.
-     *
-     * @param entries - Entries to hijack.
+     * Runs this {@link DialogInstance}.
      */
-    public void hijackEntries(@Nonnull List<DialogEntry> entries) {
-        for (int i = entries.size() - 1; i >= 0; i--) {
-            hijackEntry(entries.get(i));
-        }
-    }
-    
     @Override
-    public final void run() {
-        // Player left
+    public void run() {
+        // Check whether the player is still online, if not, stop the dialog
         if (!player.isOnline()) {
-            cancel();
+            this.cancel();
             return;
         }
         
+        // Call `onDialogTick()`
         dialog.onDialogTick(player);
         
-        // Wait for player dialog
+        // Check whether we should await for an input
         if (awaitInput) {
             return;
         }
         
+        // Tick the dialog, if reached 0, go to the next entry
         if (tick-- <= 0) {
             nextEntry();
         }
     }
     
     /**
-     * Forces the next {@link DialogEntry}.
-     * <br>
-     * If the next {@link DialogEntry} is {@code null}, the {@link Dialog} is considered as finished.
+     * Forcefully advances the {@link Dialog} to the next {@link DialogEntry}.
+     *
+     * <p>
+     * If there are no more entries, the dialog is considered as completed.
+     * </p>
+     *
+     * @see #skip()
+     * @see #skipNoPrompt()
      */
-    public final void nextEntry() {
-        currentEntry = entries.pollFirst();
+    public void nextEntry() {
+        this.currentEntry = entries.pollFirst();
         
-        // Dialog finished
-        if (currentEntry == null) {
-            dialogFinished();
+        // The dialog is finished
+        if (this.currentEntry == null) {
+            this.cancel(DialogEndType.COMPLETED);
             return;
         }
         
-        currentEntry.run(this);
+        this.currentEntry.display(this);
         
-        int delay = dialog.getEntryDelay(currentEntry, player);
+        int delay = Math.max(1, dialog.getEntryDelay(player, currentEntry));
         
-        // Add a little more delay if the next is an option because it uses
-        // all ten chat lines and short strings are very easy to miss
-        if (entries.peekFirst() instanceof DialogOptionEntry) {
+        // If the next entry is `DialogEntryOptions`, add a little delay because the default
+        // implementation uses 10 chat lines, which basically clears the chat unless it's open,
+        // so the player will likely miss whatever current entry says
+        if (this.entries.peekFirst() instanceof DialogEntryOptions) {
             delay += 6;
         }
         
-        tick = delay;
+        this.tick = delay;
     }
     
     /**
-     * Forcefully cancels this {@link DialogInstance}.
+     * Finishes this {@link DialogInstance} with {@link DialogEndType#COMPLETED}.
      *
-     * @throws IllegalStateException If the dialog was not started.
+     * @throws IllegalStateException if not scheduled yet.
+     * @deprecated Prefer providing the end type via {@link #cancel(DialogEndType)}.
      */
+    @Deprecated(forRemoval = false /* explicit false */)
     @Override
-    public final synchronized void cancel() throws IllegalStateException {
-        cancel0();
-        Eterna.getManagers().dialog.unregister(player);
+    public synchronized void cancel() throws IllegalStateException {
+        cancel(DialogEndType.COMPLETED);
     }
     
     /**
-     * Forcefully cancels this {@link DialogInstance} without unregistering it.
+     * Finishes this {@link DialogInstance} with the given {@link DialogEndType}.
      *
-     * @throws IllegalStateException If the dialog was not started.
+     * @throws IllegalStateException if not scheduled yet.
      */
-    public final synchronized void cancel0() throws IllegalStateException {
+    public synchronized void cancel(@NotNull DialogEndType dialogEndType) throws IllegalStateException {
         super.cancel();
-        dialog.onDialogFinish(player);
-    }
-    
-    /**
-     * Stars this {@link DialogInstance}.
-     */
-    public final void doStartInstance() {
-        runTaskTimer(EternaPlugin.getPlugin(), 1, 1);
         
-        dialog.onDialogStart(player);
+        dialog.onDialogEnd(player, dialogEndType);
+        selectedOptions.clear();
+        
+        // Notify QuestHandler that the dialog finished
+        QuestHandler.dialogFinished(this, dialogEndType);
+        
+        // Unregister the instance from here
+        DialogHandler.handler.unregister(player);
     }
     
     /**
-     * Attempts to select an option if the current {@link DialogEntry} is a {@link DialogOptionEntry}, does nothing otherwise.
+     * Gets whether the given {@link OptionIndex} was selected for the given {@link DialogEntryOptions}.
      *
-     * @param option - Option to select.
+     * @param entry - The entry to check.
+     * @param index - The index to check.
+     * @return {@code true} if the option was selected for the entry; {@code false} otherwise.
      */
-    public void trySelectOption(int option) {
-        if (!(currentEntry instanceof DialogOptionEntry optionEntry)) {
-            return;
+    public boolean hasSelectedOption(@NotNull DialogEntryOptions entry, @NotNull OptionIndex index) {
+        final Set<OptionIndex> selectedOptions = this.selectedOptions.get(entry);
+        
+        return selectedOptions != null && selectedOptions.contains(index);
+    }
+    
+    /**
+     * Sets that the given {@link OptionIndex} was selected for the given {@link DialogEntryOptions}.
+     *
+     * @param entry  - The entry to set.
+     * @param option - The option to set.
+     */
+    public void setHasSelectedOption(@NotNull DialogEntryOptions entry, @NotNull OptionIndex option) {
+        this.selectedOptions.compute(entry, Compute.setAdd(option));
+    }
+    
+    /**
+     * Gets whether all available options (excluding those that advance the dialog) has been selected for the given {@link DialogEntryOptions}.
+     *
+     * @param entry - The entry to check.
+     * @return {@code true} if all available options has been selected for the entry; {@code false} otherwise.
+     */
+    public boolean hasSelectedAllOptions(@NotNull DialogEntryOptions entry) {
+        final int optionCount = entry.getOptionSizeWithoutOptionsThatAdvanceDialog();
+        final Set<OptionIndex> selectedOptions = this.selectedOptions.get(entry);
+        
+        return selectedOptions != null && selectedOptions.size() == optionCount;
+    }
+    
+    /**
+     * Sets whether this {@link DialogInstance} should await {@link Player} input.
+     *
+     * @param awaitInput - {@code true} to await input; {@code false} otherwise.
+     */
+    @ApiStatus.Internal
+    public void awaitInput(final boolean awaitInput) {
+        this.awaitInput = awaitInput;
+    }
+    
+    /**
+     * Attempts to select an option for the current {@link DialogEntry}.
+     *
+     * <p>
+     * If the current entry is not {@link DialogEntryOptions}, the selection is ignored.
+     * </p>
+     *
+     * @param index - The index of the option.
+     * @return {@code true} if the option was selected; {@code false} otherwise.
+     */
+    public boolean trySelectOption(@NotNull OptionIndex index) {
+        if (!(this.currentEntry instanceof DialogEntryOptions optionEntry)) {
+            return false;
         }
         
-        final DialogOptionEntry.DialogOption dialogOption = optionEntry.getOption(option);
+        final DialogEntryOptions.Option entry = optionEntry.getOption(index);
         final Player player = getPlayer();
         
         // Do snap cursor even if the option is invalid
         player.getInventory().setHeldItemSlot(OPTION_RESTING_SLOT);
         
-        if (dialogOption != null) {
-            dialogOption.select(optionEntry, this);
+        if (entry != null) {
+            entry.select(optionEntry, this);
         }
+        
+        return true;
     }
     
     /**
-     * Returns {@code true} if the {@link Player} has selected all the options for the
-     * given {@link DialogOptionEntry}, {@code false} otherwise.
+     * Jumps to the {@link DialogEntry} keyed by the given {@link Key}.
      *
-     * @param entry  - Entry to check for.
-     * @param option - Option to check.
-     * @return {@code true} if the {@link Player} has selected all the options for
-     * the given {@link DialogOptionEntry}, {@code false} otherwise.
+     * <p>
+     * If the key is empty or there is no entry by the given key, this method is silently ignored. Otherwise, all
+     * the current {@code entries} will be cleared and the next entry will be the keyed one.
+     * </p>
+     *
+     * @param key - The key of the entry.
+     * @return {@code true} if successfully jumped to the entry; {@code false} otherwise.
      */
-    public boolean hasSelectedOption(@Nonnull DialogOptionEntry entry, int option) {
-        final Set<Integer> selectedOptions = this.selectedOptions.get(entry);
+    public boolean jumpToEntry(@NotNull Key key) {
+        final int index = dialog.indexOfKeyed(key);
         
-        return selectedOptions != null && selectedOptions.contains(option);
+        // Fail silently
+        if (index == -1) {
+            return false;
+        }
+        
+        this.entries.clear();
+        this.entries = dialog.entriesCopy()
+                             .stream()
+                             .skip(index)
+                             .collect(Collectors.toCollection(ArrayDeque::new));
+        
+        this.nextEntry();
+        
+        return true;
     }
     
-    /**
-     * Marks the given option as selected for the given {@link DialogOptionEntry}.
-     *
-     * @param entry  - Entry to mark for.
-     * @param option - Option to mark.
-     */
-    public void setHasSelectedOption(@Nonnull DialogOptionEntry entry, int option) {
-        this.selectedOptions.compute(entry, Compute.setAdd(option));
-    }
-    
-    /**
-     * Returns true if the {@link Player} has selected all the options in the given {@link DialogOptionEntry},
-     * minus the options that would forward the {@link Dialog}.
-     *
-     * @param entry - Entry to check for.
-     * @return true if the {@link Player} has selected all the options in the given {@link DialogOptionEntry}, minus the options that would forward the {@link Dialog}.
-     */
-    public boolean hasSelectedAllOptions(@Nonnull DialogOptionEntry entry) {
-        final int optionCount = entry.optionSizeMinusAdvancingDialog();
-        final Set<Integer> selectedOptions = this.selectedOptions.get(entry);
+    @ApiStatus.Internal
+    void startInstance0() {
+        runTaskTimer(Eterna.getPlugin(), 1, 1);
         
-        return selectedOptions != null && selectedOptions.size() == optionCount;
-    }
-    
-    private void dialogFinished() {
-        dialog.onDialogComplete(player); // onDialogComplete() differs from onDialogFinished()!
-        selectedOptions.clear();
-        
-        final QuestManager questManager = Eterna.getManagers().quest;
-        
-        // Try to start the quest
-        questManager.tryStartQuest(
-                player, quest -> {
-                    for (QuestStartBehaviour startBehaviour : quest.getStartBehaviours()) {
-                        if (!(startBehaviour instanceof QuestStartBehaviour.DialogStartBehaviour dialogStartBehaviour)) {
-                            continue;
-                        }
-                        
-                        if (this.dialog != dialogStartBehaviour.dialog()) {
-                            continue;
-                        }
-                        
-                        return true;
-                    }
-                    
-                    return false;
-                }
-        );
-        
-        // Increment objective
-        questManager.tryIncrementObjective(player, AbstractDialogQuestObjective.class, dialog);
-        
-        this.cancel();
+        dialog.onDialogStart(player);
     }
     
 }

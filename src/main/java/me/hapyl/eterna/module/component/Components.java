@@ -1,14 +1,29 @@
 package me.hapyl.eterna.module.component;
 
+import com.google.common.collect.Lists;
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import me.hapyl.eterna.module.text.CenterText;
+import me.hapyl.eterna.module.util.MapMaker;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.function.Function;
 
 /**
- * A helper class for {@link Component}.
+ * A utility class for {@link Component}.
  */
 @UtilityClass
 public final class Components {
@@ -18,84 +33,70 @@ public final class Components {
     }
     
     /**
-     * Converts the legacy text into a {@link Component}.
-     * <p>Any legacy colors using the color codes are kept.</p>
-     *
-     * @param legacy - The legacy text.
-     * @return a {@link Component} based on legacy text.
-     * @deprecated Planned removal of legacy colors
-     */
-    @Nonnull
-    @Deprecated
-    public static Component ofLegacy(@Nonnull Object legacy) {
-        return new LegacyStringComponent(String.valueOf(legacy)).asComponent();
-    }
-    
-    /**
-     * Converse the legacy text into a {@link Component}, or {@code null} if legacy is {@code null}.
-     *
-     * @param legacy - The legacy text.
-     * @return a {@link Component} based on legacy text.
-     */
-    @Nullable
-    public static Component ofLegacyOrNull(@Nullable Object legacy) {
-        return legacy != null ? ofLegacy(legacy) : null;
-    }
-    
-    /**
      * Gets whether the given {@link Component} is empty.
      *
+     * <p>
+     * This method compares the given component via identity check over {@link Component#empty()}.
+     * </p>
+     *
      * @param component - The component to check.
-     * @return {@code true} if the {@link Component} is empty, {@code false} otherwise.
+     * @return {@code true} if the component is empty, {@code false} otherwise.
      */
-    public static boolean isEmpty(@Nonnull Component component) {
-        return component instanceof TextComponent textComponent && textComponent.content().isEmpty();
+    public static boolean isEmpty(@NotNull Component component) {
+        class Holder {
+            private static final Component EMPTY = Component.empty();
+        }
+        
+        return Holder.EMPTY == component;
     }
     
     /**
-     * Gets whether the given {@link Component} is a newline character ({@code \n}).
+     * Gets whether the given {@link Component} is a newline.
+     *
+     * <p>
+     * This method compares the given component via identity check over {@link Component#newline()}.
+     * </p>
      *
      * @param component - The component to check.
-     * @return {@code true} if the {@link Component} is a newline character ({@code \n}), {@code false} otherwise.
+     * @return {@code true} if the component newline, {@code false} otherwise.
      */
-    public static boolean isNewLine(@Nonnull Component component) {
-        return component instanceof TextComponent textComponent && textComponent.content().equals("\n");
-    }
-    
-    /**
-     * Gets whether the given {@link Component} is empty or a newline character ({@code \n}).
-     *
-     * @param component - The component to check.
-     * @return {@code true} if the {@link Component} is empty or a newline character ({@code \n}), {@code false} otherwise.
-     */
-    public static boolean isEmptyOrNewLine(@Nonnull Component component) {
-        return isEmpty(component) || isNewLine(component);
+    public static boolean isNewline(@NotNull Component component) {
+        class Holder {
+            private static final Component NEWLINE = Component.newline();
+        }
+        
+        return Holder.NEWLINE == component;
     }
     
     /**
      * Gets the {@link String} representation of the given {@link Component}.
-     * <p>For {@link TextComponent}, it's their {@link TextComponent#content()}, a default {@link Object#toString()} is called otherwise.</p>
      *
      * @param component - The component to get the string representation for.
-     * @return the {@link String} representation of the given {@link Component}.
+     * @return the {@code string} representation of the given component.
      */
-    @Nonnull
-    public static String toString(@Nonnull Component component) {
-        if (component instanceof TextComponent textComponent) {
-            return textComponent.content();
-        }
-        
-        return component.toString();
+    @NotNull
+    public static String toString(@NotNull Component component) {
+        return PlainTextComponentSerializer.plainText().serialize(component);
     }
     
     /**
-     * Creates a single {@link Component} containing the given {@link Component}.
+     * Gets the length of the given {@link Component}, excluding {@link TextColor}, {@link TextDecoration}, {@link HoverEvent}, {@link ClickEvent}, etc.
      *
-     * @param components - The components.
-     * @return a single {@link Component}.
+     * @param component - The component to get the length of.
+     * @return the length of the given component.
      */
-    @Nonnull
-    public static Component join(@Nonnull Component... components) {
+    public static int lengthOf(@NotNull Component component) {
+        return toString(component).length();
+    }
+    
+    /**
+     * Joins all the given {@link Component} into a single component.
+     *
+     * @param components - The components to join.
+     * @return a single component containing all the components.
+     */
+    @NotNull
+    public static Component join(@NotNull Component... components) {
         if (components.length == 0) {
             return Component.empty();
         }
@@ -107,6 +108,275 @@ public final class Components {
         }
         
         return root;
+    }
+    
+    /**
+     * Wraps the given {@link Component} into a {@link List} of {@link Component}, each with text length not exceeding {@code maxLength}.
+     * <p>Special cases:<ul>
+     * <li>Non-{@link TextComponent} are appended as is.
+     * <li>{@link Component#newline()} are treated as line breakers, appending an empty {@link Component}.
+     * </ul> </p>
+     *
+     * @param component - The input component to wrap.
+     * @param maxLength - The maximum length of each wrapped line.
+     * @return A list of components representing the wrapped text.
+     */
+    @NotNull
+    public static List<? extends Component> wrap(@NotNull Component component, int maxLength) {
+        if (!(component instanceof TextComponent root)) {
+            return List.of(component);
+        }
+        
+        final List<Component> output = Lists.newArrayList();
+        final List<Component> children = Lists.newArrayList(component.children());
+        
+        // Handle root content before everything else, unless it's empty
+        if (!root.content().isEmpty()) {
+            children.addFirst(root);
+        }
+        
+        TextComponent.Builder builder = Component.text();
+        int counter = 0;
+        
+        for (Component child : children) {
+            // Append non-text components as is
+            if (!(child instanceof TextComponent textComponent)) {
+                builder.append(child);
+                continue;
+            }
+            
+            final String content = textComponent.content();
+            
+            // Handle newlines
+            if (content.equals("\n")) {
+                // Don't forget to append the non-empty builder before the newline
+                if (!builder.children().isEmpty()) {
+                    output.add(builder.build());
+                }
+                
+                output.add(Component.empty());
+                
+                builder = Component.text();
+                counter = 0;
+                continue;
+            }
+            
+            final String[] contentSplit = textComponent.content().split(" ");
+            
+            for (int j = 0; j < contentSplit.length; j++) {
+                final String word = contentSplit[j];
+                
+                // Increment counter by word length + 1 if non-first word to
+                // account for spaces in words, looks better that way
+                counter += word.length() + (j > 0 ? 1 : 0);
+                
+                // Always append the text
+                builder.append(Component.text(word, child.style()));
+                
+                // Follows by the space, unless the last word
+                if (j != contentSplit.length - 1) {
+                    builder.append(Component.text(" "));
+                }
+                
+                // If the counter is greater than maxLength, append to output and reset
+                if (counter >= maxLength) {
+                    output.add(builder.build());
+                    
+                    builder = Component.text();
+                    counter = 0;
+                }
+            }
+        }
+        
+        // If builder is not empty, append it
+        if (!builder.children().isEmpty()) {
+            output.add(builder.build());
+        }
+        
+        return output;
+    }
+    
+    /**
+     * Normalizes the given {@link Component} by supplementing the default color and {@link TextDecoration} if they're unset
+     * with the one specified in the supplementary {@link Style}.
+     *
+     * @param component - The component to normalize.
+     * @param style     - The supplementary style.
+     * @return the normalized component.
+     */
+    @Nonnull
+    public static Component normalizeStyle(@NotNull Component component, @NotNull Style style) {
+        // Normalize color
+        final TextColor supplementaryColor = style.color();
+        
+        if (component.color() == null && supplementaryColor != null) {
+            component = component.color(supplementaryColor);
+        }
+        
+        // Normalize decorations
+        for (TextDecoration textDecoration : TextDecoration.values()) {
+            final TextDecoration.State supplementaryDecoration = style.decoration(textDecoration);
+            
+            component = component.decorationIfAbsent(textDecoration, supplementaryDecoration != TextDecoration.State.NOT_SET ? supplementaryDecoration : TextDecoration.State.FALSE);
+        }
+        
+        return component;
+    }
+    
+    /**
+     * Creates a new {@link Component} with the given text centered.
+     *
+     * <p>
+     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} any may look off center.
+     * </p>
+     *
+     * @param text        - The text to center.
+     * @param color       - The component text color.
+     * @param decorations - The component text decorations.
+     * @return a new component with the given text centered.
+     * @see CenterText
+     */
+    @NotNull
+    public static Component centerText(@NotNull String text, @Nullable TextColor color, @NotNull TextDecoration... decorations) {
+        return center(Component.text(text, color, decorations));
+    }
+    
+    /**
+     * Creates a new {@link Component} with the given text centered.
+     *
+     * <p>
+     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} any may look off center.
+     * </p>
+     *
+     * @param text - The text to center.
+     * @return a new component with the given text centered.
+     * @see CenterText
+     */
+    @NotNull
+    public static Component centerText(@NotNull String text) {
+        return centerText(text, null);
+    }
+    
+    /**
+     * Centers the given {@link Component} text, preserving the origin {@link Style}.
+     *
+     * <p>
+     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} any may look off center.
+     * </p>
+     *
+     * @param component - The component to center.
+     * @return the centered component.
+     */
+    @NotNull
+    public static Component center(@NotNull Component component) {
+        return Component.text(CenterText.center(toString(component), CenterText.CENTER_PX)).style(component.style());
+    }
+    
+    /**
+     * Joins the elements of the given {@link Collection} into a single {@link Component}, separated by commas,
+     * and using {@code "and"} before the last element.
+     *
+     * @param collection - The collection of elements to join.
+     * @param fn         - The function to convert each element to a string.
+     * @param <T>        - The type of elements in the collection.
+     * @return A string with elements separated by commas and {@code and} before the last element.
+     */
+    @NotNull
+    public static <T> Component makeComponentCommaAnd(@NotNull Collection<T> collection, @NotNull Function<T, Component> fn) {
+        final TextComponent.Builder builder = Component.text();
+        final int size = collection.size();
+        int index = 0;
+        
+        for (T t : collection) {
+            if (size == 1) {
+                return fn.apply(t);
+            }
+            
+            if (index == size - 1) {
+                builder.append(Component.text(" and "));
+            }
+            else if (index != 0) {
+                builder.append(Component.text(", "));
+            }
+            
+            builder.append(fn.apply(t));
+            ++index;
+        }
+        
+        return builder.build();
+    }
+    
+    /**
+     * Joins the elements of the given {@code array} into a single {@link Component}, separated by commas,
+     * and using {@code "and"} before the last element.
+     *
+     * @param array - The array of elements to join.
+     * @param fn    - The function to convert each element to a string.
+     * @param <T>   - The type of elements in the array.
+     * @return A string with elements separated by commas and {@code and} before the last element.
+     */
+    @NotNull
+    public static <T> Component makeComponentCommaAnd(@NotNull T[] array, @NotNull Function<T, Component> fn) {
+        return makeComponentCommaAnd(List.of(array), fn);
+    }
+    
+    /**
+     * Creates a colored fractional {@link Component} representing the current value relative to the maximum.
+     *
+     * @param current - The current value.
+     * @param max     - The maximum value.
+     * @return A formatted fractional {@link Component} in the form {@code current/max} with color applied.
+     */
+    @NotNull
+    public static Component makeComponentFractional(@NotNull Number current, @NotNull Number max) {
+        class Holder {
+            private static final TreeMap<Double, TextColor> FRACTION_MAP = MapMaker.<Double, TextColor>ofTreeMap()
+                                                                                   .put(0.00, NamedTextColor.RED)
+                                                                                   .put(0.50, NamedTextColor.YELLOW)
+                                                                                   .put(0.75, NamedTextColor.GOLD)
+                                                                                   .put(1.00, NamedTextColor.RED)
+                                                                                   .makeGenericMap();
+        }
+        
+        final double fraction = current.doubleValue() / max.doubleValue();
+        
+        return Component.text(current.intValue(), Holder.FRACTION_MAP.floorEntry(fraction).getValue())
+                        .append(Component.text("/", NamedTextColor.GRAY))
+                        .append(Component.text(max.intValue(), NamedTextColor.GREEN));
+    }
+    
+    /**
+     * Creates a new text {@link Component} with either the given {@code text} or {@code defaultValue}, if text is null or empty.
+     *
+     * @param text         - The text of the component.
+     * @param defaultValue - The fallback text.
+     * @return a new text component.
+     */
+    @NotNull
+    public static Component textOrDefault(@Nullable String text, @NotNull String defaultValue) {
+        return Component.text((text != null && !text.isEmpty()) ? text : defaultValue);
+    }
+    
+    /**
+     * Creates a checkmark {@link Component} based on the given {@link Boolean} condition.
+     *
+     * <p>
+     *     <ul>
+     *         <li>If the boolean is {@code null}, an empty {@link Component} is returned.
+     *         <li>If the boolean is {@code true}, a green `✔` is returned.
+     *         <li>If the boolean is {@code false}, a red `❌` is returned.
+     *     </ul>
+     * </p>
+     *
+     * @param condition - The condition to check.
+     * @return either an empty component, a green checkmark or a red X.
+     */
+    @NotNull
+    public static Component checkmark(@Nullable Boolean condition) {
+        return condition == null ? Component.empty()
+                                 : condition
+                                   ? Component.text("✔", NamedTextColor.GREEN)
+                                   : Component.text("❌", NamedTextColor.RED);
     }
     
 }

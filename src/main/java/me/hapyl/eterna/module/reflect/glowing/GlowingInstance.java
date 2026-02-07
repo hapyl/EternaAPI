@@ -1,9 +1,8 @@
 package me.hapyl.eterna.module.reflect.glowing;
 
-import com.google.common.base.Preconditions;
-import me.hapyl.eterna.module.reflect.EntityDataType;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
+import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.reflect.team.PacketTeamSyncer;
 import me.hapyl.eterna.module.util.Removable;
 import me.hapyl.eterna.module.util.Ticking;
@@ -13,74 +12,68 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Represents a {@link GlowingInstance} of a specific {@link Entity} and {@link Player}.
+ * Represents a {@link GlowingInstance} responsible for handling player-entity data.
  */
-public class GlowingInstance implements Ticking, Removable {
+public final class GlowingInstance implements Ticking, Removable {
+    
+    static final byte BITMASK = 0x40;
     
     private final Player player;
     private final Entity entity;
-    
-    @Nonnull private final Scoreboard playerScoreboard;
-    @Nullable private final Team existingTeam;
-    
     private final PacketTeam team;
     
-    @Nonnull private GlowingColor color;
+    @NotNull private PacketTeamColor color;
     private int duration;
     
-    GlowingInstance(@Nonnull Player player, @Nonnull Entity entity, @Nonnull GlowingColor color, int duration) {
+    GlowingInstance(@NotNull Player player, @NotNull Entity entity, @NotNull PacketTeamColor color, int duration) {
         this.player = player;
         this.entity = entity;
         this.color = color;
         this.duration = duration;
         
-        this.playerScoreboard = player.getScoreboard();
-        this.existingTeam = playerScoreboard.getEntryTeam(scoreboardName());
-        
         // Prepare nms
-        this.team = new PacketTeam(UUID.randomUUID().toString(), existingTeam);
+        this.team = new PacketTeam(UUID.randomUUID().toString(), player.getScoreboard().getEntryTeam(scoreboardName()));
         this.team.create(player);
-        this.team.color(player, color.bukkit);
+        this.team.color(player, color);
         this.team.entry(player, scoreboardName());
         
         sendGlowingPacket(true);
     }
     
     /**
-     * Gets the player of this instance.
+     * Gets the {@link Player} this {@link GlowingInstance} belongs to.
      *
-     * @return the player of this instance.
+     * @return the player this glowing instance belongs to.
      */
-    @Nonnull
+    @NotNull
     public Player player() {
         return player;
     }
     
     /**
-     * Gets the entity of this instance.
+     * Gets the {@link Entity} that is glowing.
      *
-     * @return the entity of this instance.
+     * @return the entity that is glowing.
      */
-    @Nonnull
+    @NotNull
     public Entity entity() {
         return entity;
     }
     
     /**
-     * Sets the new outline color.
+     * Sets the color of this {@link GlowingInstance}.
      *
-     * @param color - The new color.
+     * @param color - The color to set.
      */
-    public void setColor(@Nonnull GlowingColor color) {
+    public void setColor(@NotNull PacketTeamColor color) {
         if (this.color == color) {
             return;
         }
@@ -90,19 +83,25 @@ public class GlowingInstance implements Ticking, Removable {
     }
     
     /**
-     * Sets the new duration.
+     * Sets the duration of this {@link GlowingInstance}.
      *
-     * @param duration - The new duration.
-     * @throws IllegalArgumentException for negative duration unless {@link Glowing#INFINITE_DURATION}.
+     * @param duration - The duration to set.
      */
-    public void setDuration(int duration) {
-        Preconditions.checkArgument(duration >= Glowing.INFINITE_DURATION, "The duration must be positive or %s".formatted(Glowing.INFINITE_DURATION));
+    public void setDuration(final int duration) {
+        if (duration < Glowing.INFINITE_DURATION) {
+            throw new IllegalArgumentException("Duration must be positive or %s!".formatted(Glowing.INFINITE_DURATION));
+        }
+        
         this.duration = duration;
     }
     
+    /**
+     * Ticks this {@link GlowingInstance}.
+     */
     @Override
     public void tick() {
-        // Synchronize from the existing team, so it updates everything
+        // Synchronize from the existing team, so it updates everything except the color.
+        // Needed mostly for prefix/suffix updates if the player is glowing, because we're overriding the values otherwise
         team.synchronize(player, PacketTeamSyncer.NO_COLOR);
         
         if (duration == Glowing.INFINITE_DURATION) {
@@ -113,7 +112,7 @@ public class GlowingInstance implements Ticking, Removable {
     }
     
     /**
-     * Stops the glowing, restoring the real teams.
+     * Removes this {@link GlowingInstance} and stops the {@link Entity} glowing.
      */
     @Override
     public void remove() {
@@ -132,44 +131,39 @@ public class GlowingInstance implements Ticking, Removable {
     }
     
     /**
-     * Gets whether this instance should be stopped.
-     * <p>
-     * The default condition for stop is:
-     *     <ul>
-     *         <li>Entity has died.
-     *         <li>Duration isn't {@link Glowing#INFINITE_DURATION} and has reached 0.
-     *     </ul>
-     * </p>
+     * Gets whether this {@link GlowingInstance} should be removed on {@link GlowingHandler#emptyOrphans()}.
      *
-     * @return {@code true} if the instance should be stopped, {@code false} otherwise.
+     * @return {@code true} if this glowing instance should be removed; {@code false} otherwise.
      */
     @Override
     public boolean shouldRemove() {
         return entity.isDead() || duration != Glowing.INFINITE_DURATION && duration <= 0;
     }
     
-    protected void sendGlowingPacket(boolean flag) {
-        final SynchedEntityData dataWatcher = Reflect.getEntityData(Reflect.getHandle(entity));
-        final byte existingMask = dataWatcher.get(EntityDataType.BYTE.createAccessor(0));
+    @ApiStatus.Internal
+    void sendGlowingPacket(boolean flag) {
+        final SynchedEntityData dataWatcher = Reflect.getHandle(entity).getEntityData();
+        final byte existingMask = dataWatcher.get(EntityDataSerializers.BYTE.createAccessor(0));
         
         final ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(
                 entity.getEntityId(),
                 List.of(new SynchedEntityData.DataValue<>(
                         0,
                         EntityDataSerializers.BYTE,
-                        !flag ? (byte) (existingMask & ~Glowing.BITMASK) : (byte) (existingMask | Glowing.BITMASK)
+                        !flag ? (byte) (existingMask & ~BITMASK) : (byte) (existingMask | BITMASK)
                 ))
         );
         
         Reflect.sendPacket(player, packet);
     }
     
+    @NotNull
     private String scoreboardName() {
         return entity instanceof Player ? entity.getName() : entity.getUniqueId().toString();
     }
     
     private void updateColor() {
-        team.color(player, color.bukkit);
+        team.color(player, color);
     }
     
 }

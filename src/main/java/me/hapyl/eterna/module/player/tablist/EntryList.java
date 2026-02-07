@@ -1,145 +1,86 @@
 package me.hapyl.eterna.module.player.tablist;
 
+import me.hapyl.eterna.module.annotate.Size;
 import me.hapyl.eterna.module.reflect.Skin;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 /**
- * Represents an {@code list} of {@link EntryList#ARRAY_SIZE} lines exactly, which is how many fits on one tablist column.
+ * Represents an {@code list} of {@link Tablist#MAX_ENTRIES_PER_COLUMN} lines exactly (which is how many fits on one tablist column),
+ * that defines what changed are made to a {@link TablistEntry}.
  */
 public class EntryList {
     
-    private static final int ARRAY_SIZE = 20;
+    protected final Entry[] values;
     
-    protected final EntryConsumer[] array;
-    
-    /**
-     * Creates a new {@link EntryList} from the given {@link List}.
-     * {@link #ARRAY_SIZE} first list entries will be copied.
-     *
-     * @param list - String list.
-     */
-    public EntryList(@Nonnull List<Component> list) {
-        this();
-        
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            if (i >= list.size()) {
-                break;
-            }
-            
-            final Component newText = list.get(i);
-            array[i] = entry -> entry.setText(newText);
-        }
+    private EntryList(@NotNull Entry[] values) {
+        this.values = values;
     }
     
     /**
-     * Creates a new {@link EntryList} from the given array.
-     * {@link #ARRAY_SIZE} first array entries will be copied.
+     * Appends the given text {@link Component} to this {@link EntryList}.
      *
-     * @param lines - String array.
+     * @param text - The text to append.
      */
-    public EntryList(@Nonnull Component[] lines) {
-        this();
-        
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            if (i >= lines.length) {
-                break;
-            }
-            
-            final Component line = lines[i];
-            array[i] = entry -> entry.setText(line);
-        }
+    public void append(@NotNull Component text) {
+        append0(text, null, null);
     }
     
     /**
-     * Creates an empty {@link EntryList}.
-     */
-    public EntryList() {
-        this.array = new EntryConsumer[ARRAY_SIZE];
-    }
-    
-    /**
-     * Sets the string at the given index.
+     * Appends the given text {@link Component} and {@link EntryTexture} to this {@link EntryList}.
      *
-     * @param index - Index.
-     * @param value - Value.
-     */
-    public void set(int index, final @Nonnull Component value) {
-        if (index < 0 || index >= ARRAY_SIZE) {
-            return;
-        }
-        
-        array[index] = entry -> entry.setText(value);
-    }
-    
-    /**
-     * Appends a value to the end of the list.
-     *
-     * @param text - Text to append.
-     * @return true if was appended; false otherwise.
-     */
-    public boolean append(@Nonnull Component text) {
-        return append(text, null, null);
-    }
-    
-    /**
-     * Appends a value to the end of the list.
-     *
-     * @param text    - Text to append.
-     * @param texture - Texture to set.
-     * @return true if was appended; false otherwise.
+     * @param text    - The text to append.
+     * @param texture - The texture to append.
      * @see EntryTexture
      */
-    public boolean append(@Nonnull Component text, @Nullable EntryTexture texture) {
-        return append(text, texture, null);
+    public void append(@NotNull Component text, @NotNull EntryTexture texture) {
+        append0(text, texture, null);
     }
     
     /**
-     * Appends a value to the end of the list.
+     * Appends the given text {@link Component} and {@link PingBars} to this {@link EntryList}.
      *
-     * @param text - Text to append.
-     * @param ping - Ping to set.
-     * @return true if was appended; false otherwise.
+     * @param text - The text to append.
+     * @param ping - The ping bars to append.
      */
-    public boolean append(@Nonnull Component text, @Nullable PingBars ping) {
-        return append(text, null, ping);
+    public void append(@NotNull Component text, @NotNull PingBars ping) {
+        append0(text, null, ping);
     }
     
     /**
-     * Appends a value to the end of the list.
+     * Appends the given text {@link Component}, {@link EntryTexture} and {@link PingBars} to this {@link EntryList}.
      *
-     * @param text    - Text to append.
-     * @param texture - Texture to set.
-     * @param ping    - Ping to set.
-     * @return true if was appended; false otherwise.
+     * @param text    - The text to append.
+     * @param texture - The texture to append.
+     * @param ping    - The ping bars to append.
      */
-    public boolean append(@Nonnull Component text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
-        return append0(text, texture, ping);
+    public void append(@NotNull Component text, @Nullable EntryTexture texture, @Nullable PingBars ping) {
+        append0(text, texture, ping);
     }
     
     /**
-     * Appends an empty text to the end of the list.
-     *
-     * @return true if was appended; false otherwise.
+     * Appends an empty text {@link Component} to this {@link EntryList}.
      */
-    public boolean append() {
-        return append(Component.empty());
+    public void append() {
+        append0(Component.empty(), null, null);
     }
     
     /**
-     * Gets the size of non-null elements in this list.
+     * Gets the size of non-{@code null} elements in this list.
      *
-     * @return size of non-null elements.
+     * @return the size of non-{@code null} elements in this list.
      */
     public int size() {
         int size = 0;
         
-        for (EntryConsumer entryConsumer : array) {
-            if (entryConsumer != null) {
+        for (Entry entry : values) {
+            if (entry != null) {
                 size++;
             }
         }
@@ -151,31 +92,103 @@ public class EntryList {
      * Clears this list.
      */
     public void clear() {
-        Arrays.fill(array, null);
+        Arrays.fill(values, null);
     }
     
-    protected boolean append0(@Nonnull Component component, @Nullable Skin skin, @Nullable PingBars ping) {
-        for (int i = 0; i < array.length; i++) {
-            final EntryConsumer val = array[i];
+    private void append0(@NotNull Component component, @Nullable Skin skin, @Nullable PingBars ping) {
+        for (int i = 0; i < values.length; i++) {
+            final Entry val = values[i];
             
+            // Since we're appending to a nullable list, just set the
+            // first null value to a new tablist entry
             if (val == null) {
-                array[i] = entry -> {
+                values[i] = entry -> {
+                    // Always set text
                     entry.setText(component);
                     
+                    // Don't override skin
                     if (skin != null) {
                         entry.setTexture(skin);
                     }
                     
+                    // Don't override ping
                     if (ping != null) {
                         entry.setPing(ping);
                     }
                 };
                 
-                return true;
+                return;
             }
         }
-        
-        return false;
     }
     
+    /**
+     * A static factory method for creating an empty {@link EntryList}.
+     *
+     * @return a new empty entry list.
+     */
+    @NotNull
+    public static EntryList ofEmpty() {
+        return new EntryList(new Entry[Tablist.MAX_ENTRIES_PER_COLUMN]);
+    }
+    
+    /**
+     * A static factory method for creating {@link EntryList} from the given {@link Component} list.
+     *
+     * @param entries - The entries to set.
+     * @return a new entry list.
+     */
+    @NotNull
+    public static EntryList ofList(@NotNull @Size(from = 0, to = Tablist.MAX_ENTRIES_PER_COLUMN) List<Component> entries) {
+        return new EntryList(
+                entries.stream()
+                       .limit(Tablist.MAX_ENTRIES_PER_COLUMN)
+                       .map(Entry.mapper())
+                       .toArray(Entry[]::new)
+        );
+    }
+    
+    /**
+     * A static factory method for creating {@link EntryList} from the given {@link Component} array.
+     *
+     * @param entries - The entries to set.
+     * @return a new entry list.
+     */
+    @NotNull
+    public static EntryList ofArray(@NotNull @Size(from = 0, to = Tablist.MAX_ENTRIES_PER_COLUMN) Component[] entries) {
+        return new EntryList(
+                Arrays.stream(entries)
+                      .limit(Tablist.MAX_ENTRIES_PER_COLUMN)
+                      .map(Entry.mapper())
+                      .toArray(Entry[]::new)
+        );
+    }
+    
+    /**
+     * Represents a {@link TablistEntry} consumer used in {@link EntryList}.
+     *
+     * @see EntryList
+     */
+    @ApiStatus.NonExtendable
+    public interface Entry {
+        
+        /**
+         * Applies this {@link Entry} to the given {@link TablistEntry}.
+         *
+         * @param entry - The entry to apply to.
+         */
+        void apply(@NotNull TablistEntry entry);
+        
+        /**
+         * Represents an internal mapped for {@link EntryList}.
+         *
+         * @return the mapping function.
+         */
+        @NotNull
+        @ApiStatus.Internal
+        static Function<Component, Entry> mapper() {
+            return component -> (Entry) entry -> entry.setText(component);
+        }
+        
+    }
 }

@@ -1,63 +1,76 @@
 package me.hapyl.eterna.module.player.tablist;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents the number of ping bars on a {@link TablistEntry} texture.
+ */
 public enum PingBars {
-
+    
     /**
-     * No ping, the icon will be crossed out with an 'X'.
+     * Defines the "No Ping" or "X" ping.
      */
     NO_PING(-1),
+    
     /**
-     * Five bars of ping.
+     * Defines the five bars of ping.
      */
     FIVE(149),
+    
     /**
-     * Four bars of ping.
+     * Defines the four bars of ping.
      */
     FOUR(299),
+    
     /**
-     * Three bars of ping.
+     * Defines the three bars of ping.
      */
     THREE(599),
+    
     /**
-     * Two bars of ping.
+     * Defines the two bars of ping.
      */
     TWO(999),
+    
     /**
-     * One bar of ping.
+     * Defines the one bar of ping.
      */
     ONE(1001);
-
-    private final int value;
-
-    PingBars(int value) {
-        this.value = value;
+    
+    private final int magicValue;
+    
+    PingBars(int magicValue) {
+        this.magicValue = magicValue;
     }
-
-    public int getValue() {
-        return value;
-    }
-
+    
     /**
-     * Gets a {@link PingBars} by an integer value.
+     * Gets the magic value used for the ping bar.
      *
-     * @param value - Integer value.
-     * @return a ping bar.
+     * @return the magic value.
      */
-    @Nonnull
-    public static PingBars byValue(int value) {
-        if (value < 0) {
+    public int getMagicValue() {
+        return magicValue;
+    }
+    
+    /**
+     * Gets a {@link PingBars} by the given ping value.
+     *
+     * @param ping - The ping value.
+     * @return the ping bars associated with the given ping value, or {@link #NO_PING} if the given value is negative.
+     */
+    @NotNull
+    public static PingBars byPing(final int ping) {
+        if (ping < 0) {
             return NO_PING;
         }
-
-        for (final PingBars ping : values()) {
-            if (value <= ping.value) {
-                return ping;
+        
+        for (final PingBars pingBars : values()) {
+            if (ping <= pingBars.magicValue) {
+                return pingBars;
             }
         }
-
+        
         return ONE;
     }
-
+    
 }

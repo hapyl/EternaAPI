@@ -10,14 +10,20 @@ import net.minecraft.network.protocol.Packet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
+/**
+ * Represents an internal packet interceptor.
+ */
+@ApiStatus.Internal
 public class PacketInterceptor extends ChannelDuplexHandler {
     
     protected volatile Player player;
     
-    PacketInterceptor(Player player) {
+    PacketInterceptor(@NotNull Player player) {
         this.player = player;
     }
     

@@ -7,8 +7,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerData;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a {@link EntityType#VILLAGER} appearance.
@@ -19,7 +18,7 @@ public class AppearanceVillager extends Appearance {
     private VillagerProfession profession;
     private VillagerLevel level;
     
-    public AppearanceVillager(@Nonnull Npc npc, @Nonnull VillagerVariant variant, @Nonnull VillagerProfession profession, @Nonnull VillagerLevel level) {
+    public AppearanceVillager(@NotNull Npc npc, @NotNull VillagerVariant variant, @NotNull VillagerProfession profession, @NotNull VillagerLevel level) {
         super(npc, new Villager(EntityType.VILLAGER, dummyWorld()));
         
         this.variant = variant;
@@ -34,7 +33,7 @@ public class AppearanceVillager extends Appearance {
      *
      * @return the villager variant.
      */
-    @Nonnull
+    @NotNull
     public VillagerVariant getVariant() {
         return variant;
     }
@@ -44,7 +43,7 @@ public class AppearanceVillager extends Appearance {
      *
      * @param variant - The new villager variant.
      */
-    public void setVariant(@Nonnull VillagerVariant variant) {
+    public void setVariant(@NotNull VillagerVariant variant) {
         this.variant = variant;
         this.updateEntityData();
     }
@@ -54,7 +53,7 @@ public class AppearanceVillager extends Appearance {
      *
      * @return the {@link VillagerProfession}.
      */
-    @Nonnull
+    @NotNull
     public VillagerProfession getProfession() {
         return profession;
     }
@@ -64,7 +63,7 @@ public class AppearanceVillager extends Appearance {
      *
      * @param profession - The new profession.
      */
-    public void setProfession(@Nonnull VillagerProfession profession) {
+    public void setProfession(@NotNull VillagerProfession profession) {
         this.profession = profession;
         this.updateEntityData();
     }
@@ -74,7 +73,7 @@ public class AppearanceVillager extends Appearance {
      *
      * @return the {@link VillagerLevel}.
      */
-    @Nonnull
+    @NotNull
     public VillagerLevel getLevel() {
         return level;
     }
@@ -84,12 +83,12 @@ public class AppearanceVillager extends Appearance {
      *
      * @param level - The new villager level.
      */
-    public void setLevel(@Nonnull VillagerLevel level) {
+    public void setLevel(@NotNull VillagerLevel level) {
         this.level = level;
         this.updateEntityData();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public Villager getHandle() {
         return (Villager) super.getHandle();

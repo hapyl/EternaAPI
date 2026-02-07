@@ -1,17 +1,18 @@
 package me.hapyl.eterna.module.parkour;
 
+import com.google.common.collect.Lists;
+import me.hapyl.eterna.module.annotate.SelfReturn;
+import me.hapyl.eterna.module.location.Located;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Objects;
 
-/**
- * Represents a {@link Parkour} position.
- */
-public class ParkourPosition {
+public final class ParkourPosition implements Located {
     
     private final World world;
     private final int x;
@@ -22,7 +23,7 @@ public class ParkourPosition {
     
     private final BlockData restoreBlock;
     
-    public ParkourPosition(@Nonnull World world, int x, int y, int z, float yaw, float pitch) {
+    public ParkourPosition(@NotNull World world, int x, int y, int z, float yaw, float pitch) {
         this.world = world;
         this.x = x;
         this.y = y;
@@ -32,20 +33,24 @@ public class ParkourPosition {
         this.restoreBlock = getLocation().getBlock().getBlockData();
     }
     
-    @Nonnull
+    @NotNull
+    @Override
     public Location getLocation() {
-        return new Location(world, x, y, z, yaw, pitch);
+        return new Location(this.world, this.x, this.y, this.z, this.yaw, this.pitch);
     }
     
-    @Nonnull
+    @NotNull
     public Location getLocationCentered() {
         return getLocation().add(0.5, 0.0, 0.5);
     }
     
-    public boolean compare(@Nonnull Location location) {
-        return location.getBlockX() == this.x
-               && location.getBlockY() == this.y
-               && location.getBlockZ() == this.z;
+    public boolean compare(@NotNull Location location) {
+        return location.getBlockX() == this.x && location.getBlockY() == this.y && location.getBlockZ() == this.z;
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.world, this.x, this.y, this.z);
     }
     
     @Override
@@ -58,12 +63,7 @@ public class ParkourPosition {
         return this.x == that.x && this.y == that.y && this.z == that.z && Objects.equals(this.world, that.world);
     }
     
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.world, this.x, this.y, this.z);
-    }
-    
-    public void setBlock(@Nonnull Material material) {
+    public void setBlock(@NotNull Material material) {
         getLocation().getBlock().setType(material, false);
     }
     
@@ -71,31 +71,47 @@ public class ParkourPosition {
         getLocation().getBlock().setBlockData(restoreBlock, false);
     }
     
-    @Override
-    public String toString() {
-        return "ParkourPosition{" +
-               "world=" + world +
-               ", x=" + x +
-               ", y=" + y +
-               ", z=" + z +
-               ", yaw=" + yaw +
-               ", pitch=" + pitch +
-               '}';
-    }
-    
-    @Nonnull
-    public static ParkourPosition of(@Nonnull World world, int x, int y, int z) {
+    @NotNull
+    public static ParkourPosition of(@NotNull World world, int x, int y, int z) {
         return new ParkourPosition(world, x, y, z, 0, 0);
     }
     
-    @Nonnull
-    public static ParkourPosition of(@Nonnull World world, int x, int y, int z, float yaw, float pitch) {
+    @NotNull
+    public static ParkourPosition of(@NotNull World world, int x, int y, int z, float yaw, float pitch) {
         return new ParkourPosition(world, x, y, z, yaw, pitch);
     }
     
-    @Nonnull
-    public static ParkourPosition of(@Nonnull Location location) {
+    @NotNull
+    public static ParkourPosition of(@NotNull Location location) {
         return new ParkourPosition(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getYaw(), location.getPitch());
     }
     
+    @NotNull
+    public static ParkourPosition.Builder builder(@NotNull ParkourPosition start, @NotNull ParkourPosition finish) {
+        return new Builder(start, finish);
+    }
+    
+    public static class Builder {
+        
+        protected final ParkourPosition start;
+        protected final ParkourPosition finish;
+        protected final List<ParkourPosition> checkpoints;
+        
+        Builder(@NotNull ParkourPosition start, @NotNull ParkourPosition finish) {
+            this.start = start;
+            this.finish = finish;
+            this.checkpoints = Lists.newArrayList();
+        }
+        
+        @SelfReturn
+        public Builder checkpoint(@NotNull ParkourPosition position) {
+            this.checkpoints.add(position);
+            return this;
+        }
+        
+        @NotNull
+        public static ParkourPosition.Builder builder(@NotNull ParkourPosition start, @NotNull ParkourPosition finish) {
+            return new Builder(start, finish);
+        }
+    }
 }

@@ -6,12 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the annotated method is an 'event'.
- * <br>
- * Usually prefixed with {@code on}.
+ * Indicates that the annotated method is a callback event, usually prefixed with {@code on} or {@code handle}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ ElementType.METHOD })
 public @interface EventLike {
-
 }

@@ -3,12 +3,11 @@ package me.hapyl.eterna.module.npc.appearance;
 import com.mojang.authlib.GameProfile;
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.reflect.Skin;
-import me.hapyl.eterna.module.util.Bitmask;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.Mannequin;
 import net.minecraft.world.item.component.ResolvableProfile;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
@@ -19,9 +18,9 @@ import java.util.Set;
 public class AppearanceMannequin extends AppearanceHumanoid {
     
     private final Set<SkinPart> skinParts;
-    @Nonnull private Skin skin;
+    @NotNull private Skin skin;
     
-    public AppearanceMannequin(@Nonnull Npc npc, @Nonnull Skin skin) {
+    public AppearanceMannequin(@NotNull Npc npc, @NotNull Skin skin) {
         super(npc, new Mannequin(EntityType.MANNEQUIN, dummyWorld()));
         
         this.skinParts = EnumSet.allOf(SkinPart.class);
@@ -38,7 +37,7 @@ public class AppearanceMannequin extends AppearanceHumanoid {
      *
      * @return the current skin.
      */
-    @Nonnull
+    @NotNull
     public Skin getSkin() {
         return skin;
     }
@@ -48,7 +47,7 @@ public class AppearanceMannequin extends AppearanceHumanoid {
      *
      * @param skin - The new skin.
      */
-    public void setSkin(@Nonnull Skin skin) {
+    public void setSkin(@NotNull Skin skin) {
         this.skin = skin;
         this.updateEntityData();
     }
@@ -58,7 +57,7 @@ public class AppearanceMannequin extends AppearanceHumanoid {
      *
      * @return a copy of {@link SkinPart} of the appearance.
      */
-    @Nonnull
+    @NotNull
     public Set<SkinPart> getSkinParts() {
         return Set.copyOf(skinParts);
     }
@@ -68,14 +67,14 @@ public class AppearanceMannequin extends AppearanceHumanoid {
      *
      * @param parts - The visible skin parts.
      */
-    public void setSkinParts(@Nonnull SkinPart... parts) {
+    public void setSkinParts(@NotNull SkinPart... parts) {
         this.skinParts.clear();
         this.skinParts.addAll(Arrays.asList(parts));
         
         this.updateEntityData();
     }
     
-    @Nonnull
+    @NotNull
     @Override
     public Mannequin getHandle() {
         return (Mannequin) super.getHandle();
@@ -87,7 +86,7 @@ public class AppearanceMannequin extends AppearanceHumanoid {
         getHandle().setProfile(ResolvableProfile.createResolved(new GameProfile(getUuid(), "", skin.asPropertyMap())));
         
         // Write skin parts
-        super.getEntityData().set(SkinPart.CAPE.getAccessor(), Bitmask.make(skinParts, SkinPart::getAccessorValue));
+        super.getEntityData().set(SkinPart.CAPE.getAccessor(), (byte) skinParts.stream().mapToInt(SkinPart::getValue).reduce(0, (mask, value) -> mask | value));
         
         super.updateEntityData();
     }
