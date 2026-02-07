@@ -11,7 +11,6 @@
     * [Particles](https://github.com/hapyl/EternaAPI/wiki)
     * ...and more!
 
-
 * Allows per-player:
     * [Scoreboard](https://github.com/hapyl/EternaAPI/wiki)
     * [NPCs](https://github.com/hapyl/EternaAPI/wiki)
@@ -28,7 +27,6 @@
 * A **ton** of utilities, including:
   * [BukkitUtils](https://github.com/hapyl/EternaAPI/wiki)
   * [CollectionUtils](https://github.com/hapyl/EternaAPI/wiki)
-  * [EntityUtils](https://github.com/hapyl/EternaAPI/wiki)
   * ...and much more!
 
 For more information, see *incomplete* [Wiki](https://github.com/hapyl/EternaAPI/wiki).
@@ -51,7 +49,7 @@ depend: [ "EternaAPI" ]
 ```java
 @Override
 public void onEnable() {
-    new EternaAPI(this);
+    EternaAPI.instantiate(this);
 }
 ```
 
@@ -59,7 +57,7 @@ public void onEnable() {
 ```java
 @Override
 public void onEnable() {
-    new EternaAPI(this, "4.16.0");
+    EternaAPI.instantiate(this, "6.0.0");
 }
 ```
 
