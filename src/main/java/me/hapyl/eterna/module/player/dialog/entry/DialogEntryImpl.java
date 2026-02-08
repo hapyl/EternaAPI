@@ -3,7 +3,6 @@ package me.hapyl.eterna.module.player.dialog.entry;
 import me.hapyl.eterna.module.registry.Key;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 /**
  * Represents an internal {@link DialogEntry} implementation.
@@ -18,7 +17,7 @@ public abstract class DialogEntryImpl implements DialogEntry {
     }
     
     @Override
-    @NonNull
+    @NotNull
     public final Key getKey() {
         return key;
     }

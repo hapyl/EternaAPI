@@ -2,7 +2,7 @@ package me.hapyl.eterna.module.inventory.menu;
 
 import me.hapyl.eterna.module.annotate.StrictEnumOrdinal;
 import me.hapyl.eterna.module.util.OrderedEnum;
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Defines the {@link PlayerMenuType#chest(ChestSize)} size of the chest.
@@ -80,7 +80,7 @@ public enum ChestSize implements OrderedEnum<ChestSize> {
         return centre;
     }
     
-    @NonNull
+    @NotNull
     @Override
     public ChestSize current() {
         return this;

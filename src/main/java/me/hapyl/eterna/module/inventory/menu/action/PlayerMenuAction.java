@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
-import org.jspecify.annotations.NonNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -211,7 +210,7 @@ public interface PlayerMenuAction {
          *
          * @return a built player menu action.
          */
-        @NonNull
+        @NotNull
         @Override
         public PlayerMenuAction build() {
             return this.playerAction;

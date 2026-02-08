@@ -16,7 +16,6 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
@@ -199,7 +198,7 @@ public final class Components {
      * @param style     - The supplementary style.
      * @return the normalized component.
      */
-    @Nonnull
+    @NotNull
     public static Component normalizeStyle(@NotNull Component component, @NotNull Style style) {
         // Normalize color
         final TextColor supplementaryColor = style.color();
