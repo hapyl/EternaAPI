@@ -112,6 +112,7 @@ public final class Components {
     
     /**
      * Wraps the given {@link Component} into a {@link List} of {@link Component}, each with text length not exceeding {@code maxLength}.
+     *
      * <p>Special cases:<ul>
      * <li>Non-{@link TextComponent} are appended as is.
      * <li>{@link Component#newline()} are treated as line breakers, appending an empty {@link Component}.
@@ -123,17 +124,12 @@ public final class Components {
      */
     @NotNull
     public static List<? extends Component> wrap(@NotNull Component component, int maxLength) {
-        if (!(component instanceof TextComponent root)) {
+        if (!(component instanceof TextComponent)) {
             return List.of(component);
         }
         
         final List<Component> output = Lists.newArrayList();
-        final List<Component> children = Lists.newArrayList(component.children());
-        
-        // Handle root content before everything else, unless it's empty
-        if (!root.content().isEmpty()) {
-            children.addFirst(root);
-        }
+        final List<Component> children = flatten(component);
         
         TextComponent.Builder builder = Component.text();
         int counter = 0;
@@ -188,7 +184,7 @@ public final class Components {
             }
         }
         
-        // If builder is not empty, append it
+        // Don't eat the remaining kids 😮
         if (!builder.children().isEmpty()) {
             output.add(builder.build());
         }
@@ -377,6 +373,28 @@ public final class Components {
                                  : condition
                                    ? Component.text("✔", NamedTextColor.GREEN)
                                    : Component.text("❌", NamedTextColor.RED);
+    }
+    
+    /**
+     * Flattens the given {@link Component} and its children {@link Component} into a single {@link List} of {@link Component}.
+     *
+     * @param component - The component to flatten.
+     * @return a flattened component list.
+     */
+    @NotNull
+    public static List<Component> flatten(@NotNull Component component) {
+        final List<Component> flattened = Lists.newArrayList();
+        
+        flatten0(component, flattened);
+        return flattened;
+    }
+    
+    private static void flatten0(@NotNull Component root, @NotNull List<Component> children) {
+        children.add(root);
+        
+        for (Component child : root.children()) {
+            flatten0(child, children);
+        }
     }
     
 }

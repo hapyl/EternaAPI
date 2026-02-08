@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.text.prefix;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,12 +31,12 @@ public interface Prefix {
     Component getSeparator();
     
     /**
-     * Prefixes the given {@link Component} message and sends it to the given {@link CommandSender}.
+     * Prefixes the given {@link Component} message and sends it to the given {@link Audience}.
      *
-     * @param commandSender - The command sender to receive the message.
-     * @param message       - The message to prefix and send.
+     * @param audience - The command sender to receive the message.
+     * @param message  - The message to prefix and send.
      */
-    void sendMessage(@NotNull CommandSender commandSender, @NotNull Component message);
+    void sendMessage(@NotNull Audience audience, @NotNull Component message);
     
     /**
      * Prefixes the given {@link Component} message and broadcasts it to the whole server.
