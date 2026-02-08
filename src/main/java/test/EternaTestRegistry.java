@@ -70,7 +70,6 @@ import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -1854,31 +1853,22 @@ public final class EternaTestRegistry {
         });
         
         register("component_wrap", context -> {
-            enum Mc implements ComponentLike {
-                A;
+            enum Element implements ComponentLike {
+                ELEMENT;
                 
                 @NotNull
                 @Override
                 public Component asComponent() {
                     return Component.empty()
-                                    .append(Component.text("name"))
-                                    .append(Component.text(" = ", NamedTextColor.GREEN))
-                                    .append(Component.text(name()));
+                                    .append(Component.text("&", TextColor.color(0xAF2C0C)))
+                                    .append(Component.text(" "))
+                                    .append(Component.text(name()).color(TextColor.color(0xf887ff)));
                 }
             }
             
-            final TextComponent component = Component.empty()
-                                                     .append(Component.text("Does this blah blah >> "))
-                                                     .append(Mc.A)
-                                                     .append(Component.newline())
-                                                     .append(Component.text(" <<"))
-                                                     .append(Component.empty()
-                                                                      .append(Component.empty()
-                                                                                       .append(Component.empty()
-                                                                                                        .append(Component.text("<RED>", NamedTextColor.RED))
-                                                                                                        .append(Component.text("[VERY DEEP]")))));
-            
-            context.player().getInventory().addItem(new ItemBuilder(Material.EMERALD).addWrappedLore(component).asIcon());
+            context.player().getInventory().addItem(new ItemBuilder(Material.EMERALD).addWrappedLore(
+                    Component.text("Shoots three arrows in front of you that deal & ELEMENT damage.")
+            ).asIcon());
         });
         
         // *-* End Tests *-* //
