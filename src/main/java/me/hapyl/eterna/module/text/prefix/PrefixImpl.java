@@ -1,8 +1,8 @@
 package me.hapyl.eterna.module.text.prefix;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,8 +30,8 @@ public final class PrefixImpl implements Prefix {
     }
     
     @Override
-    public void sendMessage(@NotNull CommandSender commandSender, @NotNull Component message) {
-        commandSender.sendMessage(applyPrefix(message));
+    public void sendMessage(@NotNull Audience audience, @NotNull Component message) {
+        audience.sendMessage(applyPrefix(message));
     }
     
     @Override

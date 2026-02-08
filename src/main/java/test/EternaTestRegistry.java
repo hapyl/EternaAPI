@@ -46,6 +46,7 @@ import me.hapyl.eterna.module.parkour.ParkourPosition;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
 import me.hapyl.eterna.module.player.PlayerOutline;
 import me.hapyl.eterna.module.player.PlayerSkin;
+import me.hapyl.eterna.module.player.ScoreboardBuilder;
 import me.hapyl.eterna.module.player.dialog.Dialog;
 import me.hapyl.eterna.module.player.dialog.entry.DialogEntry;
 import me.hapyl.eterna.module.player.dialog.entry.DialogEntryOptions;
@@ -66,9 +67,10 @@ import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
-import me.hapyl.eterna.module.player.ScoreboardBuilder;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -1849,6 +1851,34 @@ public final class EternaTestRegistry {
             );
             
             sequencer.play(List.of(context.player()));
+        });
+        
+        register("component_wrap", context -> {
+            enum Mc implements ComponentLike {
+                A;
+                
+                @NotNull
+                @Override
+                public Component asComponent() {
+                    return Component.empty()
+                                    .append(Component.text("name"))
+                                    .append(Component.text(" = ", NamedTextColor.GREEN))
+                                    .append(Component.text(name()));
+                }
+            }
+            
+            final TextComponent component = Component.empty()
+                                                     .append(Component.text("Does this blah blah >> "))
+                                                     .append(Mc.A)
+                                                     .append(Component.newline())
+                                                     .append(Component.text(" <<"))
+                                                     .append(Component.empty()
+                                                                      .append(Component.empty()
+                                                                                       .append(Component.empty()
+                                                                                                        .append(Component.text("<RED>", NamedTextColor.RED))
+                                                                                                        .append(Component.text("[VERY DEEP]")))));
+            
+            context.player().getInventory().addItem(new ItemBuilder(Material.EMERALD).addWrappedLore(component).asIcon());
         });
         
         // *-* End Tests *-* //
