@@ -21,12 +21,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A utility class for {@link Component}.
  */
 @UtilityClass
 public final class Components {
+    
+    private static final Pattern WRAP_PATTERN = Pattern.compile("\\S+|\\s+");
     
     private Components() {
         UtilityClass.Validator.throwIt();
@@ -157,34 +161,29 @@ public final class Components {
                 continue;
             }
             
-            final String[] contentSplit = textComponent.content().split(" ");
+            // Match the pattern
+            final Matcher matcher = WRAP_PATTERN.matcher(content);
             
-            for (int j = 0; j < contentSplit.length; j++) {
-                final String word = contentSplit[j];
+            while (matcher.find()) {
+                final String group = matcher.group();
+                final int length = group.length();
                 
-                // Increment counter by word length + 1 if non-first word to
-                // account for spaces in words, looks better that way
-                counter += word.length() + (j > 0 ? 1 : 0);
-                
-                // Always append the text
-                builder.append(Component.text(word, child.style()));
-                
-                // Follows by the space, unless the last word
-                if (j != contentSplit.length - 1) {
-                    builder.append(Component.text(" "));
-                }
-                
-                // If the counter is greater than maxLength, append to output and reset
-                if (counter >= maxLength) {
+                // If `counter` + `length` will overflow, wrap on the next line,
+                // unless we're on a whitespace
+                if (counter + length > maxLength && !group.isBlank()) {
                     output.add(builder.build());
                     
                     builder = Component.text();
                     counter = 0;
                 }
+                
+                // Append the content with the `child` style
+                builder.append(Component.text(group, child.style()));
+                counter += length;
             }
         }
         
-        // Don't eat the remaining kids 😮
+        // Append the remaining children
         if (!builder.children().isEmpty()) {
             output.add(builder.build());
         }
@@ -376,25 +375,43 @@ public final class Components {
     }
     
     /**
-     * Flattens the given {@link Component} and its children {@link Component} into a single {@link List} of {@link Component}.
+     * Flattens the given {@link Component} and its children {@link Component} into a single {@link List} of {@link Component},
+     * removing stray {@link Component#empty()} components.
      *
      * @param component - The component to flatten.
      * @return a flattened component list.
      */
     @NotNull
     public static List<Component> flatten(@NotNull Component component) {
-        final List<Component> flattened = Lists.newArrayList();
+        class Flattener {
+            static List<Component> flatten(@NotNull Component component) {
+                final List<Component> flattened = Lists.newArrayList();
+                
+                appendChildren(component, flattened);
+                return List.copyOf(flattened);
+            }
+            
+            static void appendChildren(@NotNull Component root, @NotNull List<Component> list) {
+                // Append non-text components as is
+                if (!(root instanceof TextComponent textComponent)) {
+                    list.add(root);
+                }
+                else {
+                    // Append the root without children unless it's a stray `Component.empty()`
+                    if (!textComponent.content().isEmpty()) {
+                        list.add(textComponent.children(List.of()));
+                    }
+                }
+                
+                // Append each child individually, without their children
+                for (Component child : root.children()) {
+                    appendChildren(child, list);
+                }
+            }
+        }
         
-        flatten0(component, flattened);
-        return flattened;
+        return Flattener.flatten(component);
     }
     
-    private static void flatten0(@NotNull Component root, @NotNull List<Component> children) {
-        children.add(root);
-        
-        for (Component child : root.children()) {
-            flatten0(child, children);
-        }
-    }
     
 }
