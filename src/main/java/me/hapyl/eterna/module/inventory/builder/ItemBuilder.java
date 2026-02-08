@@ -999,6 +999,18 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return this;
     }
     
+    /**
+     * Unsets all {@link DataComponentType} defined by the {@link #COMPONENTS_WITH_TOOLTIPS} on this {@link ItemBuilder},
+     * which essentially makes the item non-functional for those components, but also guarantees the removal of tooltips that
+     * are impossible to hide.
+     */
+    @SelfReturn
+    public ItemBuilder unsetComponents() {
+        COMPONENTS_WITH_TOOLTIPS.forEach(itemStack::unsetData);
+        
+        return this;
+    }
+    
     // *-* Build operations *-* //
     
     /**
@@ -1020,19 +1032,18 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      * <p><b>Calling this method will not register the functions, you must use {@link #build()} for that.</b></p>
      *
      * @return a copy of the underlying item as an "icon".
+     * @see #unsetComponents()
      */
     @NotNull
     public ItemStack asIcon() {
-        COMPONENTS_WITH_TOOLTIPS.forEach(itemStack::unsetData);
-        
-        return asItemStack();
+        return unsetComponents().asItemStack();
     }
     
     /**
-     * Builds the underlying {@link ItemStack}, registering local functions is provided.
+     * Builds and returns a copy of the underlying {@link ItemStack}, registering local functions is provided.
      *
      * @param overrideFunctions - {@code true} to override function is they're already registered, {@code false} to not.
-     * @return the built underlying item stack.
+     * @return a copy of the built item stack.
      */
     @NotNull
     public ItemStack build(boolean overrideFunctions) {
@@ -1050,9 +1061,9 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     /**
-     * Builds the underlying {@link ItemStack}, registering local functions is provided.
+     * Builds and returns a copy of the underlying {@link ItemStack}, registering local functions is provided.
      *
-     * @return the built underlying item stack.
+     * @return a copy of the built item stack.
      */
     @NotNull
     public ItemStack build() {
