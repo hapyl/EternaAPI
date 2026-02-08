@@ -7,7 +7,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 /**
  * Represents a {@link SongFormatter} used for {@link Song}.
@@ -54,7 +53,7 @@ public interface SongFormatter extends Formatter {
         }
         
         @Override
-        public void songCannotBeAddedToQueueDuplicate(@NotNull Player player, @NonNull Song song) {
+        public void songCannotBeAddedToQueueDuplicate(@NotNull Player player, @NotNull Song song) {
             EternaLogger.nbs(player, Component.text("This song is already in queue!", NamedTextColor.RED));
         }
         
@@ -64,7 +63,7 @@ public interface SongFormatter extends Formatter {
         }
         
         @Override
-        public void songAddedToQueue(@NotNull Player player, @NonNull Song song, int queueSize) {
+        public void songAddedToQueue(@NotNull Player player, @NotNull Song song, int queueSize) {
             EternaLogger.nbs(
                     player,
                     Component.empty()
@@ -124,7 +123,7 @@ public interface SongFormatter extends Formatter {
      * @param player - The player for whom the song was attempted to be added to a queue.
      * @param song   - The song that was attempted to be added to a queue.
      */
-    void songCannotBeAddedToQueueDuplicate(@NotNull Player player, @NonNull Song song);
+    void songCannotBeAddedToQueueDuplicate(@NotNull Player player, @NotNull Song song);
     
     /**
      * Sends a message for when a {@link Song} is attempted to be removed from a {@link SongQueue} but is not in that queue.
@@ -141,7 +140,7 @@ public interface SongFormatter extends Formatter {
      * @param song      - The song that was added to a queue.
      * @param queueSize - The current queue size, excluding the song that was just added. (or {@code size - 1})
      */
-    void songAddedToQueue(@NotNull Player player, @NonNull Song song, final int queueSize);
+    void songAddedToQueue(@NotNull Player player, @NotNull Song song, final int queueSize);
     
     /**
      * Sends a message for when a {@link Song} is removed from a {@link SongQueue}.

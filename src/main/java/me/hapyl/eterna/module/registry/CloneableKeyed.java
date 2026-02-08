@@ -15,9 +15,9 @@ public interface CloneableKeyed {
      * so the result can be used fluently without casting:
      * <pre>{@code
      * class MyKeyedObject implements Keyed, CloneableKeyed {
-     *    @Nonnull
+     *    @NotNull
      *    @Override
-     *    public MyKeyedObject cloneAs(@Nonnull Key key) {
+     *    public MyKeyedObject cloneAs(@NotNull Key key) {
      *        return new MyKeyedObject(key);
      *    }
      * }
