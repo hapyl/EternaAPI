@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaHandler;
 import me.hapyl.eterna.EternaKey;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
+import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.util.Disposable;
 import org.bukkit.Location;
@@ -21,7 +21,6 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,8 +34,8 @@ public final class ParkourHandler extends EternaHandler<Key, Parkour> implements
     
     static ParkourHandler handler;
     
-    private final ItemStack cooldownStart = ItemBuilder.createDummyCooldownItem(Key.ofString("eterna_parkour_start"));
-    private final ItemStack cooldownCheckpoint = ItemBuilder.createDummyCooldownItem(Key.ofString("eterna_parkour_checkpoint"));
+    private final Key cooldownStart = Key.ofString("eterna_parkour_start");
+    private final Key cooldownCheckpoint = Key.ofString("eterna_parkour_checkpoint");
     
     private final ParkourItemStorage parkourItemStorage;
     private final Map<Player, ParkourPlayerData> playerData;
@@ -225,11 +224,11 @@ public final class ParkourHandler extends EternaHandler<Key, Parkour> implements
             final ParkourPosition finish = parkour.getFinish();
             
             // Start/Finish has shared cooldown
-            if (player.hasCooldown(cooldownStart)) {
+            if (PlayerLib.isOnCooldown(player, cooldownStart)) {
                 return;
             }
             
-            player.setCooldown(cooldownStart, 30);
+            player.setCooldown(cooldownStart.asNamespacedKey(), 30);
             
             // Parkour start
             if (start.compare(clickedBlockLocation)) {
@@ -265,11 +264,11 @@ public final class ParkourHandler extends EternaHandler<Key, Parkour> implements
             }
             
             // Check for whether we're doing parkour or cooldown
-            if (data == null || player.hasCooldown(cooldownCheckpoint)) {
+            if (data == null || PlayerLib.isOnCooldown(player, cooldownCheckpoint)) {
                 return;
             }
             
-            player.setCooldown(cooldownCheckpoint, 20);
+            player.setCooldown(cooldownCheckpoint.asNamespacedKey(), 20);
             
             // Check for handler
             final ParkourPosition nextCheckpoint = data.getNextCheckpoint();

@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * @see Key#empty()
  * @see Keyed
  */
-public class Key implements Capitalizable, KeyLike, Comparable<Key> {
+public class Key implements Capitalizable, Comparable<Key> {
     
     /**
      * Defines the pattern all {@link Key} must match.
@@ -67,17 +67,6 @@ public class Key implements Capitalizable, KeyLike, Comparable<Key> {
     @NotNull
     public String getKey() {
         return key;
-    }
-    
-    /**
-     * Gets the same {@link Key} object, as for {@link KeyLike} definition.
-     *
-     * @return the same key object.
-     */
-    @NotNull
-    @Override
-    public final Key key() {
-        return this;
     }
     
     /**

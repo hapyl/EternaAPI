@@ -18,7 +18,6 @@ import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.registry.CloneableKeyed;
 import me.hapyl.eterna.module.registry.Key;
-import me.hapyl.eterna.module.registry.KeyLike;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.util.Validate;
@@ -1361,25 +1360,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         }
         
         return "";
-    }
-    
-    /**
-     * Creates a dummy {@link ItemStack} with a {@link UseCooldownComponent#setCooldownGroup(NamespacedKey)} set to the given {@link Key}.
-     *
-     * <p>
-     * Note that this item is <b>not</b> meant to be given as an actual {@link ItemStack}, and only intended to use as a dummy {@code cooldown}!
-     * </p>
-     *
-     * @param key - The key for the cooldown.
-     * @return a new item stack.
-     */
-    @NotNull
-    public static ItemStack createDummyCooldownItem(@NotNull KeyLike key) {
-        // Switch to use raw ItemStack because its faster
-        final ItemStack itemStack = new ItemStack(Material.EGG);
-        itemStack.setData(DataComponentTypes.USE_COOLDOWN, UseCooldown.useCooldown(0.01f).cooldownGroup(key.key().asNamespacedKey()).build());
-        
-        return itemStack;
     }
     
 }

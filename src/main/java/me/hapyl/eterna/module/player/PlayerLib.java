@@ -2,10 +2,8 @@ package me.hapyl.eterna.module.player;
 
 import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.annotate.UtilityClass;
-import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.registry.Key;
-import me.hapyl.eterna.module.registry.KeyLike;
 import net.minecraft.world.item.ItemCooldowns;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -342,8 +340,8 @@ public final class PlayerLib {
      * @param key      - The cooldown key.
      * @param cooldown - The cooldown duration, in ticks.
      */
-    public static void setCooldown(@NotNull Player player, @NotNull KeyLike key, final int cooldown) {
-        player.setCooldown(ItemBuilder.createDummyCooldownItem(key), cooldown);
+    public static void setCooldown(@NotNull Player player, @NotNull Key key, final int cooldown) {
+        player.setCooldown(key.asNamespacedKey(), cooldown);
     }
     
     /**
@@ -353,8 +351,8 @@ public final class PlayerLib {
      * @param key    - The cooldown key.
      * @return the cooldown time left, or {@code 0} if not on cooldown.
      */
-    public static int getCooldown(@NotNull Player player, @NotNull KeyLike key) {
-        return player.getCooldown(ItemBuilder.createDummyCooldownItem(key));
+    public static int getCooldown(@NotNull Player player, @NotNull Key key) {
+        return player.getCooldown(key.asNamespacedKey());
     }
     
     /**
@@ -364,8 +362,8 @@ public final class PlayerLib {
      * @param key    - The cooldown key.
      * @return {@code true} if the given player is on cooldown, {@code false} otherwise.
      */
-    public static boolean isOnCooldown(@NotNull Player player, @NotNull KeyLike key) {
-        return player.hasCooldown(ItemBuilder.createDummyCooldownItem(key));
+    public static boolean isOnCooldown(@NotNull Player player, @NotNull Key key) {
+        return player.getCooldown(key.asNamespacedKey()) > 0;
     }
     
     /**
