@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents an {@link Object} that may be identified with a {@link Key}.
  */
-public interface Keyed extends KeyLike {
+public interface Keyed {
     
     /**
      * Gets the {@link Key} of this {@link Keyed} object.
@@ -17,17 +17,6 @@ public interface Keyed extends KeyLike {
      */
     @NotNull
     Key getKey();
-    
-    /**
-     * Gets the {@link Key} of this {@link Keyed}, as per {@link KeyLike} definition.
-     *
-     * @return the key of this keyed.
-     */
-    @NotNull
-    @Override
-    default Key key() {
-        return this.getKey();
-    }
     
     /**
      * Gets the {@link Key} of this {@link Keyed} as a {@link String}.
