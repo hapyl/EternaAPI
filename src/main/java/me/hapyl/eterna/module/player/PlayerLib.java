@@ -1,13 +1,11 @@
 package me.hapyl.eterna.module.player;
 
-import com.google.common.collect.Sets;
+import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.KeyLike;
-import me.hapyl.eterna.Runnables;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemCooldowns;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -17,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * A helpful utility class for {@link Player} interactions, mostly {@link Sound} / {@link Particle} related.
@@ -371,15 +369,6 @@ public final class PlayerLib {
     }
     
     /**
-     * Stops <b>all</b> the cooldowns for the given {@link Player}.
-     *
-     * @param player - The player for whom to stop the cooldowns.
-     */
-    public static void stopCooldowns(@NotNull Player player) {
-        stopCooldowns(player, k -> true);
-    }
-    
-    /**
      * Stops the cooldowns that match the given {@link Predicate} for the given {@link Player}.
      *
      * @param player    - The player for whom to stop the cooldowns.
@@ -387,18 +376,26 @@ public final class PlayerLib {
      */
     public static void stopCooldowns(@NotNull Player player, @NotNull Predicate<Key> predicate) {
         final ItemCooldowns cooldowns = Reflect.getHandle(player).getCooldowns();
-        final Set<Identifier> keys = Sets.newHashSet(cooldowns.cooldowns.keySet());
         
-        keys.stream()
-            .filter(identifier -> {
-                final String path = identifier.getPath();
-                final Key key = Key.ofStringOrNull(path);
-                
-                return key != null && predicate.test(key);
-            })
-            .forEach(cooldowns::removeCooldown);
-        
-        keys.clear();
+        cooldowns.cooldowns.keySet()
+                           .stream()
+                           .filter(identifier -> {
+                               final String path = identifier.getPath();
+                               final Key key = Key.ofStringOrNull(path);
+                               
+                               return key != null && predicate.test(key);
+                           })
+                           .collect(Collectors.toSet())
+                           .forEach(cooldowns::removeCooldown);
+    }
+    
+    /**
+     * Stops <b>all</b> the cooldowns for the given {@link Player}.
+     *
+     * @param player - The player for whom to stop the cooldowns.
+     */
+    public static void stopCooldowns(@NotNull Player player) {
+        stopCooldowns(player, k -> true);
     }
     
     private static <T> boolean shouldFailBecauseWrongParticleData(@NotNull Particle particle, @Nullable T data) {

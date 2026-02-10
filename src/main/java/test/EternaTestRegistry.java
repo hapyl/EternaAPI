@@ -44,6 +44,7 @@ import me.hapyl.eterna.module.npc.tag.TagPart;
 import me.hapyl.eterna.module.parkour.Parkour;
 import me.hapyl.eterna.module.parkour.ParkourPosition;
 import me.hapyl.eterna.module.particle.ParticleBuilder;
+import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.PlayerOutline;
 import me.hapyl.eterna.module.player.PlayerSkin;
 import me.hapyl.eterna.module.player.ScoreboardBuilder;
@@ -69,7 +70,6 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -1852,23 +1852,29 @@ public final class EternaTestRegistry {
             sequencer.play(List.of(context.player()));
         });
         
-        register("component_wrap", context -> {
-            enum Element implements ComponentLike {
-                ELEMENT;
-                
-                @NotNull
-                @Override
-                public Component asComponent() {
-                    return Component.empty()
-                                    .append(Component.text("&", TextColor.color(0xAF2C0C)))
-                                    .append(Component.text(" "))
-                                    .append(Component.text(name()).color(TextColor.color(0xf887ff)));
-                }
-            }
+        register("cooldowns", context -> {
+            final ItemStack item1 = new ItemBuilder(Material.STONE, Key.ofString("item_cooldown_1")).asItemStack();
+            final ItemStack item2 = new ItemBuilder(Material.STONE, Key.ofString("item_cooldown_2")).asItemStack();
+            final ItemStack item3 = new ItemBuilder(Material.STONE, Key.ofString("different_key")).asItemStack();
             
-            context.player().getInventory().addItem(new ItemBuilder(Material.EMERALD).addWrappedLore(
-                    Component.text("Shoots three arrows in front of you that deal & ELEMENT damage.")
-            ).asIcon());
+            final Player player = context.player();
+            
+            final PlayerInventory inventory = player.getInventory();
+            inventory.clear();
+            inventory.addItem(item1);
+            inventory.addItem(item2);
+            inventory.addItem(item3);
+            
+            player.setCooldown(item1, 60);
+            player.setCooldown(item2, 120);
+            player.setCooldown(item2, 120);
+            
+            context.scheduler()
+                   .then(SchedulerTask.later(() -> {
+                       PlayerLib.stopCooldowns(player, key -> key.getKey().contains("item_cooldown"));
+                       context.assertTestPassed();
+                   }, 30))
+                   .execute();
         });
         
         // *-* End Tests *-* //

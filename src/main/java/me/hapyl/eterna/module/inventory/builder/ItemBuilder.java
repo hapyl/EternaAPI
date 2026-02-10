@@ -215,7 +215,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         
         // Set the cooldown key right away, allowing overriding it if needed
         if (!key.isEmpty()) {
-            this.setCooldown(cooldown -> cooldown.setCooldownGroup(key.asNamespacedKey()));
+            this.setCooldownKey(key);
         }
     }
     
@@ -1009,6 +1009,21 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         COMPONENTS_WITH_TOOLTIPS.forEach(itemStack::unsetData);
         
         return this;
+    }
+    
+    /**
+     * Sets the cooldown {@link Key} of this {@link ItemBuilder}.
+     *
+     * <p>
+     * Note that this only affects the cooldown component, which defines vanilla item cooldown and does not
+     * affect the {@link ItemFunction} in any way.
+     * </p>
+     *
+     * @param key - The cooldown key to set.
+     */
+    @NotNull
+    public ItemBuilder setCooldownKey(@NotNull Key key) {
+        return this.setCooldown(cooldown -> cooldown.setCooldownGroup(key.nonEmpty().asNamespacedKey()));
     }
     
     // *-* Build operations *-* //
