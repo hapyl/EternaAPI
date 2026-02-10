@@ -292,7 +292,7 @@ public final class Compute {
     }
     
     /**
-     * Gets a computation function that computes an {@link Integer} {@link Map} value by increment the value while keeping it within the given {@code limit}.
+     * Gets a computation function that computes an {@link Integer} {@link Map} value by incrementing the value while keeping it within the given {@code limit}.
      *
      * @param limit – The upper bound the value cannot exceed.
      * @return a computation function that computes an integer map value by increment the value while keeping it within the given {@code limit}.
