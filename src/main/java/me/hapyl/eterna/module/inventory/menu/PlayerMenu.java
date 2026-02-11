@@ -89,7 +89,7 @@ public abstract class PlayerMenu implements Cooldown {
     /**
      * Defines the {@link Material} used as a "Go back to ..." button.
      *
-     * @see PlayerMenu#setReturnButton(PlayerMenu)
+     * @see PlayerMenu#setReturnButton(Component, Function)
      */
     public static final Material ITEM_ARROW_BACK = Material.ARROW;
     

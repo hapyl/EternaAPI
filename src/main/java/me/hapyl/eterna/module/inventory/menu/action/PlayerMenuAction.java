@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * Represents an action that can be performed by a {@link Player} in a {@link PlayerMenu}.
@@ -20,7 +19,7 @@ import java.util.function.Consumer;
  * </p>
  *
  * <p>
- * But even so, these actions are prone to being exploited via cheats or de-syncs. If you want a more secure version of {@link PlayerMenuAction}, use {@link #ofSecure(Consumer)}.
+ * But even so, these actions are prone to being exploited via cheats or de-syncs. If you want a more secure version of {@link PlayerMenuAction}, use {@link #ofSecure(PlayerAction)}.
  * </p>
  *
  * @see SecurePlayerMenuAction
