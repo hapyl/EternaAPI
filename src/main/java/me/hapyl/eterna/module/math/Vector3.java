@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 /**
- * Represents an immutable {@link Vector3} that holds three {@link Double} coordinates with support for basic vector math.
+ * Represents an <b>immutable</b> {@link Vector3} that holds three {@link Double} coordinates with support for basic vector math.
  */
 public class Vector3 {
     
@@ -102,6 +102,17 @@ public class Vector3 {
     }
     
     /**
+     * Multiplies this {@link Vector3} by the given factor.
+     *
+     * @param factor - The factor by which to multiply.
+     * @return a new vector containing the product.
+     */
+    @NotNull
+    public Vector3 multiply(double factor) {
+        return new Vector3(this.x * factor, this.y * factor, this.z * factor);
+    }
+    
+    /**
      * Divides this {@link Vector3} by another {@link Vector3}.
      *
      * <p>
@@ -131,6 +142,21 @@ public class Vector3 {
     @NotNull
     public Vector3 divide(double x, double y, double z) {
         return new Vector3(sdiv(this.x, x), sdiv(this.y, y), sdiv(this.z, z));
+    }
+    
+    /**
+     * Divides this {@link Vector3} by the given divisor.
+     *
+     * <p>
+     * The division uses a safe-division, meaning dividing by {@code 0} will simply return {@code 0}, instead of throwing {@link ArithmeticException}.
+     * </p>
+     *
+     * @param divisor - The divisor by which to divide.
+     * @return a new vector containing the quotient.
+     */
+    @NotNull
+    public Vector3 divide(double divisor) {
+        return new Vector3(sdiv(this.x, divisor), sdiv(this.y, divisor), sdiv(this.z, divisor));
     }
     
     /**
@@ -179,11 +205,48 @@ public class Vector3 {
      */
     @NotNull
     public Vector3 midpoint(@NotNull Vector3 other) {
-        return new Vector3(
-                (this.x + other.x) * 0.5,
-                (this.y + other.y) * 0.5,
-                (this.z + other.z) * 0.5
-        );
+        return new Vector3((this.x + other.x) * 0.5, (this.y + other.y) * 0.5, (this.z + other.z) * 0.5);
+    }
+    
+    /**
+     * Calculates the dot product between the two {@link Vector3}.
+     *
+     * @param other - The other vector.
+     * @return the dot product.
+     */
+    public double dot(@NotNull Vector3 other) {
+        return this.x * other.x + this.y * other.y + this.z * other.z;
+    }
+    
+    /**
+     * Calculates the cross product between the two {@link Vector3}.
+     *
+     * @param other - The other vector.
+     * @return a new vector containing the cross product.
+     */
+    @NotNull
+    public Vector3 crossProduct(@NotNull Vector3 other) {
+        final double x = this.y * other.z - other.y * this.z;
+        final double y = this.z * other.x - other.z * this.x;
+        final double z = this.x * other.y - other.x * this.y;
+        
+        return new Vector3(x, y, z);
+    }
+    
+    /**
+     * Normalizes this {@link Vector3} by the unit length.
+     *
+     * <p>
+     * If the length is {@code 0}, a {@link #zero()} vector is returned.
+     * </p>
+     *
+     * @return a new normalized vector.
+     */
+    @NotNull
+    public Vector3 normalize() {
+        final double length = length();
+        
+        return length != 0.0 ? new Vector3(this.x / length, this.y / length, this.z / length) : zero();
     }
     
     /**
@@ -195,33 +258,6 @@ public class Vector3 {
     @NotNull
     public Location toLocation(@NotNull World world) {
         return new Location(world, this.x, this.y, this.z, 0.0f, 0.0f);
-    }
-    
-    /**
-     * Gets this vector normalized to unit length.
-     *
-     * <p>
-     * If the length is {@code 0}, a {@link #zero()} vector is returned.
-     * </p>
-     *
-     * @return a new normalized vector.
-     */
-    @NotNull
-    public Vector3 normalized() {
-        final double length = length();
-        
-        return length != 0.0 ? new Vector3(this.x / length, this.y / length, this.z / length) : zero();
-    }
-    
-    /**
-     * Gets a string representation of this {@link Vector3} with two decimal precision.
-     *
-     * @return a string representation of this vector.
-     */
-    @NotNull
-    @Override
-    public String toString() {
-        return "Vector3[%.2f, %.2f, %.2f]".formatted(this.x, this.y, this.z);
     }
     
     /**
@@ -252,6 +288,16 @@ public class Vector3 {
     }
     
     /**
+     * Gets the hash code of this {@link Vector3}.
+     *
+     * @return the hash code of this vector.
+     */
+    @Override
+    public final int hashCode() {
+        return Objects.hash(this.x, this.y, this.z);
+    }
+    
+    /**
      * Gets whether the given {@link Object} is {@link Vector3} and their values match.
      *
      * @param o - The object to check.
@@ -268,13 +314,14 @@ public class Vector3 {
     }
     
     /**
-     * Gets the hash code of this {@link Vector3}.
+     * Gets a string representation of this {@link Vector3} with two decimal precision.
      *
-     * @return the hash code of this vector.
+     * @return a string representation of this vector.
      */
+    @NotNull
     @Override
-    public final int hashCode() {
-        return Objects.hash(x, y, z);
+    public String toString() {
+        return "Vector3[%.2f, %.2f, %.2f]".formatted(this.x, this.y, this.z);
     }
     
     /**
@@ -297,7 +344,7 @@ public class Vector3 {
      * @return a new vector.
      */
     @NotNull
-    public static Vector3 of(@NotNull Location location) {
+    public static Vector3 ofLocation(@NotNull Location location) {
         return new Vector3(location.getX(), location.getY(), location.getZ());
     }
     
@@ -308,7 +355,7 @@ public class Vector3 {
      * @return a new vector.
      */
     @NotNull
-    public static Vector3 of(@NotNull Vector vector) {
+    public static Vector3 ofVector(@NotNull Vector vector) {
         return new Vector3(vector.getX(), vector.getY(), vector.getZ());
     }
     
@@ -320,6 +367,16 @@ public class Vector3 {
     @NotNull
     public static Vector3 zero() {
         return new Vector3(0.0, 0.0, 0.0);
+    }
+    
+    /**
+     * Gets a {@link Vector3} that points up.
+     *
+     * @return a new vector that points up.
+     */
+    @NotNull
+    public static Vector3 up() {
+        return new Vector3(0.0, 1.0, 0.0);
     }
     
     private static double sdiv(double a, double b) {
