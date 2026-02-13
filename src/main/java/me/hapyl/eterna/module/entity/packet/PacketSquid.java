@@ -5,8 +5,6 @@ import net.minecraft.world.entity.animal.squid.Squid;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 /**
  * Represents a {@link Squid} packet entity.
  */

@@ -9,8 +9,6 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 /**
  * Represents a {@link PacketSendEvent} which is fired whenever the {@code server} sends a {@link Packet} to the {@code client}.
  *

@@ -13,8 +13,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
-import javax.annotation.Nonnull;
-
 /**
  * Represents a {@link Display.BlockDisplay} packet entity.
  */

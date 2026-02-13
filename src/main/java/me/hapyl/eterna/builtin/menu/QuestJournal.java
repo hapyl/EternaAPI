@@ -34,7 +34,7 @@ public final class QuestJournal extends PlayerMenu {
     private static final Style DETAILED_DESCRIPTION_STYLE = Style.style(NamedTextColor.DARK_GRAY, TextDecoration.ITALIC);
     
     public QuestJournal(@NotNull Player player) {
-        super(player, Component.text("Quest Journal"), PlayerMenuType.chest(ChestSize.SIZE_5));
+        super(player, () -> Component.text("Quest Journal"), PlayerMenuType.chest(ChestSize.SIZE_5));
         
         openMenu();
     }

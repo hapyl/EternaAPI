@@ -7,8 +7,6 @@ import com.google.gson.JsonObject;
 import me.hapyl.eterna.module.annotate.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 /**
  * Allows parsing <a href="https://block-display.com/bdengine/">BDEntity</a> into a {@link DisplayData}.
  */

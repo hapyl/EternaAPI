@@ -2,8 +2,6 @@ package me.hapyl.eterna.module.annotate;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 /**
  * Represents a major minecraft version.
  * <p>When annotated by {@link TestedOn}, promises that that module was tested and should work as intended on the specified version.</p>

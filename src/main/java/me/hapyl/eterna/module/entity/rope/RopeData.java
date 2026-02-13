@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.entity.rope;
 
-import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.team.PacketTeam;
 import me.hapyl.eterna.module.util.Disposable;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.LinkedList;
 
 /**

@@ -2,8 +2,8 @@ package me.hapyl.eterna.module.registry;
 
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.annotate.SelfReturn;
-import me.hapyl.eterna.module.util.BukkitUtils;
 import me.hapyl.eterna.module.text.Capitalizable;
+import me.hapyl.eterna.module.util.BukkitUtils;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

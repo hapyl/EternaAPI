@@ -2,8 +2,8 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.inventory.Equipment;
 import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.reflect.Reflect;
+import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.world.entity.LivingEntity;
 import org.bukkit.Location;

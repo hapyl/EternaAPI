@@ -1,13 +1,13 @@
 package me.hapyl.eterna.module.inventory.sign;
 
 import com.google.common.collect.Maps;
+import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.annotate.*;
 import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import me.hapyl.eterna.module.text.Strings;
 import me.hapyl.eterna.module.util.CollectionUtils;
-import me.hapyl.eterna.Runnables;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.World;

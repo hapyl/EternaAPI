@@ -4,16 +4,13 @@ import com.google.common.collect.Maps;
 import io.papermc.paper.dialog.Dialog;
 import me.hapyl.eterna.EternaColors;
 import me.hapyl.eterna.module.annotate.EventLike;
-import me.hapyl.eterna.module.annotate.RequiresVarargs;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.inventory.menu.action.PlayerMenuAction;
 import me.hapyl.eterna.module.inventory.menu.action.SecurePlayerMenuAction;
 import me.hapyl.eterna.module.inventory.menu.pattern.SlotPattern;
 import me.hapyl.eterna.module.inventory.menu.pattern.SlotPatternApplier;
 import me.hapyl.eterna.module.util.Cooldown;
-import me.hapyl.eterna.module.util.Validate;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -82,22 +79,19 @@ import java.util.function.Function;
 public abstract class PlayerMenu implements Cooldown {
     
     /**
-     * Defines the arrow character used in {@link #menuArrowSplit(Component...)}.
-     */
-    public static final char ARROW_FORWARD = '➜';
-    
-    /**
-     * Defines the {@link Material} used as a "Go back to ..." button.
+     * Defines the {@link String} texture used as a "Return" button.
      *
      * @see PlayerMenu#setReturnButton(Component, Function)
      */
-    public static final Material ITEM_ARROW_BACK = Material.ARROW;
+    @NotNull
+    public static final String ITEM_RETURN_TEXTURE = "bd69e06e5dadfd84e5f3d1c21063f2553b2fa945ee1d4d7152fdc5425bc12a9";
     
     /**
      * Defines the {@link Material} used as a "Close Menu" button.
      *
-     * @see PlayerMenu#setCloseButton(int)
+     * @see PlayerMenu#setCloseButton()
      */
+    @NotNull
     public static final Material ITEM_CLOSE_MENU = Material.BARRIER;
     
     @ApiStatus.Internal
@@ -107,7 +101,7 @@ public abstract class PlayerMenu implements Cooldown {
     protected final Properties properties;
     protected final Inventory inventory;
     
-    private final Component name;
+    private final PlayerMenuTitle title;
     private final PlayerMenuType guiType;
     
     private final Map<Integer, PlayerMenuAction> actions;
@@ -116,14 +110,14 @@ public abstract class PlayerMenu implements Cooldown {
      * Creates a new {@link PlayerMenu} for the given {@link Player}.
      *
      * @param player  - The player owning this menu.
-     * @param name    - The name of this menu.
+     * @param title   - The title of this menu.
      * @param guiType - The type of this menu.
      */
-    public PlayerMenu(@NotNull Player player, @NotNull Component name, @NotNull PlayerMenuType guiType) {
+    public PlayerMenu(@NotNull Player player, @NotNull PlayerMenuTitle title, @NotNull PlayerMenuType guiType) {
         this.player = player;
-        this.name = name;
+        this.title = title;
         this.guiType = guiType;
-        this.inventory = guiType.createInventory(name);
+        this.inventory = guiType.createInventory(title.asComponent());
         this.properties = new Properties();
         this.actions = Maps.newHashMap();
     }
@@ -371,37 +365,30 @@ public abstract class PlayerMenu implements Cooldown {
     // *-* Return Button *-* //
     
     /**
-     * Gets the {@code slot} where to put the {@code "Go Back To Menu"} button.
+     * Gets the {@code slot} where to put the {@code "Return To Menu"} button.
      *
-     * @return the {@code slot} where to put the {@code "Go Back To Menu"} button.
+     * @return the {@code slot} where to put the {@code "Return To Menu"} button.
      */
     public int getReturnButtonSlot() {
         return getMenuSize() - 5;
     }
     
     /**
-     * Sets the {@code "Go Back To Menu"} button at the {@link #getReturnButtonSlot()}.
+     * Sets the {@code "Return To Menu"} button at the {@link #getReturnButtonSlot()}.
      *
-     * @param name   - The name of the menu.
-     * @param menuTo - The menu to return to upon clicking the button.
+     * @param returnTo - The name of the menu.
+     * @param menuTo   - The menu to return to upon clicking the button.
      */
-    public void setReturnButton(@NotNull Component name, @NotNull Function<Player, PlayerMenu> menuTo) {
-        setReturnButton(getReturnButtonSlot(), name, menuTo);
-    }
-    
-    /**
-     * Sets the {@code "Go Back To Menu"} button at the given {@code slot}.
-     *
-     * @param slot   - The slot to set the button at.
-     * @param menuTo - The menu to return to upon clicking the button.
-     */
-    public void setReturnButton(int slot, @NotNull Component name, @NotNull Function<Player, PlayerMenu> menuTo) {
+    public void setReturnButton(@Nullable Component returnTo, @NotNull Function<Player, PlayerMenu> menuTo) {
+        final ItemBuilder builder = ItemBuilder.playerHead(ITEM_RETURN_TEXTURE).setName(Component.text("Return"));
+        
+        if (returnTo != null) {
+            builder.addLore(Component.text("To ").append(returnTo));
+        }
+        
         setItem0(
-                slot,
-                new ItemBuilder(ITEM_ARROW_BACK)
-                        .setName(Component.text("Go Back"))
-                        .addLore(Component.text("To ").append(name).color(EternaColors.GRAY))
-                        .asIcon(),
+                getReturnButtonSlot(),
+                builder.asIcon(),
                 PlayerMenuAction.of(player -> menuTo.apply(player).openMenu())
         );
     }
@@ -419,17 +406,8 @@ public abstract class PlayerMenu implements Cooldown {
      * Sets the {@code "Close Menu"} button at {@link #getCloseButtonSlot()} that closes this {@link PlayerMenu} upon clicking on it.
      */
     public void setCloseButton() {
-        setCloseButton(getCloseButtonSlot());
-    }
-    
-    /**
-     * Sets the {@code "Close Menu"} at the given {@code slot}.
-     *
-     * @param slot - The slot to set the button at.
-     */
-    public void setCloseButton(int slot) {
         setItem0(
-                slot,
+                getReturnButtonSlot(),
                 new ItemBuilder(ITEM_CLOSE_MENU).setName(Component.text("Close Menu", NamedTextColor.RED)).asItemStack(),
                 PlayerMenuAction.of(HumanEntity::closeInventory)
         );
@@ -691,8 +669,8 @@ public abstract class PlayerMenu implements Cooldown {
      * @return the name of this menu.
      */
     @NotNull
-    public final Component getName() {
-        return this.name;
+    public final PlayerMenuTitle getTitle() {
+        return this.title;
     }
     
     /**
@@ -777,31 +755,6 @@ public abstract class PlayerMenu implements Cooldown {
     @ApiStatus.Internal
     public final boolean compareInventory(@NotNull Inventory inventory) {
         return this.inventory.equals(inventory);
-    }
-    
-    /**
-     * Creates a single {@link Component} from the given {@link Component} separating them by {@link #ARROW_FORWARD}.
-     *
-     * @param components - The component to split.
-     * @return the split {@link Component}.
-     */
-    @NotNull
-    public static Component menuArrowSplit(@NotNull @RequiresVarargs Component... components) {
-        final TextComponent.Builder builder = Component.text();
-        
-        if (Validate.varargs(components).length == 1) {
-            return builder.append(components[0]).build();
-        }
-        
-        for (int i = 0; i < components.length; i++) {
-            if (i != 0) {
-                builder.append(Component.text(" %s ".formatted(ARROW_FORWARD), NamedTextColor.GRAY));
-            }
-            
-            builder.append(components[0]);
-        }
-        
-        return builder.build();
     }
     
     /**

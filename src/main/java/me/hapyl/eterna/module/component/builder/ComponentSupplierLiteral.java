@@ -3,7 +3,6 @@ package me.hapyl.eterna.module.component.builder;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**

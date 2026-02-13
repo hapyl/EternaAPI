@@ -1,9 +1,9 @@
 package me.hapyl.eterna.module.reflect.glowing;
 
 import com.google.common.collect.Maps;
+import me.hapyl.eterna.EternaHandler;
 import me.hapyl.eterna.EternaKey;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.EternaHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

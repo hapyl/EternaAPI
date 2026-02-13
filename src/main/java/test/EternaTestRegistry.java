@@ -453,7 +453,7 @@ public final class EternaTestRegistry {
                         private final PlayerMenuFilter<String, TestFilter> filter;
                         
                         public TestGUI(@NotNull Player player, @NotNull PlayerMenuType guiType) {
-                            super(player, Component.text("Test Menu", TextColor.color(0x0307FC)), guiType);
+                            super(player, () -> Component.text("Test Menu", TextColor.color(0x0307FC)), guiType);
                             
                             this.filter = new PlayerMenuFilter<>(TestFilter.class) {
                                 @Override
@@ -553,6 +553,12 @@ public final class EternaTestRegistry {
                             }
                             
                             applier.apply();
+                            
+                            setReturnButton(Component.text("Nowhere"), _player -> new PlayerMenu(_player, () -> Component.text("Nowhere"), PlayerMenuType.crafter()) {
+                                @Override
+                                public void onOpen() {
+                                }
+                            });
                         }
                         
                         @Override
@@ -572,7 +578,7 @@ public final class EternaTestRegistry {
                 "player_page_menu", context -> {
                     class TestGUI extends PlayerPageMenu<String> {
                         public TestGUI(Player player) {
-                            super(player, Component.text("gui_page"), ChestSize.SIZE_4);
+                            super(player, PlayerMenuTitle.create(Component.text("This"), Component.text("That"), Component.text("Another")), ChestSize.SIZE_4);
                         }
                         
                         @Override
@@ -580,7 +586,7 @@ public final class EternaTestRegistry {
                         public ItemStack asItem(@NotNull Player player, @NotNull String content, int index, int page) {
                             return new ItemBuilder(Material.STONE)
                                     .setName(Component.text(content))
-                                    .setAmount((index + 1) + ((page - 1) * getMaximumItemsPerPage()))
+                                    .setAmount(index + 1 + ((page - 1) * getMaximumItemsPerPage()))
                                     .asItemStack();
                         }
                         

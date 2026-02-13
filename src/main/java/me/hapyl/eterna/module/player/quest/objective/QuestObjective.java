@@ -2,10 +2,10 @@ package me.hapyl.eterna.module.player.quest.objective;
 
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.SelfReturn;
+import me.hapyl.eterna.module.component.Described;
 import me.hapyl.eterna.module.player.quest.Quest;
 import me.hapyl.eterna.module.player.quest.QuestData;
 import me.hapyl.eterna.module.util.Buildable;
-import me.hapyl.eterna.module.component.Described;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

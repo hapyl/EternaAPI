@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.inventory.menu.pattern;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.inventory.menu.ChestSize;
 import me.hapyl.eterna.module.inventory.menu.PlayerMenu;
@@ -10,7 +9,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -22,7 +20,7 @@ public class SlotPatternApplier {
     private final SlotPattern pattern;
     private final ChestSize from;
     private final ChestSize to;
-    private final LinkedHashMap<ItemStack, PlayerMenuAction> actions;
+    private final List<ItemStackPlayerAction> actions;
     
     SlotPatternApplier(@NotNull PlayerMenu playerMenu, @NotNull SlotPattern patter, @NotNull ChestSize from, @NotNull ChestSize to) {
         if (from.compareTo(to) > 0) {
@@ -33,7 +31,7 @@ public class SlotPatternApplier {
         this.pattern = patter;
         this.from = from;
         this.to = to;
-        this.actions = Maps.newLinkedHashMap();
+        this.actions = Lists.newLinkedList();
     }
     
     /**
@@ -54,7 +52,7 @@ public class SlotPatternApplier {
      */
     @SelfReturn
     public SlotPatternApplier add(@NotNull ItemStack item, @Nullable PlayerMenuAction action) {
-        this.actions.put(item, action);
+        this.actions.add(new ItemStackPlayerAction(item, action));
         return this;
     }
     
@@ -66,7 +64,7 @@ public class SlotPatternApplier {
      */
     @SelfReturn
     public SlotPatternApplier add(@NotNull ItemStack item, @NotNull PlayerMenuAction.Builder action) {
-        this.actions.put(item, action.build());
+        this.actions.add(new ItemStackPlayerAction(item, action.build()));
         return this;
     }
     
@@ -74,8 +72,8 @@ public class SlotPatternApplier {
      * Applies the given {@link SlotPattern} to the given {@link PlayerMenu}.
      */
     public void apply() {
-        final List<List<ItemStack>> sublists = Lists.newArrayList();
-        final List<ItemStack> keyList = Lists.newArrayList(actions.keySet());
+        final List<List<ItemStackPlayerAction>> sublists = Lists.newArrayList();
+        final List<ItemStackPlayerAction> keyList = Lists.newArrayList(actions);
         
         final int width = pattern.maxWidth();
         final int size = keyList.size();
@@ -86,7 +84,7 @@ public class SlotPatternApplier {
         
         int startRow = from.getRowIndex();
         
-        for (List<ItemStack> sublist : sublists) {
+        for (List<ItemStackPlayerAction> sublist : sublists) {
             final byte[] patternBytes = pattern.patternFor(sublist.size());
             
             int index = 0;
@@ -96,9 +94,9 @@ public class SlotPatternApplier {
                 
                 if (value != 0) {
                     final int slot = i + (startRow * ChestSize.CONTAINER_WIDTH);
-                    final ItemStack item = sublist.get(index++);
+                    final ItemStackPlayerAction itemStackPlayerAction = sublist.get(index++);
                     
-                    playerMenu.setItem0(slot, item, actions.get(item));
+                    playerMenu.setItem0(slot, itemStackPlayerAction.getItemStack(), itemStackPlayerAction.getAction());
                 }
             }
             

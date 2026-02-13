@@ -6,7 +6,6 @@ import me.hapyl.eterna.module.util.Buildable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 

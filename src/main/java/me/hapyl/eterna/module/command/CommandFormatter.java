@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.command;
 
-import me.hapyl.eterna.module.math.Tick;
 import me.hapyl.eterna.module.component.Formatter;
+import me.hapyl.eterna.module.math.Tick;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;

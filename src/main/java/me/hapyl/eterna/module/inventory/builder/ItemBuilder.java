@@ -7,7 +7,6 @@ import io.papermc.paper.datacomponent.DataComponentType;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.Consumable;
 import io.papermc.paper.datacomponent.item.TooltipDisplay;
-import io.papermc.paper.datacomponent.item.UseCooldown;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.MethodApplicableTo;
 import me.hapyl.eterna.module.annotate.RequiresVarargs;
@@ -551,16 +550,16 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      * <p>The texture must point to a {@code textures.minecraft.net/textures/} url but only the hash, as example: {@code da8adca36d7756cca2975d1a1f6b5ab56cda82d88f9de0d3de595332c8035cb0}.</p>
      * <p>Only applicable if material is {@link Material#PLAYER_HEAD}.</p>
      *
-     * @param textureHash - The texture hash.
+     * @param textureUrl - The texture url.
      */
     @SelfReturn
     @MethodApplicableTo(values = Material.PLAYER_HEAD)
-    public ItemBuilder setHeadTexture(@NotNull String textureHash) {
+    public ItemBuilder setHeadTexture(@NotNull String textureUrl) {
         final PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
         final PlayerTextures textures = profile.getTextures();
         
         try {
-            textures.setSkin(BukkitUtils.url(URL_TEXTURE_LINK + textureHash));
+            textures.setSkin(BukkitUtils.url(URL_TEXTURE_LINK + textureUrl));
             profile.setTextures(textures);
             
             return editMeta(SkullMeta.class, meta -> meta.setPlayerProfile(profile));
@@ -1253,12 +1252,12 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     /**
      * A static factory method for creating {@link ItemBuilder} of a player head.
      *
-     * @param textureHash - The texture hash; Must point to {@code https://textures.minecraft.net/texture/} but without the url part.
+     * @param textureUrl - The texture url; Must point to {@code https://textures.minecraft.net/texture/} but without the url part.
      * @return a new item builder.
      */
     @NotNull
-    public static ItemBuilder playerHead(@NotNull String textureHash) {
-        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(textureHash);
+    public static ItemBuilder playerHead(@NotNull String textureUrl) {
+        return new ItemBuilder(Material.PLAYER_HEAD).setHeadTexture(textureUrl);
     }
     
     /**

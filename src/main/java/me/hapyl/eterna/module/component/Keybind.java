@@ -7,8 +7,6 @@ import net.kyori.adventure.text.KeybindComponent;
 import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 /**
  * {@link Enum} containing all vanilla keybind identifiers for use with {@link Component#keybind(KeybindComponent.KeybindLike)}.
  */

@@ -1,12 +1,12 @@
 package me.hapyl.eterna.module.event.protocol;
 
 import io.netty.channel.Channel;
+import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.annotate.Asynchronous;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrapper;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacket;
-import me.hapyl.eterna.Runnables;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;

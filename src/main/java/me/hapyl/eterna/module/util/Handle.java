@@ -2,8 +2,6 @@ package me.hapyl.eterna.module.util;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 /**
  * Represents a handle, or a wrapper of something.
  *
