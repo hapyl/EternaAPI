@@ -2,6 +2,7 @@ package test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonPrimitive;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import me.hapyl.eterna.*;
@@ -67,6 +68,7 @@ import me.hapyl.eterna.module.reflect.access.ReflectFieldAccess;
 import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.resource.JsonResourceLoader;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
@@ -1881,6 +1883,19 @@ public final class EternaTestRegistry {
                        context.assertTestPassed();
                    }, 30))
                    .execute();
+        });
+        
+        register("json_loader", context -> {
+            
+            final JsonResourceLoader loader = new JsonResourceLoader(Eterna.getPlugin(), "test.json");
+            final boolean invalidJson = loader.get("invalid_json").getAsBoolean();
+            
+            context.info(Component.text("invalidJson=%s".formatted(invalidJson)));
+            
+            loader.set("test_value", new JsonPrimitive(123));
+            loader.saveToFile();
+            
+            context.assertTestPassed();
         });
         
         // *-* End Tests *-* //
