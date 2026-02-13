@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**

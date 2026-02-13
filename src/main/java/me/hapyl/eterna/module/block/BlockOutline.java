@@ -1,11 +1,11 @@
 package me.hapyl.eterna.module.block;
 
+import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.annotate.DefensiveCopy;
 import me.hapyl.eterna.module.annotate.TestedOn;
 import me.hapyl.eterna.module.annotate.Version;
 import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.Runnables;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;

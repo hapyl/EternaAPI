@@ -32,7 +32,7 @@ public abstract class PlayerPageMenu<T> extends PlayerMenu {
      * Defines the default {@link ItemStack} used as "Next Page".
      */
     @NotNull
-    public static final ItemStack ITEM_ARROW_NEXT = ItemBuilder.playerHead("7c69d41076a8dea4f06d3f1a9ac47cc996988b74a0913ab2ac1a74caf7081918")
+    public static final ItemStack ITEM_ARROW_NEXT = ItemBuilder.playerHead("19bf3292e126a105b54eba713aa1b152d541a1d8938829c56364d178ed22bf")
                                                                .setName(Component.text("Next Page"))
                                                                .asIcon();
     
@@ -40,7 +40,7 @@ public abstract class PlayerPageMenu<T> extends PlayerMenu {
      * Defines the default {@link ItemStack} used as "Previous Page".
      */
     @NotNull
-    public static final ItemStack ITEM_ARROW_PREVIOUS = ItemBuilder.playerHead("de1dfc11a837111d22b001a14461f9a7fc093522f88c58faefd6adeffcd4e9ab")
+    public static final ItemStack ITEM_ARROW_PREVIOUS = ItemBuilder.playerHead("bd69e06e5dadfd84e5f3d1c21063f2553b2fa945ee1d4d7152fdc5425bc12a9")
                                                                    .setName(Component.text("Previous Page"))
                                                                    .asIcon();
     
@@ -68,11 +68,11 @@ public abstract class PlayerPageMenu<T> extends PlayerMenu {
      * Creates a new {@link PlayerPageMenu}.
      *
      * @param player - The player owning this menu.
-     * @param name   - The name of this menu.
+     * @param title  - The title of this menu.
      * @param size   - The size of this menu.
      */
-    public PlayerPageMenu(@NotNull Player player, @NotNull Component name, @NotNull ChestSize size) {
-        super(player, name, PlayerMenuType.chest(size));
+    public PlayerPageMenu(@NotNull Player player, @NotNull PlayerMenuTitle title, @NotNull ChestSize size) {
+        super(player, title, PlayerMenuType.chest(size));
         
         final int inventorySize = super.getMenuSize();
         

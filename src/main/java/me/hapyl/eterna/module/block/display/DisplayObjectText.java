@@ -5,8 +5,6 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.entity.TextDisplay;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 public class DisplayObjectText extends DisplayObject<TextDisplay> {
 
     private final Component component;

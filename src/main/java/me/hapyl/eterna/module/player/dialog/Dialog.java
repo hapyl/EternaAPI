@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.player.dialog;
 
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.SelfReturn;
+import me.hapyl.eterna.module.component.Named;
 import me.hapyl.eterna.module.player.dialog.entry.DialogEntry;
 import me.hapyl.eterna.module.player.dialog.entry.DialogEntryNpc;
 import me.hapyl.eterna.module.player.dialog.entry.DialogEntryOptions;
@@ -9,7 +10,6 @@ import me.hapyl.eterna.module.player.dialog.entry.DialogEntryText;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.registry.Keyed;
 import me.hapyl.eterna.module.util.BukkitUtils;
-import me.hapyl.eterna.module.component.Named;
 import net.kyori.adventure.text.Component;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;

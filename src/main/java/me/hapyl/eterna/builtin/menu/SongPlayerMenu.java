@@ -3,12 +3,14 @@ package me.hapyl.eterna.builtin.menu;
 import me.hapyl.eterna.Eterna;
 import me.hapyl.eterna.EternaColors;
 import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.component.ButtonComponents;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.component.ProgressBar;
 import me.hapyl.eterna.module.inventory.ItemStacks;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.inventory.menu.ChestSize;
+import me.hapyl.eterna.module.inventory.menu.PlayerMenuTitle;
 import me.hapyl.eterna.module.inventory.menu.PlayerPageMenu;
 import me.hapyl.eterna.module.inventory.menu.SlotBoundItemStack;
 import me.hapyl.eterna.module.inventory.menu.action.PlayerMenuAction;
@@ -18,7 +20,6 @@ import me.hapyl.eterna.module.inventory.sign.SignResponse;
 import me.hapyl.eterna.module.inventory.sign.SignType;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.song.*;
-import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.text.TimeFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -512,13 +513,13 @@ public final class SongPlayerMenu extends PlayerPageMenu<Song> {
          * @return a component to be used as a title for a menu.
          */
         @NotNull
-        default Component createTitle() {
+        default PlayerMenuTitle createTitle() {
             final String query = query();
             final Component component = Component.text("Song Player");
             
-            return query.isEmpty()
-                   ? component
-                   : component.append(Component.text(" \"%s\"".formatted(query)));
+            return () -> query.isEmpty()
+                         ? component
+                         : component.append(Component.text(" \"%s\"".formatted(query)));
         }
         
         /**

@@ -1,8 +1,8 @@
 package me.hapyl.eterna.module.npc;
 
+import me.hapyl.eterna.EternaHandler;
 import me.hapyl.eterna.EternaKey;
 import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.EternaHandler;
 import me.hapyl.eterna.module.event.protocol.PacketReceiveEvent;
 import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
 import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedServerboundInteractPacket;

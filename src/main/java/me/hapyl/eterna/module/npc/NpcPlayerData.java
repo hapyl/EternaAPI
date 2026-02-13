@@ -4,8 +4,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 @ApiStatus.Internal
 public class NpcPlayerData {
     

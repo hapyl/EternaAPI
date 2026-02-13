@@ -1,10 +1,10 @@
 package me.hapyl.eterna.module.player.quest;
 
+import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.component.Components;
+import me.hapyl.eterna.module.component.Formatter;
 import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.player.quest.objective.QuestObjective;
-import me.hapyl.eterna.module.component.Formatter;
-import me.hapyl.eterna.Runnables;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;

@@ -1,8 +1,8 @@
 package me.hapyl.eterna.module.parkour;
 
 import me.hapyl.eterna.EternaColors;
-import me.hapyl.eterna.module.player.PlayerLib;
 import me.hapyl.eterna.module.component.Formatter;
+import me.hapyl.eterna.module.player.PlayerLib;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;

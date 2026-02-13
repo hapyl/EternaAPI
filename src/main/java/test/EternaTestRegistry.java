@@ -2,6 +2,7 @@ package test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonPrimitive;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import me.hapyl.eterna.*;
@@ -67,6 +68,7 @@ import me.hapyl.eterna.module.reflect.access.ReflectFieldAccess;
 import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.resource.JsonResourceLoader;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
@@ -453,7 +455,7 @@ public final class EternaTestRegistry {
                         private final PlayerMenuFilter<String, TestFilter> filter;
                         
                         public TestGUI(@NotNull Player player, @NotNull PlayerMenuType guiType) {
-                            super(player, Component.text("Test Menu", TextColor.color(0x0307FC)), guiType);
+                            super(player, () -> Component.text("Test Menu", TextColor.color(0x0307FC)), guiType);
                             
                             this.filter = new PlayerMenuFilter<>(TestFilter.class) {
                                 @Override
@@ -553,6 +555,12 @@ public final class EternaTestRegistry {
                             }
                             
                             applier.apply();
+                            
+                            setReturnButton(Component.text("Nowhere"), _player -> new PlayerMenu(_player, () -> Component.text("Nowhere"), PlayerMenuType.crafter()) {
+                                @Override
+                                public void onOpen() {
+                                }
+                            });
                         }
                         
                         @Override
@@ -572,7 +580,7 @@ public final class EternaTestRegistry {
                 "player_page_menu", context -> {
                     class TestGUI extends PlayerPageMenu<String> {
                         public TestGUI(Player player) {
-                            super(player, Component.text("gui_page"), ChestSize.SIZE_4);
+                            super(player, PlayerMenuTitle.create(Component.text("This"), Component.text("That"), Component.text("Another")), ChestSize.SIZE_4);
                         }
                         
                         @Override
@@ -580,7 +588,7 @@ public final class EternaTestRegistry {
                         public ItemStack asItem(@NotNull Player player, @NotNull String content, int index, int page) {
                             return new ItemBuilder(Material.STONE)
                                     .setName(Component.text(content))
-                                    .setAmount((index + 1) + ((page - 1) * getMaximumItemsPerPage()))
+                                    .setAmount(index + 1 + ((page - 1) * getMaximumItemsPerPage()))
                                     .asItemStack();
                         }
                         
@@ -1875,6 +1883,19 @@ public final class EternaTestRegistry {
                        context.assertTestPassed();
                    }, 30))
                    .execute();
+        });
+        
+        register("json_loader", context -> {
+            
+            final JsonResourceLoader loader = new JsonResourceLoader(Eterna.getPlugin(), "test.json");
+            final boolean invalidJson = loader.get("invalid_json").getAsBoolean();
+            
+            context.info(Component.text("invalidJson=%s".formatted(invalidJson)));
+            
+            loader.set("test_value", new JsonPrimitive(123));
+            loader.saveToFile();
+            
+            context.assertTestPassed();
         });
         
         // *-* End Tests *-* //

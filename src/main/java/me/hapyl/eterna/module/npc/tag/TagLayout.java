@@ -3,7 +3,6 @@ package me.hapyl.eterna.module.npc.tag;
 import me.hapyl.eterna.module.npc.Npc;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 /**

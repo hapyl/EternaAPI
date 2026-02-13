@@ -2,8 +2,8 @@ package me.hapyl.eterna.module.parkour;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaColors;
-import me.hapyl.eterna.module.util.Compute;
 import me.hapyl.eterna.module.component.Named;
+import me.hapyl.eterna.module.util.Compute;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
