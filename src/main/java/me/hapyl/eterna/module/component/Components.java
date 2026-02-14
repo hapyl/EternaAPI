@@ -221,7 +221,7 @@ public final class Components {
      * Creates a new {@link Component} with the given text centered.
      *
      * <p>
-     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} any may look off center.
+     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} and may look off center.
      * </p>
      *
      * @param text        - The text to center.
@@ -239,7 +239,7 @@ public final class Components {
      * Creates a new {@link Component} with the given text centered.
      *
      * <p>
-     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} any may look off center.
+     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} and may look off center.
      * </p>
      *
      * @param text - The text to center.
@@ -255,7 +255,7 @@ public final class Components {
      * Centers the given {@link Component} text, preserving the origin {@link Style}.
      *
      * <p>
-     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} any may look off center.
+     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} and may look off center.
      * </p>
      *
      * @param component - The component to center.

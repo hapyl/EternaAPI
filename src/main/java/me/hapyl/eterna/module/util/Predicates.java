@@ -43,8 +43,10 @@ public final class Predicates {
      * @param predicate - The predicate to negate.
      * @param <T>       - The predicate type.
      * @return a negated predicate.
+     * @deprecated Use {@link Predicate#not(Predicate)}.
      */
     @NotNull
+    @Deprecated
     public static <T> Predicate<T> not(@NotNull Predicate<T> predicate) {
         return predicate.negate();
     }
