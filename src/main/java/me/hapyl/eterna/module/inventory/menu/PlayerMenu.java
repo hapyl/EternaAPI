@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -755,6 +756,17 @@ public abstract class PlayerMenu implements Cooldown {
     @ApiStatus.Internal
     public final boolean compareInventory(@NotNull Inventory inventory) {
         return this.inventory.equals(inventory);
+    }
+    
+    /**
+     * Gets the currently opened {@link PlayerMenu} for the given {@link Player}.
+     *
+     * @param player - The player for whom to retrieve the menu.
+     * @return the currently opened menu for the given player wrapping in an optional.
+     */
+    @NotNull
+    public static Optional<PlayerMenu> getPlayerMenu(@NotNull Player player) {
+        return Optional.ofNullable(playerMenus.get(player.getUniqueId()));
     }
     
     /**
