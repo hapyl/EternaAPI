@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -96,7 +96,7 @@ public abstract class PlayerMenu implements Cooldown {
     public static final Material ITEM_CLOSE_MENU = Material.BARRIER;
     
     @ApiStatus.Internal
-    protected static final Map<UUID, PlayerMenu> playerMenus = Maps.newHashMap();
+    protected static final Map<Player, PlayerMenu> PLAYER_MENUS = Maps.newHashMap();
     
     protected final Player player;
     protected final Properties properties;
@@ -706,15 +706,13 @@ public abstract class PlayerMenu implements Cooldown {
         this.onOpen();
         
         // Unregister before opening the inventory so we don't call `onClose()`
-        final UUID playerUniqueId = player.getUniqueId();
-        
-        playerMenus.remove(playerUniqueId);
+        PLAYER_MENUS.remove(player);
         
         // And finally open the inventory
         this.player.openInventory(inventory);
         
         // Register after we have opened the inventory
-        playerMenus.put(playerUniqueId, this);
+        PLAYER_MENUS.put(player, this);
     }
     
     /**
@@ -722,6 +720,25 @@ public abstract class PlayerMenu implements Cooldown {
      */
     public void closeMenu() {
         player.closeInventory();
+    }
+    
+    /**
+     * Broadcasts the menu update for each {@link Player} who has this {@link PlayerMenu} opened.
+     *
+     * <p>
+     * Note that the updating is done via calling {@link #openMenu()} method on an <b>exact</b> {@code class} identity match, meaning
+     * only menus with the <b>exact</b> same {@code class} will see the update.
+     * </p>
+     *
+     * <p>
+     * Even though {@link PlayerMenu} are designed to be per-player, this method can be used for "global"-like menus, where the menu
+     * updates are needed for each player who is viewing the menu.
+     * </p>
+     */
+    public void broadcastUpdate() {
+        final List<PlayerMenu> defensiveCopy = PLAYER_MENUS.values().stream().filter(playerMenu -> playerMenu.getClass() == this.getClass()).toList();
+        
+        defensiveCopy.forEach(PlayerMenu::openMenu);
     }
     
     /**
@@ -766,7 +783,7 @@ public abstract class PlayerMenu implements Cooldown {
      */
     @NotNull
     public static Optional<PlayerMenu> getPlayerMenu(@NotNull Player player) {
-        return Optional.ofNullable(playerMenus.get(player.getUniqueId()));
+        return Optional.ofNullable(PLAYER_MENUS.get(player));
     }
     
     /**

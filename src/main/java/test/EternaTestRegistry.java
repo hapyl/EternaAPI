@@ -2,6 +2,7 @@ package test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonPrimitive;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.persistence.PersistentDataContainerView;
@@ -99,10 +100,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -619,6 +617,80 @@ public final class EternaTestRegistry {
                     testGui.openMenu();
                 }
         );
+        
+        register("player_menu_broadcast_update", context -> {
+            class PlayerMenuGlobalUpdate extends PlayerMenu {
+                static final Set<Integer> staticValues = Sets.newHashSet();
+                
+                public PlayerMenuGlobalUpdate(@NotNull Player player) {
+                    super(player, () -> Component.text("Global Test Menu"), PlayerMenuType.chest(ChestSize.SIZE_3));
+                    this.openMenu();
+                }
+                
+                @Override
+                public void onOpen() {
+                    for (int slot = 0; slot < this.getMenuSize(); slot++) {
+                        final boolean isGreen = staticValues.contains(slot);
+                        final int finalSlot = slot;
+                        
+                        this.setItem(
+                                slot,
+                                new ItemBuilder(isGreen ? Material.LIME_CONCRETE : Material.RED_CONCRETE)
+                                        .setName(isGreen ? Component.text("true", NamedTextColor.GREEN) : Component.text("false", NamedTextColor.RED))
+                                        .asIcon(),
+                                PlayerMenuAction.of(player -> {
+                                    if (isGreen) {
+                                        staticValues.remove(finalSlot);
+                                    }
+                                    else {
+                                        staticValues.add(finalSlot);
+                                    }
+                                    
+                                    this.broadcastUpdate();
+                                })
+                        );
+                        
+                    }
+                }
+            }
+            
+            class PlayerMenuLocal extends PlayerMenu {
+                public PlayerMenuLocal(@NotNull Player player) {
+                    super(player, () -> Component.text("Local Test Menu"), PlayerMenuType.chest(ChestSize.SIZE_3));
+                    this.openMenu();
+                }
+                
+                @Override
+                public void onOpen() {
+                }
+            }
+            
+            final Player player = context.player();
+            final List<? extends Player> playersOtherThanCaller = Bukkit.getOnlinePlayers().stream().filter(Predicate.not(player::equals)).toList();
+           
+            if (playersOtherThanCaller.isEmpty()) {
+                context.assertTestFailed("There must be at least one other player online!");
+                return;
+            }
+            
+            final String operation = context.argument(0).toString().toLowerCase();
+            
+            switch (operation) {
+                case "global" -> {
+                    new PlayerMenuGlobalUpdate(player);
+                    playersOtherThanCaller.forEach(PlayerMenuGlobalUpdate::new);
+                }
+                
+                case "local" -> {
+                    new PlayerMenuGlobalUpdate(player);
+                    playersOtherThanCaller.forEach(PlayerMenuLocal::new);
+                }
+                
+                default -> context.assertTestFailed("Unknown operation: `%s`, must be either `global` or `local`!".formatted(operation));
+            }
+            
+            context.assertTestPassed();
+        });
         
         register(
                 "sign_gui", context -> new SignInput(context.player(), Enums.getRandomValueOrFirst(SignType.class), "Is this a test?") {
