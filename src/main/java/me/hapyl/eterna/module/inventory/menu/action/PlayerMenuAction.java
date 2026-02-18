@@ -97,6 +97,17 @@ public interface PlayerMenuAction {
     }
     
     /**
+     * A static factory method for creating {@link PlayerMenuAction} that will update the {@link PlayerMenu} for each {@link Player}
+     * who has the same exact menu opened.
+     *
+     * @return a new player action.
+     */
+    @NotNull
+    static PlayerMenuAction ofMenuUpdateBroadcast() {
+        return (menu, player, clickType, slot, hotbarNumber) -> menu.broadcastUpdate();
+    }
+    
+    /**
      * Creates a new {@link Builder} for {@link PlayerMenuAction}, allowing per-click actions.
      *
      * @return a new builder.

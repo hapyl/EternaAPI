@@ -79,26 +79,26 @@ public final class PlayerMenuHandler extends EternaKeyed implements Listener {
             menu.onClose();
             
             // Cleanup
-            PlayerMenu.playerMenus.remove(player.getUniqueId());
+            PlayerMenu.PLAYER_MENUS.remove(player);
         });
     }
     
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerQuitEvent(PlayerQuitEvent ev) {
-        PlayerMenu.playerMenus.remove(ev.getPlayer().getUniqueId());
+        PlayerMenu.PLAYER_MENUS.remove(ev.getPlayer());
     }
     
     // Do not allow using recipe book while inside any menu to prevent duplication for inventories when the book is visible
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handlePlayerRecipeBookClickEvent(PlayerRecipeBookClickEvent ev) {
-        if (PlayerMenu.playerMenus.containsKey(ev.getPlayer().getUniqueId())) {
+        if (PlayerMenu.PLAYER_MENUS.containsKey(ev.getPlayer())) {
             ev.setCancelled(true);
         }
     }
     
     @NotNull
     private static Optional<PlayerMenu> fetchPlayerMenu(@NotNull Player player, @NotNull Inventory inventory) {
-        final PlayerMenu currentMenu = PlayerMenu.playerMenus.get(player.getUniqueId());
+        final PlayerMenu currentMenu = PlayerMenu.PLAYER_MENUS.get(player);
         
         return currentMenu != null && currentMenu.compareInventory(inventory)
                ? Optional.of(currentMenu)
