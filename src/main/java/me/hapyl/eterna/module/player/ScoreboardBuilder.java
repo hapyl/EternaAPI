@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.player;
 
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
+import me.hapyl.eterna.module.annotate.Mutates;
 import me.hapyl.eterna.module.component.ComponentList;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -14,6 +15,10 @@ import java.util.UUID;
 
 /**
  * Represents a {@link Scoreboard} builder.
+ *
+ * <p>
+ * This module changes the actual player's scoreboard, meaning manually changing it wil <b>break</b> the builder, unless you manually set the scoreboard back.
+ * </p>
  */
 public class ScoreboardBuilder {
     
@@ -39,14 +44,24 @@ public class ScoreboardBuilder {
     @NotNull private ComponentList array;
     
     /**
-     * Creates a new {@link ScoreboardBuilder}.
+     * Creates a new {@link ScoreboardBuilder} for the given {@link Scoreboard}.
      *
-     * @param player - The owner of this scoreboard.
-     * @param title  - The default title of this scoreboard.
+     * <p>
+     * This will replace {@link Player} scoreboard with the given {@link Scoreboard}.
+     * </p>
+     *
+     * @param scoreboard - The underlying scoreboard, will be mutated.
+     * @param player     - The owner of this scoreboard.
+     * @param title      - The default title of this scoreboard.
+     * @throws IllegalArgumentException if the given scoreboard is the main scoreboard.
      */
-    public ScoreboardBuilder(@NotNull Player player, @NotNull Component title) {
+    public ScoreboardBuilder(@NotNull @Mutates Scoreboard scoreboard, @NotNull Player player, @NotNull Component title) {
+        if (scoreboard == Bukkit.getScoreboardManager().getMainScoreboard()) {
+            throw new IllegalArgumentException("Cannot create builder for the main scoreboard!");
+        }
+        
         this.player = player;
-        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        this.scoreboard = scoreboard;
         
         this.objective = scoreboard.registerNewObjective(UUID.randomUUID().toString(), Criteria.DUMMY, title);
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -61,6 +76,40 @@ public class ScoreboardBuilder {
         
         // Show the scoreboard
         player.setScoreboard(scoreboard);
+    }
+    
+    /**
+     * Creates a new {@link ScoreboardBuilder} with a new scoreboard.
+     *
+     * <p>
+     * This will replace {@link Player} scoreboard with the given {@link Scoreboard}.
+     * </p>
+     *
+     * @param player - The owner of this scoreboard.
+     * @param title  - The default title of this scoreboard.
+     */
+    public ScoreboardBuilder(@NotNull Player player, @NotNull Component title) {
+        this(Bukkit.getScoreboardManager().getNewScoreboard(), player, title);
+    }
+    
+    /**
+     * Gets the {@link Player} this {@link ScoreboardBuilder} belongs to.
+     *
+     * @return the player this scoreboard builder belongs to.
+     */
+    @NotNull
+    public Player getPlayer() {
+        return player;
+    }
+    
+    /**
+     * Gets the underlying {@link Scoreboard}.
+     *
+     * @return the underlying scoreboard.
+     */
+    @NotNull
+    public Scoreboard getScoreboard() {
+        return scoreboard;
     }
     
     /**

@@ -1500,7 +1500,7 @@ public final class EternaTestRegistry {
                     }
                     
                     final Player player = context.player();
-                    final ScoreboardBuilder builder = new ScoreboardBuilder(player, Component.text("Test Scoreboard"));
+                    final ScoreboardBuilder builder = new ScoreboardBuilder(Bukkit.getScoreboardManager().getNewScoreboard(), player, Component.text("Test Scoreboard"));
                     
                     builder.setLines(
                             Component.text("line 1"),
