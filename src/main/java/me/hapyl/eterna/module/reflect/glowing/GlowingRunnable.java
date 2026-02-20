@@ -17,9 +17,6 @@ public final class GlowingRunnable extends EternaKeyed implements Runnable {
     
     @Override
     public void run() {
-        final GlowingHandler handler = GlowingHandler.handler;
-        
-        handler.emptyOrphans();
-        handler.forEach(GlowingImpl::tick);
+        GlowingHandler.handler.forEach(GlowingImpl::tick);
     }
 }

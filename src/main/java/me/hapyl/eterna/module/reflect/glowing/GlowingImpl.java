@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -19,7 +19,7 @@ public class GlowingImpl implements Ticking {
     
     GlowingImpl(@NotNull Player player) {
         this.player = player;
-        this.entityMap = Maps.newConcurrentMap(); // We're dealing with packets so concurrent it is
+        this.entityMap = Maps.newHashMap();
     }
     
     @NotNull
@@ -29,10 +29,21 @@ public class GlowingImpl implements Ticking {
     
     @Override
     public void tick() {
-        final Collection<GlowingInstance> values = entityMap.values();
+        final Iterator<GlowingInstance> iterator = entityMap.values().iterator();
         
-        values.removeIf(GlowingInstance::removeIfShould);
-        values.forEach(GlowingInstance::tick);
+        while (iterator.hasNext()) {
+            final GlowingInstance glowingInstance = iterator.next();
+            
+            if (glowingInstance.shouldRemove()) {
+                // Make sure to remove from the hash map before calling the remove() method on the instance, since
+                // that sends a packet offload that we would otherwise intercept and change it to a glowing packet
+                iterator.remove();
+                glowingInstance.remove();
+            }
+            else {
+                glowingInstance.tick();
+            }
+        }
     }
     
     @ApiStatus.Internal

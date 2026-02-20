@@ -18,8 +18,6 @@ import me.hapyl.eterna.module.player.dialog.DialogHandler;
 import me.hapyl.eterna.module.player.quest.QuestHandler;
 import me.hapyl.eterna.module.player.song.SongHandler;
 import me.hapyl.eterna.module.reflect.glowing.GlowingHandler;
-import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolEntitySpawnHandler;
-import me.hapyl.eterna.module.reflect.glowing.GlowingProtocolMetadataHandler;
 import me.hapyl.eterna.module.reflect.glowing.GlowingRunnable;
 import me.hapyl.eterna.protocol.EternaProtocol;
 import net.kyori.adventure.text.Component;
@@ -64,7 +62,6 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         // Init handlers
         final PluginManager manager = this.getServer().getPluginManager();
         
-        new GlowingHandler(soleKey, this);
         new SongHandler(soleKey, this);
         
         manager.registerEvents(new ItemBuilderHandler(soleKey), this);
@@ -74,10 +71,9 @@ public /*final*/ class EternaPlugin extends JavaPlugin {
         manager.registerEvents(new DialogHandler(soleKey, this), this);
         manager.registerEvents(new NpcHandler(soleKey, this), this);
         manager.registerEvents(new QuestHandler(soleKey, this), this);
+        manager.registerEvents(new GlowingHandler(soleKey, this), this);
         
         manager.registerEvents(new SignHandler(soleKey), this);
-        manager.registerEvents(new GlowingProtocolMetadataHandler(soleKey), this);
-        manager.registerEvents(new GlowingProtocolEntitySpawnHandler(soleKey), this);
         manager.registerEvents(new CommandHandler(soleKey), this);
         
         final BukkitScheduler scheduler = Bukkit.getScheduler();

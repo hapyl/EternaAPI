@@ -45,7 +45,7 @@ public final class GlowingInstance implements Ticking, Removable {
         this.team.color(player, color);
         this.team.entry(player, scoreboardName());
         
-        sendGlowingPacket(true);
+        this.sendGlowingPacket(true);
     }
     
     /**
@@ -114,9 +114,10 @@ public final class GlowingInstance implements Ticking, Removable {
     /**
      * Removes this {@link GlowingInstance} and stops the {@link Entity} glowing.
      */
+    @ApiStatus.Internal
     @Override
     public void remove() {
-        sendGlowingPacket(false);
+        this.sendGlowingPacket(false);
         
         // Remove fake team
         team.destroy(player);
@@ -131,7 +132,7 @@ public final class GlowingInstance implements Ticking, Removable {
     }
     
     /**
-     * Gets whether this {@link GlowingInstance} should be removed on {@link GlowingHandler#emptyOrphans()}.
+     * Gets whether this {@link GlowingInstance} should be removed, either because the entity has died or the duration ended.
      *
      * @return {@code true} if this glowing instance should be removed; {@code false} otherwise.
      */
@@ -150,7 +151,7 @@ public final class GlowingInstance implements Ticking, Removable {
                 List.of(new SynchedEntityData.DataValue<>(
                         0,
                         EntityDataSerializers.BYTE,
-                        !flag ? (byte) (existingMask & ~BITMASK) : (byte) (existingMask | BITMASK)
+                        flag ? (byte) (existingMask | BITMASK) : (byte) (existingMask & ~BITMASK)
                 ))
         );
         
