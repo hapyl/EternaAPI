@@ -100,7 +100,10 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -167,7 +170,7 @@ public final class EternaTestRegistry {
                     
                     final Entity entity = glowingPlayer != null ? glowingPlayer : Entities.PIG.spawn(
                             player.getLocation(), self -> {
-                                self.setInvisible(true);
+                                self.setInvisible(false);
                                 self.setAI(false);
                             }
                     );
@@ -193,12 +196,15 @@ public final class EternaTestRegistry {
                                context.info(Component.text("Update color to `%s`!".formatted(newColor)));
                            }, colorChangeTime))
                            .then(SchedulerTask.later(() -> {
+                               context.info(Component.text("Stopped glowing, but did not remove entity."));
+                           }, colorChangeTime))
+                           .then(SchedulerTask.later(() -> {
                                if (glowingPlayer == null) {
                                    entity.remove();
                                }
                                
                                context.assertTestPassed();
-                           }, colorChangeTime))
+                           }, 40))
                            .execute();
                 }
         );
@@ -667,7 +673,7 @@ public final class EternaTestRegistry {
             
             final Player player = context.player();
             final List<? extends Player> playersOtherThanCaller = Bukkit.getOnlinePlayers().stream().filter(Predicate.not(player::equals)).toList();
-           
+            
             if (playersOtherThanCaller.isEmpty()) {
                 context.assertTestFailed("There must be at least one other player online!");
                 return;
