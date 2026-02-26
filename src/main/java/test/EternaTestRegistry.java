@@ -3,7 +3,6 @@ package test;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.gson.JsonPrimitive;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import me.hapyl.eterna.*;
@@ -13,6 +12,7 @@ import me.hapyl.eterna.module.block.display.DisplayData;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
 import me.hapyl.eterna.module.block.display.animation.AnimationFrame;
 import me.hapyl.eterna.module.component.ComponentList;
+import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.component.Described;
 import me.hapyl.eterna.module.component.Keybind;
 import me.hapyl.eterna.module.entity.Entities;
@@ -69,10 +69,10 @@ import me.hapyl.eterna.module.reflect.access.ReflectFieldAccess;
 import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
-import me.hapyl.eterna.module.resource.JsonResourceLoader;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -1963,18 +1963,30 @@ public final class EternaTestRegistry {
                    .execute();
         });
         
-        register("json_loader", context -> {
+        register("component_wrap", context -> {
+            final TextComponent component = Component.empty()
+                                                     .append(Component.text("This is a first line of the component that is long enough to wrap it!", NamedTextColor.RED))
+                                                     .appendNewline()
+                                                     .append(Component.text("Here's a manual split.", NamedTextColor.GREEN))
+                                                     .appendNewline()
+                                                     .appendNewline()
+                                                     .append(Component.text("Here is manual linebreak", NamedTextColor.BLUE))
+                                                     .appendNewline()
+                                                     .appendNewline()
+                                                     .appendNewline()
+                                                     .append(Component.text("Here are two consecutive linebreak!", NamedTextColor.GOLD))
+                                                     .append(Components.linebreak())
+                                                     .append(Component.text("And above is a custom linebreak() from Components module!", NamedTextColor.LIGHT_PURPLE));
             
-            final JsonResourceLoader loader = new JsonResourceLoader(Eterna.getPlugin(), "test.json");
-            final boolean invalidJson = loader.get("invalid_json").getAsBoolean();
-            
-            context.info(Component.text("invalidJson=%s".formatted(invalidJson)));
-            
-            loader.set("test_value", new JsonPrimitive(123));
-            loader.saveToFile();
+            context.player().getInventory().addItem(
+                    new ItemBuilder(Material.DIAMOND)
+                            .addWrappedLore(component)
+                            .asItemStack()
+            );
             
             context.assertTestPassed();
         });
+        
         
         // *-* End Tests *-* //
         

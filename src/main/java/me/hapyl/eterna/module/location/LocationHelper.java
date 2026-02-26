@@ -266,10 +266,10 @@ public final class LocationHelper {
     }
     
     /**
-     * Randomly offsets the given {@link Location} around the given {@code offset} and {@link #anchor(Location)} it.
+     * Randomly offsets the given {@link Location} {@code X} and {@code Y} around the given {@code offset}.
      *
      * @param location - The location to offset.
-     * @param offset   - The maximum offset range.
+     * @param offset   - The maximum offset range, inclusive.
      * @return a new randomly offset location.
      */
     @NotNull
@@ -277,7 +277,19 @@ public final class LocationHelper {
         final double x = BukkitUtils.RANDOM.nextDouble(-offset, Math.nextUp(offset));
         final double z = BukkitUtils.RANDOM.nextDouble(-offset, Math.nextUp(offset));
         
-        return anchor(copyOf(location).add(x, 0, z));
+        return copyOf(location).add(x, 0, z);
+    }
+    
+    /**
+     * Randomly offsets the given {@link Location} {@code X} and {@code Y} around the given {@code offset} and {@link #anchor(Location)} it.
+     *
+     * @param location - The location to offset.
+     * @param offset   - The maximum offset range, inclusive.
+     * @return a new randomly offset and anchored location.
+     */
+    @NotNull
+    public static Location offsetRandomlyAnchor(@NotNull @DefensiveCopy Location location, final double offset) {
+        return anchor(offsetRandomly(location, offset));
     }
     
     /**

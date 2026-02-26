@@ -300,7 +300,7 @@ public class Quest implements Keyed, Named, Described {
      * Compares the given {@link Object} to this {@link Quest}.
      *
      * @param object - The object to compare to.
-     * @return {@code true} if the given object is a quest, and it's plugin and key matches; {@code false} otherwise.
+     * @return {@code true} if the given object is a quest, and its plugin and key matches; {@code false} otherwise.
      */
     @Override
     public final boolean equals(Object object) {

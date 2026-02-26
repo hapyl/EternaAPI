@@ -114,12 +114,33 @@ public final class Components {
     }
     
     /**
+     * Gets a {@code linebreak} that can be used in {@link Components#wrap(Component, int)}, to manually wrap the current line
+     * and insert a {@code newline}, which can be used instead of appending {@link Component#newline()} twice.
+     *
+     * @return a linebreak component.
+     */
+    @NotNull
+    public static Component linebreak() {
+        class Holder {
+            private static final Component LINE_BREAK = Component.empty().appendNewline().appendNewline();
+        }
+        
+        return Holder.LINE_BREAK;
+    }
+    
+    /**
      * Wraps the given {@link Component} into a {@link List} of {@link Component}, each with text length not exceeding {@code maxLength}.
      *
-     * <p>Special cases:<ul>
-     * <li>Non-{@link TextComponent} are appended as is.
-     * <li>{@link Component#newline()} are treated as line breakers, appending an empty {@link Component}.
-     * </ul> </p>
+     * <p>
+     * Special cases:
+     * <ul>
+     *      <li>Non-{@link TextComponent} are appended as is.
+     *      <li>{@link Component#newline()} can be used to manually wrap and insert a new line.
+     *          <ul>
+     *              <li>Trailing newlines are treated as line breakers, appending an empty {@link Component}, see {@link Components#linebreak()}.
+     *          </ul>
+     * </ul>
+     * </p>
      *
      * @param component - The input component to wrap.
      * @param maxLength - The maximum length of each wrapped line.
@@ -148,12 +169,14 @@ public final class Components {
             
             // Handle newlines
             if (content.equals("\n")) {
-                // Don't forget to append the non-empty builder before the newline
+                // If the builder isn't empty, we're inserting a manual linebreak
                 if (!builder.children().isEmpty()) {
                     output.add(builder.build());
                 }
-                
-                output.add(Component.empty());
+                // Otherwise, trailing newlines append an empty line
+                else {
+                    output.add(Component.empty());
+                }
                 
                 builder = Component.text();
                 counter = 0;
