@@ -86,7 +86,7 @@ public final class SmallCaps {
      * Gets the {@link SmallCapsChar} object by the given small caps char.
      *
      * <p>
-     * This is a helper method to retrieve a {@link SmallCapsChar} in case it's {@link SmallCapsChar#length()} is needed.
+     * This is a helper method to retrieve a {@link SmallCapsChar} in case its {@link SmallCapsChar#length()} is needed.
      * </p>
      *
      * @param ch - The small caps character.

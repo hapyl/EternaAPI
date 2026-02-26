@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Indicates that the annotated element is immutable, and will throw {@link UnsupportedOperationException} (or similar) upon trying to mutate it.
  *
  * <p>
- * If annotated on a method, it applies to it's return value.
+ * If annotated on a method, it applies to its return value.
  * </p>
  */
 @Retention(RetentionPolicy.RUNTIME)
