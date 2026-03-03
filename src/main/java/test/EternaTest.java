@@ -53,9 +53,10 @@ public abstract class EternaTest {
                   }
               })
               .exceptionally(ex -> {
-                  EternaLogger.test(player, Component.text("Test `%s` failed!".formatted(key), NamedTextColor.DARK_RED));
-                  EternaLogger.test(player, Component.text(" " + ex.getCause().getMessage(), NamedTextColor.RED));
+                  final String exceptionMessage = Objects.requireNonNullElseGet(ex.getMessage(), () -> ex.getCause().getMessage());
                   
+                  EternaLogger.test(player, Component.text("Test `%s` failed!".formatted(key), NamedTextColor.DARK_RED));
+                  EternaLogger.test(player, Component.text(" " + exceptionMessage, NamedTextColor.RED));
                   return null;
               });
         

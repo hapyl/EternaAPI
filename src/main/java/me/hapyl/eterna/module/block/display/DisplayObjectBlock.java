@@ -6,21 +6,21 @@ import org.bukkit.entity.BlockDisplay;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a {@link BlockDisplay} data object.
+ * Represents a {@link DisplayObject} of a {@link BlockDisplay}.
  */
 public final class DisplayObjectBlock extends DisplayObject<BlockDisplay> {
-
+    
     private final BlockData data;
-
-    public DisplayObjectBlock(@NotNull JsonObject json, @NotNull BlockData data) {
+    
+    DisplayObjectBlock(@NotNull JsonObject json, @NotNull BlockData data) {
         super(BlockDisplay.class, json);
-
+        
         this.data = data;
     }
-
+    
     @Override
-    protected void onCreate(@NotNull BlockDisplay display) {
-        display.setBlock(data);
+    public void onCreate(@NotNull BlockDisplay display) {
+        display.setBlock(this.data);
     }
-
+    
 }

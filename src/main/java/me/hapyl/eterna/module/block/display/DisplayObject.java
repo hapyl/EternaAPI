@@ -13,7 +13,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.function.Consumer;
 
 /**
- * Represents a based display object, which holds key data to spawn the display entity.
+ * Represents a base {@link DisplayObject} that holds a parsed data from {@link BDEngine}.
  */
 public abstract class DisplayObject<T extends Display> {
     
@@ -38,43 +38,39 @@ public abstract class DisplayObject<T extends Display> {
         return location.getWorld().spawn(
                 location,
                 displayType, self -> {
-                    // onCreate has priority
-                    onCreate(self);
+                    // Call `onCreate()` on self
+                    this.onCreate(self);
                     
                     // Apply consumer before transformation
                     if (consumer != null) {
                         consumer.accept(self);
                     }
                     
-                    // Tag if tagged
+                    // Set tags if exists
                     final JsonArray tags = json.getAsJsonArray("Tags");
                     
                     if (tags != null) {
-                        tags.forEach(element -> {
-                            final String tag = element.getAsString();
-                            
-                            self.addScoreboardTag(tag);
-                        });
+                        tags.forEach(element -> self.addScoreboardTag(element.getAsString()));
                     }
                     
-                    // Apply transformation
+                    // Apply transformation matrix
                     self.setTransformationMatrix(parseMatrix(json));
                 }
         );
     }
     
     /**
-     * An abstract method to apply additional properties before spawn.
+     * An abstract method that is called first on {@link Display} spawn.
      *
-     * @param display - The display entity.
+     * @param display - The display entity that is being spawned.
      */
-    protected abstract void onCreate(@NotNull T display);
+    public abstract void onCreate(@NotNull T display);
     
     /**
-     * Parses the given {@link JsonObject} to a {@link Matrix4f}.
+     * Parses the given {@link JsonObject} to a transformation {@link Matrix4f}.
      *
      * @param object - The object to parse.
-     * @return a matrix.
+     * @return a parsed transformation matrix.
      */
     @NotNull
     public static Matrix4f parseMatrix(@NotNull JsonObject object) {

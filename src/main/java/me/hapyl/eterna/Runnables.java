@@ -58,26 +58,6 @@ public final class Runnables {
     }
     
     @ApiStatus.Internal
-    public static void timer(@NotNull Runnable runnable, long delay, long period) {
-        newBukkitRunnable(runnable).runTaskTimer(ETERNA, delay, period);
-    }
-    
-    @ApiStatus.Internal
-    public static void timer(@NotNull Runnable runnable, long period) {
-        timer(runnable, 0, period);
-    }
-    
-    @ApiStatus.Internal
-    public static void timerAsync(@NotNull Runnable runnable, long delay, long period) {
-        newBukkitRunnable(runnable).runTaskTimerAsynchronously(ETERNA, delay, period);
-    }
-    
-    @ApiStatus.Internal
-    public static void timerAsync(@NotNull Runnable runnable, long period) {
-        timerAsync(runnable, 0, period);
-    }
-    
-    @ApiStatus.Internal
     public static BukkitRunnable makeTask(@NotNull Runnable runnable, @NotNull Consumer<BukkitRunnable> consumer) {
         final BukkitRunnable bukkitRunnable = new BukkitRunnable() {
             @Override

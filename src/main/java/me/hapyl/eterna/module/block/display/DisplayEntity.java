@@ -1,750 +1,369 @@
 package me.hapyl.eterna.module.block.display;
 
-import com.google.common.collect.Lists;
-import io.papermc.paper.datacomponent.DataComponentType;
-import io.papermc.paper.entity.LookAnchor;
 import io.papermc.paper.entity.TeleportFlag;
-import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
-import me.hapyl.eterna.EternaPlugin;
-import me.hapyl.eterna.module.block.display.animation.DisplayEntityAnimation;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.util.TriState;
-import org.bukkit.*;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.PistonMoveReaction;
-import org.bukkit.entity.*;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
+import me.hapyl.eterna.module.annotate.CaseSensitive;
+import me.hapyl.eterna.module.annotate.Immutable;
+import me.hapyl.eterna.module.location.Coordinates;
+import me.hapyl.eterna.module.location.Located;
+import me.hapyl.eterna.module.location.Rotation;
+import me.hapyl.eterna.module.util.Removable;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.permissions.PermissionAttachmentInfo;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
- * Represents a display entity.
- * <p>The entity consists of the head (always preset) and children.</p>
+ * Represents a spawned {@link BDEngine} {@link Display} entity.
+ *
+ * <p>
+ * The entity always consists of a head {@link BlockDisplay} which is purely used as a pivot point, and children {@link Display}
+ * which are used as display objects and are passengers of the {@code head}.
+ * </p>
+ *
+ * <p>
+ * The {@link DisplayEntity} provides methods for {@code scale} and {@code rotation} around the pivot:
+ * </p>
+ *
+ * @see #getScale()
+ * @see #setScale(Vector3f)
+ * @see #editScale(Consumer)
+ * @see #getRotation()
+ * @see #setRotation(Quaternionf)
+ * @see #editRotation(Consumer)
  */
-public class DisplayEntity implements Iterable<Display>, Display {
+public class DisplayEntity implements Iterable<Display>, Removable, Located, Coordinates, Rotation {
     
     private final BlockDisplay head;
     private final List<Display> children;
     
-    DisplayEntity(@NotNull BlockDisplay head) {
+    @NotNull private Vector3f scale;
+    @NotNull private Quaternionf rotation;
+    
+    DisplayEntity(@NotNull BlockDisplay head, @NotNull @Immutable List<Display> children) {
         this.head = head;
-        this.children = Lists.newArrayList();
-        this.children.add(head);
+        this.children = children;
+        this.scale = new Vector3f();
+        this.rotation = new Quaternionf();
+        
+        // Add children to the head to match the vanilla behaviour
+        this.children.forEach(head::addPassenger);
     }
     
     /**
-     * Creates a new {@link DisplayEntityAnimation} instance using the default {@link EternaPlugin}.
+     * Gets a copy of the current {@code scale} of this {@link DisplayEntity} as {@link Vector3f}.
      *
-     * @return A new {@link DisplayEntityAnimation} instance.
+     * @return a copy of the current {@code scale} of this display entity as a vector.
      */
     @NotNull
-    public DisplayEntityAnimation newAnimation() {
-        return new DisplayEntityAnimation(this);
+    public Vector3f getScale() {
+        return new Vector3f(this.scale);
     }
     
     /**
-     * Creates a new {@link DisplayEntityAnimation} instance with the specified {@link Plugin}.
+     * Sets the new {@code scale} of this {@link DisplayEntity}.
      *
-     * @param plugin - The {@link Plugin} to be used for the animation.
-     * @return A new {@link DisplayEntityAnimation} instance.
+     * @param scale - The new scale to set.
      */
-    @NotNull
-    public DisplayEntityAnimation newAnimation(@NotNull Plugin plugin) {
-        return new DisplayEntityAnimation(this, plugin);
+    public void setScale(@NotNull Vector3f scale) {
+        this.scale = scale;
+        
+        // Scale head
+        final Transformation headTransformation = head.getTransformation();
+        final Vector3f newHeadScale = new Vector3f(headTransformation.getScale().mul(scale));
+        
+        this.head.setTransformation(new Transformation(
+                headTransformation.getTranslation(),
+                headTransformation.getLeftRotation(),
+                newHeadScale,
+                headTransformation.getRightRotation()
+        ));
+        
+        // Scale children
+        for (Display child : this.children) {
+            final Transformation transformation = child.getTransformation();
+            
+            final Vector3f newTranslation = new Vector3f(transformation.getTranslation().mul(scale));
+            final Vector3f newScale = new Vector3f(transformation.getScale().mul(scale));
+            
+            child.setTransformation(new Transformation(
+                    newTranslation,
+                    transformation.getLeftRotation(),
+                    newScale,
+                    transformation.getRightRotation()
+            ));
+        }
     }
     
+    /**
+     * Edits the {@code scale} of this {@link DisplayEntity} by applying the given {@link Consumer} to it and updates it.
+     *
+     * @param edit - The edit to perform.
+     */
+    public void editScale(@NotNull Consumer<Vector3f> edit) {
+        edit.accept(this.scale);
+        
+        this.setScale(this.scale);
+    }
+    
+    /**
+     * Gets a copy of the current {@code rotation} of this {@link DisplayEntity} as a {@link Quaternionf}.
+     *
+     * @return a copy of the current {@code rotation} of this {@link DisplayEntity} as {@link Quaternionf}.
+     */
+    @NotNull
+    public Quaternionf getRotation() {
+        return new Quaternionf(this.rotation);
+    }
+    
+    /**
+     * Sets the new {@code rotation} of this {@link DisplayEntity}.
+     *
+     * @param rotation - The new rotation to set.
+     */
+    public void setRotation(@NotNull Quaternionf rotation) {
+        this.rotation = rotation;
+        
+        // Rotate head
+        final Transformation headTransformation = this.head.getTransformation();
+        final Quaternionf newHeadRotation = new Quaternionf(rotation)
+                .mul(headTransformation.getLeftRotation())
+                .normalize();
+        
+        this.head.setTransformation(new Transformation(
+                headTransformation.getTranslation(),
+                newHeadRotation,
+                headTransformation.getScale(),
+                headTransformation.getRightRotation()
+        ));
+        
+        // Rotate children
+        for (Display child : this.children) {
+            final Transformation transformation = child.getTransformation();
+            
+            final Vector3f newTranslation = rotation.transform(new Vector3f(transformation.getTranslation()));
+            final Quaternionf newLeftRotation = new Quaternionf(rotation)
+                    .mul(transformation.getLeftRotation())
+                    .normalize();
+            
+            child.setTransformation(new Transformation(
+                    newTranslation,
+                    newLeftRotation,
+                    transformation.getScale(),
+                    transformation.getRightRotation()
+            ));
+        }
+    }
+    
+    /**
+     * Edits the {@code rotation} of this {@link DisplayEntity} by applying the given {@link Consumer} to it and updates it.
+     *
+     * @param edit - The edit to perform.
+     */
+    public void editRotation(@NotNull Consumer<Quaternionf> edit) {
+        edit.accept(this.rotation);
+        
+        this.setRotation(this.rotation);
+    }
+    
+    /**
+     * Teleports this {@link DisplayEntity} to the given {@link Location}.
+     *
+     * <p>
+     * This will call teleport on the {@code head} of the {@link DisplayEntity}, which will result in teleportation of the children.
+     * </p>
+     *
+     * @param location - The new location to teleport to.
+     * @return {@code true} if the teleportation was successful; {@code false} otherwise.
+     */
     public boolean teleport(@NotNull Location location) {
-        return teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        return this.head.teleport(location);
     }
     
-    @Override
+    /**
+     * Teleports this {@link DisplayEntity} to the given {@link Location}.
+     *
+     * <p>
+     * This will call teleport on the {@code head} of the {@link DisplayEntity}, which will result in teleportation of the children.
+     * </p>
+     *
+     * @param location - The new location to teleport to.
+     * @param cause    - The teleportation cause.
+     * @return {@code true} if the teleportation was successful; {@code false} otherwise.
+     */
     public boolean teleport(@NotNull Location location, @NotNull PlayerTeleportEvent.TeleportCause cause) {
-        children.forEach(child -> child.teleport(location, cause));
+        return this.head.teleport(location, cause);
+    }
+    
+    /**
+     * Teleports this {@link DisplayEntity} to the given {@link Entity}.
+     *
+     * <p>
+     * This will call teleport on the {@code head} of the {@link DisplayEntity}, which will result in teleportation of the children.
+     * </p>
+     *
+     * @param entity - The entity to teleport to.
+     * @return {@code true} if the teleportation was successful; {@code false} otherwise.
+     */
+    public boolean teleport(@NotNull Entity entity) {
+        return this.head.teleport(entity);
+    }
+    
+    /**
+     * Teleports this {@link DisplayEntity} to the given {@link Entity}.
+     *
+     * <p>
+     * This will call teleport on the {@code head} of the {@link DisplayEntity}, which will result in teleportation of the children.
+     * </p>
+     *
+     * @param entity - The entity to teleport to.
+     * @param cause  - The teleportation cause.
+     * @return {@code true} if the teleportation was successful; {@code false} otherwise.
+     */
+    public boolean teleport(@NotNull Entity entity, @NotNull PlayerTeleportEvent.TeleportCause cause) {
+        return this.head.teleport(entity, cause);
+    }
+    
+    /**
+     * Teleports this {@link DisplayEntity} to the given {@link Entity}.
+     *
+     * <p>
+     * This will call teleport on the {@code head} of the {@link DisplayEntity}, which will result in teleportation of the children.
+     * </p>
+     *
+     * @param location      - The location to teleport to.
+     * @param cause         - The teleportation cause.
+     * @param teleportFlags - The teleportation flags.
+     * @return {@code true} if the teleportation was successful; {@code false} otherwise.
+     */
+    public boolean teleport(@NotNull Location location, @NotNull PlayerTeleportEvent.TeleportCause cause, @NotNull TeleportFlag... teleportFlags) {
+        return this.head.teleport(location, cause, teleportFlags);
+    }
+    
+    /**
+     * Teleports this {@link DisplayEntity} to the given {@link Entity} asynchronously, which will result in chunk loading.
+     *
+     * <p>
+     * This will call teleport on the {@code head} of the {@link DisplayEntity}, which will result in teleportation of the children.
+     * </p>
+     *
+     * @param location - The location to teleport to.
+     * @return A completable future that will be completed with the result of the teleport.
+     */
+    @NotNull
+    public CompletableFuture<Boolean> teleportAsync(@NotNull Location location, @NotNull PlayerTeleportEvent.TeleportCause cause, @NotNull TeleportFlag @NotNull ... teleportFlags) {
+        return this.head.teleportAsync(location, cause, teleportFlags);
+    }
+    
+    /**
+     * Gets a {@link List} of nearby {@link Entity} around the {@code head} of this {@link DisplayEntity}.
+     *
+     * @param x - The {@code 1/2} the size of the box along {@code x} axis.
+     * @param y - The {@code 1/2} the size of the box along {@code y} axis.
+     * @param z - The {@code 1/2} the size of the box along {@code z} axis.
+     * @return a list of nearby entities.
+     */
+    @NotNull
+    public List<Entity> getNearbyEntities(double x, double y, double z) {
+        return this.head.getNearbyEntities(x, y, z);
+    }
+    
+    /**
+     * Gets whether this {@link DisplayEntity} is invisible.
+     *
+     * @return {@code true} if this display entity is invisible; {@code false otherwise}.
+     */
+    public boolean isInvisible() {
+        for (Display child : this.children) {
+            if (!child.isInvisible()) {
+                return false;
+            }
+        }
+        
         return true;
     }
     
-    @Override
-    public boolean teleport(@NotNull Entity destination) {
-        return teleport(destination.getLocation());
-    }
-    
-    @Override
-    public boolean teleport(@NotNull Entity destination, @NotNull PlayerTeleportEvent.TeleportCause cause) {
-        return teleport(destination.getLocation(), cause);
-    }
-    
-    @NotNull
-    @Override
-    public CompletableFuture<Boolean> teleportAsync(@NotNull Location loc, @NotNull PlayerTeleportEvent.TeleportCause cause, @NotNull TeleportFlag... teleportFlags) {
-        children.forEach(child -> child.teleportAsync(loc, cause));
-        
-        return CompletableFuture.completedFuture(Boolean.TRUE);
-    }
-    
-    @NotNull
-    @Override
-    public List<Entity> getNearbyEntities(double x, double y, double z) {
-        return head.getNearbyEntities(x, y, z);
+    /**
+     * Sets whether this {@link DisplayEntity} should be invisible.
+     *
+     * @param invisible - {@code true} to set invisibility; {@code false} to unset.
+     */
+    public void setInvisible(boolean invisible) {
+        for (Display child : this.children) {
+            child.setInvisible(invisible);
+        }
     }
     
     /**
-     * Gets the entity Id of the head of this entity.
-     *
-     * @return the entity Id of the head of this entity.
-     * @deprecated {@link #getEntitiesId()}
+     * Removes this {@link DisplayEntity} completely, including the {@code head} and {@code children}.
      */
-    @Deprecated
-    @Override
-    public int getEntityId() {
-        return head.getEntityId();
-    }
-    
-    @NotNull
-    public List<Integer> getEntitiesId() {
-        return children.stream()
-                       .map(Display::getEntityId)
-                       .toList();
-    }
-    
-    @Override
-    public int getFireTicks() {
-        return head.getFireTicks();
-    }
-    
-    @Override
-    public void setFireTicks(int ticks) {
-        children.forEach(child -> child.setFireTicks(ticks));
-    }
-    
-    @Override
-    public int getMaxFireTicks() {
-        return head.getMaxFireTicks();
-    }
-    
-    @Override
-    public boolean isVisualFire() {
-        return head.isVisualFire();
-    }
-    
-    @Override
-    public @NotNull TriState getVisualFire() {
-        return TriState.byBoolean(isVisualFire());
-    }
-    
-    @Override
-    public void setVisualFire(boolean fire) {
-        children.forEach(child -> child.setVisualFire(fire));
-    }
-    
-    @Override
-    public void setVisualFire(@NotNull TriState triState) {
-        setVisualFire(Boolean.TRUE.equals(triState.toBoolean()));
-    }
-    
-    @Override
-    public int getFreezeTicks() {
-        return head.getFreezeTicks();
-    }
-    
-    @Override
-    public void setFreezeTicks(int ticks) {
-        children.forEach(child -> child.setFreezeTicks(ticks));
-    }
-    
-    @Override
-    public int getMaxFreezeTicks() {
-        return head.getMaxFreezeTicks();
-    }
-    
-    @Override
-    public boolean isFrozen() {
-        return head.isFrozen();
-    }
-    
-    @Override
-    public boolean isInvisible() {
-        return head.isInvisible();
-    }
-    
-    @Override
-    public void setInvisible(boolean invisible) {
-        children.forEach(child -> child.setInvisible(invisible));
-    }
-    
-    @Override
-    public void setNoPhysics(boolean noPhysics) {
-        children.forEach(child -> child.setNoPhysics(noPhysics));
-    }
-    
-    @Override
-    public boolean hasNoPhysics() {
-        return head.hasNoPhysics();
-    }
-    
-    @Override
-    public boolean isFreezeTickingLocked() {
-        return head.isFreezeTickingLocked();
-    }
-    
-    @Override
-    public void lockFreezeTicks(boolean locked) {
-        children.forEach(child -> child.lockFreezeTicks(locked));
-    }
-    
     @Override
     public void remove() {
-        children.forEach(Display::remove);
-        children.clear();
-    }
-    
-    @Override
-    public boolean isDead() {
-        return head.isDead();
-    }
-    
-    @Override
-    public boolean isValid() {
-        return head.isValid();
-    }
-    
-    @Deprecated
-    @Override
-    public void sendMessage(@NotNull String message) {
-        throw uoe("sendMessage");
-    }
-    
-    @Deprecated
-    @Override
-    public void sendMessage(@NotNull String... messages) {
-        throw uoe("sendMessage");
-    }
-    
-    @Deprecated
-    @Override
-    public void sendMessage(@Nullable UUID sender, @NotNull String message) {
-        throw uoe("sendMessage");
-    }
-    
-    @Deprecated
-    @Override
-    public void sendMessage(@Nullable UUID sender, @NotNull String... messages) {
-        throw uoe("sendMessage");
-    }
-    
-    @NotNull
-    @Override
-    public Server getServer() {
-        return head.getServer();
-    }
-    
-    @NotNull
-    @Override
-    public String getName() {
-        return head.getName();
-    }
-    
-    @Override
-    public boolean isPersistent() {
-        return head.isPersistent();
-    }
-    
-    @Override
-    public void setPersistent(boolean persistent) {
-        children.forEach(child -> child.setPersistent(persistent));
-    }
-    
-    @Deprecated
-    @Nullable
-    @Override
-    public Entity getPassenger() {
-        throw uoe("getPassenger");
-    }
-    
-    @Deprecated
-    @Override
-    public boolean setPassenger(@NotNull Entity passenger) {
-        throw uoe("setPassenger");
-    }
-    
-    @NotNull
-    @Override
-    public List<Entity> getPassengers() {
-        return head.getPassengers();
-    }
-    
-    @Deprecated
-    @Override
-    public boolean addPassenger(@NotNull Entity passenger) {
-        throw uoe("addPassenger");
-    }
-    
-    @Deprecated
-    @Override
-    public boolean removePassenger(@NotNull Entity passenger) {
-        throw uoe("removePassenger");
-    }
-    
-    @Override
-    public boolean isEmpty() {
-        return children.size() == 1;
-    }
-    
-    @Override
-    public boolean eject() {
-        return false;
-    }
-    
-    @Override
-    public @NotNull ItemStack getPickItemStack() {
-        return new ItemStack(Material.AIR);
-    }
-    
-    @Override
-    public float getFallDistance() {
-        return head.getFallDistance();
-    }
-    
-    @Override
-    public void setFallDistance(float distance) {
-        children.forEach(child -> child.setFallDistance(distance));
-    }
-    
-    @Nullable
-    @Override
-    public EntityDamageEvent getLastDamageCause() {
-        return null;
-    }
-    
-    @Deprecated(forRemoval = true)
-    @Override
-    public void setLastDamageCause(@Nullable EntityDamageEvent event) {
-    }
-    
-    @Deprecated
-    @NotNull
-    @Override
-    public UUID getUniqueId() {
-        return head.getUniqueId();
-    }
-    
-    @Override
-    public int getTicksLived() {
-        return head.getTicksLived();
-    }
-    
-    @Override
-    public void setTicksLived(int value) {
-        head.setTicksLived(value);
-    }
-    
-    @Override
-    public void playEffect(@NotNull EntityEffect type) {
-    }
-    
-    @NotNull
-    @Override
-    public EntityType getType() {
-        return EntityType.BLOCK_DISPLAY;
-    }
-    
-    @NotNull
-    @Override
-    public Sound getSwimSound() {
-        return Sound.ENTITY_GENERIC_SWIM;
-    }
-    
-    @NotNull
-    @Override
-    public Sound getSwimSplashSound() {
-        return Sound.ENTITY_GENERIC_SPLASH;
-    }
-    
-    @NotNull
-    @Override
-    public Sound getSwimHighSpeedSplashSound() {
-        return Sound.ENTITY_GENERIC_SPLASH;
-    }
-    
-    @Override
-    public boolean isInsideVehicle() {
-        return false;
-    }
-    
-    @Override
-    public boolean leaveVehicle() {
-        return false;
-    }
-    
-    @Override
-    @Nullable
-    public Entity getVehicle() {
-        return null; // we're the vehicle
-    }
-    
-    @Deprecated
-    @Override
-    public boolean isCustomNameVisible() {
-        return false;
-    }
-    
-    @Deprecated
-    @Override
-    public void setCustomNameVisible(boolean flag) {
-    }
-    
-    @Override
-    public boolean isVisibleByDefault() {
-        return head.isVisibleByDefault();
-    }
-    
-    @Override
-    public void setVisibleByDefault(boolean visible) {
-        children.forEach(child -> child.setVisibleByDefault(visible));
-    }
-    
-    @NotNull
-    @Override
-    public Set<Player> getTrackedBy() {
-        return head.getTrackedBy();
-    }
-    
-    @Override
-    public boolean isTrackedBy(@NotNull Player player) {
-        return false;
-    }
-    
-    @Override
-    public boolean isGlowing() {
-        return head.isGlowing();
-    }
-    
-    @Override
-    public void setGlowing(boolean flag) {
-        children.forEach(child -> child.setGlowing(flag));
-    }
-    
-    @Override
-    public boolean isInvulnerable() {
-        return head.isInvulnerable();
-    }
-    
-    @Override
-    public void setInvulnerable(boolean flag) {
-        children.forEach(child -> child.setInvisible(flag));
-    }
-    
-    @Override
-    public boolean isSilent() {
-        return true;
-    }
-    
-    @Override
-    public void setSilent(boolean flag) {
-    }
-    
-    @Override
-    public boolean hasGravity() {
-        return false;
-    }
-    
-    @Override
-    public void setGravity(boolean gravity) {
-    }
-    
-    @Override
-    public int getPortalCooldown() {
-        return head.getPortalCooldown();
-    }
-    
-    @Override
-    public void setPortalCooldown(int cooldown) {
-        children.forEach(child -> child.setPortalCooldown(cooldown));
-    }
-    
-    @NotNull
-    @Override
-    public Set<String> getScoreboardTags() {
-        return head.getScoreboardTags();
-    }
-    
-    @Override
-    public boolean addScoreboardTag(@NotNull String tag) {
-        boolean wasAdded = false;
-        
-        for (Display child : children) {
-            if (child.addScoreboardTag(tag)) {
-                wasAdded = true;
-            }
-        }
-        
-        return wasAdded;
-    }
-    
-    @Override
-    public boolean removeScoreboardTag(@NotNull String tag) {
-        boolean wasRemoved = false;
-        
-        for (Display child : children) {
-            if (child.removeScoreboardTag(tag)) {
-                wasRemoved = true;
-            }
-        }
-        
-        return wasRemoved;
-    }
-    
-    @NotNull
-    @Override
-    public PistonMoveReaction getPistonMoveReaction() {
-        return PistonMoveReaction.IGNORE;
-    }
-    
-    @NotNull
-    @Override
-    public BlockFace getFacing() {
-        return head.getFacing();
-    }
-    
-    @NotNull
-    @Override
-    public Pose getPose() {
-        return head.getPose();
-    }
-    
-    @Override
-    public boolean isSneaking() {
-        return false;
-    }
-    
-    @Override
-    public void setSneaking(boolean sneak) {
-    }
-    
-    @Override
-    public void setPose(@NotNull Pose pose, boolean fixed) {
-    }
-    
-    @Override
-    public boolean hasFixedPose() {
-        return true;
-    }
-    
-    @NotNull
-    @Override
-    public SpawnCategory getSpawnCategory() {
-        return SpawnCategory.MISC;
-    }
-    
-    @Override
-    public boolean isInWorld() {
-        return true;
-    }
-    
-    @Deprecated
-    @Nullable
-    @Override
-    public String getAsString() {
-        return null;
-    }
-    
-    @Deprecated
-    @Nullable
-    @Override
-    public EntitySnapshot createSnapshot() {
-        return null;
-    }
-    
-    @Deprecated
-    @NotNull
-    @Override
-    public Entity copy() {
-        throw uoe("copy");
-    }
-    
-    @NotNull
-    @Override
-    public Entity copy(@NotNull Location to) {
-        throw uoe("copy");
-    }
-    
-    @NotNull
-    @Override
-    public Spigot spigot() {
-        throw uoe("spigot");
-    }
-    
-    @NotNull
-    @Override
-    public Component name() {
-        return head.name();
-    }
-    
-    @NotNull
-    @Override
-    public Component teamDisplayName() {
-        return head.teamDisplayName();
-    }
-    
-    @Nullable
-    @Override
-    public Location getOrigin() {
-        return head.getOrigin();
-    }
-    
-    @Override
-    public boolean fromMobSpawner() {
-        return false;
-    }
-    
-    @NotNull
-    @Override
-    public CreatureSpawnEvent.SpawnReason getEntitySpawnReason() {
-        return CreatureSpawnEvent.SpawnReason.CUSTOM;
-    }
-    
-    @Override
-    public boolean isUnderWater() {
-        return head.isUnderWater();
-    }
-    
-    @Override
-    public boolean isInRain() {
-        return head.isInRain();
-    }
-    
-    @Override
-    public boolean isInBubbleColumn() {
-        return head.isInBubbleColumn();
-    }
-    
-    @Override
-    public boolean isInWaterOrRain() {
-        return head.isInWaterOrRain();
-    }
-    
-    @Override
-    public boolean isInWaterOrBubbleColumn() {
-        return head.isInWaterOrBubbleColumn();
-    }
-    
-    @Override
-    public boolean isInWaterOrRainOrBubbleColumn() {
-        return head.isInWaterOrRainOrBubbleColumn();
-    }
-    
-    @Override
-    public boolean isInLava() {
-        return head.isInLava();
-    }
-    
-    @Deprecated
-    @Override
-    public boolean isTicking() {
-        return head.isTicking();
-    }
-    
-    @Deprecated
-    @NotNull
-    @Override
-    public Set<Player> getTrackedPlayers() {
-        return head.getTrackedPlayers();
-    }
-    
-    @Deprecated
-    @Override
-    public boolean spawnAt(@NotNull Location location, @NotNull CreatureSpawnEvent.SpawnReason reason) {
-        throw uoe("spawnAt");
-    }
-    
-    @Override
-    public boolean isInPowderedSnow() {
-        return head.isInPowderedSnow();
-    }
-    
-    @Override
-    public double getX() {
-        return head.getX();
-    }
-    
-    @Override
-    public double getY() {
-        return head.getY();
-    }
-    
-    @Override
-    public double getZ() {
-        return head.getZ();
-    }
-    
-    @Override
-    public float getPitch() {
-        return head.getPitch();
-    }
-    
-    @Override
-    public float getYaw() {
-        return head.getYaw();
-    }
-    
-    @Override
-    public boolean collidesAt(@NotNull Location location) {
-        return false;
-    }
-    
-    @Override
-    public boolean wouldCollideUsing(@NotNull BoundingBox boundingBox) {
-        return false;
-    }
-    
-    @Deprecated
-    @NotNull
-    @Override
-    public EntityScheduler getScheduler() {
-        return head.getScheduler();
-    }
-    
-    @NotNull
-    @Override
-    public String getScoreboardEntryName() {
-        return head.getScoreboardEntryName();
-    }
-    
-    @Deprecated
-    @Override
-    public void broadcastHurtAnimation(@NotNull Collection<Player> collection) {
+        this.head.remove();
+        this.children.forEach(Display::remove);
     }
     
     /**
-     * Gets an immutable {@link List} of all the entities in this model, including the head and the children.
+     * Gets whether this {@link DisplayEntity} is removed.
      *
-     * @return an immutable list of all the entities in this model, including the head and the children.
+     * @return {@code true} if this display entity is removed; {@code false} otherwise.
+     */
+    public boolean isRemoved() {
+        return this.head.isDead();
+    }
+    
+    /**
+     * Gets an <b>immutable</b> view of the {@code children} of this {@link DisplayEntity}.
+     *
+     * @return an immutable view of the children of this display entity.
      */
     @NotNull
-    public List<Display> getEntities() {
-        return Collections.unmodifiableList(children);
+    public List<Display> getChildren() {
+        // No need to copy since children are already immutable
+        return this.children;
     }
     
     /**
-     * Gets the head entity of this model.
+     * Gets whether this {@link DisplayEntity} is glowing.
      *
-     * @return the head entity of this model.
+     * @return {@code true} if this display entity is glowing; {@code false} otherwise.
+     */
+    public boolean isGlowing() {
+        for (Display child : this.children) {
+            if (!child.isGlowing()) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Sets whether this {@link DisplayEntity} is glowing.
+     *
+     * @param glowing - {@code true} to set glowing; {@code false} to unset.
+     */
+    public void setGlowing(boolean glowing) {
+        for (Display child : this.children) {
+            child.setGlowing(glowing);
+        }
+    }
+    
+    /**
+     * Gets the {@code head} of this {@link DisplayEntity}.
+     *
+     * @return the {@code head} of this display entity.
      */
     @NotNull
     public BlockDisplay getHead() {
@@ -752,356 +371,58 @@ public class DisplayEntity implements Iterable<Display>, Display {
     }
     
     /**
-     * Gets an {@link Iterator} of all the entities of this model.
-     * <br>
-     * The iterator cannot remove children.
+     * Gets an {@link Iterable} over all the {@code children} of this {@link DisplayEntity}.
      *
-     * @return an iterator of all the entities of this model.
+     * @return an iterator of all the children of this display entity.
      */
     @NotNull
     @Override
     public Iterator<Display> iterator() {
-        return getEntities().iterator();
+        return this.children.iterator();
     }
     
     /**
-     * Gets the {@link Location} of the head of this model.
+     * Gets the {@link Location} of the {@code head} of this {@link DisplayEntity}.
      *
-     * @return the location of the head of this model.
+     * @return the location of the {@code head} of this {@link DisplayEntity}.
      */
     @NotNull
     @Override
     public Location getLocation() {
-        return head.getLocation();
-    }
-    
-    @Nullable
-    @Override
-    public Location getLocation(@Nullable Location loc) {
-        return head.getLocation(loc);
-    }
-    
-    @NotNull
-    @Override
-    public Vector getVelocity() {
-        return head.getVelocity();
-    }
-    
-    @Override
-    public void setVelocity(@NotNull Vector velocity) {
-        head.setVelocity(velocity);
-    }
-    
-    @Override
-    public double getHeight() {
-        return 0;
-    }
-    
-    @Override
-    public double getWidth() {
-        return 0;
-    }
-    
-    @NotNull
-    @Override
-    public BoundingBox getBoundingBox() {
-        return new BoundingBox();
-    }
-    
-    @Override
-    public boolean isOnGround() {
-        return head.isOnGround();
-    }
-    
-    @Override
-    public boolean isInWater() {
-        return head.isInWater();
-    }
-    
-    @NotNull
-    @Override
-    public World getWorld() {
-        return head.getWorld();
-    }
-    
-    @Override
-    public void setRotation(float yaw, float pitch) {
-        children.forEach(child -> child.setRotation(yaw, pitch));
-    }
-    
-    @Override
-    public boolean teleport(@NotNull Location location, @NotNull PlayerTeleportEvent.TeleportCause cause, @NotNull TeleportFlag... teleportFlags) {
-        children.forEach(child -> child.teleport(location, cause, teleportFlags));
-        return true;
-    }
-    
-    @Override
-    public void lookAt(double v, double v1, double v2, @NotNull LookAnchor lookAnchor) {
-    }
-    
-    @NotNull
-    @Override
-    public Transformation getTransformation() {
-        return head.getTransformation();
-    }
-    
-    @Override
-    public void setTransformation(@NotNull Transformation transformation) {
-        head.setTransformation(transformation);
-    }
-    
-    @Override
-    public void setTransformationMatrix(@NotNull Matrix4f transformationMatrix) {
-        head.setTransformationMatrix(transformationMatrix);
-    }
-    
-    @Override
-    public int getInterpolationDuration() {
-        return head.getInterpolationDuration();
-    }
-    
-    @Override
-    public void setInterpolationDuration(int duration) {
-        head.setInterpolationDuration(duration);
-    }
-    
-    @Override
-    public int getTeleportDuration() {
-        return head.getTeleportDuration();
-    }
-    
-    @Override
-    public void setTeleportDuration(int duration) {
-        forEach(child -> child.setTeleportDuration(duration));
-    }
-    
-    @Override
-    public float getViewRange() {
-        return head.getViewRange();
-    }
-    
-    @Override
-    public void setViewRange(float range) {
-        forEach(child -> child.setViewRange(range));
-    }
-    
-    @Override
-    public float getShadowRadius() {
-        return head.getShadowRadius();
-    }
-    
-    @Override
-    public void setShadowRadius(float radius) {
-        forEach(child -> child.setShadowRadius(radius));
-    }
-    
-    @Override
-    public float getShadowStrength() {
-        return head.getShadowStrength();
-    }
-    
-    @Override
-    public void setShadowStrength(float strength) {
-        forEach(child -> child.setShadowStrength(strength));
-    }
-    
-    @Override
-    public float getDisplayWidth() {
-        return head.getDisplayWidth();
-    }
-    
-    @Override
-    public void setDisplayWidth(float width) {
-        forEach(child -> child.setDisplayWidth(width));
-    }
-    
-    @Override
-    public float getDisplayHeight() {
-        return head.getDisplayHeight();
-    }
-    
-    @Override
-    public void setDisplayHeight(float height) {
-        forEach(child -> child.setDisplayHeight(height));
-    }
-    
-    @Override
-    public int getInterpolationDelay() {
-        return head.getInterpolationDelay();
-    }
-    
-    @Override
-    public void setInterpolationDelay(int ticks) {
-        forEach(child -> child.setInterpolationDelay(ticks));
-    }
-    
-    @NotNull
-    @Override
-    public Display.Billboard getBillboard() {
-        return head.getBillboard();
-    }
-    
-    @Override
-    public void setBillboard(@NotNull Display.Billboard billboard) {
-        forEach(child -> child.setBillboard(billboard));
-    }
-    
-    @Nullable
-    @Override
-    public Color getGlowColorOverride() {
-        return head.getGlowColorOverride();
-    }
-    
-    @Override
-    public void setGlowColorOverride(@Nullable Color color) {
-        forEach(child -> child.setGlowColorOverride(color));
-    }
-    
-    @Nullable
-    @Override
-    public Display.Brightness getBrightness() {
-        return head.getBrightness();
-    }
-    
-    @Override
-    public void setBrightness(@Nullable Display.Brightness brightness) {
-        forEach(child -> child.setBrightness(brightness));
-    }
-    
-    @Nullable
-    @Override
-    public Component customName() {
-        return head.customName();
-    }
-    
-    @Override
-    public void customName(@Nullable Component customName) {
-        head.customName(customName);
-    }
-    
-    @Nullable
-    @Override
-    public String getCustomName() {
-        return head.getCustomName();
-    }
-    
-    @Override
-    public void setCustomName(@Nullable String name) {
-        head.setCustomName(name);
-    }
-    
-    @Override
-    public void setMetadata(@NotNull String metadataKey, @NotNull MetadataValue newMetadataValue) {
-        children.forEach(child -> child.setMetadata(metadataKey, newMetadataValue));
-    }
-    
-    @NotNull
-    @Override
-    public List<MetadataValue> getMetadata(@NotNull String metadataKey) {
-        // Unless illegally set metadata, this will work
-        return head.getMetadata(metadataKey);
-    }
-    
-    @Override
-    public boolean hasMetadata(@NotNull String metadataKey) {
-        // Unless illegally set metadata, this will work
-        return head.hasMetadata(metadataKey);
-    }
-    
-    @Override
-    public void removeMetadata(@NotNull String metadataKey, @NotNull Plugin owningPlugin) {
-        children.forEach(child -> child.removeMetadata(metadataKey, owningPlugin));
-    }
-    
-    @Override
-    public boolean isPermissionSet(@NotNull String name) {
-        return false;
-    }
-    
-    @Override
-    public boolean isPermissionSet(@NotNull Permission perm) {
-        return false;
-    }
-    
-    @Override
-    public boolean hasPermission(@NotNull String name) {
-        return false;
-    }
-    
-    @Override
-    public boolean hasPermission(@NotNull Permission perm) {
-        return false;
-    }
-    
-    @NotNull
-    @Override
-    public PermissionAttachment addAttachment(@NotNull Plugin plugin, @NotNull String name, boolean value) {
-        return head.addAttachment(plugin, name, value);
-    }
-    
-    @NotNull
-    @Override
-    public PermissionAttachment addAttachment(@NotNull Plugin plugin) {
-        return head.addAttachment(plugin);
-    }
-    
-    @Nullable
-    @Override
-    public PermissionAttachment addAttachment(@NotNull Plugin plugin, @NotNull String name, boolean value, int ticks) {
-        return null;
-    }
-    
-    @Nullable
-    @Override
-    public PermissionAttachment addAttachment(@NotNull Plugin plugin, int ticks) {
-        return null;
-    }
-    
-    @Override
-    public void removeAttachment(@NotNull PermissionAttachment attachment) {
-        head.removeAttachment(attachment);
-    }
-    
-    @Override
-    public void recalculatePermissions() {
-        head.recalculatePermissions();
-    }
-    
-    @NotNull
-    @Override
-    public Set<PermissionAttachmentInfo> getEffectivePermissions() {
-        return head.getEffectivePermissions();
-    }
-    
-    @Override
-    public boolean isOp() {
-        return false;
-    }
-    
-    @Override
-    public void setOp(boolean value) {
+        return this.head.getLocation();
     }
     
     /**
-     * Iterates over all children and applies the given {@link Consumer} if the child has a given tag as their scoreboard tag.
+     * Gets the {@link World} the {@code head} of this {@link DisplayEntity} is located.
+     *
+     * @return the world the {@code head} of this display entity is located.
+     */
+    @NotNull
+    @Override
+    public World getWorld() {
+        return this.head.getWorld();
+    }
+    
+    /**
+     * Applies the given {@link Consumer} to all {@link Display} that are tagged with the given {@code tag}.
      *
      * @param tag      - The tag to check.
      * @param consumer - The consumer to apply.
      */
-    public void asTagged(@NotNull String tag, @NotNull Consumer<Display> consumer) {
-        children.forEach(child -> {
+    public void asTagged(@NotNull @CaseSensitive String tag, @NotNull Consumer<Display> consumer) {
+        for (Display child : this.children) {
             if (child.getScoreboardTags().contains(tag)) {
                 consumer.accept(child);
             }
-        });
+        }
     }
     
-    @NotNull
-    @Override
-    public PersistentDataContainer getPersistentDataContainer() {
-        return head.getPersistentDataContainer();
-    }
-    
+    /**
+     * Compares the given {@link Object} to this {@link DisplayEntity}.
+     *
+     * @param object - The object to compare.
+     * @return {@code true} if the given object is display entity, and it is identical to this display entity; {@code false} otherwise.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -1112,17 +433,17 @@ public class DisplayEntity implements Iterable<Display>, Display {
             return false;
         }
         
-        final DisplayEntity other = (DisplayEntity) object;
+        final DisplayEntity that = (DisplayEntity) object;
         
-        if (children.size() != other.children.size()) {
+        if (this.children.size() != that.children.size()) {
             return false;
         }
         
-        for (int i = 0; i < children.size(); i++) {
-            final Display thisChild = children.get(i);
-            final Display otherChild = other.children.get(i);
+        for (int i = 0; i < this.children.size(); i++) {
+            final Display thisChild = this.children.get(i);
+            final Display thatChild = that.children.get(i);
             
-            if (!Objects.equals(thisChild, otherChild)) {
+            if (!Objects.equals(thisChild, thatChild)) {
                 return false;
             }
         }
@@ -1130,38 +451,64 @@ public class DisplayEntity implements Iterable<Display>, Display {
         return true;
     }
     
+    /**
+     * Gets the hash code of this {@link DisplayEntity}.
+     *
+     * @return the hash code of this display entity.
+     */
     @Override
     public int hashCode() {
-        int hash = 1;
-        
-        for (Display child : children) {
-            hash = 31 * hash + (child != null ? child.hashCode() : 0);
-        }
-        
-        return hash;
+        return Objects.hash(children);
     }
     
+    /**
+     * Gets the {@code X} coordinate of this {@link DisplayEntity}.
+     *
+     * @return the {@code X} coordinate of this display entity.
+     */
     @Override
-    public <T> @Nullable T getData(DataComponentType.@NotNull Valued<T> valued) {
-        throw uoe("getData");
+    public double x() {
+        return this.head.getX();
     }
     
+    /**
+     * Gets the {@code Y} coordinate of this {@link DisplayEntity}.
+     *
+     * @return the {@code Y} coordinate of this display entity.
+     */
     @Override
-    public <T> @Nullable T getDataOrDefault(DataComponentType.@NotNull Valued<? extends T> valued, @Nullable T t) {
-        throw uoe("getDataOrDefault");
+    public double y() {
+        return this.head.getY();
     }
     
+    /**
+     * Gets the {@code Z} coordinate of this {@link DisplayEntity}.
+     *
+     * @return the {@code Z} coordinate of this display entity.
+     */
     @Override
-    public boolean hasData(@NotNull DataComponentType dataComponentType) {
-        throw uoe("hasData");
+    public double z() {
+        return this.head.getZ();
     }
     
-    protected void append(@NotNull Display display) {
-        head.addPassenger(display);
-        children.add(display);
+    /**
+     * Gets the {@code yaw} of this {@link DisplayEntity}.
+     *
+     * @return the {@code yaw} of this display entity.
+     */
+    @Override
+    public float yaw() {
+        return this.head.getYaw();
     }
     
-    private UnsupportedOperationException uoe(String name) {
-        throw new UnsupportedOperationException(name);
+    /**
+     * Gets the {@code pitch} of this {@link DisplayEntity}.
+     *
+     * @return the {@code pitch} of this display entity.
+     */
+    @Override
+    public float pitch() {
+        return this.head.getPitch();
     }
+    
 }
