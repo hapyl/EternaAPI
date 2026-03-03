@@ -574,7 +574,7 @@ public final class EternaTestRegistry {
                     }
                     
                     final TestGUI testGui = new TestGUI(context.player(), guiType);
-                    testGui.setCooldownSec(0.5f);
+                    testGui.setCooldownSeconds(0.5f);
                     testGui.openMenu();
                 }
         );

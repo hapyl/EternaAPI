@@ -26,7 +26,7 @@ public interface Named {
      * @param name - The name to set.
      */
     default void setName(@NotNull Component name) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("setName()");
     }
     
     /**

@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents an object that may have {@code X}, {@code Y} and {@code Z} coordinates.
+ *
+ * @see Distanced
  */
 public interface Coordinates {
     
