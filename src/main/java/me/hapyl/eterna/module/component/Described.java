@@ -26,7 +26,7 @@ public interface Described {
      * @param description - The description to set.
      */
     default void setDescription(@NotNull Component description) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("setDescription()");
     }
     
     /**

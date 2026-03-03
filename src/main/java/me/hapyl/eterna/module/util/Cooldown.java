@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.util;
 
 /**
- * Represents something that may have a cooldown.
+ * Represents an object that may have a cooldown.
  */
 public interface Cooldown {
     
@@ -11,6 +11,15 @@ public interface Cooldown {
      * @return the cooldown, in ticks.
      */
     int getCooldown();
+    
+    /**
+     * Gets the cooldown, in seconds.
+     *
+     * @return the cooldown, in seconds.
+     */
+    default float getCooldownSeconds() {
+        return this.getCooldown() / 20f;
+    }
     
     /**
      * Sets the cooldown, in ticks.
@@ -31,10 +40,10 @@ public interface Cooldown {
     /**
      * Sets the cooldown, in seconds.
      *
-     * @param cooldownSec - The cooldown to set.
+     * @param cooldownSeconds - The cooldown to set.
      */
-    default void setCooldownSec(float cooldownSec) {
-        this.setCooldown((int) (cooldownSec * 20));
+    default void setCooldownSeconds(float cooldownSeconds) {
+        this.setCooldown((int) (cooldownSeconds * 20));
     }
     
 }

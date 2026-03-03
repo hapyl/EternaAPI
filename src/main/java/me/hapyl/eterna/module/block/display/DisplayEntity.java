@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.block.display;
 
 import io.papermc.paper.entity.TeleportFlag;
 import me.hapyl.eterna.module.annotate.CaseSensitive;
-import me.hapyl.eterna.module.annotate.Immutable;
 import me.hapyl.eterna.module.location.Coordinates;
 import me.hapyl.eterna.module.location.Located;
 import me.hapyl.eterna.module.location.Rotation;
@@ -13,7 +12,6 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -38,143 +36,151 @@ import java.util.function.Consumer;
  *
  * @see #getScale()
  * @see #setScale(Vector3f)
- * @see #editScale(Consumer)
+ * @see #editScale(VectorEdit)
  * @see #getRotation()
- * @see #setRotation(Quaternionf)
- * @see #editRotation(Consumer)
+ * @see #setRotation(Vector3f)
+ * @see #editRotation(VectorEdit)
  */
 public class DisplayEntity implements Iterable<Display>, Removable, Located, Coordinates, Rotation {
     
+    private static final float DEFAULT_SCALE = 1;
+    private static final float DEFAULT_ROTATION = 0;
+    
     private final BlockDisplay head;
-    private final List<Display> children;
+    private final List<DisplayPart> children;
     
     @NotNull private Vector3f scale;
-    @NotNull private Quaternionf rotation;
+    @NotNull private Vector3f rotation;
     
-    DisplayEntity(@NotNull BlockDisplay head, @NotNull @Immutable List<Display> children) {
+    DisplayEntity(@NotNull BlockDisplay head, @NotNull List<Display> children) {
         this.head = head;
-        this.children = children;
-        this.scale = new Vector3f();
-        this.rotation = new Quaternionf();
+        this.children = children.stream().map(DisplayPart::new).toList();
+        this.scale = new Vector3f(DEFAULT_SCALE);
+        this.rotation = new Vector3f(DEFAULT_ROTATION);
         
         // Add children to the head to match the vanilla behaviour
-        this.children.forEach(head::addPassenger);
+        children.forEach(head::addPassenger);
     }
     
     /**
-     * Gets a copy of the current {@code scale} of this {@link DisplayEntity} as {@link Vector3f}.
+     * Gets a copy of the {@code scale} of this {@link DisplayEntity}.
      *
-     * @return a copy of the current {@code scale} of this display entity as a vector.
+     * <p>
+     * The scale is stored as a {@link Vector3f}, where each axi represents the multiplier of the base scale of
+     * children, examples:
+     * <pre>
+     * 1    = base scale
+     * 2    = double the scale
+     * 0.5  = 1/2 of the base scale
+     * </pre>
+     * </p>
+     *
+     * @return a copy of the {@code scale} of this display entity.
      */
     @NotNull
     public Vector3f getScale() {
-        return new Vector3f(this.scale);
+        return new Vector3f(scale);
     }
     
     /**
      * Sets the new {@code scale} of this {@link DisplayEntity}.
      *
      * @param scale - The new scale to set.
+     * @see #getScale()
+     * @see #editScale(VectorEdit)
      */
     public void setScale(@NotNull Vector3f scale) {
         this.scale = scale;
         
-        // Scale head
-        final Transformation headTransformation = head.getTransformation();
-        final Vector3f newHeadScale = new Vector3f(headTransformation.getScale().mul(scale));
-        
-        this.head.setTransformation(new Transformation(
-                headTransformation.getTranslation(),
-                headTransformation.getLeftRotation(),
-                newHeadScale,
-                headTransformation.getRightRotation()
-        ));
-        
         // Scale children
-        for (Display child : this.children) {
-            final Transformation transformation = child.getTransformation();
+        for (DisplayPart child : this.children) {
+            final Vector3f previousTranslation = child.getTranslation();
+            final Vector3f previousScale = child.getScale();
             
-            final Vector3f newTranslation = new Vector3f(transformation.getTranslation().mul(scale));
-            final Vector3f newScale = new Vector3f(transformation.getScale().mul(scale));
+            final Vector3f newTranslation = previousTranslation.mul(scale);
+            final Vector3f newScale = new Vector3f(previousScale.mul(scale));
             
-            child.setTransformation(new Transformation(
-                    newTranslation,
-                    transformation.getLeftRotation(),
-                    newScale,
-                    transformation.getRightRotation()
-            ));
+            child.setTransformation(newTranslation, null, newScale);
         }
     }
     
     /**
-     * Edits the {@code scale} of this {@link DisplayEntity} by applying the given {@link Consumer} to it and updates it.
+     * Edits the {@code scale} of this {@link DisplayEntity} and applies it.
      *
      * @param edit - The edit to perform.
      */
-    public void editScale(@NotNull Consumer<Vector3f> edit) {
-        edit.accept(this.scale);
-        
-        this.setScale(this.scale);
+    public void editScale(@NotNull VectorEdit edit) {
+        this.setScale(edit.edit0(scale));
     }
     
     /**
-     * Gets a copy of the current {@code rotation} of this {@link DisplayEntity} as a {@link Quaternionf}.
+     * Resets the {@code scale} of this {@link DisplayEntity} to {@code 1} and applies it.
+     */
+    public void resetScale() {
+        this.setScale(scale.set(DEFAULT_SCALE));
+    }
+    
+    /**
+     * Gets a copy of the {@code rotation} of this {@link DisplayEntity}.
      *
-     * @return a copy of the current {@code rotation} of this {@link DisplayEntity} as {@link Quaternionf}.
+     * <p>
+     * The rotation is stored as {@code radians} in a {@link Vector3f}, where each axi represents the rotation of entity,
+     * following the structure:
+     * <pre>
+     * x = pitch
+     * y = yaw
+     * z = roll
+     * </pre>
+     * </p>
+     *
+     * @return a copy of the {@code rotation} of this display entity.
      */
     @NotNull
-    public Quaternionf getRotation() {
-        return new Quaternionf(this.rotation);
+    public Vector3f getRotation() {
+        return new Vector3f(rotation);
     }
     
     /**
-     * Sets the new {@code rotation} of this {@link DisplayEntity}.
+     * Sets the {@code rotation} of this {@link DisplayEntity}.
      *
      * @param rotation - The new rotation to set.
+     * @see #getRotation()
+     * @see #editRotation(VectorEdit)
      */
-    public void setRotation(@NotNull Quaternionf rotation) {
+    public void setRotation(@NotNull Vector3f rotation) {
         this.rotation = rotation;
         
-        // Rotate head
-        final Transformation headTransformation = this.head.getTransformation();
-        final Quaternionf newHeadRotation = new Quaternionf(rotation)
-                .mul(headTransformation.getLeftRotation())
-                .normalize();
-        
-        this.head.setTransformation(new Transformation(
-                headTransformation.getTranslation(),
-                newHeadRotation,
-                headTransformation.getScale(),
-                headTransformation.getRightRotation()
-        ));
+        final Quaternionf rotationQuaternion = new Quaternionf()
+                .rotateX(rotation.x())
+                .rotateY(rotation.y())
+                .rotateZ(rotation.z());
         
         // Rotate children
-        for (Display child : this.children) {
-            final Transformation transformation = child.getTransformation();
+        for (DisplayPart child : this.children) {
+            final Vector3f previousTranslation = child.getTranslation();
+            final Quaternionf previousRotation = child.getRotation();
             
-            final Vector3f newTranslation = rotation.transform(new Vector3f(transformation.getTranslation()));
-            final Quaternionf newLeftRotation = new Quaternionf(rotation)
-                    .mul(transformation.getLeftRotation())
-                    .normalize();
+            final Vector3f newTranslation = rotationQuaternion.transform(previousTranslation);
+            final Quaternionf newRotation = new Quaternionf(rotationQuaternion).mul(previousRotation).normalize();
             
-            child.setTransformation(new Transformation(
-                    newTranslation,
-                    newLeftRotation,
-                    transformation.getScale(),
-                    transformation.getRightRotation()
-            ));
+            child.setTransformation(newTranslation, newRotation, null);
         }
     }
     
     /**
-     * Edits the {@code rotation} of this {@link DisplayEntity} by applying the given {@link Consumer} to it and updates it.
+     * Edits the {@code rotation} of this {@link DisplayEntity} and applies it.
      *
      * @param edit - The edit to perform.
      */
-    public void editRotation(@NotNull Consumer<Quaternionf> edit) {
-        edit.accept(this.rotation);
-        
-        this.setRotation(this.rotation);
+    public void editRotation(@NotNull VectorEdit edit) {
+        this.setRotation(edit.edit0(rotation));
+    }
+    
+    /**
+     * Resets the {@code scale} of this {@link DisplayEntity} to {@code 1} and applies it.
+     */
+    public void resetRotation() {
+        this.setRotation(rotation.set(DEFAULT_ROTATION));
     }
     
     /**
@@ -280,38 +286,12 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
     }
     
     /**
-     * Gets whether this {@link DisplayEntity} is invisible.
-     *
-     * @return {@code true} if this display entity is invisible; {@code false otherwise}.
-     */
-    public boolean isInvisible() {
-        for (Display child : this.children) {
-            if (!child.isInvisible()) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Sets whether this {@link DisplayEntity} should be invisible.
-     *
-     * @param invisible - {@code true} to set invisibility; {@code false} to unset.
-     */
-    public void setInvisible(boolean invisible) {
-        for (Display child : this.children) {
-            child.setInvisible(invisible);
-        }
-    }
-    
-    /**
      * Removes this {@link DisplayEntity} completely, including the {@code head} and {@code children}.
      */
     @Override
     public void remove() {
         this.head.remove();
-        this.children.forEach(Display::remove);
+        this.children.forEach(DisplayPart::remove);
     }
     
     /**
@@ -330,34 +310,7 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
      */
     @NotNull
     public List<Display> getChildren() {
-        // No need to copy since children are already immutable
-        return this.children;
-    }
-    
-    /**
-     * Gets whether this {@link DisplayEntity} is glowing.
-     *
-     * @return {@code true} if this display entity is glowing; {@code false} otherwise.
-     */
-    public boolean isGlowing() {
-        for (Display child : this.children) {
-            if (!child.isGlowing()) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Sets whether this {@link DisplayEntity} is glowing.
-     *
-     * @param glowing - {@code true} to set glowing; {@code false} to unset.
-     */
-    public void setGlowing(boolean glowing) {
-        for (Display child : this.children) {
-            child.setGlowing(glowing);
-        }
+        return this.children.stream().map(DisplayPart::getDisplay).toList();
     }
     
     /**
@@ -378,7 +331,7 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
     @NotNull
     @Override
     public Iterator<Display> iterator() {
-        return this.children.iterator();
+        return this.children.stream().map(DisplayPart::getDisplay).iterator();
     }
     
     /**
@@ -410,11 +363,23 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
      * @param consumer - The consumer to apply.
      */
     public void asTagged(@NotNull @CaseSensitive String tag, @NotNull Consumer<Display> consumer) {
-        for (Display child : this.children) {
-            if (child.getScoreboardTags().contains(tag)) {
-                consumer.accept(child);
+        for (DisplayPart child : this.children) {
+            final Display display = child.getDisplay();
+            
+            if (display.getScoreboardTags().contains(tag)) {
+                consumer.accept(display);
             }
         }
+    }
+    
+    /**
+     * Gets the hash code of this {@link DisplayEntity}.
+     *
+     * @return the hash code of this display entity.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(children);
     }
     
     /**
@@ -440,8 +405,8 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
         }
         
         for (int i = 0; i < this.children.size(); i++) {
-            final Display thisChild = this.children.get(i);
-            final Display thatChild = that.children.get(i);
+            final DisplayPart thisChild = this.children.get(i);
+            final DisplayPart thatChild = that.children.get(i);
             
             if (!Objects.equals(thisChild, thatChild)) {
                 return false;
@@ -449,16 +414,6 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
         }
         
         return true;
-    }
-    
-    /**
-     * Gets the hash code of this {@link DisplayEntity}.
-     *
-     * @return the hash code of this display entity.
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hash(children);
     }
     
     /**

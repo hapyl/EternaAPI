@@ -8,13 +8,20 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 /**
- * Represents an <b>immutable</b> {@link Vector3} that holds three {@link Double} coordinates with support for basic vector math.
+ * Represents an <b>immutable</b> {@link Vector3} that holds three {@link Double} axis with support for basic vector math.
  */
 public class Vector3 {
     
     private final double x;
     private final double y;
     private final double z;
+    
+    /**
+     * Creates a new empty {@link Vector3}, where each axis is {@code 0}.
+     */
+    public Vector3() {
+        this(0, 0, 0);
+    }
     
     /**
      * Creates a new {@link Vector3}.

@@ -574,7 +574,7 @@ public final class EternaTestRegistry {
                     }
                     
                     final TestGUI testGui = new TestGUI(context.player(), guiType);
-                    testGui.setCooldownSec(0.5f);
+                    testGui.setCooldownSeconds(0.5f);
                     testGui.openMenu();
                 }
         );
@@ -888,55 +888,46 @@ public final class EternaTestRegistry {
                                            return;
                                        }
                                        
-                                       if (tick % 10 == 0) {
-                                           final Quaternionf rotation = displayEntity.getRotation();
-                                           final float radians = (float) Math.toRadians(5);
+                                       displayEntity.editRotation(vector -> {
+                                           final double radians = Math.PI * 2 * (double) tick / 100;
                                            
-                                           rotation.x += radians;
-                                           rotation.y += radians;
-                                           rotation.z += radians;
-                                           
-                                           displayEntity.setRotation(rotation);
-                                           displayEntityText.editRotation(r -> {
-                                               r.x += radians;
-                                               r.y += radians;
-                                               r.z += radians;
-                                           });
-                                       }
+                                           vector.x = (float) Math.sin(radians);
+                                           vector.y = (float) Math.cos(radians);
+                                           vector.z = 0;
+                                       });
                                    }
                                }.runTaskTimer(0, 1);
                            }))
+                           .then(SchedulerTask.later(() -> {
+                               context.info(Component.text("Reset rotation"));
+                               displayEntity.resetRotation();
+                           }, 20))
                            .then(SchedulerTask.await(await -> {
                                context.info(Component.text("Scaling..."));
                                
                                new EternaRunnable(Eterna.getPlugin()) {
-                                   private int tick;
+                                   private int tick = 0;
                                    
                                    @Override
                                    public void run() {
                                        if (tick++ > 100) {
-                                           await.complete(null);
                                            this.cancel();
+                                           await.complete(null);
                                            return;
                                        }
                                        
-                                       if (tick % 10 == 0) {
-                                           final Vector3f scale = displayEntity.getScale();
-                                           
-                                           scale.x += 0.5f;
-                                           scale.y += 0.5f;
-                                           scale.z += 0.5f;
-                                           
-                                           displayEntity.setScale(scale);
-                                           displayEntityText.editScale(s -> {
-                                               s.x += 0.5f;
-                                               s.y += 0.5f;
-                                               s.z += 0.5f;
-                                           });
-                                       }
+                                       displayEntity.editScale(vector -> {
+                                           vector.x += 0.2f;
+                                           vector.y += 0.2f;
+                                           vector.z += 0.2f;
+                                       });
                                    }
                                }.runTaskTimer(0, 1);
                            }))
+                           .then(SchedulerTask.later(() -> {
+                               context.info(Component.text("Reset scale"));
+                               displayEntity.resetScale();
+                           }, 20))
                            .then(SchedulerTask.later(() -> {
                                displayEntity.remove();
                                displayEntityText.remove();
