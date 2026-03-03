@@ -1,7 +1,8 @@
 package me.hapyl.eterna.module.util;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.Collection;
-import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -15,13 +16,13 @@ public interface Removable {
     void remove();
     
     /**
-     * An optional operation to be used in {@link Collection#removeIf(Predicate)} on a {@link Map} that determines whether this object should be removed.
+     * Gets whether this {@link Removable} should be removed.
      *
      * <p>
-     * Note that calling this method on a map will <b><u>not</u></b> call the {@link #remove()} method and {@link #removeIfShould()} must be called to properly remove the entry.
+     * This is an optional operation designed to be used in {@link Collection#removeIf(Predicate)}.
      * </p>
      *
-     * @return {@code true} if this object should be removed.
+     * @return {@code true} if this object should be removed; {@code false} otherwise.
      * @see #removeIfShould()
      */
     default boolean shouldRemove() {
@@ -29,13 +30,34 @@ public interface Removable {
     }
     
     /**
-     * An optional operation to be used in {@link Collection#removeIf(Predicate)} on a {@link Map} to check {@link #shouldRemove()} and, if {@code true}, call {@link #remove()}.
+     * Removes this object if {@link #shouldRemove()} returns {@code true}.
      *
-     * @return {@code true} if this object should be removed.
+     * <p>
+     * This is an optional operation designed to be used in {@link Collection#removeIf(Predicate)}, as example:
+     *
+     * <pre>{@code
+     * list.removeIf(Removable::removeIfShould);
+     * }</pre>
+     * <p>
+     * instead of:
+     * <pre>{@code
+     * list.removeIf(removable -> {
+     *     if (removable.shouldRemove()) {
+     *         removable.remove();
+     *         return true;
+     *     }
+     *
+     *     return false;
+     * });
+     * }</pre>
+     * </p>
+     *
+     * @return {@code true} if this object was removed; {@code false} otherwise.
      */
+    @ApiStatus.NonExtendable
     default boolean removeIfShould() {
-        if (shouldRemove()) {
-            remove();
+        if (this.shouldRemove()) {
+            this.remove();
             return true;
         }
         

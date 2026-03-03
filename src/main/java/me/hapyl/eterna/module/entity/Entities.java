@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.entity;
 
 import com.google.common.collect.Lists;
-import me.hapyl.eterna.module.util.Disposable;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.*;
@@ -9,13 +8,11 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * Allows spawning entities into the world, with the support of {@link EntityCache}.
+ * Represents a helper utility class that allows spawning {@link Entity} easier.
  *
  * @param <T> - The type of the entity.
  */
@@ -149,12 +146,10 @@ public final class Entities<T extends Entity> {
     public static final Entities<Parched> PARCHED;
     public static final Entities<CamelHusk> CAMEL_HUSK;
     
-    private static final List<Entities<?>> values;
-    private static EntityCache defaultCache;
+    private static final List<Entities<?>> VALUES;
     
     static {
-        values = Lists.newArrayList();
-        defaultCache = new EntityCache();
+        VALUES = Lists.newArrayList();
         
         // Register entity types
         EXPERIENCE_ORB = register(ExperienceOrb.class);
@@ -293,84 +288,29 @@ public final class Entities<T extends Entity> {
     
     /**
      * Spawns this entity at the given {@link Location}.
-     * <p>A default {@link EntityCache} is used for this spawn method.</p>
      *
      * @param location - The location where to spawn the entity.
      * @return a spawned entity.
      */
     @NotNull
     public T spawn(@NotNull Location location) {
-        return spawn(location, null, defaultCache);
-    }
-    
-    /**
-     * Spawns this entity at the given {@link Location}.
-     *
-     * @param location - The location where to spawn the entity.
-     * @param cache    - The cache where the entity will be stored.
-     * @return a spawned entity.
-     */
-    @NotNull
-    public T spawn(@NotNull Location location, @NotNull EntityCache cache) {
-        return spawn(location, null, cache);
-    }
-    
-    /**
-     * Spawns this entity at the given {@link Location}.
-     * <p>A default {@link EntityCache} is used for this spawn method.</p>
-     *
-     * @param location    - The location where to spawn the entity.
-     * @param beforeSpawn - The function to apply before the entity spawn.
-     * @return a spawned entity.
-     */
-    @NotNull
-    public T spawn(@NotNull Location location, @NotNull Consumer<T> beforeSpawn) {
-        return spawn(location, beforeSpawn, defaultCache);
+        return spawn(location, null);
     }
     
     /**
      * Spawns this entity at the given {@link Location}.
      *
      * @param location    - The location where to spawn the entity.
-     * @param beforeSpawn - The function to apply before the entity spawn.
-     * @param cache       - The cache where the entity will be stored.
+     * @param beforeSpawn - The consumer to apply before the entity spawn.
      * @return a spawned entity.
      */
     @NotNull
-    public T spawn(@NotNull Location location, @Nullable Consumer<T> beforeSpawn, @NotNull EntityCache cache) {
-        final T entity = location.getWorld().spawn(
-                location, entityClass, self -> {
-                    if (beforeSpawn != null) {
-                        beforeSpawn.accept(self);
-                    }
-                }
-        );
-        
-        cache.add(entity);
-        return entity;
-    }
-    
-    /**
-     * Gets the default {@link EntityCache} for the server.
-     *
-     * @return the default {@link EntityCache} for the server.
-     */
-    @NotNull
-    public static EntityCache defaultCache() {
-        return defaultCache;
-    }
-    
-    /**
-     * Sets the default {@link EntityCache} for the server.
-     * <p>Previous cache will be {@link EntityCache#dispose()} before setting a new cache, meaning all spawned entity will be removed!</p>
-     *
-     * @param cache - The new cache.
-     */
-    public static void defaultCache(@NotNull EntityCache cache) {
-        Objects.requireNonNull(cache, "Cache must not be null!");
-        
-        defaultCache.dispose();
-        defaultCache = cache;
+    public T spawn(@NotNull Location location, @Nullable Consumer<T> beforeSpawn) {
+        return location.getWorld().spawn(location, entityClass, self -> {
+            if (beforeSpawn != null) {
+                beforeSpawn.accept(self);
+            }
+        });
     }
     
     /**
@@ -380,7 +320,7 @@ public final class Entities<T extends Entity> {
      */
     @NotNull
     public static List<Entities<?>> values() {
-        return List.copyOf(values);
+        return List.copyOf(VALUES);
     }
     
     @NotNull
@@ -388,23 +328,8 @@ public final class Entities<T extends Entity> {
     private static <T extends Entity> Entities<T> register(@NotNull Class<T> entityClass) {
         final Entities<T> registered = new Entities<>(entityClass);
         
-        values.add(registered);
+        VALUES.add(registered);
         return registered;
-    }
-    
-    /**
-     * Represents an {@link EntityCache} to store spawned entities.
-     */
-    public static class EntityCache extends HashSet<Entity> implements Disposable {
-        
-        /**
-         * Disposes of the entities by removing all spawned entities.
-         */
-        @Override
-        public final void dispose() {
-            this.forEach(Entity::remove);
-            this.clear();
-        }
     }
     
     
