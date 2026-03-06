@@ -31,7 +31,7 @@ public class NanoBenchmark {
      * @param name - The name of the step.
      */
     public void step(@NotNull @ForceLowercase String name) {
-        this.steps.put(name.toLowerCase(), System.nanoTime());
+        this.steps.put(name.toLowerCase(), System.nanoTime() - start);
     }
     
     /**
