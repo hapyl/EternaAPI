@@ -18,7 +18,7 @@ dependencies {
 }
 
 group = "me.hapyl"
-version = "6.1.1-SNAPSHOT"
+version = "6.1.2-SNAPSHOT"
 description = "EternaAPI"
 java.sourceCompatibility = JavaVersion.VERSION_21
 
