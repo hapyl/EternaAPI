@@ -371,7 +371,7 @@ public abstract class PlayerMenu implements Cooldown {
      * @return the {@code slot} where to put the {@code "Return To Menu"} button.
      */
     public int getReturnButtonSlot() {
-        return getMenuSize() - 5;
+        return getMenuSize() - 7;
     }
     
     /**
@@ -388,7 +388,7 @@ public abstract class PlayerMenu implements Cooldown {
         }
         
         setItem0(
-                getReturnButtonSlot(),
+                this.getReturnButtonSlot(),
                 builder.asIcon(),
                 PlayerMenuAction.of(player -> menuTo.apply(player).openMenu())
         );
@@ -408,7 +408,7 @@ public abstract class PlayerMenu implements Cooldown {
      */
     public void setCloseButton() {
         setItem0(
-                getReturnButtonSlot(),
+                this.getCloseButtonSlot(),
                 new ItemBuilder(ITEM_CLOSE_MENU).setName(Component.text("Close Menu", NamedTextColor.RED)).asItemStack(),
                 PlayerMenuAction.of(HumanEntity::closeInventory)
         );

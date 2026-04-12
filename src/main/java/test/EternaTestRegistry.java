@@ -1938,6 +1938,13 @@ public final class EternaTestRegistry {
                          .bassWhere('B', 0.75f)
             );
             
+            sequencer.addTrack(
+                    Track.builder("---h---h---h---h---h---h")
+                         .where('h', (player, volume) -> {
+                             player.sendHurtAnimation(0.0f);
+                         })
+            );
+            
             sequencer.play(List.of(context.player()));
         });
         

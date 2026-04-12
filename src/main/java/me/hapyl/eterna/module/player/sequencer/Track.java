@@ -3,10 +3,7 @@ package me.hapyl.eterna.module.player.sequencer;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Range;
 
 import java.util.Map;
 
@@ -28,6 +25,23 @@ public class Track {
     }
     
     /**
+     * Maps the given {@link Tune} to the given {@code char}.
+     *
+     * @param ch   - The character to map to.
+     * @param tune - The tune to map.
+     * @throws IllegalArgumentException if the character is {@link Sequencer#EMPTY_NOTE}.
+     */
+    @SelfReturn
+    public Track where(char ch, @NotNull Tune tune) {
+        if (ch == Sequencer.EMPTY_NOTE) {
+            throw new IllegalArgumentException("Character `%s` isn't allowed!".formatted(ch));
+        }
+        
+        characterTuneMap.put(ch, tune);
+        return this;
+    }
+    
+    /**
      * Maps the given character to the given {@link Sound} and {@code pitch}.
      *
      * @param ch    - The character to map the sound to.
@@ -37,12 +51,7 @@ public class Track {
      */
     @SelfReturn
     public Track where(char ch, @NotNull Sound sound, float pitch) {
-        if (ch == Sequencer.EMPTY_NOTE) {
-            throw new IllegalArgumentException("Character `%s` isn't allowed!".formatted(ch));
-        }
-        
-        characterTuneMap.put(ch, new Tune(sound, pitch));
-        return this;
+        return this.where(ch, Tune.create(sound, pitch));
     }
     
     /**
@@ -242,25 +251,6 @@ public class Track {
         }
         
         return new Track(sequence);
-    }
-    
-    /**
-     * Represents a {@link Tune}.
-     */
-    @ApiStatus.Internal
-    public static final class Tune {
-        
-        private final Sound sound;
-        private final float pitch;
-        
-        Tune(@NotNull Sound sound, @Range(from = 0, to = 2) float pitch) {
-            this.sound = sound;
-            this.pitch = Math.clamp(pitch, 0.0f, 2.0f);
-        }
-        
-        public void play(@NotNull Player player, float volume) {
-            player.playSound(player, sound, volume, pitch);
-        }
     }
     
 }

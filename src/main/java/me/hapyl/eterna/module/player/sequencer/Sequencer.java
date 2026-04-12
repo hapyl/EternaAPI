@@ -60,12 +60,12 @@ public class Sequencer {
      */
     public void play(@NotNull Collection<? extends Player> players) {
         // Map the tracks
-        final TreeMap<Integer, List<Track.Tune>> mappedTunes = Maps.newTreeMap();
+        final TreeMap<Integer, List<Tune>> mappedTunes = Maps.newTreeMap();
         
         for (final Track track : this.tracks) {
             for (int i = 0; i < track.track.length(); i++) {
                 final char ch = track.track.charAt(i);
-                final Track.Tune tune = track.characterTuneMap.get(ch);
+                final Tune tune = track.characterTuneMap.get(ch);
                 
                 if (ch != EMPTY_NOTE && tune != null) {
                     mappedTunes.compute(i, Compute.listAdd(tune));
@@ -88,7 +88,7 @@ public class Sequencer {
                     return;
                 }
                 
-                final List<Track.Tune> tunes = mappedTunes.get(note);
+                final List<Tune> tunes = mappedTunes.get(note);
                 
                 // null tunes means there is nothing on that note
                 if (tunes != null) {
