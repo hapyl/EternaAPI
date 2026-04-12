@@ -569,6 +569,7 @@ public final class EternaTestRegistry {
                         @Override
                         public void onClose() {
                             context.info(Component.text("Closed Menu!"));
+                            context.assertTestPassed();
                         }
                         
                     }
@@ -1013,7 +1014,7 @@ public final class EternaTestRegistry {
                                ParticleBuilder.blockCrumble(Material.DIAMOND_BLOCK).display(location);
                            }, 10))
                            .then(SchedulerTask.later(() -> {
-                               context.info(Component.text("blockCrumble"));
+                               context.info(Component.text("trail"));
                                ParticleBuilder.trail(player.getLocation().add(3, -5, 6), org.bukkit.Color.fromRGB(55, 105, 205), 100).display(location);
                            }, 10))
                            .then(SchedulerTask.later(() -> {

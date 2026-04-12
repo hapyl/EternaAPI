@@ -97,12 +97,12 @@ public class AppearanceVillager extends Appearance {
     @Override
     public void updateEntityData() {
         class Holder {
-            private static final EntityDataAccessor<VillagerData> accessor = EntityDataSerializers.VILLAGER_DATA.createAccessor(18);
+            private static final EntityDataAccessor<VillagerData> ACCESSOR = EntityDataSerializers.VILLAGER_DATA.createAccessor(19);
         }
         
         // Write villager data
         super.getEntityData().set(
-                Holder.accessor,
+                Holder.ACCESSOR,
                 new VillagerData(
                         BuiltInRegistries.VILLAGER_TYPE.getOrThrow(variant.toNms()),
                         BuiltInRegistries.VILLAGER_PROFESSION.getOrThrow(profession.toNms()),

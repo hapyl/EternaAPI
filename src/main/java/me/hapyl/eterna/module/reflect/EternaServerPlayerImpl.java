@@ -103,7 +103,7 @@ public class EternaServerPlayerImpl extends ServerPlayer implements Showable {
      * @return the game profile of this server player.
      */
     @NotNull
-    public GameProfile getProfile() {
+    public GameProfile getGameProfile() {
         return gameProfile;
     }
     
@@ -299,7 +299,7 @@ public class EternaServerPlayerImpl extends ServerPlayer implements Showable {
                     Reflect.getMinecraftServer(),
                     new NullConnection(),
                     this,
-                    CommonListenerCookie.createInitial(getProfile(), false)
+                    CommonListenerCookie.createInitial(this.gameProfile, false)
             );
         }
         catch (Exception e) {

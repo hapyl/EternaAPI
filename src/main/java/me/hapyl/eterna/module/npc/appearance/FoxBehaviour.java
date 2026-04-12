@@ -62,7 +62,7 @@ public enum FoxBehaviour implements EntityDataProvider<Byte> {
     @Override
     public EntityDataAccessor<Byte> getAccessor() {
         class Holder {
-            private static final EntityDataAccessor<Byte> ACCESSOR = EntityDataSerializers.BYTE.createAccessor(18);
+            private static final EntityDataAccessor<Byte> ACCESSOR = EntityDataSerializers.BYTE.createAccessor(19);
         }
         
         return Holder.ACCESSOR;

@@ -102,7 +102,7 @@ public enum SheepColor implements EntityDataProvider<Byte> {
     @Override
     public EntityDataAccessor<Byte> getAccessor() {
         class Holder {
-            private static final EntityDataAccessor<Byte> accessor = EntityDataSerializers.BYTE.createAccessor(17);
+            private static final EntityDataAccessor<Byte> accessor = EntityDataSerializers.BYTE.createAccessor(18);
         }
         
         return Holder.accessor;

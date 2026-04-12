@@ -110,7 +110,7 @@ public abstract class EternaTest {
                 @Override
                 public void assertEquals(@Nullable Object a, @Nullable Object b) {
                     if (!Objects.equals(a, b)) {
-                        assertTestFailed("Objects are not the same! (Expected `%s`, got `%s`)".formatted(a, b));
+                        assertTestFailed("Objects are not the same! (Expected `%s`, got `%s`)".formatted(b, a));
                     }
                 }
                 

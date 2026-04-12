@@ -45,12 +45,12 @@ public class PacketInterceptor extends ChannelDuplexHandler {
         super.write(ctx, object, promise);
     }
     
-    private boolean workPacket(Object packetObject, Function<Packet<?>, PacketEvent> fn) {
+    private boolean workPacket(Object packetObject, Function<Packet<?>, PacketEvent<?>> fn) {
         if (!(packetObject instanceof Packet<?> packet)) {
             return false;
         }
         
-        final PacketEvent event = fn.apply(packet);
+        final PacketEvent<?> event = fn.apply(packet);
         final PluginManager pluginManager = Bukkit.getPluginManager();
         
         pluginManager.callEvent(event);
