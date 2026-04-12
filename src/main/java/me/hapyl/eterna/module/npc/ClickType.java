@@ -8,10 +8,10 @@ public enum ClickType {
     /**
      * Player left-clicked (attacked) the {@link Npc}.
      */
-    ATTACK,
+    LEFT_CLICK,
     
     /**
      * Player right-clicked the {@link Npc}.
      */
-    INTERACT
+    RIGHT_CLICK
 }

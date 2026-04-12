@@ -29,7 +29,7 @@ public final class EternaCommand extends SimpleAdminCommand {
         key.validateKey();
         
         setDescription("API management administrative command.");
-        setCompleterValues(0, "update", "quest", "reload", "test");
+        setCompleterValues(0, "update", "quest", "reload", "test", "class");
     }
     
     @Override
@@ -112,6 +112,20 @@ public final class EternaCommand extends SimpleAdminCommand {
                 test.test0(player, ArgumentList.copyOfRange(args, 2, args.length));
             }
             
+            case "class" -> {
+                final String className = args.get(1).toString();
+                
+                try {
+                    final Class<?> clazz = Class.forName(className);
+                    
+                    EternaLogger.message(sender, Component.text("Found class `%s`!".formatted(clazz.getSimpleName()), NamedTextColor.GREEN));
+                    EternaLogger.message(sender, Component.text(" Full Path: %s".formatted(clazz.getName()), NamedTextColor.AQUA));
+                    EternaLogger.message(sender, Component.text(" Loader: %s".formatted(clazz.getClassLoader().toString()), NamedTextColor.DARK_AQUA));
+                } catch (ClassNotFoundException ex) {
+                    EternaLogger.message(sender, Component.text("Could not find class `%s`!".formatted(className), NamedTextColor.DARK_RED));
+                }
+            }
+            
             default -> super.sendCommandUsage(sender);
         }
     }
@@ -119,7 +133,7 @@ public final class EternaCommand extends SimpleAdminCommand {
     @NotNull
     @Override
     protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull ArgumentList args) {
-        if (Eterna.getConfig().keepTestCommands() && args.get(0).toString().equals("test")) {
+        if (Eterna.getConfig().keepTestCommands() && args.get(0).toString().equals("test") && args.length == 2) {
             return EternaTestRegistry.listTests();
         }
         

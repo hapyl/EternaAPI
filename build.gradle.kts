@@ -2,7 +2,7 @@ plugins {
     `java-library`
     `maven-publish`
 
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
     id("maven-publish")
     id("xyz.jpenilla.run-paper") version "3.0.2"
 }
@@ -14,16 +14,18 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("26.1.2.build.+")
 }
 
 group = "me.hapyl"
-version = "6.1.2-SNAPSHOT"
+version = "6.2.0-SNAPSHOT"
 description = "EternaAPI"
-java.sourceCompatibility = JavaVersion.VERSION_21
 
-// Attach sources and javadocs
+// Set java settings, attach sources and javadocs
 java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+
     withSourcesJar()
     withJavadocJar()
 }
@@ -74,7 +76,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.21.11")
+        minecraftVersion("26.1.2")
     }
 }
 

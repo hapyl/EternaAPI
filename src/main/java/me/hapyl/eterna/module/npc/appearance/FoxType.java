@@ -32,7 +32,7 @@ public enum FoxType implements EntityDataProvider<Integer> {
     @Override
     public EntityDataAccessor<Integer> getAccessor() {
         class Holder {
-            private static final EntityDataAccessor<Integer> accessor = EntityDataSerializers.INT.createAccessor(17);
+            private static final EntityDataAccessor<Integer> accessor = EntityDataSerializers.INT.createAccessor(18);
         }
         
         return Holder.accessor;
