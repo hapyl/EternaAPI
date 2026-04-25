@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.npc.appearance;
 import com.mojang.authlib.GameProfile;
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.reflect.Skin;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.Mannequin;
 import net.minecraft.world.item.component.ResolvableProfile;
@@ -28,8 +29,23 @@ public class AppearanceMannequin extends AppearanceHumanoid {
     }
     
     @Override
+    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+        // Write skin
+        getHandle().setProfile(ResolvableProfile.createResolved(new GameProfile(getUuid(), "", skin.asPropertyMap())));
+        
+        // Write skin parts
+        entityData.set(SkinPart.CAPE.getAccessor(), (byte) skinParts.stream().mapToInt(SkinPart::getValue).reduce(0, (mask, value) -> mask | value));
+    }
+    
+    @Override
     public double chairYOffset() {
         return Npc.CHAIR_Y_OFFSET;
+    }
+    
+    @NotNull
+    @Override
+    public Mannequin getHandle() {
+        return (Mannequin) super.getHandle();
     }
     
     /**
@@ -72,23 +88,6 @@ public class AppearanceMannequin extends AppearanceHumanoid {
         this.skinParts.addAll(Arrays.asList(parts));
         
         this.updateEntityData();
-    }
-    
-    @NotNull
-    @Override
-    public Mannequin getHandle() {
-        return (Mannequin) super.getHandle();
-    }
-    
-    @Override
-    public void updateEntityData() {
-        // Write skin
-        getHandle().setProfile(ResolvableProfile.createResolved(new GameProfile(getUuid(), "", skin.asPropertyMap())));
-        
-        // Write skin parts
-        super.getEntityData().set(SkinPart.CAPE.getAccessor(), (byte) skinParts.stream().mapToInt(SkinPart::getValue).reduce(0, (mask, value) -> mask | value));
-        
-        super.updateEntityData();
     }
     
 }

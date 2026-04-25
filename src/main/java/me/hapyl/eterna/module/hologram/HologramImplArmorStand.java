@@ -10,6 +10,7 @@ import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import net.kyori.adventure.text.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -180,15 +181,20 @@ public class HologramImplArmorStand extends AbstractHologram {
             Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(armorStand));
             
             // We only need to update metadata for index 0 and 15, which are invisibility and armor stand data, like marker, small
-            Reflect.updateEntityData(
-                    player, armorStand, armorStand.getEntityData().packAll()
-                                                  .stream()
-                                                  .filter(dataValue -> {
-                                                      final int id = dataValue.id();
-                                                      
-                                                      return id == 0 || id == 15;
-                                                  })
-                                                  .toList()
+            
+            Reflect.sendPacket(
+                    player,
+                    new ClientboundSetEntityDataPacket(
+                            armorStand.getId(),
+                            armorStand.getEntityData().packAll()
+                                      .stream()
+                                      .filter(dataValue -> {
+                                          final int id = dataValue.id();
+                                          
+                                          return id == 0 || id == 15;
+                                      })
+                                      .toList()
+                    )
             );
         }
         
@@ -211,7 +217,13 @@ public class HologramImplArmorStand extends AbstractHologram {
         
         protected void update() {
             // Explicitly use all values, because `isCustomNameVisible` defaults to `false`
-            Reflect.updateEntityData(player, armorStand, armorStand.getEntityData().packAll());
+            Reflect.sendPacket(
+                    player,
+                    new ClientboundSetEntityDataPacket(
+                            armorStand.getId(),
+                            armorStand.getEntityData().packAll()
+                    )
+            );
         }
         
         protected void teleport(@NotNull Location location) {

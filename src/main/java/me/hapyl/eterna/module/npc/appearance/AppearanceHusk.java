@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.zombie.Husk;
 import org.jetbrains.annotations.NotNull;
@@ -11,5 +12,9 @@ import org.jetbrains.annotations.NotNull;
 public class AppearanceHusk extends AppearanceHumanoid {
     public AppearanceHusk(@NotNull Npc npc) {
         super(npc, new Husk(EntityType.HUSK, dummyWorld()));
+    }
+    
+    @Override
+    public void updateEntityData(@NotNull SynchedEntityData entityData) {
     }
 }

@@ -4,6 +4,7 @@ import me.hapyl.eterna.module.npc.Npc;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerData;
@@ -13,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
  * Represents a {@link EntityType#VILLAGER} appearance.
  */
 public class AppearanceVillager extends Appearance {
+    
+    private static final EntityDataAccessor<VillagerData> ACCESSOR = EntityDataSerializers.VILLAGER_DATA.createAccessor(19);
     
     private VillagerVariant variant;
     private VillagerProfession profession;
@@ -88,28 +91,22 @@ public class AppearanceVillager extends Appearance {
         this.updateEntityData();
     }
     
-    @NotNull
     @Override
-    public Villager getHandle() {
-        return (Villager) super.getHandle();
-    }
-    
-    @Override
-    public void updateEntityData() {
-        class Holder {
-            private static final EntityDataAccessor<VillagerData> ACCESSOR = EntityDataSerializers.VILLAGER_DATA.createAccessor(19);
-        }
-        
-        // Write villager data
-        super.getEntityData().set(
-                Holder.ACCESSOR,
+    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+        entityData.set(
+                ACCESSOR,
                 new VillagerData(
                         BuiltInRegistries.VILLAGER_TYPE.getOrThrow(variant.toNms()),
                         BuiltInRegistries.VILLAGER_PROFESSION.getOrThrow(profession.toNms()),
                         level.ordinal() + 1
                 )
         );
-        
-        super.updateEntityData();
     }
+    
+    @NotNull
+    @Override
+    public Villager getHandle() {
+        return (Villager) super.getHandle();
+    }
+    
 }

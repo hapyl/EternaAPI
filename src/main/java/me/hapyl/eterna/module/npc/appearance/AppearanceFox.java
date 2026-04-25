@@ -23,7 +23,7 @@ public class AppearanceFox extends Appearance {
         super(npc, new Fox(EntityType.FOX, dummyWorld()));
         
         this.behaviours = EnumSet.noneOf(FoxBehaviour.class);
-        this.setFoxType(foxType);
+        this.foxType = foxType;
     }
     
     /**
@@ -43,7 +43,7 @@ public class AppearanceFox extends Appearance {
      */
     public void setFoxType(@NotNull FoxType foxType) {
         this.foxType = foxType;
-        this.updateEntityData();
+        super.updateEntityData();
     }
     
     /**
@@ -64,24 +64,19 @@ public class AppearanceFox extends Appearance {
     public void setBehaviours(@NotNull FoxBehaviour... behaviours) {
         this.behaviours.clear();
         this.behaviours.addAll(Arrays.asList(Validate.varargs(behaviours, "There must be at least one behaviour!")));
-        this.updateEntityData();
+        super.updateEntityData();
+    }
+    
+    @Override
+    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+        entityData.set(foxType.getAccessor(), foxType.getValue());
+        entityData.set(FoxBehaviour.SITTING.getAccessor(), (byte) behaviours.stream().mapToInt(FoxBehaviour::getValue).reduce(0, (mask, value) -> mask | value));
     }
     
     @NotNull
     @Override
     public Fox getHandle() {
         return (Fox) super.getHandle();
-    }
-    
-    @Override
-    public void updateEntityData() {
-        final SynchedEntityData metadata = super.getEntityData();
-        
-        // Write fox type & behaviours
-        metadata.set(foxType.getAccessor(), foxType.getValue());
-        metadata.set(FoxBehaviour.SITTING.getAccessor(), (byte) behaviours.stream().mapToInt(FoxBehaviour::getValue).reduce(0, (mask, value) -> mask | value));
-        
-        super.updateEntityData();
     }
     
 }

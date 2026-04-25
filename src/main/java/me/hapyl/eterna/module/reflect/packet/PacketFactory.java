@@ -87,24 +87,24 @@ public final class PacketFactory {
     /**
      * Creates a new {@link ClientboundSetEntityDataPacket}.
      *
-     * @param entity - The entity whose data to update.
+     * @param entity     - The entity whose data to update.
+     * @param entityData - The entity data to update with.
      * @return a new packet.
      */
     @NotNull
-    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity) {
-        return makePacketSetEntityData(entity, Objects.requireNonNull(entity.getEntityData().getNonDefaultValues(), "Non-default values are null!"));
+    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity, @NotNull SynchedEntityData entityData) {
+        return new ClientboundSetEntityDataPacket(entity.getId(), Objects.requireNonNull(entityData.getNonDefaultValues(), "Non-default entity data values are null!"));
     }
     
     /**
      * Creates a new {@link ClientboundSetEntityDataPacket}.
      *
-     * @param entity         - The entity whose data to update.
-     * @param valuesToUpdate - The list of values to update.
+     * @param entity - The entity whose data to update.
      * @return a new packet.
      */
     @NotNull
-    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity, @NotNull List<SynchedEntityData.DataValue<?>> valuesToUpdate) {
-        return new ClientboundSetEntityDataPacket(entity.getId(), valuesToUpdate);
+    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity) {
+        return makePacketSetEntityData(entity, entity.getEntityData());
     }
     
     /**

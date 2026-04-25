@@ -1997,7 +1997,6 @@ public final class EternaTestRegistry {
             context.assertTestPassed();
         });
         
-        
         // *-* End Tests *-* //
         
         final long tookMillis = System.currentTimeMillis() - startMillis;
