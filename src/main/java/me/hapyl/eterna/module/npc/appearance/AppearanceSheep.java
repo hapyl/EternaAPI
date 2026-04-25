@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.sheep.Sheep;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,7 @@ public class AppearanceSheep extends Appearance {
     public AppearanceSheep(@NotNull Npc npc, @NotNull SheepColor color) {
         super(npc, new Sheep(EntityType.SHEEP, dummyWorld()));
         
-        this.setColor(color);
+        this.sheepColor = color;
     }
     
     /**
@@ -58,16 +59,15 @@ public class AppearanceSheep extends Appearance {
         this.updateEntityData();
     }
     
+    @Override
+    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+        entityData.set(sheepColor.getAccessor(), (byte) ((sheepColor.ordinal() & 0x0F) | (sheared ? 0x10 : 0)));
+    }
+    
     @NotNull
     @Override
     public Sheep getHandle() {
         return (Sheep) super.getHandle();
     }
     
-    @Override
-    public void updateEntityData() {
-        // Write sheep color and sheared flag
-        super.getEntityData().set(sheepColor.getAccessor(), (byte) ((sheepColor.ordinal() & 0x0F) | (sheared ? 0x10 : 0)));
-        super.updateEntityData();
-    }
 }

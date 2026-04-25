@@ -139,18 +139,6 @@ public final class Reflect {
     /**
      * Update the given {@link net.minecraft.world.entity.Entity} {@link SynchedEntityData} for the given {@link Player}.
      *
-     * @param player - The player for whom to update the entity data.
-     * @param entity - The entity whose data to update.
-     * @param values - The values to update.
-     */
-    @PacketOperation
-    public static void updateEntityData(@NotNull Player player, @NotNull net.minecraft.world.entity.Entity entity, @NotNull List<SynchedEntityData.DataValue<?>> values) {
-        sendPacket(player, PacketFactory.makePacketSetEntityData(entity, values));
-    }
-    
-    /**
-     * Update the given {@link net.minecraft.world.entity.Entity} {@link SynchedEntityData} for the given {@link Player}.
-     *
      * <p>
      * This method uses up-to-date entity data values.
      * </p>

@@ -4,10 +4,9 @@ import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.npc.NpcPose;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.packet.PacketFactory;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
@@ -50,6 +49,18 @@ public abstract class Appearance {
         this.npc = npc;
         this.pose = NpcPose.STANDING;
     }
+    
+    /**
+     * Update the given {@link SynchedEntityData} with the local data of this {@link Appearance}.
+     *
+     * <p>
+     * This method is called each time before sending a {@link ClientboundSetEntityDataPacket}, therefore any values
+     * from this {@link Appearance} must be written in this method.
+     * </p>
+     *
+     * @param entityData - The entity data to update.
+     */
+    public abstract void updateEntityData(@NotNull SynchedEntityData entityData);
     
     /**
      * Gets the height of the {@link Appearance}, which is used to offset holograms.
@@ -122,7 +133,7 @@ public abstract class Appearance {
         
         this.pose = pose;
         
-        final SynchedEntityData entityData = getEntityData();
+        final SynchedEntityData entityData = handle.getEntityData();
         
         // Unfuckup hitbox by updating the pose to something with a standing hitbox first
         if (pose == NpcPose.STANDING) {
@@ -154,8 +165,14 @@ public abstract class Appearance {
      */
     @OverridingMethodsMustInvokeSuper
     public void show(@NotNull Player player, @NotNull Location location) {
+        // Update entity metadata
+        final SynchedEntityData entityData = handle.getEntityData();
+        
+        this.updateEntityData(entityData);
+        
+        // Send packets
         Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(handle, location));
-        Reflect.sendPacket(player, PacketFactory.makePacketSetEntityData(handle));
+        Reflect.sendPacket(player, PacketFactory.makePacketSetEntityData(handle, entityData));
     }
     
     /**
@@ -177,76 +194,50 @@ public abstract class Appearance {
      */
     public void setLocation(@NotNull Location location) {
         this.handle.absSnapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-        this.updateLocation();
+        
+        // Send teleport packet
+        this.sendPacket(PacketFactory.makePacketTeleportEntity(handle));
     }
     
     /**
-     * Updates the location of this appearance for each player who can see the {@link Npc}.
+     * Updates the entity data of this {@link Appearance} for each player who can see the {@link Npc}.
+     *
+     * <p>
+     * This method should be used to manually update the entity data after an appearance change while the {@link Npc} is spawned.
+     * </p>
      */
-    public void updateLocation() {
-        final ClientboundTeleportEntityPacket packet = PacketFactory.makePacketTeleportEntity(handle);
+    @OverridingMethodsMustInvokeSuper
+    protected final void updateEntityData() {
+        // Call update on the entity data
+        final SynchedEntityData entityData = handle.getEntityData();
         
+        this.updateEntityData(entityData);
+        
+        // Send packet to all players who can see the npc
+        sendPacket(PacketFactory.makePacketSetEntityData(handle, entityData));
+    }
+    
+    /**
+     * Sends the given {@link Packet} to all players who can see this {@link Npc}.
+     *
+     * @param packet - The packet to send.
+     */
+    protected void sendPacket(@NotNull Packet<?> packet) {
         this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
     /**
-     * Updates the entity data of this appearance for each player who can see the {@link Npc}.
-     */
-    public void updateEntityData() {
-        final ClientboundSetEntityDataPacket packet = PacketFactory.makePacketSetEntityData(handle);
-        
-        this.npc.showingTo().forEach(player -> Reflect.sendPacket(player, packet));
-    }
-    
-    /**
-     * Gets the entity data.
-     *
-     * @return the entity data.
-     */
-    @NotNull
-    public SynchedEntityData getEntityData() {
-        return this.handle.getEntityData();
-    }
-    
-    /**
-     * Sets the entity data value for this appearance.
-     * <p>You must manually {@link #updateEntityData()} to see the changes, see <a href="https://minecraft.wiki/w/Java_Edition_protocol/Entity_metadata">minecraft.wiki</a>
-     * for help with entity data.</p>
-     *
-     * @param type  - The target entity data type.
-     * @param id    - The target entity data id.
-     * @param value - The new entity data value.
-     * @param <T>   - The target entity data type.
-     */
-    public <T> void setEntityDataValue(@NotNull EntityDataSerializer<T> type, int id, @NotNull T value) {
-        getEntityData().set(type.createAccessor(id), value);
-    }
-    
-    /**
-     * Gets the entity data value for this appearance.
-     * <p>See <a href="https://minecraft.wiki/w/Java_Edition_protocol/Entity_metadata">minecraft.wiki</a> for help with entity data.</p>
-     *
-     * @param type - The target entity data type.
-     * @param id   - The target entity data id.
-     * @param <T>  - The target entity data type.
-     * @return the entity data value.
-     */
-    public <T> T getEntityDataValue(@NotNull EntityDataSerializer<T> type, int id) {
-        return getEntityData().get(type.createAccessor(id));
-    }
-    
-    /**
-     * A dummy world helper method, which is required for packet entities.
+     * A helper method for retrieving dummy world, which is required for packet entities.
      *
      * @return a dummy world.
      */
     @NotNull
     protected static Level dummyWorld() {
         class Holder {
-            static final Level level = Reflect.getHandle(Bukkit.getWorlds().getFirst());
+            static final Level LEVEL = Reflect.getHandle(Bukkit.getWorlds().getFirst());
         }
         
-        return Holder.level;
+        return Holder.LEVEL;
     }
     
     

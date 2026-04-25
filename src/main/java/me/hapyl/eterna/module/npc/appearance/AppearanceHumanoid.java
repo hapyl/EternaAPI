@@ -2,13 +2,10 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.inventory.Equipment;
 import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.packet.PacketFactory;
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.world.entity.LivingEntity;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,11 +13,11 @@ import org.jetbrains.annotations.Nullable;
  * Represents a humanoid appearance, which includes unique features:
  * <p>
  *     <ul>
- *         <li>Equipment ({@link #setEquipment(Equipment)}
+ *         <li>Equipment {@link #setEquipment(Equipment)}
  *     </ul>
  * </p>
  */
-public class AppearanceHumanoid extends Appearance {
+public abstract class AppearanceHumanoid extends Appearance {
     
     @Nullable private Equipment equipment;
     
@@ -33,7 +30,7 @@ public class AppearanceHumanoid extends Appearance {
     @Override
     public void show(@NotNull Player player, @NotNull Location location) {
         super.show(player, location);
-        this.updateEquipment(player);
+        this.updateEquipment();
     }
     
     /**
@@ -43,8 +40,7 @@ public class AppearanceHumanoid extends Appearance {
      */
     public void setEquipment(@NotNull Equipment equipment) {
         this.equipment = equipment;
-        
-        this.npc.showingTo().forEach(this::updateEquipment);
+        this.updateEquipment();
     }
     
     /**
@@ -57,13 +53,12 @@ public class AppearanceHumanoid extends Appearance {
         return Equipment.copyOf(equipment);
     }
     
-    @ApiStatus.Internal
-    protected void updateEquipment(@NotNull Player player) {
+    private void updateEquipment() {
         if (equipment == null) {
             return;
         }
         
-        final ClientboundSetEquipmentPacket packet = PacketFactory.makePacketSetEquipment(handle, equipment);
-        Reflect.sendPacket(player, packet);
+        sendPacket(PacketFactory.makePacketSetEquipment(handle, equipment));
     }
+    
 }
