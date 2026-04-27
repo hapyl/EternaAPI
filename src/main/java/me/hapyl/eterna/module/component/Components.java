@@ -398,7 +398,7 @@ public final class Components {
     
     /**
      * Flattens the given {@link Component} and its children {@link Component} into a single {@link List} of {@link Component},
-     * removing stray {@link Component#empty()} components.
+     * removing stray {@link Component#empty()} components and children.
      *
      * @param component - The component to flatten.
      * @return a flattened component list.
@@ -408,32 +408,31 @@ public final class Components {
         class Flattener {
             static List<Component> flatten(@NotNull Component component) {
                 final List<Component> flattened = Lists.newArrayList();
+                appendChildren(component, flattened, Style.empty());
                 
-                appendChildren(component, flattened);
                 return List.copyOf(flattened);
             }
             
-            static void appendChildren(@NotNull Component root, @NotNull List<Component> list) {
-                // Append non-text components as is
+            static void appendChildren(@NotNull Component root, @NotNull List<Component> list, @NotNull Style style) {
+                final Style styleMerged = root.style().merge(style);
+                
+                // If the root is non-text component, append as it
                 if (!(root instanceof TextComponent textComponent)) {
-                    list.add(root);
+                    list.add(root.style(styleMerged));
                 }
-                else {
-                    // Append the root without children unless it's a stray `Component.empty()`
-                    if (!textComponent.content().isEmpty()) {
-                        list.add(textComponent.children(List.of()));
-                    }
+                // Otherwise, remove the children and append the component
+                else if (!textComponent.content().isEmpty()) {
+                    list.add(textComponent.children(List.of()).style(styleMerged));
                 }
                 
-                // Append each child individually, without their children
+                // Append children recursively
                 for (Component child : root.children()) {
-                    appendChildren(child, list);
+                    appendChildren(child, list, styleMerged);
                 }
             }
         }
         
         return Flattener.flatten(component);
     }
-    
     
 }

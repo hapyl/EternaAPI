@@ -71,8 +71,10 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
@@ -1974,6 +1976,25 @@ public final class EternaTestRegistry {
         });
         
         register("component_wrap", context -> {
+            class ComponentLike2 implements ComponentLike {
+                
+                private final Component name;
+                private final Style style;
+                
+                ComponentLike2(Component name, Style style) {
+                    this.name = Component.text("Prefix ").append(name);
+                    this.style = style;
+                }
+                
+                @NotNull
+                @Override
+                public Component asComponent() {
+                    return Component.empty().append(name.style(style));
+                }
+            }
+            
+            final ComponentLike2 testName = new ComponentLike2(Component.text("Test Name"), Style.style(NamedTextColor.GREEN));
+            
             final TextComponent component = Component.empty()
                                                      .append(Component.text("This is a first line of the component that is long enough to wrap it!", NamedTextColor.RED))
                                                      .appendNewline()
@@ -1986,13 +2007,30 @@ public final class EternaTestRegistry {
                                                      .appendNewline()
                                                      .append(Component.text("Here are two consecutive linebreak!", NamedTextColor.GOLD))
                                                      .append(Components.linebreak())
-                                                     .append(Component.text("And above is a custom linebreak() from Components module!", NamedTextColor.LIGHT_PURPLE));
+                                                     .append(Component.text("And above is a custom linebreak() from Components module!", NamedTextColor.LIGHT_PURPLE))
+                                                     .appendNewline()
+                                                     .appendNewline()
+                                                     .append(testName)
+                                                     .appendNewline()
+                                                     .appendNewline()
+                                                     .append(
+                                                             Component.empty()
+                                                                      .append(
+                                                                              Component.empty()
+                                                                                       .append(Component.text("Here's a "))
+                                                                                       .append(Component.text("complex", NamedTextColor.GOLD))
+                                                                                       .append(Component.text(" component!"))
+                                                                      )
+                                                                      .append(Component.text(" And a little simpler one!"))
+                                                     );
             
             context.player().getInventory().addItem(
                     new ItemBuilder(Material.DIAMOND)
                             .addWrappedLore(component)
                             .asItemStack()
             );
+            
+            context.player().sendMessage(testName);
             
             context.assertTestPassed();
         });
