@@ -124,10 +124,11 @@ public final class GlowingInstance implements Ticking, Removable {
         
         // Update the actual team
         final org.bukkit.scoreboard.Scoreboard scoreboard = player.getScoreboard();
-        final Team team = scoreboard.getEntryTeam(scoreboardName());
+        final String scoreboardName = scoreboardName();
+        final Team team = scoreboard.getEntryTeam(scoreboardName);
         
         if (team != null) {
-            Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(Reflect.getHandle(team), true));
+            Reflect.sendPacket(player, ClientboundSetPlayerTeamPacket.createPlayerPacket(Reflect.getHandle(team), scoreboardName, ClientboundSetPlayerTeamPacket.Action.ADD));
         }
     }
     
@@ -155,6 +156,10 @@ public final class GlowingInstance implements Ticking, Removable {
                 ))
         );
         
+        // We can trust our own packet, mark it as prepared
+        GlowingHandler.handler.preparedPackets.add(packet);
+        
+        // Send the packet to the player
         Reflect.sendPacket(player, packet);
     }
     

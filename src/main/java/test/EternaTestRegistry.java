@@ -180,13 +180,14 @@ public final class EternaTestRegistry {
                     final PacketTeamColor glowingColor = PacketTeamColor.YELLOW;
                     final Scoreboard scoreboard = player.getScoreboard();
                     
-                    // Test with a team WITHOUT glowing color set
+                    // Test with an existing team
                     Team team = scoreboard.getTeam("test_glowing_team");
                     
                     if (team == null) {
                         team = scoreboard.registerNewTeam("test_glowing_team");
                     }
                     
+                    team.color(NamedTextColor.LIGHT_PURPLE);
                     team.addEntity(entity);
                     
                     final int glowingTime = 200;
@@ -208,8 +209,10 @@ public final class EternaTestRegistry {
                                context.info(Component.text("Update color to `%s`!".formatted(newColor)));
                            }, colorChangeTime))
                            .then(SchedulerTask.later(() -> {
-                               context.info(Component.text("Stopped glowing, but did not remove entity."));
-                           }, colorChangeTime))
+                               entity.setGlowing(true);
+                               
+                               context.info(Component.text("Stopped glowing, made entity naturally glow."));
+                           }, colorChangeTime + 10))
                            .then(SchedulerTask.later(() -> {
                                if (glowingPlayer == null) {
                                    entity.remove();
