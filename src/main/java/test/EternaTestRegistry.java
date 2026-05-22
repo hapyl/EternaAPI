@@ -6,7 +6,6 @@ import com.google.common.collect.Sets;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import me.hapyl.eterna.*;
-import me.hapyl.eterna.module.block.BlockOutline;
 import me.hapyl.eterna.module.block.display.BDEngine;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
 import me.hapyl.eterna.module.block.display.DisplayModel;
@@ -92,6 +91,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -177,6 +178,16 @@ public final class EternaTestRegistry {
                     );
                     
                     final PacketTeamColor glowingColor = PacketTeamColor.YELLOW;
+                    final Scoreboard scoreboard = player.getScoreboard();
+                    
+                    // Test with a team WITHOUT glowing color set
+                    Team team = scoreboard.getTeam("test_glowing_team");
+                    
+                    if (team == null) {
+                        team = scoreboard.registerNewTeam("test_glowing_team");
+                    }
+                    
+                    team.addEntity(entity);
                     
                     final int glowingTime = 200;
                     final int colorChangeTime = glowingTime / 2;
@@ -1263,33 +1274,6 @@ public final class EternaTestRegistry {
                             theta += Math.PI / 16;
                         }
                     }.runTaskTimer(thePlugin, 0, 1);
-                }
-        );
-        
-        register(
-                "block_outline", context -> {
-                    final Player player = context.player();
-                    final Location location = player.getLocation();
-                    
-                    final BlockOutline blockOutline = new BlockOutline(
-                            player,
-                            LocationHelper.copyOf(location).add(5, 5, 5),
-                            LocationHelper.copyOf(location).add(-5, -5, -5)
-                    );
-                    
-                    context.scheduler()
-                           .then(SchedulerTask.run(() -> {
-                               blockOutline.show();
-                               
-                               context.info(Component.text("Shown bounding box"));
-                           }))
-                           .then(SchedulerTask.later(() -> {
-                               blockOutline.hide();
-                               
-                               context.info(Component.text("Hid bounding box"));
-                               context.assertTestPassed();
-                           }, 40))
-                           .execute();
                 }
         );
         

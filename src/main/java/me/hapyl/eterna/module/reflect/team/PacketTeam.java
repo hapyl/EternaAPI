@@ -4,6 +4,7 @@ import io.papermc.paper.adventure.PaperAdventure;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
@@ -22,10 +23,10 @@ import java.util.function.Supplier;
 
 public class PacketTeam {
     
-    private static final Scoreboard dummyScoreboard;
+    private static final Scoreboard DUMMY_SCOREBOARD;
     
     static {
-        dummyScoreboard = new Scoreboard();
+        DUMMY_SCOREBOARD = new Scoreboard();
     }
     
     protected final String name;
@@ -40,7 +41,7 @@ public class PacketTeam {
     
     public PacketTeam(@NotNull String name, @Nullable Team existingTeam) {
         this.name = name;
-        this.team = new PlayerTeam(dummyScoreboard, name);
+        this.team = new PlayerTeam(DUMMY_SCOREBOARD, name);
         this.optionTracker = existingTeam != null ? new OptionTracker(existingTeam) : null;
         
         // Copy options if existing team exists
@@ -52,7 +53,7 @@ public class PacketTeam {
     
     @NotNull
     public Scoreboard scoreboard() {
-        return dummyScoreboard;
+        return DUMMY_SCOREBOARD;
     }
     
     @NotNull
@@ -167,7 +168,11 @@ public class PacketTeam {
             this.nameTagVisibility = Value.track(() -> team.getOption(Team.Option.NAME_TAG_VISIBILITY), option -> PacketTeamOption.ofBukkit(option).visibility());
             this.prefix = Value.track(team::prefix, PaperAdventure::asVanilla);
             this.suffix = Value.track(team::suffix, PaperAdventure::asVanilla);
-            this.color = Value.track(team::color, color -> Objects.requireNonNull(ChatFormatting.getByHexValue(color.value()), "Unsupported color: `%s`!".formatted(color.asHexString())));
+            
+            // If the team doesn't have a color set, we default to WHITE to avoid throwing exceptions
+            this.color = team.hasColor()
+                         ? Value.track(team::color, color -> Objects.requireNonNull(ChatFormatting.getByHexValue(color.value()), "Unsupported color: `%s`!".formatted(color.asHexString())))
+                         : Value.track(() -> NamedTextColor.WHITE, color -> ChatFormatting.WHITE);
         }
         
         @ApiStatus.Internal
