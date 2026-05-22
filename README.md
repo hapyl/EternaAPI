@@ -6,6 +6,9 @@
 
 # 🧾 Summary
 
+> [!WARNING]
+> As of latest update, wiki links are broken, see javadocs for info.
+
 * Provides builders for:
     * [Item Stacks](https://github.com/hapyl/EternaAPI/wiki/ItemBuilder)
     * [Particles](https://github.com/hapyl/EternaAPI/wiki)
