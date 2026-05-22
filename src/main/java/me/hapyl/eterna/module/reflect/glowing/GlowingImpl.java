@@ -6,10 +6,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 @ApiStatus.Internal
 public class GlowingImpl implements Ticking {
@@ -47,9 +48,16 @@ public class GlowingImpl implements Ticking {
     }
     
     @ApiStatus.Internal
-    @NotNull
-    Stream<GlowingInstance> byEntityId(int entityId) {
-        return entityMap.values().stream().filter(glowingInstance -> glowingInstance.entity().getEntityId() == entityId);
+    @Nullable
+    GlowingInstance byEntityId(int entityId) {
+        for (Map.Entry<Entity, GlowingInstance> entry : entityMap.entrySet()) {
+            if (entry.getKey().getEntityId() == entityId) {
+                return entry.getValue();
+            }
+        }
+        
+        return null;
     }
+    
     
 }
