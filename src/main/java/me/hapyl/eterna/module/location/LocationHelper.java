@@ -476,6 +476,24 @@ public final class LocationHelper {
         to.setYaw(from.getYaw());
     }
     
+    /**
+     * Converts the given {@link Location} into a {@link BoundingBox} with the given dimensions.
+     *
+     * @param location - The location to convert.
+     * @param sizeX    - The 1/2 the {@code X} size of the bounding box.
+     * @param sizeY    - The 1/2 the {@code Y} size of the bounding box.
+     * @param sizeZ    - The 1/2 the {@code Z} size of the bounding box.
+     * @return A new bounding box.
+     */
+    @NotNull
+    public static BoundingBox toBoundingBox(@NotNull Location location, double sizeX, double sizeY, double sizeZ) {
+        final double x = location.getX();
+        final double y = location.getY();
+        final double z = location.getZ();
+        
+        return new BoundingBox(x - sizeX, y - sizeY, z - sizeZ, x + sizeX, y + sizeY, z + sizeZ);
+    }
+    
     @ApiStatus.Internal
     private static double maxOffset(double offset) {
         return Math.max(offset, 0.0);
