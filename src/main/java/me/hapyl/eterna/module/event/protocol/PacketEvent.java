@@ -3,22 +3,19 @@ package me.hapyl.eterna.module.event.protocol;
 import io.netty.channel.Channel;
 import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.annotate.Asynchronous;
-import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrapper;
-import me.hapyl.eterna.module.reflect.packet.wrapped.PacketWrappers;
-import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
-import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedPacket;
+import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -82,29 +79,17 @@ public abstract class PacketEvent<L extends PacketListener> extends PlayerEvent 
     }
     
     /**
-     * Wraps the {@link Packet} into an {@link WrappedPacket} with the given {@link PacketWrapper}.
+     * Gets a {@link ClientboundBundlePacket} wrapped in an {@link Optional}.
      *
-     * @param wrapper - The wrapper.
-     * @return an {@link Optional} containing the wrapped packet, or {@link Optional#empty()} optional if the given wrapper isn't compatible with the packet.
-     * @see PacketWrappers
+     * <p>
+     * If the packet is not a bundle packet, an empty optional is returned.
+     * </p>
+     *
+     * @return a bundle packet wrapped in an optional, or an empty optional if the packet is not a bundle packet.
      */
     @NotNull
-    public <T extends PacketListener, P extends Packet<@NotNull T>, W extends WrappedPacket<P>> Optional<W> getWrappedPacket(@NotNull PacketWrapper<T, P, W> wrapper) {
-        return wrapper.wrap(packet);
-    }
-    
-    /**
-     * Gets a {@link WrappedBundlePacket} that contains a {@link List} of {@link Packet}.
-     *
-     * @return a wrapped bundle packet, or {@code null} if the packet isn't a bundle packet.
-     */
-    @Nullable
-    public WrappedBundlePacket getBundlePacket() {
-        if (packet instanceof ClientboundBundlePacket bundlePacket) {
-            return new WrappedBundlePacket(bundlePacket);
-        }
-        
-        return null;
+    public Optional<ClientboundBundlePacket> getBundlePacket() {
+        return packet instanceof ClientboundBundlePacket bundlePacket ? Optional.of(bundlePacket) : Optional.empty();
     }
     
     /**
@@ -138,4 +123,17 @@ public abstract class PacketEvent<L extends PacketListener> extends PlayerEvent 
     public void synchronize(@NotNull Runnable runnable) {
         Runnables.sync(runnable);
     }
+    
+    /**
+     * A helper method to retrieve an entity by its numeric id.
+     *
+     * @param world    - The target world.
+     * @param entityId - The entity id.
+     * @return an entity wrapped in an optional, or an empty optional if no such entity exists.
+     */
+    @NotNull
+    public Optional<Entity> getEntityById(@NotNull World world, int entityId) {
+        return Reflect.getEntityById(world, entityId);
+    }
+    
 }

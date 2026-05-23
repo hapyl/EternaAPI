@@ -5,16 +5,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.EternaHandler;
 import me.hapyl.eterna.EternaKey;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.event.protocol.PacketSendEvent;
 import me.hapyl.eterna.module.reflect.Reflect;
-import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedBundlePacket;
-import me.hapyl.eterna.module.reflect.packet.wrapped.WrappedClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import org.bukkit.entity.Player;
@@ -30,10 +28,9 @@ import java.util.*;
 public final class GlowingHandler extends EternaHandler<Player, GlowingImpl> implements Listener {
     
     private static final int GLOWING_ID = 0;
+    private static final Set<ClientboundSetEntityDataPacket> PREPARED_PACKETS = Sets.newConcurrentHashSet();
     
     static GlowingHandler handler;
-    
-    final Set<Packet<?>> preparedPackets = Sets.newConcurrentHashSet();
     
     public GlowingHandler(@NotNull EternaKey key, @NotNull EternaPlugin eterna) {
         super(key, eterna);
@@ -41,28 +38,10 @@ public final class GlowingHandler extends EternaHandler<Player, GlowingImpl> imp
         handler = this;
     }
     
-    @Override
-    @NotNull
-    public Optional<GlowingImpl> get(@NotNull Player player) {
-        return Objects.requireNonNull(super.get(player), "Illegal get() call, use get(Player, Function)!");
-    }
-    
-    @NotNull
-    @Override
-    protected Map<Player, GlowingImpl> makeNewMap() {
-        return Maps.newConcurrentMap(); // Dealing with packets, safer to use concurrent
-    }
-    
     @EventHandler
     public void handlePacketSendEvent(PacketSendEvent ev) {
         final Player player = ev.getPlayer();
         final Packet<?> packet = ev.getPacket();
-        
-        // If it's our packet, ignore everything since it's already prepared
-        if (preparedPackets.contains(packet)) {
-            preparedPackets.remove(packet);
-            return;
-        }
         
         // If the player who received the packet doesn't have glowing active, we don't care
         final GlowingImpl glowing = registry.get(player);
@@ -90,6 +69,12 @@ public final class GlowingHandler extends EternaHandler<Player, GlowingImpl> imp
         // Otherwise we intercept the SetEntityDataPacket and modify the glowing bit, which is needed for when an entity updates their metadata,
         // which is mostly needed for players, since the packet is sent for when a player toggles sneaking
         else if (packet instanceof ClientboundSetEntityDataPacket packetSetEntityData) {
+            // If it's our packet, ignore everything since it's already prepared
+            if (PREPARED_PACKETS.contains(packet)) {
+                PREPARED_PACKETS.remove(packet);
+                return;
+            }
+            
             final int entityId = packetSetEntityData.id();
             final GlowingInstance glowingInstance = glowing.byEntityId(entityId);
             
@@ -117,17 +102,29 @@ public final class GlowingHandler extends EternaHandler<Player, GlowingImpl> imp
                 }
             }
             
-            // Create a new packet and send it
-            final ClientboundSetEntityDataPacket preparedPacket = new ClientboundSetEntityDataPacket(entityId, newItems);
+            // Cancel the original packet
+            ev.setCancelled(true);
             
-            preparedPackets.add(preparedPacket);
-            Reflect.sendPacket(player, preparedPacket);
+            // Create a new packet and send it
+            sendPreparedPacket(player, new ClientboundSetEntityDataPacket(entityId, newItems));
         }
     }
     
     @EventHandler
     public void handlePlayerQuitEvent(PlayerQuitEvent ev) {
         registry.remove(ev.getPlayer());
+    }
+    
+    @NotNull
+    @Override
+    protected Map<Player, GlowingImpl> makeNewMap() {
+        return Maps.newConcurrentMap(); // Dealing with packets, safer to use concurrent
+    }
+    
+    @ApiStatus.Internal
+    static void sendPreparedPacket(@NotNull Player player, @NotNull ClientboundSetEntityDataPacket packet) {
+        PREPARED_PACKETS.add(packet);
+        Reflect.sendPacket(player, packet);
     }
     
 }

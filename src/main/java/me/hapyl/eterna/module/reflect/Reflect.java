@@ -539,6 +539,19 @@ public final class Reflect {
         return ((CraftBlockData) data).getState();
     }
     
+    /**
+     * Gets a bukkit {@link Entity} by the entity id in the given {@link World}.
+     *
+     * @param world    - The target world.
+     * @param entityId - The entity numeric id.
+     * @return a bukkit entity wrapped in an optional, or an empty optional if there is no entity by that id in the given world.
+     */
+    public static @NotNull Optional<Entity> getEntityById(@NotNull World world, int entityId) {
+        final net.minecraft.world.entity.Entity minecraftEntity = getHandle(world).getEntity(entityId);
+        
+        return minecraftEntity != null ? Optional.of(minecraftEntity.getBukkitEntity()) : Optional.empty();
+    }
+    
     @Nullable
     private static Field tryFindField(@NotNull Object instance, @NotNull String fieldName) {
         final Class<?> clazz = instance.getClass();

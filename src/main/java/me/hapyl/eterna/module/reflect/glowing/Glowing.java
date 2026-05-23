@@ -39,7 +39,6 @@ public interface Glowing {
     @NotNull
     PacketTeamColor DEFAULT_COLOR = PacketTeamColor.WHITE;
     
-    
     /**
      * Sets the glowing for the given {@link Player}.
      *
@@ -51,6 +50,7 @@ public interface Glowing {
      * @param entity   - The entity to glow.
      * @param color    - The glowing color.
      * @param duration - The glowing duration.
+     * @throws IllegalArgumentException if glowing is attempted for the self.
      */
     static void setGlowing(@NotNull Player player, @NotNull Entity entity, @NotNull PacketTeamColor color, int duration) {
         setGlowing0(player, entity, color, duration);
@@ -66,6 +66,7 @@ public interface Glowing {
      * @param player - The entity for whom to glow the entity.
      * @param entity - The entity to glow.
      * @param color  - The glowing color.
+     * @throws IllegalArgumentException if glowing is attempted for the self.
      */
     static void setGlowing(@NotNull Player player, @NotNull Entity entity, @NotNull PacketTeamColor color) {
         setGlowing0(player, entity, color, null);
@@ -81,6 +82,7 @@ public interface Glowing {
      * @param player   - The entity for whom to glow the entity.
      * @param entity   - The entity to glow.
      * @param duration - The glowing duration.
+     * @throws IllegalArgumentException if glowing is attempted for the self.
      */
     static void setGlowing(@NotNull Player player, @NotNull Entity entity, int duration) {
         setGlowing0(player, entity, null, duration);

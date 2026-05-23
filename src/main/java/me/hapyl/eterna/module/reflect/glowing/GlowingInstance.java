@@ -156,11 +156,8 @@ public final class GlowingInstance implements Ticking, Removable {
                 ))
         );
         
-        // We can trust our own packet, mark it as prepared
-        GlowingHandler.handler.preparedPackets.add(packet);
-        
-        // Send the packet to the player
-        Reflect.sendPacket(player, packet);
+        // Send trusted packet
+        GlowingHandler.sendPreparedPacket(player, packet);
     }
     
     @NotNull
