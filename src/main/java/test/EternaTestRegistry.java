@@ -102,10 +102,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -181,13 +178,10 @@ public final class EternaTestRegistry {
                     final Scoreboard scoreboard = player.getScoreboard();
                     
                     // Test with an existing team
-                    Team team = scoreboard.getTeam("test_glowing_team");
-                    
-                    if (team == null) {
-                        team = scoreboard.registerNewTeam("test_glowing_team");
-                    }
+                    final Team team = Objects.requireNonNullElseGet(scoreboard.getTeam("test_glowing_team"), () -> scoreboard.registerNewTeam("test_glowing_team"));
                     
                     team.color(NamedTextColor.LIGHT_PURPLE);
+                    team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
                     team.addEntity(entity);
                     
                     final int glowingTime = 200;
@@ -217,7 +211,11 @@ public final class EternaTestRegistry {
                                if (glowingPlayer == null) {
                                    entity.remove();
                                }
+                               else {
+                                   entity.setGlowing(false);
+                               }
                                
+                               team.unregister();
                                context.assertTestPassed();
                            }, 40))
                            .execute();

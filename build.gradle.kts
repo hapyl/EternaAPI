@@ -18,7 +18,7 @@ dependencies {
 }
 
 group = "me.hapyl"
-version = "6.2.5-SNAPSHOT"
+version = "6.2.6-SNAPSHOT"
 description = "EternaAPI"
 
 // Set java settings, attach sources and javadocs

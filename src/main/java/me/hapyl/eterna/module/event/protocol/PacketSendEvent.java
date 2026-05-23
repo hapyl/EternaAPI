@@ -19,7 +19,7 @@ public class PacketSendEvent extends PacketEvent<ClientboundPacketListener> {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     
     @ApiStatus.Internal
-    public PacketSendEvent(@NotNull Player who, Channel channel, Packet<?> packet) {
+    public PacketSendEvent(@NotNull Player who, @NotNull Channel channel, @NotNull Packet<?> packet) {
         super(who, channel, packet);
     }
     
