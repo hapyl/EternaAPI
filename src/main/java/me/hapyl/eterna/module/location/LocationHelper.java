@@ -373,7 +373,7 @@ public final class LocationHelper {
      */
     @NotNull
     public static Location center(@NotNull @DefensiveCopy Location location) {
-        return copyOf(location).add(0.5, 0.5, 0.5);
+        return new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY() + 0.5, location.getBlockZ() + 0.5, location.getYaw(), location.getPitch());
     }
     
     /**
