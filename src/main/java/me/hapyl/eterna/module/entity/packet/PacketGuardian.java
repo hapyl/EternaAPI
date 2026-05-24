@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a {@link Guardian} packet entity.
  */
-public class PacketGuardian extends AbstractPacketEntity<Guardian> {
+public class PacketGuardian extends PacketEntityAttributableImpl<Guardian> {
     
     /**
      * Creates a new {@link PacketGuardian}.
@@ -52,6 +52,6 @@ public class PacketGuardian extends AbstractPacketEntity<Guardian> {
     @ApiStatus.Internal
     private void setBeamTarget0(int entityId) {
         this.setEntityDataValue(EntityDataSerializers.INT, 17, entityId);
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
 }

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a {@link ItemEntity} packet entity.
  */
-public class PacketItem extends AbstractPacketEntity<@NotNull ItemEntity> {
+public class PacketItem extends PacketEntityImpl<@NotNull ItemEntity> {
     
     /**
      * Creates a new {@link PacketItem}.
@@ -53,7 +53,7 @@ public class PacketItem extends AbstractPacketEntity<@NotNull ItemEntity> {
      */
     public void setItem(@NotNull ItemStack itemStack) {
         this.entity.setItem(Reflect.bukkitItemAsVanilla(itemStack));
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
     
 }

@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -26,11 +25,6 @@ import java.util.function.Consumer;
  */
 @UtilityClass
 public final class LocationHelper {
-    
-    /**
-     * Defines all the {@link Axis}.
-     */
-    public static final Set<Axis> allAxis = Set.of(Axis.X, Axis.Y, Axis.Z);
     
     private LocationHelper() {
         UtilityClass.Validator.throwIt();
@@ -158,9 +152,9 @@ public final class LocationHelper {
      * <p>Example usage:</p>
      *
      * <pre>{@code
-     * LocationHelper.offset(location, 1, 1, 1, _location -> {
-     *     _location.getWorld().spawnParticle(Particle.FLAME, _location, 1);
-     * });
+     * final Entity entity;
+     *
+     * LocationHelper.offset(location, 1, 1, 1, entity::teleport);
      * }</pre>
      *
      * @param location - The location to offset.
@@ -200,28 +194,31 @@ public final class LocationHelper {
     /**
      * Gets the squared distance between the two {@link Location} along the given {@link Axis}.
      *
+     * <p>
+     * If the worlds of the given locations don't match, {@link Double#MAX_VALUE} is returned.
+     * </p>
+     *
      * @param from - The first location.
      * @param to   - The second location.
      * @param axis - The axis along which to measure the distance.
      * @return the squared distance between the two location along the given axis.
      */
-    public static double distanceSquared(@NotNull Location from, @NotNull Location to, @Nullable @Range(from = 1, to = 3) Axis... axis) {
+    public static double distanceSquared(@NotNull Location from, @NotNull Location to, @NotNull @Range(from = 1, to = 3) Axis... axis) {
         if (!from.getWorld().equals(to.getWorld())) {
             return Double.MAX_VALUE;
         }
         
-        final Set<Axis> axisSet = (axis != null && axis.length != 0) ? Set.of(axis) : allAxis;
         double distance = 0.0;
         
-        if (axisSet.contains(Axis.X)) {
+        if (varargsEmptyOrContain(axis, Axis.X)) {
             distance += Numbers.square(from.getX() - to.getX());
         }
         
-        if (axisSet.contains(Axis.Y)) {
+        if (varargsEmptyOrContain(axis, Axis.Y)) {
             distance += Numbers.square(from.getY() - to.getY());
         }
         
-        if (axisSet.contains(Axis.Z)) {
+        if (varargsEmptyOrContain(axis, Axis.Z)) {
             distance += Numbers.square(from.getZ() - to.getZ());
         }
         
@@ -230,6 +227,10 @@ public final class LocationHelper {
     
     /**
      * Gets the distance between the two {@link Location} along the given {@link Axis}.
+     *
+     * <p>
+     * If the worlds of the given locations don't match, {@link Double#MAX_VALUE} is returned.
+     * </p>
      *
      * @param from - The first location.
      * @param to   - The second location.
@@ -497,6 +498,22 @@ public final class LocationHelper {
     @ApiStatus.Internal
     private static double maxOffset(double offset) {
         return Math.max(offset, 0.0);
+    }
+    
+    @ApiStatus.Internal
+    private static <E extends Enum<E>> boolean varargsEmptyOrContain(@NotNull E @NotNull [] varargs, @NotNull E value) {
+        // Varargs default to empty array, not null
+        if (varargs.length == 0) {
+            return true;
+        }
+        
+        for (E e : varargs) {
+            if (value == e) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
 }
