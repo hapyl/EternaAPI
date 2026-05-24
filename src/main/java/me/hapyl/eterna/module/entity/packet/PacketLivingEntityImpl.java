@@ -12,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-public class PacketEntityAttributableImpl<T extends LivingEntity> extends PacketEntityImpl<T> implements PacketEntityAttributable {
+public class PacketLivingEntityImpl<T extends LivingEntity> extends PacketEntityImpl<T> implements PacketLivingEntity {
     
-    PacketEntityAttributableImpl(@NonNull T entity, @NotNull Location location) {
+    PacketLivingEntityImpl(@NonNull T entity, @NotNull Location location) {
         super(entity, location);
     }
     
