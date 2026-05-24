@@ -29,11 +29,11 @@ public abstract class SimplePlayerCommand extends SimpleCommand {
      * @param args   - The command arguments.
      */
     @CaughtExceptions
-    protected abstract void execute(@NotNull Player player, @NotNull ArgumentList args);
+    public abstract void execute(@NotNull Player player, @NotNull ArgumentList args);
     
     @Override
     @MethodDelegate
-    protected final void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+    public final void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
         if (sender instanceof Player player) {
             this.execute(player, args);
         }

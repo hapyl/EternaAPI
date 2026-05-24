@@ -29,7 +29,7 @@ public final class NoteBlockStudioCommand extends SimpleAdminCommand {
     }
     
     @Override
-    protected void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+    public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
         if (SongHandler.isLock()) {
             EternaLogger.nbs(sender, Component.text("Currently loading songs, please wait...", NamedTextColor.RED));
             return;

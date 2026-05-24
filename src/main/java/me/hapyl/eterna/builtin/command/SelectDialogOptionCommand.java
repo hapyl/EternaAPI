@@ -21,7 +21,7 @@ public final class SelectDialogOptionCommand extends SimplePlayerCommand {
     }
     
     @Override
-    protected void execute(@NotNull Player player, @NotNull ArgumentList args) {
+    public void execute(@NotNull Player player, @NotNull ArgumentList args) {
         Dialog.getCurrentDialog(player).ifPresentOrElse(
                 dialog -> {
                     final OptionIndex optionIndex = OptionIndex.fromInt(args.get(0).toInt());

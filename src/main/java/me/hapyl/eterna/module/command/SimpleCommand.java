@@ -300,24 +300,29 @@ public abstract class SimpleCommand implements Handle<Command>, Cooldown {
     }
     
     /**
-     * Attempts to execute this command.
+     * Attempts to execute this command for the given {@link CommandSender}.
      *
      * @param sender - The command sender.
      * @param args   - The command arguments.
      */
     @CaughtExceptions
-    protected abstract void execute(@NotNull CommandSender sender, @NotNull ArgumentList args);
+    public abstract void execute(@NotNull CommandSender sender, @NotNull ArgumentList args);
     
     /**
-     * Gets a static list of tab-completers.
+     * Gets a {@link List} of available tab completions.
+     *
+     * <p>
+     * When checking for {@link ArgumentList#length}, mind that empty an argument counts as an argument, meaning to check for the first argument,
+     * you'd have to check for {@code length == 1}, since it can <u>never</u> be {@code 0}.
+     * </p>
      *
      * @param sender - The command sender.
      * @param args   - The command arguments.
-     * @return a list of tab-completers.
+     * @return a list of tab completions.
      * @see CompleterHandler
      */
     @NotNull
-    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+    public List<String> tabComplete(@NotNull CommandSender sender, @NotNull ArgumentList args) {
         return List.of();
     }
     

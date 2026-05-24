@@ -9,6 +9,8 @@ import me.hapyl.eterna.builtin.updater.Updater;
 import me.hapyl.eterna.module.command.ArgumentList;
 import me.hapyl.eterna.module.command.SimpleAdminCommand;
 import me.hapyl.eterna.module.registry.Key;
+import me.hapyl.eterna.module.util.StringList;
+import me.hapyl.eterna.module.util.TypeConverter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
@@ -29,30 +31,59 @@ public final class EternaCommand extends SimpleAdminCommand {
         key.validateKey();
         
         setDescription("API management administrative command.");
-        setCompleterValues(0, "update", "quest", "reload", "test", "class");
     }
     
     @Override
-    protected void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+    public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
         if (args.length == 0) {
-            sendCommandUsage(sender);
+            this.sendCommandUsage(sender);
+        }
+        
+        final Operation operation = args.get(0).toEnum(Operation.class);
+        
+        if (operation == null) {
+            EternaLogger.message(sender, Component.text("Invalid operation!", NamedTextColor.RED));
             return;
         }
         
-        switch (args.get(0).toString()) {
-            case "update" -> {
-                final Updater updater = Eterna.getUpdater();
-                updater.checkForUpdates()
-                       .thenAccept(response -> {
-                           EternaLogger.message(sender, response.result().asComponent());
-                           
-                           if (response.result() == UpdateResult.OUTDATED) {
-                               EternaLogger.message(sender, response.downloadUrl());
-                           }
-                       });
-            }
+        operation.execute(sender, args.copyOfRange(1));
+    }
+    
+    @NotNull
+    @Override
+    public List<String> tabComplete(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+        if (args.length == 1) {
+            return StringList.ofEnumConstantLowercaseNames(Operation.class);
+        }
+        else if (args.length >= 2) {
+            final Operation operation = args.get(0).toEnum(Operation.class);
             
-            case "quest" -> {
+            return operation != null ? operation.tabComplete(args.copyOfRange(1)) : List.of();
+        }
+        
+        return List.of();
+    }
+    
+    public enum Operation {
+        
+        UPDATE {
+            @Override
+            public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+                final Updater updater = Eterna.getUpdater();
+                
+                updater.checkForUpdates().thenAccept(response -> {
+                    EternaLogger.message(sender, response.result().asComponent());
+                    
+                    if (response.result() == UpdateResult.OUTDATED) {
+                        EternaLogger.message(sender, response.downloadUrl());
+                    }
+                });
+            }
+        },
+        
+        QUEST {
+            @Override
+            public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
                 if (!(sender instanceof Player player)) {
                     EternaLogger.message(sender, Component.text("Only players may complete quests!", NamedTextColor.RED));
                 }
@@ -63,33 +94,37 @@ public final class EternaCommand extends SimpleAdminCommand {
                     new QuestJournal(player);
                 }
             }
-            
-            case "reload" -> {
-                if (args.length < 2) {
-                    EternaLogger.message(sender, Component.text("Reloading config...", NamedTextColor.YELLOW));
-                    
-                    Eterna.getConfig().reload()
-                          .thenRun(() -> {
-                              EternaLogger.message(sender, Component.text("Successfully reloaded config!", NamedTextColor.GREEN));
-                          })
-                          .exceptionally(ex -> {
-                              EternaLogger.message(
-                                      sender,
-                                      Component.text("Error reloading config! ", NamedTextColor.DARK_RED).append(Component.text(ex.getCause().getMessage(), NamedTextColor.YELLOW))
-                              );
-                              
-                              return null;
-                          });
-                }
+        },
+        
+        RELOAD {
+            @Override
+            public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+                EternaLogger.message(sender, Component.text("Reloading config...", NamedTextColor.YELLOW));
+                
+                Eterna.getConfig().reload()
+                      .thenRun(() -> {
+                          EternaLogger.message(sender, Component.text("Successfully reloaded config!", NamedTextColor.GREEN));
+                      })
+                      .exceptionally(ex -> {
+                          EternaLogger.message(
+                                  sender,
+                                  Component.text("Error reloading config! ", NamedTextColor.DARK_RED).append(Component.text(ex.getCause().getMessage(), NamedTextColor.YELLOW))
+                          );
+                          
+                          return null;
+                      });
             }
-            
-            case "test" -> {
+        },
+        
+        TEST {
+            @Override
+            public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
                 if (!Eterna.getConfig().keepTestCommands()) {
                     EternaLogger.message(sender, Component.text("Tests are disabled on this server!", NamedTextColor.RED));
                     return;
                 }
                 
-                final String testStringKey = args.get(1).toString();
+                final String testStringKey = args.get(0).toString();
                 final Key testKey = Key.ofStringOrNull(testStringKey);
                 
                 if (testKey == null) {
@@ -109,34 +144,29 @@ public final class EternaCommand extends SimpleAdminCommand {
                     return;
                 }
                 
-                test.test0(player, ArgumentList.copyOfRange(args, 2, args.length));
+                test.test0(player, args.copyOfRange(1));
             }
             
-            case "class" -> {
-                final String className = args.get(1).toString();
-                
-                try {
-                    final Class<?> clazz = Class.forName(className);
-                    
-                    EternaLogger.message(sender, Component.text("Found class `%s`!".formatted(clazz.getSimpleName()), NamedTextColor.GREEN));
-                    EternaLogger.message(sender, Component.text(" Full Path: %s".formatted(clazz.getName()), NamedTextColor.AQUA));
-                    EternaLogger.message(sender, Component.text(" Loader: %s".formatted(clazz.getClassLoader().toString()), NamedTextColor.DARK_AQUA));
-                } catch (ClassNotFoundException ex) {
-                    EternaLogger.message(sender, Component.text("Could not find class `%s`!".formatted(className), NamedTextColor.DARK_RED));
+            @NotNull
+            @Override
+            public List<String> tabComplete(@NotNull ArgumentList args) {
+                if (args.length == 1) {
+                    return EternaTestRegistry.listTests();
                 }
+                
+                return List.of();
             }
-            
-            default -> super.sendCommandUsage(sender);
-        }
-    }
-    
-    @NotNull
-    @Override
-    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull ArgumentList args) {
-        if (Eterna.getConfig().keepTestCommands() && args.get(0).toString().equals("test") && args.length == 2) {
-            return EternaTestRegistry.listTests();
+        };
+        
+        public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
+            throw new IllegalStateException();
         }
         
-        return super.tabComplete(sender, args);
+        @NotNull
+        public List<String> tabComplete(@NotNull ArgumentList args) {
+            return List.of();
+        }
+        
     }
+    
 }

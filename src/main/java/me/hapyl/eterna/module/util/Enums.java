@@ -54,21 +54,29 @@ public final class Enums {
      */
     @NotNull
     public static <T extends Enum<T>> String[] getValuesNames(@NotNull Class<T> enumClass) {
-        return getValuesNameAsList(enumClass).toArray(String[]::new);
+        return getValueNamesAsList(enumClass).toArray(String[]::new);
     }
     
     /**
      * Gets an <b>immutable</b> {@link List} containing the {@link Enum#name()} of each {@link Enum} constants.
      *
      * @param enumClass - The enum class.
-     * @param <T>       - The enum type.
      * @return an <b>immutable</b> list containing the name of each enum constants.
      */
     @NotNull
-    public static <T extends Enum<T>> List<String> getValuesNameAsList(@NotNull Class<T> enumClass) {
-        return Arrays.stream(enumClass.getEnumConstants())
-                     .map(Enum::name)
-                     .toList();
+    public static List<String> getValueNamesAsList(@NotNull Class<? extends Enum<?>> enumClass) {
+        return getValueNamesAsList0(enumClass, false);
+    }
+    
+    /**
+     * Gets an <b>immutable</b> {@link List} containing the lowercase {@link Enum#name()} of each {@link Enum} constants.
+     *
+     * @param enumClass - The enum class.
+     * @return an <b>immutable</b> list containing the name of each enum constants.
+     */
+    @NotNull
+    public static List<String> getValueLowercaseNamesAsList(@NotNull Class<? extends Enum<?>> enumClass) {
+        return getValueNamesAsList0(enumClass, true);
     }
     
     /**
@@ -153,7 +161,6 @@ public final class Enums {
         return CollectionUtils.randomElement(getValues(enumClass), defaultValue);
     }
     
-    
     /**
      * Gets a random {@link Enum} value for the given {@link Enum}, or the first constant if the {@link Enum} is empty.
      *
@@ -164,6 +171,14 @@ public final class Enums {
     @NotNull
     public static <T extends Enum<T>> T getRandomValueOrFirst(@NotNull Class<T> enumClass) {
         return CollectionUtils.randomElementOrFirst(getValues(enumClass));
+    }
+    
+    @NotNull
+    private static List<String> getValueNamesAsList0(@NotNull Class<? extends Enum<?>> enumClass, boolean lowercase) {
+        return Arrays.stream(enumClass.getEnumConstants())
+                     .map(Enum::name)
+                     .map(name -> lowercase ? name.toLowerCase() : name)
+                     .toList();
     }
     
 }
