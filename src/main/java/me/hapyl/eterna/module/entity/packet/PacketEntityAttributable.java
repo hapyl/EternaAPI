@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a {@link PacketEntity} that may have {@link Attribute}, which is only available for living entities.
  */
-public interface PacketEntityAttributable {
+public interface PacketEntityAttributable extends PacketEntity {
     
     /**
      * Gets the value associated with the given {@link Attribute}, or {@code null} if the attribute is not supported.
