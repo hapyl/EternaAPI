@@ -22,19 +22,19 @@ import java.util.Set;
  *
  * @param <T> - The entity type.
  */
-@ApiStatus.Internal
-public abstract class AbstractPacketEntity<T extends Entity> implements PacketEntity {
+public abstract class PacketEntityImpl<T extends Entity> implements PacketEntity {
+    
+    private static final String PACKET_ENTITY_TEAM_PREFIX = "pk_";
     
     protected final T entity;
     protected final PacketTeam packetTeam;
-    
-    private final Set<Player> showingTo;
+    protected final Set<Player> showingTo;
     
     @NotNull private Team.OptionStatus collision;
     
-    AbstractPacketEntity(@NotNull T entity, @NotNull Location location) {
+    PacketEntityImpl(@NotNull T entity, @NotNull Location location) {
         this.entity = entity;
-        this.packetTeam = new PacketTeam("packet_entity_" + entity.getUUID());
+        this.packetTeam = new PacketTeam(PACKET_ENTITY_TEAM_PREFIX + entity.getUUID());
         
         this.showingTo = Sets.newHashSet();
         this.collision = Team.OptionStatus.ALWAYS;
@@ -88,25 +88,25 @@ public abstract class AbstractPacketEntity<T extends Entity> implements PacketEn
     @Override
     public void setVisible(boolean visibility) {
         this.entity.setInvisible(!visibility);
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
     
     @Override
     public void setCollision(boolean collision) {
         this.collision = collision ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER;
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
     
     @Override
     public void setSilent(boolean silent) {
         this.entity.setSilent(silent);
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
     
     @Override
     public void setGravity(boolean gravity) {
         this.entity.setNoGravity(!gravity);
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
     
     @Override
@@ -116,34 +116,39 @@ public abstract class AbstractPacketEntity<T extends Entity> implements PacketEn
     }
     
     @NotNull
+    @Override
     public Location getLocation() {
         return Reflect.getEntityLocation(entity);
     }
     
     @NotNull
     @Override
-    public Collection<Player> showingTo() {
-        return List.copyOf(showingTo);
+    public <D> Optional<D> getEntityDataValue(@NotNull EntityDataSerializer<D> type, int id) {
+        return Optional.of(entity.getEntityData().get(type.createAccessor(id)));
     }
     
-    @NotNull
-    protected <D> Optional<D> getEntityDataValue(@NotNull EntityDataSerializer<D> type, int id) {
-        return Reflect.getEntityDataValue(entity, type, id);
-    }
-    
-    protected <D> void setEntityDataValue(@NotNull EntityDataSerializer<D> type, int id, @NotNull D value) {
+    @Override
+    public <D> void setEntityDataValue(@NotNull EntityDataSerializer<D> type, int id, @NotNull D value) {
         entity.getEntityData().set(type.createAccessor(id), value);
     }
     
-    protected void updateEntityData(@NotNull Player player) {
+    @Override
+    public void updateEntityData(@NotNull Player player) {
         this.packetTeam.option(player, Team.Option.COLLISION_RULE, collision);
         
         // Other flags are set on the entity object directly into entity data, so just send the packet
         Reflect.updateEntityData(player, entity);
     }
     
-    protected void updateEntityDataForAll() {
+    @Override
+    public void updateEntityData() {
         this.showingTo.forEach(this::updateEntityData);
+    }
+    
+    @NotNull
+    @Override
+    public Collection<Player> showingTo() {
+        return List.copyOf(showingTo);
     }
     
     @ApiStatus.Internal

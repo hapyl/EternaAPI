@@ -16,7 +16,7 @@ import org.joml.Matrix4f;
 /**
  * Represents a {@link Display.BlockDisplay} packet entity.
  */
-public class PacketBlockDisplay extends AbstractPacketEntity<Display.BlockDisplay> {
+public class PacketBlockDisplay extends PacketEntityImpl<Display.BlockDisplay> {
     
     /**
      * Creates a new {@link PacketBlockDisplay}.
@@ -46,7 +46,7 @@ public class PacketBlockDisplay extends AbstractPacketEntity<Display.BlockDispla
      */
     public void setBlockData(@NotNull BlockData data) {
         this.entity.setBlockState(Reflect.getBlockStateFromBlockData(data));
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
     
     /**
@@ -86,7 +86,7 @@ public class PacketBlockDisplay extends AbstractPacketEntity<Display.BlockDispla
     @ApiStatus.Internal
     private void setTransformation0(@NotNull com.mojang.math.Transformation transformation) {
         this.entity.setTransformation(transformation);
-        this.updateEntityDataForAll();
+        this.updateEntityData();
     }
     
 }

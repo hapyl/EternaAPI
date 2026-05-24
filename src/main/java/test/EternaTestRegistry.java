@@ -76,6 +76,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.bukkit.*;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
@@ -1394,10 +1395,15 @@ public final class EternaTestRegistry {
                                context.info(Component.text("Spawned packet guardian & squid"));
                                
                                packetGuardian.setVisible(false);
-                               packetSquid.setVisible(false);
+                               packetSquid.setVisible(true);
+                               
+                               packetGuardian.setAttribute(Attributes.SCALE, 0.1);
                                
                                packetGuardian.showAll();
                                packetSquid.showAll();
+                               
+                               packetSquid.setAttribute(Attributes.SCALE, 2);
+                               packetSquid.updateAttributes();
                                
                                packetGuardian.setBeamTarget(packetSquid);
                            }, 40))
