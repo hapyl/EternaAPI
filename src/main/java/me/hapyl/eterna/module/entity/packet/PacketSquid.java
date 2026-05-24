@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a {@link Squid} packet entity.
  */
-public class PacketSquid extends PacketEntityAttributableImpl<Squid> {
+public class PacketSquid extends PacketLivingEntityImpl<Squid> {
     
     /**
      * Creates a new {@link PacketSquid}.

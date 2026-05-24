@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a {@link Guardian} packet entity.
  */
-public class PacketGuardian extends PacketEntityAttributableImpl<Guardian> {
+public class PacketGuardian extends PacketLivingEntityImpl<Guardian> {
     
     /**
      * Creates a new {@link PacketGuardian}.
