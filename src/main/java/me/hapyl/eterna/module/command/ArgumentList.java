@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
- * Represents a list of arguments, with access to each element via {@link TypeConverter}.
+ * Represents a {@link ArgumentList} which is a wrapped for {@code String[]} arguments with access to each element via {@link TypeConverter}.
  */
 public class ArgumentList {
     
@@ -19,13 +19,13 @@ public class ArgumentList {
     private final String[] array;
     
     /**
-     * Creates a new {@link ArgumentList} from the input {@code array}.
+     * Creates a new {@link ArgumentList} from the given {@code args}.
      *
-     * @param array - The input array.
+     * @param args - The string arguments.
      */
-    public ArgumentList(@NotNull String[] array) {
-        this.array = array;
-        this.length = array.length;
+    public ArgumentList(@NotNull String[] args) {
+        this.array = args;
+        this.length = args.length;
     }
     
     /**
@@ -50,20 +50,20 @@ public class ArgumentList {
     }
     
     /**
-     * Returns the {@link Float} at the given index, or {@code 0f} if the index is out of bounds or does not contain a float.
+     * Returns the {@link Float} at the given index, or {@code 0} if the index is out of bounds or does not contain a float.
      *
      * @param index - The index to retrieve the value from.
-     * @return The float at the given index, or {@code 0f} if unavailable.
+     * @return The float at the given index, or {@code 0} if unavailable.
      */
     public float getFloat(int index) {
         return get(index).toFloat();
     }
     
     /**
-     * Returns the {@link Double} at the given index, or {@code 0d} if the index is out of bounds or does not contain a double.
+     * Returns the {@link Double} at the given index, or {@code 0} if the index is out of bounds or does not contain a double.
      *
      * @param index - The index to retrieve the value from.
-     * @return The double at the given index, or {@code 0f} if unavailable.
+     * @return The double at the given index, or {@code 0} if unavailable.
      */
     public double getDouble(int index) {
         return get(index).toDouble();
@@ -81,35 +81,101 @@ public class ArgumentList {
     }
     
     /**
-     * Converts the array into a single string starting from the specified index,
-     * with elements separated by spaces.
-     * <p>If the index is out of bounds, returns an empty string.</p>
+     * Joins the arguments into a single string starting from the specified index, with each element separated by the given {@code separator}.
      *
      * @param startIndex - The starting index from which to begin joining the array elements.
-     * @return A space-separated string of array elements from the given index, or an empty string if the index is invalid.
+     * @param separator  - The separator to be used between each element.
+     * @return A single string of element string values separated by the given separator.
      */
     @NotNull
-    public String makeStringArray(int startIndex) {
+    public String joinString(int startIndex, @NotNull String separator) {
         if (startIndex < 0 || startIndex > array.length) {
             return "";
         }
         
         return Arrays.stream(array)
                      .map(String::valueOf)
-                     .collect(Collectors.joining(" "));
+                     .collect(Collectors.joining(separator));
     }
     
     /**
-     * Creates a copy of the given {@link ArgumentList} from the specified range.
+     * Joins the arguments into a single string starting from the specified index, with each element separated by a space.
+     *
+     * @param startIndex - The starting index from which to begin joining the array elements.
+     * @return A single string of element string values separated by a space.
+     */
+    @NotNull
+    public String joinString(int startIndex) {
+        return joinString(startIndex, " ");
+    }
+    
+    /**
+     * Gets the string representation of this {@link ArgumentList}.
+     *
+     * @return the string representation of this argument list.
+     */
+    @Override
+    public String toString() {
+        return Arrays.toString(array);
+    }
+    
+    /**
+     * Creates a copy of this {@link ArgumentList} from and to the specified ranges.
+     *
+     * @param from - The starting index (inclusive).
+     * @param to   - The ending index (exclusive).
+     * @return a copy of this argument list.
+     */
+    @NotNull
+    public ArgumentList copyOfRange(int from, int to) {
+        return copyOfRange(this, from, to);
+    }
+    
+    /**
+     * Creates a copy of this {@link ArgumentList} from the specified index to the end of the arguments list.
+     *
+     * @param from - The starting index (inclusive).
+     * @return a copy of this argument list.
+     */
+    @NotNull
+    public ArgumentList copyOfRange(int from) {
+        return copyOfRange(this, from, this.length);
+    }
+    
+    /**
+     * Creates a copy of the given {@link ArgumentList} from and to the specified ranges.
      *
      * @param origin - The original argument list.
      * @param from   - The starting index (inclusive).
-     * @param to     - The ending index (inclusive).
-     * @return a range copy of the argument list.
+     * @param to     - The ending index (exclusive).
+     * @return a copy of the argument list.
      */
     @NotNull
     public static ArgumentList copyOfRange(@NotNull ArgumentList origin, int from, int to) {
         return new ArgumentList(Arrays.copyOfRange(origin.array, from, to));
     }
+    
+    /**
+     * Creates a copy of the given {@link ArgumentList} from the specified index to the end of the arguments list.
+     *
+     * @param origin - The original argument list.
+     * @param from   - The starting index (inclusive).
+     * @return a copy of the argument list.
+     */
+    @NotNull
+    public static ArgumentList copyOfRange(@NotNull ArgumentList origin, int from) {
+        return copyOfRange(origin, from, origin.length);
+    }
+    
+    /**
+     * A static factory method for creating {@link ArgumentList} from the given {@code args}.
+     *
+     * @param args - The arguments from which to create the argument list.
+     * @return a new argument list.
+     */
+    @NotNull
+    public static ArgumentList create(@NotNull String[] args) {
+        return new ArgumentList(args);
+    }
+    
 }
-

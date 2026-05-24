@@ -71,7 +71,7 @@ public final class CommandHandle extends Command {
         
         // Attempt to execute the command
         try {
-            command.execute(sender, new ArgumentList(args));
+            command.execute(sender, ArgumentList.create(args));
         }
         catch (Exception ex) {
             formatter.executionError(sender, ex);
@@ -97,10 +97,10 @@ public final class CommandHandle extends Command {
             return List.of();
         }
         
-        final ArgumentList argumentList = new ArgumentList(args);
+        final ArgumentList argumentList = ArgumentList.create(args);
         final List<String> completerList = Lists.newArrayList(command.tabComplete(sender, argumentList));
         
-        // We offset by 1 because the index is arguments length, and we need to target the current argument
+        // We offset by 1 because bukkit arguments are never empty
         final int argumentIndex = args.length - 1;
         final String lastArgument = args[argumentIndex];
         
