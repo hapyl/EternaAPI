@@ -1182,7 +1182,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     @NotNull
     private ItemFunctionList localFunctions() throws IllegalStateException {
         if (this.localFunctions == null) {
-            throw new IllegalStateException("Functions aren't supported for anonymous builders!");
+            throw new IllegalStateException("Functions aren't supported for anonymous builders; you must set the Key!");
         }
         
         return this.localFunctions;

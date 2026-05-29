@@ -6,9 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.BiFunction;
 
 /**
- * Represents a tab-completer sort method.
+ * Represents a tab-completer method, which is how completions are removed from available completer list.
  */
-public enum CompleterSortMethod implements BiFunction<String, String, Boolean> {
+public enum CompleterMethod implements BiFunction<String, String, Boolean> {
     
     /**
      * The method is to check whether the completion starts with the argument.

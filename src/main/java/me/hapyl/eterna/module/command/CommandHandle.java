@@ -123,7 +123,7 @@ public final class CommandHandle extends Command {
         }
         
         // First, remove completions that aren't applicable
-        completerList.removeIf(v -> !command.completerSortMethod().apply(v, lastArgument));
+        completerList.removeIf(v -> !command.completerMethod().apply(v, lastArgument));
         
         // Then append tooltips at the end because they must be last
         completerList.addAll(tooltipList);

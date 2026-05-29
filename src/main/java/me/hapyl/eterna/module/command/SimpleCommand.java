@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.CaughtExceptions;
 import me.hapyl.eterna.module.annotate.ForceLowercase;
 import me.hapyl.eterna.module.command.completer.CompleterHandler;
-import me.hapyl.eterna.module.command.completer.CompleterSortMethod;
+import me.hapyl.eterna.module.command.completer.CompleterMethod;
 import me.hapyl.eterna.module.util.Cooldown;
 import me.hapyl.eterna.module.util.Handle;
 import me.hapyl.eterna.module.util.Validate;
@@ -71,13 +71,13 @@ public abstract class SimpleCommand implements Handle<Command>, Cooldown {
     }
     
     /**
-     * Gets the {@link CompleterSortMethod} for this command.
+     * Gets the {@link CompleterMethod} for this command.
      *
-     * @return the completer sort method for this command.
+     * @return the completer method for this command.
      */
     @NotNull
-    public CompleterSortMethod completerSortMethod() {
-        return CompleterSortMethod.STARTS_WITH;
+    public CompleterMethod completerMethod() {
+        return CompleterMethod.STARTS_WITH;
     }
     
     /**

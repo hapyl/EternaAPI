@@ -105,6 +105,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.awt.image.WritableRenderedImage;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -2037,6 +2038,20 @@ public final class EternaTestRegistry {
             Holder.PREFIX.broadcastMessage(Component.text("A message for everyone!", EternaColors.GOLD));
             
             context.assertTestPassed();
+        });
+        
+        register("item_function_clicks", context -> {
+            class Holder {
+                private static final ItemStack WRITABLE_BOOK = new ItemBuilder(Material.WRITABLE_BOOK, Key.ofString("test_item"))
+                        .setName(Component.text("Writable Book"))
+                        .addFunction(ItemFunction.builder(player -> player.sendMessage(Component.text("You clicked!"))).build())
+                        .build();
+            }
+            
+            final PlayerInventory inventory = context.player().getInventory();
+            inventory.clear();
+            
+            inventory.addItem(Holder.WRITABLE_BOOK);
         });
         
         // *-* End Tests *-* //
