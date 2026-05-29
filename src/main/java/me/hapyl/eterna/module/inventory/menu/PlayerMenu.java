@@ -744,8 +744,7 @@ public abstract class PlayerMenu implements Cooldown {
     /**
      * Internal method to set {@link ItemStack} and {@link PlayerMenuAction}.
      */
-    @ApiStatus.Internal
-    public final void setItem0(int slot, @Nullable ItemStack item, @Nullable PlayerMenuAction action) {
+    public final void setItem0(final int slot, @Nullable ItemStack item, @Nullable PlayerMenuAction action) {
         final int inventorySize = getMenuSize();
         
         // Silently fail instead of throwing an exception
