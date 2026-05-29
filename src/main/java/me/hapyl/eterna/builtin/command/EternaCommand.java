@@ -124,10 +124,6 @@ public final class EternaCommand extends SimpleAdminCommand {
                     return;
                 }
                 
-                if (true) {
-                    EternaLogger.debug(EternaTestRegistry.listTests());
-                }
-                
                 final String testStringKey = args.get(0).toString();
                 final Key testKey = Key.ofStringOrNull(testStringKey);
                 

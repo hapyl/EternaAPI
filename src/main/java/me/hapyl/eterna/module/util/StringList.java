@@ -1,6 +1,5 @@
 package me.hapyl.eterna.module.util;
 
-import com.google.common.collect.Lists;
 import me.hapyl.eterna.module.command.ArgumentList;
 import me.hapyl.eterna.module.command.SimpleCommand;
 import me.hapyl.eterna.module.registry.Registry;

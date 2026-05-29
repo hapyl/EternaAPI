@@ -2054,6 +2054,22 @@ public final class EternaTestRegistry {
             inventory.addItem(Holder.WRITABLE_BOOK);
         });
         
+        register("component_style_all", context -> {
+            final TextComponent component = Component.empty()
+                                                     .append(Component.text("Component", NamedTextColor.GREEN))
+                                                     .append(
+                                                             Component.empty()
+                                                                      .append(Component.text("Deep component", NamedTextColor.YELLOW))
+                                                                      .append(Component.text(" 123 ", NamedTextColor.AQUA))
+                                                     )
+                                                     .append(
+                                                             Component.empty()
+                                                                      .append(Component.empty().append(Component.text("Even deeper", NamedTextColor.RED)))
+                                                     );
+            
+            context.player().sendMessage(Components.applyStyle(component, Style.style(NamedTextColor.DARK_GRAY, TextDecoration.ITALIC)));
+        });
+        
         // *-* End Tests *-* //
         
         final long tookMillis = System.currentTimeMillis() - startMillis;
