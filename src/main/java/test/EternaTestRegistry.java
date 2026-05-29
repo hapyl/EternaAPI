@@ -68,6 +68,8 @@ import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
+import me.hapyl.eterna.module.text.prefix.Prefix;
+import me.hapyl.eterna.module.text.prefix.PrefixImpl;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -2022,6 +2024,17 @@ public final class EternaTestRegistry {
             );
             
             context.player().sendMessage(testName);
+            
+            context.assertTestPassed();
+        });
+        
+        register("prefix", context -> {
+            class Holder {
+                private static final Prefix PREFIX = Prefix.create(Component.text("☃"), Component.space());
+            }
+            
+            Holder.PREFIX.sendMessage(context.player(), Component.text("Personal message!", EternaColors.AQUA));
+            Holder.PREFIX.broadcastMessage(Component.text("A message for everyone!", EternaColors.GOLD));
             
             context.assertTestPassed();
         });
