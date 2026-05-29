@@ -435,4 +435,20 @@ public final class Components {
         return Flattener.flatten(component);
     }
     
+    /**
+     * Applies the given {@link Style} on the given {@link Component} and all its children, including the children of children.
+     *
+     * @param component - The component to style.
+     * @param style     - The style to apply.
+     * @return a new component with all of its children having the given style applied.
+     */
+    @NotNull
+    public static Component applyStyle(@NotNull Component component, @NotNull Style style) {
+        final Component styled = component.style(style);
+        
+        return component.children().isEmpty()
+               ? styled
+               : styled.children(component.children().stream().map(child -> applyStyle(child, style)).toList());
+    }
+    
 }

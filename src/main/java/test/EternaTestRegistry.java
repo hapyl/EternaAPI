@@ -68,6 +68,8 @@ import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
+import me.hapyl.eterna.module.text.prefix.Prefix;
+import me.hapyl.eterna.module.text.prefix.PrefixImpl;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -103,6 +105,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.awt.image.WritableRenderedImage;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -2024,6 +2027,47 @@ public final class EternaTestRegistry {
             context.player().sendMessage(testName);
             
             context.assertTestPassed();
+        });
+        
+        register("prefix", context -> {
+            class Holder {
+                private static final Prefix PREFIX = Prefix.create(Component.text("☃"), Component.space());
+            }
+            
+            Holder.PREFIX.sendMessage(context.player(), Component.text("Personal message!", EternaColors.AQUA));
+            Holder.PREFIX.broadcastMessage(Component.text("A message for everyone!", EternaColors.GOLD));
+            
+            context.assertTestPassed();
+        });
+        
+        register("item_function_clicks", context -> {
+            class Holder {
+                private static final ItemStack WRITABLE_BOOK = new ItemBuilder(Material.WRITABLE_BOOK, Key.ofString("test_item"))
+                        .setName(Component.text("Writable Book"))
+                        .addFunction(ItemFunction.builder(player -> player.sendMessage(Component.text("You clicked!"))).build())
+                        .build();
+            }
+            
+            final PlayerInventory inventory = context.player().getInventory();
+            inventory.clear();
+            
+            inventory.addItem(Holder.WRITABLE_BOOK);
+        });
+        
+        register("component_style_all", context -> {
+            final TextComponent component = Component.empty()
+                                                     .append(Component.text("Component", NamedTextColor.GREEN))
+                                                     .append(
+                                                             Component.empty()
+                                                                      .append(Component.text("Deep component", NamedTextColor.YELLOW))
+                                                                      .append(Component.text(" 123 ", NamedTextColor.AQUA))
+                                                     )
+                                                     .append(
+                                                             Component.empty()
+                                                                      .append(Component.empty().append(Component.text("Even deeper", NamedTextColor.RED)))
+                                                     );
+            
+            context.player().sendMessage(Components.applyStyle(component, Style.style(NamedTextColor.DARK_GRAY, TextDecoration.ITALIC)));
         });
         
         // *-* End Tests *-* //

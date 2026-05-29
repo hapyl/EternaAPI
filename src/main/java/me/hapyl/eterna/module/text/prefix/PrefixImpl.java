@@ -36,9 +36,9 @@ public final class PrefixImpl implements Prefix {
     
     @Override
     public void broadcastMessage(@NotNull Component message) {
-        final Component prefixedMessage = applyPrefix(message);
+        final Component component = applyPrefix(message);
         
-        Bukkit.getOnlinePlayers().forEach(player -> sendMessage(player, prefixedMessage));
+        Bukkit.getServer().broadcast(component);
     }
     
     @NotNull
