@@ -69,7 +69,6 @@ import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.text.prefix.Prefix;
-import me.hapyl.eterna.module.text.prefix.PrefixImpl;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -105,7 +104,6 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.awt.image.WritableRenderedImage;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -199,7 +197,7 @@ public final class EternaTestRegistry {
                                PacketTeamColor newColor;
                                
                                do {
-                                   newColor = PacketTeamColor.random();
+                                   newColor = PacketTeamColor.ofRandom();
                                }
                                while (newColor == glowingColor);
                                

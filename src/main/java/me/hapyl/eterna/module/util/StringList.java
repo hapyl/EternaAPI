@@ -270,7 +270,7 @@ public final class StringList implements List<String> {
      */
     public static @NotNull Collector<String, ?, StringList> collector() {
         return Collector.of(
-                ArrayList<String>::new,
+                ArrayList::new,
                 List::add,
                 (left, right) -> {
                     left.addAll(right);
