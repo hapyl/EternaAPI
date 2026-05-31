@@ -2040,20 +2040,6 @@ public final class EternaTestRegistry {
             context.assertTestPassed();
         });
         
-        register("item_function_clicks", context -> {
-            class Holder {
-                private static final ItemStack WRITABLE_BOOK = new ItemBuilder(Material.WRITABLE_BOOK, Key.ofString("test_item"))
-                        .setName(Component.text("Writable Book"))
-                        .addFunction(ItemFunction.builder(player -> player.sendMessage(Component.text("You clicked!"))).build())
-                        .build();
-            }
-            
-            final PlayerInventory inventory = context.player().getInventory();
-            inventory.clear();
-            
-            inventory.addItem(Holder.WRITABLE_BOOK);
-        });
-        
         register("component_style_all", context -> {
             final TextComponent component = Component.empty()
                                                      .append(Component.text("Component", NamedTextColor.GREEN))

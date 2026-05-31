@@ -70,7 +70,6 @@ public final class ItemFunctionList implements Cloneable, Keyed {
      * @return a set of matching functions.
      */
     @NotNull
-    @ApiStatus.Internal
     public Set<ItemFunction> matchFunctions(@NotNull Set<Action> actions) {
         return this.functions.stream()
                              .filter(function -> !Collections.disjoint(function.actions, actions))
@@ -84,7 +83,6 @@ public final class ItemFunctionList implements Cloneable, Keyed {
      * @return a set of matching functions.
      */
     @NotNull
-    @ApiStatus.Internal
     public Set<ItemFunction> matchFunctions(@NotNull Action action) {
         return this.functions.stream()
                              .filter(function -> function.actions.contains(action))

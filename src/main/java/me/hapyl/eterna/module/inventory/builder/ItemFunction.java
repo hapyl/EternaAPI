@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.inventory.builder;
 
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.module.annotate.SelfReturn;
+import me.hapyl.eterna.module.player.PlayerAction;
 import me.hapyl.eterna.module.util.Buildable;
 import me.hapyl.eterna.module.util.DescriptivePredicate;
 import net.kyori.adventure.text.Component;
@@ -15,14 +16,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Represents an {@link ItemFunction} that may be applied to an {@link ItemBuilder}.
  */
 public abstract class ItemFunction implements Cloneable {
     
-    private static final Set<Action> defaultActions = Set.of(Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK);
+    private static final Set<Action> DEFAULT_ACTIONS = Set.of(Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK);
     
     @NotNull protected Set<Action> actions;
     
@@ -127,15 +127,14 @@ public abstract class ItemFunction implements Cloneable {
     /**
      * Creates new {@link Builder} for {@link ItemFunction}.
      *
-     * @param clickAction - The action to perform.
+     * @param playerAction - The action to perform.
      * @return a new builder.
      */
-    @NotNull
-    public static Builder builder(@NotNull Consumer<Player> clickAction) {
+    public static @NotNull Builder builder(@NotNull PlayerAction playerAction) {
         return new Builder(new ItemFunction() {
             @Override
             public void execute(@NotNull Player player) {
-                clickAction.accept(player);
+                playerAction.use(player);
             }
         });
     }
@@ -227,8 +226,9 @@ public abstract class ItemFunction implements Cloneable {
         @Override
         @NotNull
         public ItemFunction build() {
+            // Use builder functions are empty, use DEFAULT_ACTIONS
             if (function.actions.isEmpty()) {
-                function.actions.addAll(defaultActions);
+                function.actions.addAll(DEFAULT_ACTIONS);
             }
             
             return function;
