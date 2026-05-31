@@ -26,20 +26,12 @@ import java.util.stream.Stream;
  */
 public final class StringList implements List<String> {
     
-    private static final StringList EMPTY_STRING_LIST = new StringList();
+    private static final StringList EMPTY_STRING_LIST = new StringList(new String[0]);
     
     private final @NotNull String[] elements;
     
     private StringList(@NotNull String[] array /* Trusted copy */) {
         this.elements = array;
-    }
-    
-    private StringList() {
-        this(new String[0]);
-    }
-    
-    private StringList(@NotNull Collection<? extends String> collection) {
-        this.elements = Arrays.copyOf(collection.toArray(String[]::new), collection.size());
     }
     
     @Override
@@ -258,6 +250,11 @@ public final class StringList implements List<String> {
         return Arrays.copyOf(elements, elements.length);
     }
     
+    @Override
+    public String toString() {
+        return Arrays.toString(elements);
+    }
+    
     private int validateIndex(int index) {
         if (index < 0 || index >= elements.length) {
             throw new IndexOutOfBoundsException(index);
@@ -273,13 +270,13 @@ public final class StringList implements List<String> {
      */
     public static @NotNull Collector<String, ?, StringList> collector() {
         return Collector.of(
-                ArrayList<String>::new,
+                ArrayList::new,
                 List::add,
                 (left, right) -> {
                     left.addAll(right);
                     return left;
                 },
-                StringList::new
+                StringList::collectionToStringList
         );
     }
     
@@ -304,7 +301,7 @@ public final class StringList implements List<String> {
      */
     
     public static @NotNull StringList of(@NotNull String... varargs) {
-        return varargs.length == 0 ? EMPTY_STRING_LIST : new StringList(Arrays.asList(varargs));
+        return varargs.length == 0 ? EMPTY_STRING_LIST : new StringList(Arrays.copyOf(varargs, varargs.length));
     }
     
     /**
@@ -324,7 +321,7 @@ public final class StringList implements List<String> {
      * @return a new string list.
      */
     public static @NotNull StringList ofEnumConstantNames(@NotNull Class<? extends Enum<?>> enumClass) {
-        return new StringList(Enums.getValueNamesAsList(enumClass));
+        return collectionToStringList(Enums.getValueNamesAsList(enumClass));
     }
     
     /**
@@ -334,7 +331,7 @@ public final class StringList implements List<String> {
      * @return a new string list.
      */
     public static @NotNull StringList ofEnumConstantLowercaseNames(@NotNull Class<? extends Enum<?>> enumClass) {
-        return new StringList(Enums.getValueLowercaseNamesAsList(enumClass));
+        return collectionToStringList(Enums.getValueLowercaseNamesAsList(enumClass));
     }
     
     /**
@@ -345,7 +342,7 @@ public final class StringList implements List<String> {
      */
     
     public static @NotNull StringList ofRegistryKeys(@NotNull Registry<?> registry) {
-        return new StringList(registry.keysAsString());
+        return collectionToStringList(registry.keysAsString());
     }
     
     /**
@@ -361,6 +358,10 @@ public final class StringList implements List<String> {
     
     private static @NotNull UnsupportedOperationException uoe(@NotNull String operation) {
         throw new UnsupportedOperationException(operation);
+    }
+    
+    private static @NotNull StringList collectionToStringList(@NotNull Collection<? extends String> collection) {
+        return new StringList(collection.toArray(String[]::new));
     }
     
     @ApiStatus.Internal

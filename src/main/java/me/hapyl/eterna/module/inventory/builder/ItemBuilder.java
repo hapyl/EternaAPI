@@ -14,6 +14,7 @@ import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.component.ComponentList;
 import me.hapyl.eterna.module.component.ComponentMapper;
 import me.hapyl.eterna.module.component.Components;
+import me.hapyl.eterna.module.player.PlayerAction;
 import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.registry.CloneableKeyed;
 import me.hapyl.eterna.module.registry.Key;
@@ -31,8 +32,6 @@ import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -217,39 +216,13 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         }
     }
     
-    // *-* Click actions *-* //
-    
-    /**
-     * Adds a {@link ItemFunction} to this {@link ItemBuilder}.
-     * <p>This method defaults to {@link Action#RIGHT_CLICK_BLOCK} and {@link Action#RIGHT_CLICK_AIR} click types.</p>
-     *
-     * @param clickAction - The action to perform.
-     */
-    @SelfReturn
-    public ItemBuilder addClickAction(@NotNull Consumer<Player> clickAction) {
-        return addClickAction(clickAction, Action.RIGHT_CLICK_BLOCK, Action.RIGHT_CLICK_AIR);
-    }
-    
-    /**
-     * Adds a {@link ItemFunction} to this {@link ItemBuilder}.
-     *
-     * @param clickAction - The action to perform.
-     * @param clickTypes  - The click types this action is applicable to.
-     * @throws IllegalArgumentException if there is no click types provided
-     */
-    @SelfReturn
-    public ItemBuilder addClickAction(@NotNull Consumer<Player> clickAction, @Range(from = 1, to = Integer.MAX_VALUE) @NotNull Action... clickTypes) {
-        Validate.isTrue(clickTypes.length > 0, "There must be at least one click type!");
-        
-        localFunctions().add(ItemFunction.builder(clickAction).accepts(Arrays.asList(clickTypes)).build());
-        return this;
-    }
+    // *-* Functions *-* //
     
     /**
      * Adds a {@link ItemFunction} to this {@link ItemBuilder}.
      *
      * @param function - The function to add.
-     * @see ItemFunction#builder(Consumer)
+     * @see ItemFunction#builder(PlayerAction)
      */
     @SelfReturn
     public ItemBuilder addFunction(@NotNull ItemFunction function) {

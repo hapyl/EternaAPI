@@ -69,7 +69,6 @@ import me.hapyl.eterna.module.reflect.team.PacketTeamColor;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import me.hapyl.eterna.module.text.prefix.Prefix;
-import me.hapyl.eterna.module.text.prefix.PrefixImpl;
 import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -105,7 +104,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.awt.image.WritableRenderedImage;
+import javax.lang.model.element.ModuleElement;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -199,7 +198,7 @@ public final class EternaTestRegistry {
                                PacketTeamColor newColor;
                                
                                do {
-                                   newColor = PacketTeamColor.random();
+                                   newColor = PacketTeamColor.ofRandom();
                                }
                                while (newColor == glowingColor);
                                
@@ -1263,16 +1262,17 @@ public final class EternaTestRegistry {
                                 return;
                             }
                             
-                            displayEntity.asTagged(
+                            displayEntity.forEach(
                                     "ball", display -> {
-                                        final Transformation transformation = display.getTransformation();
-                                        final Vector3f translation = transformation.getTranslation();
+                                        final Vector3f translation = display.getTranslation();
                                         translation.y += (float) (Math.sin(theta) * 0.05d);
                                         
-                                        final Quaternionf leftRotation = transformation.getLeftRotation();
+                                        display.setTranslation(translation);
+                                        
+                                        final Quaternionf leftRotation = display.getRotation();
                                         leftRotation.y += (float) (Math.cos(theta) * 0.001d);
                                         
-                                        display.setTransformation(transformation);
+                                        display.setRotation(leftRotation);
                                     }
                             );
                             
@@ -1914,34 +1914,27 @@ public final class EternaTestRegistry {
         });
         
         register("sequencer", context -> {
-            final Sequencer sequencer = new Sequencer(Eterna.getPlugin()) {
-                @Override
-                public void onStopPlaying() {
-                    context.assertTestPassed();
-                }
-            };
+            final Sequencer sequencer = Sequencer.builder(Eterna.getPlugin())
+                                                 .track(
+                                                         Track.builder("---p---P---p---P---p---P------------s")
+                                                              .plingWhere('p', 1.0f)
+                                                              .plingWhere('P', 0.75f)
+                                                              .snareWhere('s', 0.75f)
+                                                 )
+                                                 .track(
+                                                         Track.builder("---b---B---b---B---b---B")
+                                                              .bassWhere('b', 1.0f)
+                                                              .bassWhere('B', 0.75f)
+                                                 )
+                                                 .track(
+                                                         Track.builder("---h---h---h---h---h---h")
+                                                              .where('h', (player, volume) -> {
+                                                                  player.sendHurtAnimation(0.0f);
+                                                              })
+                                                 )
+                                                 .build();
             
-            sequencer.addTrack(
-                    Track.builder("---p---P---p---P---p---P------------s")
-                         .plingWhere('p', 1.0f)
-                         .plingWhere('P', 0.75f)
-                         .snareWhere('s', 0.75f)
-            );
-            
-            sequencer.addTrack(
-                    Track.builder("---b---B---b---B---b---B")
-                         .bassWhere('b', 1.0f)
-                         .bassWhere('B', 0.75f)
-            );
-            
-            sequencer.addTrack(
-                    Track.builder("---h---h---h---h---h---h")
-                         .where('h', (player, volume) -> {
-                             player.sendHurtAnimation(0.0f);
-                         })
-            );
-            
-            sequencer.play(List.of(context.player()));
+            sequencer.play(context.player());
         });
         
         register("cooldowns", context -> {
@@ -2038,20 +2031,6 @@ public final class EternaTestRegistry {
             Holder.PREFIX.broadcastMessage(Component.text("A message for everyone!", EternaColors.GOLD));
             
             context.assertTestPassed();
-        });
-        
-        register("item_function_clicks", context -> {
-            class Holder {
-                private static final ItemStack WRITABLE_BOOK = new ItemBuilder(Material.WRITABLE_BOOK, Key.ofString("test_item"))
-                        .setName(Component.text("Writable Book"))
-                        .addFunction(ItemFunction.builder(player -> player.sendMessage(Component.text("You clicked!"))).build())
-                        .build();
-            }
-            
-            final PlayerInventory inventory = context.player().getInventory();
-            inventory.clear();
-            
-            inventory.addItem(Holder.WRITABLE_BOOK);
         });
         
         register("component_style_all", context -> {
