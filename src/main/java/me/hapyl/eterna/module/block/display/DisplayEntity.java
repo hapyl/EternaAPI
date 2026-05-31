@@ -1,6 +1,7 @@
 package me.hapyl.eterna.module.block.display;
 
 import io.papermc.paper.entity.TeleportFlag;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.CaseSensitive;
 import me.hapyl.eterna.module.location.Coordinates;
 import me.hapyl.eterna.module.location.Located;
@@ -41,7 +42,7 @@ import java.util.function.Consumer;
  * @see #setRotation(Vector3f)
  * @see #editRotation(VectorEdit)
  */
-public class DisplayEntity implements Iterable<Display>, Removable, Located, Coordinates, Rotation {
+public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located, Coordinates, Rotation {
     
     private static final float DEFAULT_SCALE = 1;
     private static final float DEFAULT_ROTATION = 0;
@@ -94,11 +95,11 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
         
         // Scale children
         for (DisplayPart child : this.children) {
-            final Vector3f previousTranslation = child.getTranslation();
-            final Vector3f previousScale = child.getScale();
+            final Vector3f restTranslation = child.restTranslation();
+            final Vector3f restScale = child.restScale();
             
-            final Vector3f newTranslation = previousTranslation.mul(scale);
-            final Vector3f newScale = new Vector3f(previousScale.mul(scale));
+            final Vector3f newTranslation = restTranslation.mul(scale);
+            final Vector3f newScale = new Vector3f(restScale.mul(scale));
             
             child.setTransformation(newTranslation, null, newScale);
         }
@@ -157,11 +158,18 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
         
         // Rotate children
         for (DisplayPart child : this.children) {
-            final Vector3f previousTranslation = child.getTranslation();
-            final Quaternionf previousRotation = child.getRotation();
+            final Vector3f restTranslation = child.restTranslation();
+            final Quaternionf restRotation = child.restRotation();
             
-            final Vector3f newTranslation = rotationQuaternion.transform(previousTranslation);
-            final Quaternionf newRotation = new Quaternionf(rotationQuaternion).mul(previousRotation).normalize();
+            final Vector3f newTranslation = rotationQuaternion.transform(restTranslation);
+            final Quaternionf newRotation = new Quaternionf(rotationQuaternion).mul(restRotation).normalize();
+            
+            if (child.isTagged("test")) {
+                EternaLogger.debugv(
+                        "restRotation", restRotation,
+                        "newRotation", newRotation
+                );
+            }
             
             child.setTransformation(newTranslation, newRotation, null);
         }
@@ -330,8 +338,8 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
      */
     @NotNull
     @Override
-    public Iterator<Display> iterator() {
-        return this.children.stream().map(DisplayPart::getDisplay).iterator();
+    public Iterator<DisplayPart> iterator() {
+        return this.children.stream().iterator();
     }
     
     /**
@@ -357,17 +365,15 @@ public class DisplayEntity implements Iterable<Display>, Removable, Located, Coo
     }
     
     /**
-     * Applies the given {@link Consumer} to all {@link Display} that are tagged with the given {@code tag}.
+     * Applies the given {@link Consumer} to each {@link DisplayPart} that is tagged with the given scoreboard {@code tag}.
      *
-     * @param tag      - The tag to check.
+     * @param tag      - The scoreboard tag to check.
      * @param consumer - The consumer to apply.
      */
-    public void asTagged(@NotNull @CaseSensitive String tag, @NotNull Consumer<Display> consumer) {
+    public void forEach(@NotNull @CaseSensitive String tag, @NotNull Consumer<? super DisplayPart> consumer) {
         for (DisplayPart child : this.children) {
-            final Display display = child.getDisplay();
-            
-            if (display.getScoreboardTags().contains(tag)) {
-                consumer.accept(display);
+            if (child.isTagged(tag)) {
+                consumer.accept(child);
             }
         }
     }

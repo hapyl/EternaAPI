@@ -104,6 +104,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import javax.lang.model.element.ModuleElement;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -1261,16 +1262,17 @@ public final class EternaTestRegistry {
                                 return;
                             }
                             
-                            displayEntity.asTagged(
+                            displayEntity.forEach(
                                     "ball", display -> {
-                                        final Transformation transformation = display.getTransformation();
-                                        final Vector3f translation = transformation.getTranslation();
+                                        final Vector3f translation = display.getTranslation();
                                         translation.y += (float) (Math.sin(theta) * 0.05d);
                                         
-                                        final Quaternionf leftRotation = transformation.getLeftRotation();
+                                        display.setTranslation(translation);
+                                        
+                                        final Quaternionf leftRotation = display.getRotation();
                                         leftRotation.y += (float) (Math.cos(theta) * 0.001d);
                                         
-                                        display.setTransformation(transformation);
+                                        display.setRotation(leftRotation);
                                     }
                             );
                             
