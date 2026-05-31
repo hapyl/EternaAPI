@@ -4,20 +4,24 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.annotate.SelfReturn;
+import me.hapyl.eterna.module.util.Buildable;
 import me.hapyl.eterna.module.util.Compute;
 import me.hapyl.eterna.module.util.EternaRunnable;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
 /**
- * Represents a {@link Sequencer} which is a sound sequence composed of {@link Track}, which represent a
- * linear {@link String} where individual characters map to specific {@link Sound}.
+ * Represents a {@link Sequencer} which is a sound sequence composed of {@link Track}, which represent a linear
+ * {@link String} where individual characters map to specific {@link Sound}.
  */
 public class Sequencer {
     
@@ -36,21 +40,19 @@ public class Sequencer {
     public static final float DEFAULT_VOLUME = 3.0f;
     
     private final Plugin plugin;
-    private final List<Track> tracks;
+    private final TreeMap<Integer, List<Tune>> compiled;
     
-    private int bpt;
-    private float volume;
+    private final float volume;
     
     /**
      * Creates a new {@link Sequencer}.
      *
      * @param plugin - The plugin to delegate task to.
      */
-    public Sequencer(@NotNull Plugin plugin) {
+    private Sequencer(@NotNull Plugin plugin, @NotNull List<? extends Track> tracks, float volume) {
         this.plugin = plugin;
-        this.tracks = Lists.newArrayList();
-        this.bpt = 1;
-        this.volume = DEFAULT_VOLUME;
+        this.compiled = compile(tracks);
+        this.volume = volume;
     }
     
     /**
@@ -59,23 +61,9 @@ public class Sequencer {
      * @param players - The players for whom to play the sequence.
      */
     public void play(@NotNull Collection<? extends Player> players) {
-        // Map the tracks
-        final TreeMap<Integer, List<Tune>> mappedTunes = Maps.newTreeMap();
-        
-        for (final Track track : this.tracks) {
-            for (int i = 0; i < track.track.length(); i++) {
-                final char ch = track.track.charAt(i);
-                final Tune tune = track.characterTuneMap.get(ch);
-                
-                if (ch != EMPTY_NOTE && tune != null) {
-                    mappedTunes.compute(i, Compute.listAdd(tune));
-                }
-            }
-        }
-        
         this.onStartPlaying();
         
-        final int maxNote = mappedTunes.lastKey();
+        final int maxNote = compiled.lastKey();
         
         new EternaRunnable(plugin) {
             private int note;
@@ -88,7 +76,7 @@ public class Sequencer {
                     return;
                 }
                 
-                final List<Tune> tunes = mappedTunes.get(note);
+                final List<Tune> tunes = compiled.get(note);
                 
                 // null tunes means there is nothing on that note
                 if (tunes != null) {
@@ -97,7 +85,16 @@ public class Sequencer {
                 
                 note++;
             }
-        }.runTaskTimer(0, bpt);
+        }.runTaskTimer(0, 1);
+    }
+    
+    /**
+     * Plays the sound sequence to the given {@link Player}.
+     *
+     * @param player - The player for whom to play the sequence.
+     */
+    public void play(@NotNull Player player) {
+        this.play(List.of(player));
     }
     
     /**
@@ -115,48 +112,91 @@ public class Sequencer {
     }
     
     /**
-     * Sets the bpt (Beats per Tick) of this {@link Sequencer}.
-     *
-     * @param bpt - The bpt to set; will be clamped between {@code 1} - {@code 20}.
-     */
-    @SelfReturn
-    public Sequencer bpt(final int bpt) {
-        this.bpt = Math.clamp(bpt, 1, 20);
-        return this;
-    }
-    
-    /**
-     * Sets the volume of this {@link Sequencer}.
-     *
-     * @param volume - The volume to set; will be clamped between {@code 0} - {@code 10}.
-     */
-    @SelfReturn
-    public Sequencer volume(final float volume) {
-        this.volume = Math.clamp(volume, 0, 10);
-        return this;
-    }
-    
-    /**
-     * Adds the given {@link Track} to this {@link Sequencer}.
-     *
-     * @param track - The track to add.
-     */
-    @SelfReturn
-    public Sequencer addTrack(@NotNull Track track) {
-        this.tracks.add(track);
-        return this;
-    }
-    
-    /**
      * A static factory method of creating {@link Sequencer}.
      *
      * @param plugin - The plugin delegate.
      * @param track  - The track to add.
      * @return a new sequencer.
      */
-    @NotNull
-    public static Sequencer singleTrack(@NotNull Plugin plugin, @NotNull Track track) {
-        return new Sequencer(plugin).addTrack(track);
+    public static @NotNull Sequencer singleTrack(@NotNull Plugin plugin, @NotNull Track track) {
+        return new Sequencer(plugin, List.of(track), DEFAULT_VOLUME);
+    }
+    
+    /**
+     * Creates a builder for {@link Sequencer}.
+     *
+     * @param plugin - The plugin delegate.
+     * @return a new builder.
+     */
+    public static @NotNull Builder builder(@NotNull Plugin plugin) {
+        return new Builder(plugin);
+    }
+    
+    @ApiStatus.Internal
+    private static @NotNull TreeMap<Integer, List<Tune>> compile(@NotNull List<? extends Track> tracks) {
+        final TreeMap<Integer, List<Tune>> compiled = Maps.newTreeMap();
+        
+        for (final Track track : tracks) {
+            for (int i = 0; i < track.track.length(); i++) {
+                final char ch = track.track.charAt(i);
+                final Tune tune = track.characterTuneMap.get(ch);
+                
+                if (ch != EMPTY_NOTE && tune != null) {
+                    compiled.compute(i, Compute.listAdd(tune));
+                }
+            }
+        }
+        
+        return compiled;
+    }
+    
+    /**
+     * Represents a {@link Builder} for {@link Sequencer}.
+     */
+    public static class Builder implements Buildable<Sequencer> {
+        
+        private final Plugin plugin;
+        private final List<Track> tracks;
+        
+        private float volume;
+        
+        Builder(@NotNull Plugin plugin) {
+            this.plugin = plugin;
+            this.tracks = Lists.newArrayList();
+            this.volume = DEFAULT_VOLUME;
+        }
+        
+        /**
+         * Adds the given {@link Track}.
+         *
+         * @param track - The track to add.
+         */
+        @SelfReturn
+        public Builder track(@NotNull Track track) {
+            this.tracks.add(track);
+            return this;
+        }
+        
+        /**
+         * Sets the volume of sounds.
+         *
+         * @param volume - The new volume.
+         */
+        @SelfReturn
+        public Builder volume(@Range(from = 0, to = Integer.MAX_VALUE) float volume) {
+            this.volume = volume;
+            return this;
+        }
+        
+        /**
+         * Builds a new {@link Sequencer}.
+         *
+         * @return a new sequencer instance.
+         */
+        @Override
+        public @NonNull Sequencer build() {
+            return new Sequencer(plugin, tracks, volume);
+        }
     }
     
 }

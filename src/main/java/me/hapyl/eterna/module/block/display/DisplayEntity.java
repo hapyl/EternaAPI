@@ -164,13 +164,6 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
             final Vector3f newTranslation = rotationQuaternion.transform(restTranslation);
             final Quaternionf newRotation = new Quaternionf(rotationQuaternion).mul(restRotation).normalize();
             
-            if (child.isTagged("test")) {
-                EternaLogger.debugv(
-                        "restRotation", restRotation,
-                        "newRotation", newRotation
-                );
-            }
-            
             child.setTransformation(newTranslation, newRotation, null);
         }
     }

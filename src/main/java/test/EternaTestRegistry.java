@@ -1914,34 +1914,27 @@ public final class EternaTestRegistry {
         });
         
         register("sequencer", context -> {
-            final Sequencer sequencer = new Sequencer(Eterna.getPlugin()) {
-                @Override
-                public void onStopPlaying() {
-                    context.assertTestPassed();
-                }
-            };
+            final Sequencer sequencer = Sequencer.builder(Eterna.getPlugin())
+                                                 .track(
+                                                         Track.builder("---p---P---p---P---p---P------------s")
+                                                              .plingWhere('p', 1.0f)
+                                                              .plingWhere('P', 0.75f)
+                                                              .snareWhere('s', 0.75f)
+                                                 )
+                                                 .track(
+                                                         Track.builder("---b---B---b---B---b---B")
+                                                              .bassWhere('b', 1.0f)
+                                                              .bassWhere('B', 0.75f)
+                                                 )
+                                                 .track(
+                                                         Track.builder("---h---h---h---h---h---h")
+                                                              .where('h', (player, volume) -> {
+                                                                  player.sendHurtAnimation(0.0f);
+                                                              })
+                                                 )
+                                                 .build();
             
-            sequencer.addTrack(
-                    Track.builder("---p---P---p---P---p---P------------s")
-                         .plingWhere('p', 1.0f)
-                         .plingWhere('P', 0.75f)
-                         .snareWhere('s', 0.75f)
-            );
-            
-            sequencer.addTrack(
-                    Track.builder("---b---B---b---B---b---B")
-                         .bassWhere('b', 1.0f)
-                         .bassWhere('B', 0.75f)
-            );
-            
-            sequencer.addTrack(
-                    Track.builder("---h---h---h---h---h---h")
-                         .where('h', (player, volume) -> {
-                             player.sendHurtAnimation(0.0f);
-                         })
-            );
-            
-            sequencer.play(List.of(context.player()));
+            sequencer.play(context.player());
         });
         
         register("cooldowns", context -> {
