@@ -105,8 +105,7 @@ public interface ComponentStyler {
          */
         @Override
         public @NonNull ComponentStyler build() {
-            // We normalize lore here because it's, well, mojang is fucking annoying why does lore default to an ugly ahh purple with italic
-            return new ComponentStylerImpl(style, ItemBuilder.normalizeLore(prefix));
+            return new ComponentStylerImpl(style, prefix);
         }
     }
     
