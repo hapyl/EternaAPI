@@ -12,7 +12,7 @@ import me.hapyl.eterna.module.annotate.MethodApplicableTo;
 import me.hapyl.eterna.module.annotate.RequiresVarargs;
 import me.hapyl.eterna.module.annotate.SelfReturn;
 import me.hapyl.eterna.module.component.ComponentList;
-import me.hapyl.eterna.module.component.ComponentMapper;
+import me.hapyl.eterna.module.component.ComponentStyler;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.player.PlayerAction;
 import me.hapyl.eterna.module.reflect.Skin;
@@ -24,6 +24,7 @@ import me.hapyl.eterna.module.util.Validate;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -43,10 +44,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.profile.PlayerTextures;
 import org.bukkit.tag.DamageTypeTags;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -82,7 +80,6 @@ import java.util.regex.Matcher;
  *
  *     <li>Item functions:
  *     <ul>
- *         <li>{@link #addClickAction(Consumer)}
  *         <li>{@link #addFunction(ItemFunction)}
  *     </ul>
  * </ul>
@@ -107,6 +104,11 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     public static final Style DEFAULT_LORE_STYLE;
     
+    /**
+     * Defines the default {@link ComponentStyler} used in {@link ItemBuilder#addWrappedLore(Component, ComponentStyler, int)}.
+     */
+    public static final ComponentStyler DEFAULT_LORE_MAPPER;
+    
     private static final Map<Key, ItemFunctionList> FUNCTIONS;
     
     private static final java.util.regex.Pattern BASE64_DECODE_PATTERN;
@@ -121,14 +123,10 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     static {
         DEFAULT_COMPONENT_WRAP_LIMIT = 38;
         
-        DEFAULT_NAME_STYLE = Style.style()
-                                  .color(NamedTextColor.DARK_GREEN)
-                                  .build();
+        DEFAULT_NAME_STYLE = Style.style(NamedTextColor.DARK_GREEN);
+        DEFAULT_LORE_STYLE = Style.style(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false);
         
-        DEFAULT_LORE_STYLE = Style.style()
-                                  .color(NamedTextColor.GRAY)
-                                  .decoration(TextDecoration.ITALIC, false)
-                                  .build();
+        DEFAULT_LORE_MAPPER = ComponentStyler.create(DEFAULT_LORE_STYLE);
         
         FUNCTIONS = Maps.newHashMap();
         
@@ -258,33 +256,27 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     
     /**
      * Adds the given {@link List} of {@link Component} to this {@link ItemBuilder} lore.
-     * <p>This will normalize each component with {@link #DEFAULT_LORE_STYLE} and append them to the end of the lore.</p>
      *
      * @param lore - The list of components to add.
-     * @see Components#normalizeStyle(Component, Style)
      */
     @SelfReturn
     public ItemBuilder addLore(@NotNull List<? extends Component> lore) {
-        return editLore(existingLore -> existingLore.addAll(
-                lore.stream()
-                    .map(_component -> Components.normalizeStyle(_component, DEFAULT_LORE_STYLE))
-                    .toList()
-        ));
+        return editLore(existingLore -> existingLore.addAll(lore.stream().map(ItemBuilder::normalizeLore).toList()));
     }
     
     /**
      * Adds the given {@link Component} to this {@link ItemBuilder} lore.
-     * <p>This will normalize the component with {@link #DEFAULT_LORE_STYLE} and append it to the end of the lore.</p>
      *
      * @param lore - The component to add.
      */
     @SelfReturn
     public ItemBuilder addLore(@NotNull Component lore) {
-        return addLore(List.of(lore));
+        return addLore(List.of(normalizeLore(lore)));
     }
     
     /**
      * Adds an {@link Component#empty()} to this {@link ItemBuilder} lore.
+     *
      * <p>This will result in an empty line in lore.</p>
      */
     @SelfReturn
@@ -312,58 +304,65 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      *
      * @param component - The component to wrap.
      * @param mapper    - The mapper to handle each component after it has been wrapped.
-     *                  <p>Note that the mapper is applied on a clean text {@link Component}, meaning that the default behaviour of {@code dark_purple} color and {@code italic} decoration is
-     *                  <b>preserved</b>, unless a {@code null} {@link ComponentMapper} is provided, in which case a {@link #DEFAULT_LORE_STYLE} is applied.</p>
      * @param maxLength - The max length of each line.
      * @see Components#wrap(Component, int)
      */
     @SelfReturn
-    public ItemBuilder addWrappedLore(@NotNull Component component, @Nullable ComponentMapper mapper, int maxLength) {
+    public ItemBuilder addWrappedLore(@NotNull Component component, @NotNull ComponentStyler mapper, int maxLength) {
         return editLore(existingLore -> existingLore.addAll(
                 Components.wrap(component, maxLength)
                           .stream()
-                          .map(_component -> mapper != null ? mapper.map(_component) : _component.style(DEFAULT_LORE_STYLE))
+                          .map(ItemBuilder::normalizeLore)
+                          .map(_component -> {
+                              return normalizeLore(mapper.prefix()).append(Components.applyStyle(_component, mapper.style()));
+                          })
                           .toList()
         ));
     }
     
     /**
      * Wraps the given {@link Component} and adds it to this {@link ItemBuilder} lore.
-     * <p>This method uses {@link #DEFAULT_COMPONENT_WRAP_LIMIT} as a limit for component wrap.</p>
+     *
+     * <p>
+     * This method uses {@link #DEFAULT_COMPONENT_WRAP_LIMIT} as a limit for component wrap.
+     * </p>
      *
      * @param component - The component to wrap.
      * @param mapper    - The mapper to handle each component after it has been wrapped.
-     *                  <p>Note that the mapper is applied on a clean text {@link Component}, meaning that the default behaviour of {@code dark_purple} color and {@code italic} decoration is
-     *                  <b>preserved</b>, unless a {@code null} {@link ComponentMapper} is provided, in which case a {@link #DEFAULT_LORE_STYLE} is applied.</p>
      * @see Components#wrap(Component, int)
      */
     @SelfReturn
-    public ItemBuilder addWrappedLore(@NotNull Component component, @Nullable ComponentMapper mapper) {
+    public ItemBuilder addWrappedLore(@NotNull Component component, @NotNull ComponentStyler mapper) {
         return addWrappedLore(component, mapper, DEFAULT_COMPONENT_WRAP_LIMIT);
     }
     
     /**
      * Wraps the given {@link Component} and adds it to this {@link ItemBuilder} lore.
-     * <p>This method uses {@link #DEFAULT_COMPONENT_WRAP_LIMIT} as a limit for component wrap.</p>
+     *
+     * <p>
+     * This method uses {@link #DEFAULT_LORE_MAPPER} as a {@link ComponentStyler}.
+     * </p>
      *
      * @param component - The component to wrap.
      * @see Components#wrap(Component, int)
      */
     @SelfReturn
     public ItemBuilder addWrappedLore(@NotNull Component component, int maxLength) {
-        return addWrappedLore(component, null, maxLength);
+        return addWrappedLore(component, DEFAULT_LORE_MAPPER, maxLength);
     }
     
     /**
      * Wraps the given {@link Component} and adds it to this {@link ItemBuilder} lore.
-     * <p>This method uses {@link #DEFAULT_COMPONENT_WRAP_LIMIT} as a limit for component wrap.</p>
+     * <p>
+     * This method uses {@link #DEFAULT_COMPONENT_WRAP_LIMIT} as a limit for component wrap and a {@link #DEFAULT_LORE_MAPPER} as a {@link ComponentStyler}.
+     * </p>
      *
      * @param component - The component to wrap.
      * @see Components#wrap(Component, int)
      */
     @SelfReturn
     public ItemBuilder addWrappedLore(@NotNull Component component) {
-        return addWrappedLore(component, null, DEFAULT_COMPONENT_WRAP_LIMIT);
+        return addWrappedLore(component, DEFAULT_LORE_MAPPER, DEFAULT_COMPONENT_WRAP_LIMIT);
     }
     
     /**
@@ -373,7 +372,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     @SelfReturn
     public ItemBuilder setLore(@NotNull List<? extends @NotNull Component> lore) {
-        return editMeta(meta -> meta.lore(lore));
+        return editMeta(meta -> meta.lore(lore.stream().map(ItemBuilder::normalizeLore).toList()));
     }
     
     /**
@@ -383,11 +382,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     @SelfReturn
     public ItemBuilder setLore(@NotNull ComponentList lore) {
-        return editMeta(meta -> meta.lore(
-                lore.stream()
-                    .map(component -> Components.normalizeStyle(component, DEFAULT_LORE_STYLE))
-                    .toList()
-        ));
+        return editMeta(meta -> meta.lore(lore.stream().map(ItemBuilder::normalizeLore).toList()));
     }
     
     /**
@@ -427,7 +422,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     @SelfReturn
     public ItemBuilder setName(@NotNull Component name) {
-        return editMeta(meta -> meta.customName(Components.normalizeStyle(name, DEFAULT_NAME_STYLE)));
+        return editMeta(meta -> meta.itemName(normalizeName(name)));
     }
     
     /**
@@ -446,8 +441,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return editMeta(meta -> meta.customName(Component.empty()));
     }
     
-    // *-* Meta edits *-* //
-    
     /**
      * Edits the {@link BookMeta} on this {@link ItemBuilder}.
      * <p>Only applicable if material is {@link Material#WRITTEN_BOOK}.</p>
@@ -459,6 +452,8 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public ItemBuilder editBookMeta(@NotNull Consumer<BookMeta> edit) {
         return editMeta(BookMeta.class, edit);
     }
+    
+    // *-* Meta edits *-* //
     
     /**
      * Edits the {@link PotionMeta} on this {@link ItemBuilder}.
@@ -472,8 +467,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return editMeta(PotionMeta.class, edit);
     }
     
-    // *-* Adders & Setters *-* //
-    
     /**
      * Adds the given {@link Enchantment} to this {@link ItemBuilder}.
      *
@@ -484,6 +477,8 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public ItemBuilder addEnchant(@NotNull Enchantment enchantment, int level) {
         return editMeta(meta -> meta.addEnchant(enchantment, level, true));
     }
+    
+    // *-* Adders & Setters *-* //
     
     /**
      * Sets the {@link PotionMeta} {@link Color} for this {@link ItemBuilder}.
@@ -997,8 +992,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return this.setCooldown(cooldown -> cooldown.setCooldownGroup(key.nonEmpty().asNamespacedKey()));
     }
     
-    // *-* Build operations *-* //
-    
     /**
      * Gets a copy of the underlying {@link ItemStack}.
      *
@@ -1010,6 +1003,8 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public ItemStack asItemStack() {
         return new ItemStack(this.itemStack);
     }
+    
+    // *-* Build operations *-* //
     
     /**
      * Gets a copy of the underlying {@link ItemStack} as an "icon", which means <b>removing</b> all of its functional components, making the icon
@@ -1067,8 +1062,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return key;
     }
     
-    // *-* Other helpers *-* //
-    
     /**
      * Makes this {@link ItemBuilder} "glow" by overriding the enchantment glint.
      */
@@ -1076,6 +1069,8 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public ItemBuilder glow() {
         return setEnchantmentGlintOverride(true);
     }
+    
+    // *-* Other helpers *-* //
     
     /**
      * Applies the given {@link Consumer} on this {@link ItemBuilder} if the given {@code predicate} succeeds.
@@ -1105,7 +1100,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     @SelfReturn
     public ItemBuilder editLore(@NotNull Consumer<List<Component>> consumer) {
         return editMeta(meta -> {
-            final List<Component> existingLore = meta.lore() != null ? meta.lore() : Lists.newArrayList();
+            final List<Component> existingLore = Objects.requireNonNullElseGet(meta.lore(), Lists::newArrayList);
             
             consumer.accept(existingLore);
             meta.lore(existingLore);
@@ -1332,6 +1327,38 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         }
         
         return "";
+    }
+    
+    /**
+     * Normalizes the given {@link Component} by setting the color to {@link #DEFAULT_NAME_STYLE} if it's absent.
+     *
+     * @param component - The component to normalize.
+     * @return the normalized component.
+     */
+    public static @NotNull Component normalizeName(@NotNull Component component) {
+        return component.color() != null ? component : component.style(DEFAULT_NAME_STYLE);
+    }
+    
+    /**
+     * Normalizes the given {@link Component} by setting the color to {@link #DEFAULT_LORE_STYLE} and unsetting italic if they're absent.
+     *
+     * @param component - The component to normalize.
+     * @return the normalized component.
+     */
+    public static @NotNull Component normalizeLore(@NotNull Component component) {
+        final TextColor color = component.color();
+        
+        // Normalize color
+        if (color == null) {
+            component = component.color(DEFAULT_LORE_STYLE.color());
+        }
+        
+        // Normalize italic
+        if (component.decoration(TextDecoration.ITALIC) == TextDecoration.State.NOT_SET) {
+            component = component.decoration(TextDecoration.ITALIC, false);
+        }
+        
+        return component;
     }
     
 }

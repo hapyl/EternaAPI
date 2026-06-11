@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.component;
 
 import com.google.common.collect.Lists;
+import io.papermc.paper.plugin.provider.configuration.FlattenedResolver;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.text.CenterText;
 import me.hapyl.eterna.module.util.MapMaker;
@@ -8,10 +10,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.flattener.FlattenerListener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,9 +24,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A utility class for {@link Component}.
@@ -46,11 +53,7 @@ public final class Components {
      * @return {@code true} if the component is empty, {@code false} otherwise.
      */
     public static boolean isEmpty(@NotNull Component component) {
-        class Holder {
-            private static final Component EMPTY = Component.empty();
-        }
-        
-        return Holder.EMPTY == component;
+        return component == Component.empty();
     }
     
     /**
@@ -64,11 +67,7 @@ public final class Components {
      * @return {@code true} if the component newline, {@code false} otherwise.
      */
     public static boolean isNewline(@NotNull Component component) {
-        class Holder {
-            private static final Component NEWLINE = Component.newline();
-        }
-        
-        return Holder.NEWLINE == component;
+        return component == Component.newline();
     }
     
     /**
@@ -234,8 +233,13 @@ public final class Components {
         for (TextDecoration textDecoration : TextDecoration.values()) {
             final TextDecoration.State supplementaryDecoration = style.decoration(textDecoration);
             
-            component = component.decorationIfAbsent(textDecoration, supplementaryDecoration != TextDecoration.State.NOT_SET ? supplementaryDecoration : TextDecoration.State.FALSE);
+            if (component.decoration(textDecoration) == TextDecoration.State.NOT_SET && supplementaryDecoration != TextDecoration.State.NOT_SET) {
+                component = component.decoration(textDecoration, supplementaryDecoration);
+            }
         }
+        
+        // Normalize children
+        component = component.children(component.children().stream().map(_component -> normalizeStyle(_component, style)).toList());
         
         return component;
     }
@@ -351,7 +355,7 @@ public final class Components {
                                                                                    .put(0.00, NamedTextColor.RED)
                                                                                    .put(0.50, NamedTextColor.YELLOW)
                                                                                    .put(0.75, NamedTextColor.GOLD)
-                                                                                   .put(1.00, NamedTextColor.RED)
+                                                                                   .put(1.00, NamedTextColor.GREEN)
                                                                                    .makeGenericMap();
         }
         
@@ -449,6 +453,16 @@ public final class Components {
         return component.children().isEmpty()
                ? styled
                : styled.children(component.children().stream().map(child -> applyStyle(child, style)).toList());
+    }
+    
+    /**
+     * Serializes the given {@link Component} into JSON string.
+     *
+     * @param component - The component to serialize.
+     * @return the serialized string.
+     */
+    public static @NotNull String toJsonString(@NotNull Component component) {
+        return GsonComponentSerializer.gson().serialize(component);
     }
     
 }

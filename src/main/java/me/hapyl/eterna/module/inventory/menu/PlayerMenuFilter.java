@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.inventory.menu;
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.EternaColors;
 import me.hapyl.eterna.module.annotate.DefensiveCopy;
+import me.hapyl.eterna.module.component.ComponentStyler;
 import me.hapyl.eterna.module.component.Described;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.inventory.menu.action.PlayerMenuAction;
@@ -31,6 +32,8 @@ import java.util.function.Consumer;
  * @param <F> - The enum filter.
  */
 public abstract class PlayerMenuFilter<E, F extends Enum<F>> {
+    
+    private static final ComponentStyler STYLER = ComponentStyler.builder(Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC)).withPadding(3).build();
     
     private final Class<F> enumClass;
     private final List<F> filters;
@@ -133,10 +136,7 @@ public abstract class PlayerMenuFilter<E, F extends Enum<F>> {
                 
                 // If it's enum is described, append the description
                 if (isCurrent && value instanceof Described described) {
-                    builder.addWrappedLore(
-                            described.getDescription(),
-                            component -> Component.text("   ").append(component.style(Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC)))
-                    );
+                    builder.addWrappedLore(described.getDescription(), STYLER);
                 }
             }
         }

@@ -5,6 +5,7 @@ import me.hapyl.eterna.EternaColors;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.component.ButtonComponents;
+import me.hapyl.eterna.module.component.ComponentStyler;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.component.ProgressBar;
 import me.hapyl.eterna.module.inventory.ItemStacks;
@@ -47,6 +48,7 @@ public final class SongPlayerMenu extends PlayerPageMenu<Song> {
     private static final ProgressBar PROGRESS_BAR_PAUSED;
     
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("mm:ss");
+    private static final ComponentStyler DESCRIPTION_STYLER = ComponentStyler.builder(Style.style(NamedTextColor.GRAY)).withPadding(1).build();
     
     static {
         ITEM_EMPTY_CONTENTS_NO_SONGS_ON_SEVER = new ItemBuilder(Material.MUSIC_DISC_11)
@@ -62,7 +64,6 @@ public final class SongPlayerMenu extends PlayerPageMenu<Song> {
                                  .append(Component.text("/nbs reload", NamedTextColor.YELLOW))
                                  .append(Component.text("!", NamedTextColor.GRAY))
                 )
-                .addLore()
                 .asIcon();
         
         PROGRESS_BAR = new ProgressBar("|", 50, Style.style(NamedTextColor.GREEN));
@@ -127,13 +128,7 @@ public final class SongPlayerMenu extends PlayerPageMenu<Song> {
         final Component description = song.getDescription();
         
         if (!Components.isEmpty(description)) {
-            builder.addWrappedLore(
-                    description,
-                    _component -> Component.text(" ").append(_component)
-                                           .color(NamedTextColor.GRAY)
-                                           .decoration(TextDecoration.ITALIC, false)
-            );
-            
+            builder.addWrappedLore(description, DESCRIPTION_STYLER);
             builder.addLore();
         }
         

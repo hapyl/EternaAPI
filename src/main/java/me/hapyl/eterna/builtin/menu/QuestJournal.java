@@ -1,5 +1,6 @@
 package me.hapyl.eterna.builtin.menu;
 
+import me.hapyl.eterna.module.component.ComponentStyler;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.inventory.menu.ChestSize;
@@ -31,7 +32,9 @@ import java.util.Set;
 public final class QuestJournal extends PlayerMenu {
     
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yy hh:mm:ss a v");
-    private static final Style DETAILED_DESCRIPTION_STYLE = Style.style(NamedTextColor.DARK_GRAY, TextDecoration.ITALIC);
+    private static final ComponentStyler DETAILED_DESCRIPTION_STYLE = ComponentStyler.builder(Style.style(NamedTextColor.DARK_GRAY, TextDecoration.ITALIC))
+                                                                                     .withPadding(2)
+                                                                                     .build();
     
     public QuestJournal(@NotNull Player player) {
         super(player, () -> Component.text("Quest Journal"), PlayerMenuType.chest(ChestSize.SIZE_5));
@@ -77,7 +80,7 @@ public final class QuestJournal extends PlayerMenu {
                         final Component detailedDescription = currentObjective.getDetailedDescription();
                         
                         if (!Components.isEmpty(detailedDescription)) {
-                            builder.addWrappedLore(detailedDescription, _component -> Component.text("  ").append(_component.style(DETAILED_DESCRIPTION_STYLE)));
+                            builder.addWrappedLore(detailedDescription, DETAILED_DESCRIPTION_STYLE);
                         }
                         
                         builder.addLore();
