@@ -95,14 +95,14 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public static final int DEFAULT_COMPONENT_WRAP_LIMIT;
     
     /**
-     * Defines the default {@link Style} for {@link #setName(Component)}, unless a color is explicitly set.
+     * Defines the default {@link TextColor} for {@link #setName(Component)}, unless a color is explicitly set.
      */
-    public static final Style DEFAULT_NAME_STYLE;
+    public static final TextColor DEFAULT_NAME_COLOR;
     
     /**
-     * Defines the default {@link Style} for {@link #addLore(Component)} (and similar), unless a color is explicitly set.
+     * Defines the default {@link TextColor} for {@link #addLore(Component)} (and similar), unless a color is explicitly set.
      */
-    public static final Style DEFAULT_LORE_STYLE;
+    public static final TextColor DEFAULT_LORE_COLOR;
     
     /**
      * Defines the default {@link ComponentStyler} used in {@link ItemBuilder#addWrappedLore(Component, ComponentStyler, int)}.
@@ -123,10 +123,10 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     static {
         DEFAULT_COMPONENT_WRAP_LIMIT = 38;
         
-        DEFAULT_NAME_STYLE = Style.style(NamedTextColor.DARK_GREEN);
-        DEFAULT_LORE_STYLE = Style.style(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false);
+        DEFAULT_NAME_COLOR = NamedTextColor.DARK_GREEN;
+        DEFAULT_LORE_COLOR = NamedTextColor.GRAY;
         
-        DEFAULT_LORE_MAPPER = ComponentStyler.create(DEFAULT_LORE_STYLE);
+        DEFAULT_LORE_MAPPER = ComponentStyler.create(Style.style(DEFAULT_LORE_COLOR));
         
         FUNCTIONS = Maps.newHashMap();
         
@@ -314,7 +314,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
                           .stream()
                           .map(ItemBuilder::normalizeLore)
                           .map(_component -> {
-                              return normalizeLore(mapper.prefix()).append(Components.applyStyle(_component, mapper.style()));
+                              return normalizeLore(mapper.prefix()).append(Components.normalizeStyle(_component, mapper.style()));
                           })
                           .toList()
         ));
@@ -422,7 +422,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     @SelfReturn
     public ItemBuilder setName(@NotNull Component name) {
-        return editMeta(meta -> meta.itemName(normalizeName(name)));
+        return editMeta(meta -> meta.customName(normalizeName(name)));
     }
     
     /**
@@ -1329,28 +1329,20 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return "";
     }
     
-    /**
-     * Normalizes the given {@link Component} by setting the color to {@link #DEFAULT_NAME_STYLE} if it's absent.
-     *
-     * @param component - The component to normalize.
-     * @return the normalized component.
-     */
-    public static @NotNull Component normalizeName(@NotNull Component component) {
-        return component.color() != null ? component : component.style(DEFAULT_NAME_STYLE);
+    private static @NotNull Component normalizeName(@NotNull Component component) {
+        return normalizeComponent(component, DEFAULT_NAME_COLOR);
     }
     
-    /**
-     * Normalizes the given {@link Component} by setting the color to {@link #DEFAULT_LORE_STYLE} and unsetting italic if they're absent.
-     *
-     * @param component - The component to normalize.
-     * @return the normalized component.
-     */
-    public static @NotNull Component normalizeLore(@NotNull Component component) {
+    private static @NotNull Component normalizeLore(@NotNull Component component) {
+        return normalizeComponent(component, DEFAULT_LORE_COLOR);
+    }
+    
+    private static @NotNull Component normalizeComponent(@NotNull Component component, @NotNull TextColor textColor) {
         final TextColor color = component.color();
         
         // Normalize color
         if (color == null) {
-            component = component.color(DEFAULT_LORE_STYLE.color());
+            component = component.color(textColor);
         }
         
         // Normalize italic

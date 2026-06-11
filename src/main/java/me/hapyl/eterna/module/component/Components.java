@@ -1,8 +1,6 @@
 package me.hapyl.eterna.module.component;
 
 import com.google.common.collect.Lists;
-import io.papermc.paper.plugin.provider.configuration.FlattenedResolver;
-import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.text.CenterText;
 import me.hapyl.eterna.module.util.MapMaker;
@@ -10,8 +8,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.flattener.ComponentFlattener;
-import net.kyori.adventure.text.flattener.FlattenerListener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -25,11 +21,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * A utility class for {@link Component}.
@@ -221,6 +215,22 @@ public final class Components {
         }
         
         return output;
+    }
+    
+    /**
+     * Applies the given {@link Style} on the given {@link Component} and all its children, including the children of children.
+     *
+     * @param component - The component to style.
+     * @param style     - The style to apply.
+     * @return a new component with all of its children having the given style applied.
+     */
+    @NotNull
+    public static Component applyStyle(@NotNull Component component, @NotNull Style style) {
+        final Component styled = component.style(style);
+        
+        return component.children().isEmpty()
+               ? styled
+               : styled.children(component.children().stream().map(child -> applyStyle(child, style)).toList());
     }
     
     /**
@@ -448,22 +458,6 @@ public final class Components {
         }
         
         return Flattener.flatten(component);
-    }
-    
-    /**
-     * Applies the given {@link Style} on the given {@link Component} and all its children, including the children of children.
-     *
-     * @param component - The component to style.
-     * @param style     - The style to apply.
-     * @return a new component with all of its children having the given style applied.
-     */
-    @NotNull
-    public static Component applyStyle(@NotNull Component component, @NotNull Style style) {
-        final Component styled = component.style(style);
-        
-        return component.children().isEmpty()
-               ? styled
-               : styled.children(component.children().stream().map(child -> applyStyle(child, style)).toList());
     }
     
     /**

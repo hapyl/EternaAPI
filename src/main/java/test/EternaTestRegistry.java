@@ -108,6 +108,8 @@ import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public final class EternaTestRegistry {
+
+    // TODO (xanyjl @ Thursday, June 11) -> Split this into separate classes, intellij dies
     
     private static final Map<Key, EternaTest> theRegistry;
     
@@ -2046,7 +2048,7 @@ public final class EternaTestRegistry {
         });
         
         register("component_mapper", context -> {
-            final ItemBuilder builder = newItemBuilder();
+            final ItemBuilder builder = new ItemBuilder(Material.DIAMOND_AXE);
             
             builder.addWrappedLore(
                     Component.empty().append(Component.text("This should be italic as well as very long so we can validate the prefix wrapping.")),
@@ -2059,7 +2061,7 @@ public final class EternaTestRegistry {
             builder.addWrappedLore(Component.empty().append(Component.text("This is how default wrapped lore looks like, nothing special, just gray color and no italic.")));
             
             builder.addLore();
-            builder.addWrappedLore(lorem(15), ComponentStyler.create(Style.style(NamedTextColor.GOLD, TextDecoration.BOLD)));
+            builder.addWrappedLore(Component.empty().append(Component.text("This test should be gold and bold!")), ComponentStyler.create(Style.style(NamedTextColor.GOLD, TextDecoration.BOLD)));
             
             context.player().getInventory().addItem(builder.build());
         });
@@ -2146,47 +2148,6 @@ public final class EternaTestRegistry {
                     }
                 }
         );
-    }
-    
-    private static @NotNull ItemBuilder newItemBuilder() {
-        Material material;
-        
-        do {
-            material = Enums.getRandomValueOrFirst(Material.class);
-        }
-        while (!material.isItem());
-        
-        return new ItemBuilder(material);
-    }
-    
-    public static @NotNull Component lorem(int length) {
-        class Holder {
-            private static final String[] LOREM_WORDS = {
-                    "Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit",
-                    "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore",
-                    "magna", "aliqua", "Ut", "enim", "ad", "minim", "veniam", "quis", "nostrud",
-                    "exercitation", "ullamco", "laboris", "nisi", "aliquip", "ex", "ea", "commodo", "consequat"
-            };
-        }
-        
-        if (length <= 0) {
-            return Component.empty();
-        }
-        
-        
-        final TextComponent.Builder builder = Component.text();
-        
-        for (int i = 0; i < Math.min(length, Holder.LOREM_WORDS.length); ++i) {
-            final String loremWord = Holder.LOREM_WORDS[i];
-            
-            if (i != 0) {
-                builder.appendSpace();
-            }
-            
-            builder.append(Component.text(loremWord));
-        }
-        
-        return builder.build();
     }
     
 }
