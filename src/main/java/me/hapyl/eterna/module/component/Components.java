@@ -511,4 +511,40 @@ public final class Components {
         return contains(component, string, String::compareTo);
     }
     
+    /**
+     * Creates a gradient {@link Component} from the given {@link String}.
+     *
+     * @param string       - The string to apply the gradient to.
+     * @param from         - The `from` color.
+     * @param to           - The `to` color.
+     * @param interpolator - The interpolator to use.
+     * @param style        - The style to apply to each component, excluding the color.
+     * @return a new gradient component.
+     */
+    public static @NotNull Component gradient(@NotNull String string, @NotNull TextColor from, @NotNull TextColor to, @NotNull Interpolator interpolator, @NotNull Style style) {
+        final int length = string.length();
+        final @NotNull TextColor[] colors = interpolator.interpolate(from, to, length);
+        
+        final TextComponent.Builder builder = Component.text();
+        
+        for (int i = 0; i < length; i++) {
+            builder.append(Component.text(string.charAt(i), Style.style(colors[i]).merge(style, Style.Merge.Strategy.IF_ABSENT_ON_TARGET)));
+        }
+        
+        return builder.build();
+    }
+    
+    /**
+     * Creates a gradient {@link Component} from the given {@link String}.
+     *
+     * @param string       - The string to apply the gradient to.
+     * @param from         - The `from` color.
+     * @param to           - The `to` color.
+     * @param interpolator - The interpolator to use.
+     * @return a new gradient component.
+     */
+    public static @NotNull Component gradient(@NotNull String string, @NotNull TextColor from, @NotNull TextColor to, @NotNull Interpolator interpolator) {
+        return gradient(string, from, to, interpolator, Style.empty());
+    }
+    
 }

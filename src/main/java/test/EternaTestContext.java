@@ -18,6 +18,8 @@ public interface EternaTestContext {
     @NotNull
     TypeConverter argument(int index);
     
+    @NotNull String joinArguments(int index);
+    
     void info(@NotNull Component info);
     
     void warning(@NotNull Component warning);

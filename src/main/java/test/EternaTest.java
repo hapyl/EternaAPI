@@ -77,6 +77,11 @@ public abstract class EternaTest {
                 }
                 
                 @Override
+                public @NotNull String joinArguments(int index) {
+                    return args.joinString(index);
+                }
+                
+                @Override
                 public void info(@NotNull Component info) {
                     EternaLogger.test(player, Component.text(" ", NamedTextColor.GRAY, TextDecoration.ITALIC).append(info));
                 }

@@ -70,6 +70,7 @@ import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -2076,6 +2077,31 @@ public final class EternaTestRegistry {
                              ),
                     Style.style(NamedTextColor.GRAY)
             ));
+        });
+        
+        register("gradient", context -> {
+            class Holder {
+                private static final Map<String, Interpolator> NAMED_INTERPOLATORS = MapMaker.<String, Interpolator>ofLinkedHashMap()
+                                                                                             .put("LINEAR", Interpolator.LINEAR)
+                                                                                             .put("QUADRATIC_SLOW_TO_FAST", Interpolator.QUADRATIC_SLOW_TO_FAST)
+                                                                                             .put("QUADRATIC_FAST_TO_SLOW", Interpolator.QUADRATIC_FAST_TO_SLOW)
+                                                                                             .put("CUBIC_SLOW_TO_FAST", Interpolator.CUBIC_SLOW_TO_FAST)
+                                                                                             .put("CUBIC_FAST_TO_SLOW", Interpolator.CUBIC_FAST_TO_SLOW)
+                                                                                             .put("EASE_IN_OUT", Interpolator.EASE_IN_OUT)
+                                                                                             .makeMap();
+            }
+            
+            final String string = context.joinArguments(2);
+            
+            final TextColor from = Optional.ofNullable(TextColor.fromHexString(context.argument(0).toString())).orElseThrow(() -> new IllegalArgumentException("Invalid color!"));
+            final TextColor to = Optional.ofNullable(TextColor.fromHexString(context.argument(1).toString())).orElseThrow(() -> new IllegalArgumentException("Invalid color!"));
+            
+            Holder.NAMED_INTERPOLATORS.forEach((name, interpolator) -> {
+                context.player().sendMessage(
+                        Components.gradient(string, from, to, interpolator, Style.style(NamedTextColor.RED, TextDecoration.ITALIC)).hoverEvent(HoverEvent.showText(Component.text(name)))
+                );
+            });
+            
         });
         
         // *-* End Tests *-* //
