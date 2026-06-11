@@ -1715,7 +1715,7 @@ public final class EternaTestRegistry {
                         public void onClick(@NotNull Player player, @NotNull ClickType clickType) {
                             sendMessage(player, Component.text("Thank you for clicking me, {player}.", NamedTextColor.AQUA));
                             sendMessage(player, Component.text("My name is {npc_name}.", NamedTextColor.GOLD));
-                            sendMessage(player, Component.text("You health is: {health}"));
+                            sendMessage(player, Component.text("Your health is: {health}"));
                             sendMessage(player, Component.text("You're holding: {held_item}"));
                         }
                     };

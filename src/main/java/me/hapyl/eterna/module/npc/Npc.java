@@ -5,9 +5,6 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.DefensiveCopy;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.component.ComponentList;
-import me.hapyl.eterna.module.component.builder.ComponentBuilder;
-import me.hapyl.eterna.module.component.builder.ComponentResolver;
-import me.hapyl.eterna.module.component.builder.ComponentSupplier;
 import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.event.PlayerInteractNpcEvent;
 import me.hapyl.eterna.module.hologram.Hologram;
@@ -49,16 +46,18 @@ public class Npc implements Located, Showable, Disposable, Ticking {
     
     public static final double CHAIR_Y_OFFSET;
     
-    private static final ComponentBuilder DEFAULT_MESSAGE_FORMAT;
+    private static final NpcMessageFormat DEFAULT_MESSAGE_FORMAT;
     
     static {
         CHAIR_Y_OFFSET = 0.4;
-        DEFAULT_MESSAGE_FORMAT = new ComponentBuilder()
-                .append(ComponentSupplier.ofLiteral(Component.text("[NPC] ", NamedTextColor.YELLOW)))
-                .append(ComponentSupplier.ofPlaceholder("name"))
-                .append(ComponentSupplier.ofLiteral(Component.text(": ", NamedTextColor.YELLOW)))
-                .append(ComponentSupplier.ofLiteral(Component.text("", NamedTextColor.WHITE)))
-                .append(ComponentSupplier.ofPlaceholder("message"));
+        DEFAULT_MESSAGE_FORMAT = NpcMessageFormat.create(
+                Component.empty()
+                         .append(Component.text("[NPC] ", NamedTextColor.YELLOW))
+                         .append(Component.text(NpcMessageFormat.PLACEHOLDER_NPC_NAME))
+                         .append(Component.text(": ", NamedTextColor.YELLOW))
+                         .append(Component.text("", NamedTextColor.WHITE))
+                         .append(Component.text(NpcMessageFormat.PLACEHOLDER_MESSAGE))
+        );
     }
     
     // Field instantiation because we must have the `playerData` before appearance build()
@@ -628,24 +627,18 @@ public class Npc implements Located, Showable, Disposable, Ticking {
      */
     public void sendMessage(@NotNull Player player, @NotNull Component message) {
         // Apply static placeholders
-        message = NpcPlaceholder.doPlacehold(message, this, player);
+        message = NpcPlaceholder.placehold0(player, this, message);
         
-        final Component component = getNpcMessageFormat().build(
-                ComponentResolver.builder()
-                                 .resolve("name", getName(player))
-                                 .resolve("message", message)
-        );
-        
-        player.sendMessage(component);
+        player.sendMessage(this.getNpcMessageFormat().format(player, this, message));
     }
     
     /**
-     * Gets the {@link ComponentBuilder} for this {@link Npc}, which defines how the npc messages should be formatted.
+     * Gets the {@link NpcMessageFormat} for this {@link Npc}, which defines how the npc messages should be formatted.
      *
      * @return the npc message format.
      */
     @NotNull
-    public ComponentBuilder getNpcMessageFormat() {
+    public NpcMessageFormat getNpcMessageFormat() {
         return DEFAULT_MESSAGE_FORMAT;
     }
     

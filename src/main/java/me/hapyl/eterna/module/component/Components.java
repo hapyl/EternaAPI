@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -79,6 +80,16 @@ public final class Components {
     @NotNull
     public static String toString(@NotNull Component component) {
         return PlainTextComponentSerializer.plainText().serialize(component);
+    }
+    
+    /**
+     * Gets the content {@link String} from the given {@link Component}, considering it's a {@link TextComponent}.
+     *
+     * @param component - The component to get the string from.
+     * @return the string content, or an empty string if the component isn't a text component.
+     */
+    public static @NotNull String toStringContent(@NotNull Component component) {
+        return component instanceof TextComponent textComponent ? textComponent.content() : "";
     }
     
     /**
@@ -463,6 +474,41 @@ public final class Components {
      */
     public static @NotNull String toJsonString(@NotNull Component component) {
         return GsonComponentSerializer.gson().serialize(component);
+    }
+    
+    /**
+     * Gets whether the given {@link Component} contains the given {@link String}.
+     *
+     * @param component  - The component to check.
+     * @param string     - The string to check.
+     * @param comparator - The string comparator to use.
+     * @return {@code true} if the given component contains the given string; {@code false} otherwise.
+     */
+    public static boolean contains(@NotNull Component component, @NotNull String string, @NotNull Comparator<String> comparator) {
+        final String content = toStringContent(component);
+        
+        if (comparator.compare(content, string) == 0) {
+            return true;
+        }
+        
+        for (Component child : component.children()) {
+            if (contains(child, string, comparator)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Gets whether the given {@link Component} contains the given {@link String}.
+     *
+     * @param component - The component to check.
+     * @param string    - The string to check.
+     * @return {@code true} if the given component contains the given string; {@code false} otherwise.
+     */
+    public static boolean contains(@NotNull Component component, @NotNull String string) {
+        return contains(component, string, String::compareTo);
     }
     
 }
