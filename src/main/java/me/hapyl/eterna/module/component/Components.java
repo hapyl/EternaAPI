@@ -515,8 +515,8 @@ public final class Components {
      * Creates a gradient {@link Component} from the given {@link String}.
      *
      * @param string       - The string to apply the gradient to.
-     * @param from         - The `from` color.
-     * @param to           - The `to` color.
+     * @param from         - The starting color.
+     * @param to           - The ending color.
      * @param interpolator - The interpolator to use.
      * @param style        - The style to apply to each component, excluding the color.
      * @return a new gradient component.
@@ -538,8 +538,8 @@ public final class Components {
      * Creates a gradient {@link Component} from the given {@link String}.
      *
      * @param string       - The string to apply the gradient to.
-     * @param from         - The `from` color.
-     * @param to           - The `to` color.
+     * @param from         - The starting color.
+     * @param to           - The ending color.
      * @param interpolator - The interpolator to use.
      * @return a new gradient component.
      */
