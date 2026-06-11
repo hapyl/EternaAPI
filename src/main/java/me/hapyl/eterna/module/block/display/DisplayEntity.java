@@ -7,6 +7,7 @@ import me.hapyl.eterna.module.location.Coordinates;
 import me.hapyl.eterna.module.location.Located;
 import me.hapyl.eterna.module.location.Rotation;
 import me.hapyl.eterna.module.util.Removable;
+import me.hapyl.eterna.module.util.Streamable;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.BlockDisplay;
@@ -22,6 +23,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Represents a spawned {@link BDEngine} {@link Display} entity.
@@ -42,7 +45,7 @@ import java.util.function.Consumer;
  * @see #setRotation(Vector3f)
  * @see #editRotation(VectorEdit)
  */
-public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located, Coordinates, Rotation {
+public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located, Coordinates, Rotation, Streamable<DisplayPart> {
     
     private static final float DEFAULT_SCALE = 1;
     private static final float DEFAULT_ROTATION = 0;
@@ -463,6 +466,35 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
     @Override
     public float pitch() {
         return this.head.getPitch();
+    }
+    
+    /**
+     * Gets the size of the children of this {@link DisplayEntity}.
+     *
+     * @return the size of the children of this display entity.
+     */
+    public int size() {
+        return children.size();
+    }
+    
+    /**
+     * Creates a {@link Stream} of the {@link DisplayPart}.
+     *
+     * @return a stream of display parts.
+     */
+    @Override
+    public @NotNull Stream<DisplayPart> stream() {
+        return children.stream();
+    }
+    
+    /**
+     * Creates a {@link Stream} of the {@link DisplayPart} that are tagged with the given {@code scoreboardTag}.
+     *
+     * @param scoreboardTag - The scoreboard tag.
+     * @return a stream of display parts that are tagged with the given scoreboard tag.
+     */
+    public @NotNull Stream<DisplayPart> stream(@NotNull String scoreboardTag) {
+        return children.stream().filter(displayPart -> displayPart.isTagged(scoreboardTag));
     }
     
 }
