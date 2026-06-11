@@ -1,6 +1,8 @@
 package me.hapyl.eterna.module.component;
 
 import com.google.common.collect.Lists;
+import io.papermc.paper.plugin.provider.configuration.FlattenedResolver;
+import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.UtilityClass;
 import me.hapyl.eterna.module.text.CenterText;
 import me.hapyl.eterna.module.util.MapMaker;
@@ -8,20 +10,26 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.flattener.FlattenerListener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A utility class for {@link Component}.
@@ -46,11 +54,7 @@ public final class Components {
      * @return {@code true} if the component is empty, {@code false} otherwise.
      */
     public static boolean isEmpty(@NotNull Component component) {
-        class Holder {
-            private static final Component EMPTY = Component.empty();
-        }
-        
-        return Holder.EMPTY == component;
+        return component == Component.empty();
     }
     
     /**
@@ -64,11 +68,7 @@ public final class Components {
      * @return {@code true} if the component newline, {@code false} otherwise.
      */
     public static boolean isNewline(@NotNull Component component) {
-        class Holder {
-            private static final Component NEWLINE = Component.newline();
-        }
-        
-        return Holder.NEWLINE == component;
+        return component == Component.newline();
     }
     
     /**
@@ -80,6 +80,16 @@ public final class Components {
     @NotNull
     public static String toString(@NotNull Component component) {
         return PlainTextComponentSerializer.plainText().serialize(component);
+    }
+    
+    /**
+     * Gets the content {@link String} from the given {@link Component}, considering it's a {@link TextComponent}.
+     *
+     * @param component - The component to get the string from.
+     * @return the string content, or an empty string if the component isn't a text component.
+     */
+    public static @NotNull String toStringContent(@NotNull Component component) {
+        return component instanceof TextComponent textComponent ? textComponent.content() : "";
     }
     
     /**
@@ -234,8 +244,13 @@ public final class Components {
         for (TextDecoration textDecoration : TextDecoration.values()) {
             final TextDecoration.State supplementaryDecoration = style.decoration(textDecoration);
             
-            component = component.decorationIfAbsent(textDecoration, supplementaryDecoration != TextDecoration.State.NOT_SET ? supplementaryDecoration : TextDecoration.State.FALSE);
+            if (component.decoration(textDecoration) == TextDecoration.State.NOT_SET && supplementaryDecoration != TextDecoration.State.NOT_SET) {
+                component = component.decoration(textDecoration, supplementaryDecoration);
+            }
         }
+        
+        // Normalize children
+        component = component.children(component.children().stream().map(_component -> normalizeStyle(_component, style)).toList());
         
         return component;
     }
@@ -351,7 +366,7 @@ public final class Components {
                                                                                    .put(0.00, NamedTextColor.RED)
                                                                                    .put(0.50, NamedTextColor.YELLOW)
                                                                                    .put(0.75, NamedTextColor.GOLD)
-                                                                                   .put(1.00, NamedTextColor.RED)
+                                                                                   .put(1.00, NamedTextColor.GREEN)
                                                                                    .makeGenericMap();
         }
         
@@ -449,6 +464,87 @@ public final class Components {
         return component.children().isEmpty()
                ? styled
                : styled.children(component.children().stream().map(child -> applyStyle(child, style)).toList());
+    }
+    
+    /**
+     * Serializes the given {@link Component} into JSON string.
+     *
+     * @param component - The component to serialize.
+     * @return the serialized string.
+     */
+    public static @NotNull String toJsonString(@NotNull Component component) {
+        return GsonComponentSerializer.gson().serialize(component);
+    }
+    
+    /**
+     * Gets whether the given {@link Component} contains the given {@link String}.
+     *
+     * @param component  - The component to check.
+     * @param string     - The string to check.
+     * @param comparator - The string comparator to use.
+     * @return {@code true} if the given component contains the given string; {@code false} otherwise.
+     */
+    public static boolean contains(@NotNull Component component, @NotNull String string, @NotNull Comparator<String> comparator) {
+        final String content = toStringContent(component);
+        
+        if (comparator.compare(content, string) == 0) {
+            return true;
+        }
+        
+        for (Component child : component.children()) {
+            if (contains(child, string, comparator)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Gets whether the given {@link Component} contains the given {@link String}.
+     *
+     * @param component - The component to check.
+     * @param string    - The string to check.
+     * @return {@code true} if the given component contains the given string; {@code false} otherwise.
+     */
+    public static boolean contains(@NotNull Component component, @NotNull String string) {
+        return contains(component, string, String::compareTo);
+    }
+    
+    /**
+     * Creates a gradient {@link Component} from the given {@link String}.
+     *
+     * @param string       - The string to apply the gradient to.
+     * @param from         - The starting color.
+     * @param to           - The ending color.
+     * @param interpolator - The interpolator to use.
+     * @param style        - The style to apply to each component, excluding the color.
+     * @return a new gradient component.
+     */
+    public static @NotNull Component gradient(@NotNull String string, @NotNull TextColor from, @NotNull TextColor to, @NotNull Interpolator interpolator, @NotNull Style style) {
+        final int length = string.length();
+        final @NotNull TextColor[] colors = interpolator.interpolate(from, to, length);
+        
+        final TextComponent.Builder builder = Component.text();
+        
+        for (int i = 0; i < length; i++) {
+            builder.append(Component.text(string.charAt(i), Style.style(colors[i]).merge(style, Style.Merge.Strategy.IF_ABSENT_ON_TARGET)));
+        }
+        
+        return builder.build();
+    }
+    
+    /**
+     * Creates a gradient {@link Component} from the given {@link String}.
+     *
+     * @param string       - The string to apply the gradient to.
+     * @param from         - The starting color.
+     * @param to           - The ending color.
+     * @param interpolator - The interpolator to use.
+     * @return a new gradient component.
+     */
+    public static @NotNull Component gradient(@NotNull String string, @NotNull TextColor from, @NotNull TextColor to, @NotNull Interpolator interpolator) {
+        return gradient(string, from, to, interpolator, Style.empty());
     }
     
 }

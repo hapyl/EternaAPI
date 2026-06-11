@@ -9,10 +9,7 @@ import me.hapyl.eterna.*;
 import me.hapyl.eterna.module.block.display.BDEngine;
 import me.hapyl.eterna.module.block.display.DisplayEntity;
 import me.hapyl.eterna.module.block.display.DisplayModel;
-import me.hapyl.eterna.module.component.ComponentList;
-import me.hapyl.eterna.module.component.Components;
-import me.hapyl.eterna.module.component.Described;
-import me.hapyl.eterna.module.component.Keybind;
+import me.hapyl.eterna.module.component.*;
 import me.hapyl.eterna.module.entity.Entities;
 import me.hapyl.eterna.module.entity.packet.PacketBlockDisplay;
 import me.hapyl.eterna.module.entity.packet.PacketGuardian;
@@ -73,6 +70,7 @@ import me.hapyl.eterna.module.util.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -95,7 +93,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +101,6 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import javax.lang.model.element.ModuleElement;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -1720,7 +1716,7 @@ public final class EternaTestRegistry {
                         public void onClick(@NotNull Player player, @NotNull ClickType clickType) {
                             sendMessage(player, Component.text("Thank you for clicking me, {player}.", NamedTextColor.AQUA));
                             sendMessage(player, Component.text("My name is {npc_name}.", NamedTextColor.GOLD));
-                            sendMessage(player, Component.text("You health is: {health}"));
+                            sendMessage(player, Component.text("Your health is: {health}"));
                             sendMessage(player, Component.text("You're holding: {held_item}"));
                         }
                     };
@@ -2049,6 +2045,65 @@ public final class EternaTestRegistry {
             context.player().sendMessage(Components.applyStyle(component, Style.style(NamedTextColor.DARK_GRAY, TextDecoration.ITALIC)));
         });
         
+        register("component_mapper", context -> {
+            final ItemBuilder builder = newItemBuilder();
+            
+            builder.addWrappedLore(
+                    Component.empty().append(Component.text("This should be italic as well as very long so we can validate the prefix wrapping.")),
+                    ComponentStyler.builder(Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC))
+                                   .withPrefix(Component.text("* ", NamedTextColor.DARK_GRAY))
+                                   .build()
+            );
+            
+            builder.addLore();
+            builder.addWrappedLore(Component.empty().append(Component.text("This is how default wrapped lore looks like, nothing special, just gray color and no italic.")));
+            
+            builder.addLore();
+            builder.addWrappedLore(lorem(15), ComponentStyler.create(Style.style(NamedTextColor.GOLD, TextDecoration.BOLD)));
+            
+            context.player().getInventory().addItem(builder.build());
+        });
+        
+        register("component_normalize", context -> {
+            context.player().sendMessage(Components.normalizeStyle(
+                    Component.empty()
+                             .append(Component.text("This is test component to normalize "))
+                             .append(Component.text("GREEN PART", NamedTextColor.GREEN))
+                             .appendNewline()
+                             .append(
+                                     Component.empty()
+                                              .append(Component.text("Deep normalization test"))
+                                              .append(Component.text(" [this should be red and bold] ", NamedTextColor.RED, TextDecoration.BOLD))
+                             ),
+                    Style.style(NamedTextColor.GRAY)
+            ));
+        });
+        
+        register("gradient", context -> {
+            class Holder {
+                private static final Map<String, Interpolator> NAMED_INTERPOLATORS = MapMaker.<String, Interpolator>ofLinkedHashMap()
+                                                                                             .put("LINEAR", Interpolator.LINEAR)
+                                                                                             .put("QUADRATIC_SLOW_TO_FAST", Interpolator.QUADRATIC_SLOW_TO_FAST)
+                                                                                             .put("QUADRATIC_FAST_TO_SLOW", Interpolator.QUADRATIC_FAST_TO_SLOW)
+                                                                                             .put("CUBIC_SLOW_TO_FAST", Interpolator.CUBIC_SLOW_TO_FAST)
+                                                                                             .put("CUBIC_FAST_TO_SLOW", Interpolator.CUBIC_FAST_TO_SLOW)
+                                                                                             .put("EASE_IN_OUT", Interpolator.EASE_IN_OUT)
+                                                                                             .makeMap();
+            }
+            
+            final String string = context.joinArguments(2);
+            
+            final TextColor from = Optional.ofNullable(TextColor.fromHexString(context.argument(0).toString())).orElseThrow(() -> new IllegalArgumentException("Invalid color!"));
+            final TextColor to = Optional.ofNullable(TextColor.fromHexString(context.argument(1).toString())).orElseThrow(() -> new IllegalArgumentException("Invalid color!"));
+            
+            Holder.NAMED_INTERPOLATORS.forEach((name, interpolator) -> {
+                context.player().sendMessage(
+                        Components.gradient(string, from, to, interpolator, Style.style(NamedTextColor.RED, TextDecoration.ITALIC)).hoverEvent(HoverEvent.showText(Component.text(name)))
+                );
+            });
+            
+        });
+        
         // *-* End Tests *-* //
         
         final long tookMillis = System.currentTimeMillis() - startMillis;
@@ -2091,6 +2146,47 @@ public final class EternaTestRegistry {
                     }
                 }
         );
+    }
+    
+    private static @NotNull ItemBuilder newItemBuilder() {
+        Material material;
+        
+        do {
+            material = Enums.getRandomValueOrFirst(Material.class);
+        }
+        while (!material.isItem());
+        
+        return new ItemBuilder(material);
+    }
+    
+    public static @NotNull Component lorem(int length) {
+        class Holder {
+            private static final String[] LOREM_WORDS = {
+                    "Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit",
+                    "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore",
+                    "magna", "aliqua", "Ut", "enim", "ad", "minim", "veniam", "quis", "nostrud",
+                    "exercitation", "ullamco", "laboris", "nisi", "aliquip", "ex", "ea", "commodo", "consequat"
+            };
+        }
+        
+        if (length <= 0) {
+            return Component.empty();
+        }
+        
+        
+        final TextComponent.Builder builder = Component.text();
+        
+        for (int i = 0; i < Math.min(length, Holder.LOREM_WORDS.length); ++i) {
+            final String loremWord = Holder.LOREM_WORDS[i];
+            
+            if (i != 0) {
+                builder.appendSpace();
+            }
+            
+            builder.append(Component.text(loremWord));
+        }
+        
+        return builder.build();
     }
     
 }

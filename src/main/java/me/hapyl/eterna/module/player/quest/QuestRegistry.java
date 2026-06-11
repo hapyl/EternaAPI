@@ -1,13 +1,13 @@
 package me.hapyl.eterna.module.player.quest;
 
 import com.google.common.collect.Maps;
-import me.hapyl.eterna.module.annotate.Immutable;
 import me.hapyl.eterna.module.annotate.SingletonBehaviour;
 import me.hapyl.eterna.module.registry.SimpleRegistry;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Map;
@@ -82,7 +82,7 @@ public abstract class QuestRegistry extends SimpleRegistry<Quest> {
      * @param player       - The player for whom to save the data.
      * @param questDataSet - The data to save.
      */
-    public abstract void save(@NotNull Player player, @NotNull @Immutable Set<QuestData> questDataSet);
+    public abstract void save(@NotNull Player player, @NotNull @Unmodifiable Set<QuestData> questDataSet);
     
     /**
      * Loads the {@link QuestData} for the given {@link Player}.

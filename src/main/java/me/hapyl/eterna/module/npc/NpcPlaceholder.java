@@ -34,10 +34,10 @@ import java.util.regex.Pattern;
  * <p></p>
  */
 public abstract class NpcPlaceholder {
-    private static final LinkedList<NpcPlaceholder> placeholders;
+    private static final LinkedList<NpcPlaceholder> PLACEHOLDERS;
     
     static {
-        placeholders = Lists.newLinkedList();
+        PLACEHOLDERS = Lists.newLinkedList();
         
         // Register default placeholders
         register("player", (npc, player) -> player.name());
@@ -112,21 +112,19 @@ public abstract class NpcPlaceholder {
         };
         
         // Make sure that this placeholder doesn't exist already
-        if (placeholders.contains(placeholder)) {
+        if (PLACEHOLDERS.contains(placeholder)) {
             throw new IllegalStateException("Placeholder '%s' already registered!".formatted(placeholder.toString()));
         }
         
         // Don't forget to actually register the placeholder
-        placeholders.add(placeholder);
+        PLACEHOLDERS.add(placeholder);
     }
     
     @ApiStatus.Internal
     @NotNull
-    static Component doPlacehold(@NotNull @Mutates Component original, @NotNull Npc npc, @NotNull Player player) {
-        for (NpcPlaceholder placeholder : placeholders) {
-            original = original.replaceText(
-                    builder -> builder.match(placeholder.pattern).replacement(placeholder.placehold(npc, player))
-            );
+    static Component placehold0(@NotNull Player player, @NotNull Npc npc, @NotNull Component original) {
+        for (NpcPlaceholder placeholder : PLACEHOLDERS) {
+            original = original.replaceText(builder -> builder.match(placeholder.pattern).replacement(placeholder.placehold(npc, player)));
         }
         
         return original;

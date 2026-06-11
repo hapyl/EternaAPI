@@ -94,6 +94,7 @@ public class ArgumentList {
         }
         
         return Arrays.stream(array)
+                     .skip(startIndex)
                      .map(String::valueOf)
                      .collect(Collectors.joining(separator));
     }
