@@ -14,7 +14,9 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -89,15 +91,16 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
     /**
      * Sets the new {@code scale} of this {@link DisplayEntity}.
      *
-     * @param scale - The new scale to set.
+     * @param scale         - The new scale to set.
+     * @param scoreboardTag - The tag for which children to update the scale, or {@code null} to update for all children.
      * @see #getScale()
      * @see #editScale(VectorEdit)
      */
-    public void setScale(@NotNull Vector3f scale) {
+    public void setScale(@NotNull Vector3f scale, @Nullable @CaseSensitive String scoreboardTag) {
         this.scale = scale;
         
         // Scale children
-        for (DisplayPart child : this.children) {
+        this.stream(scoreboardTag).forEach(child -> {
             final Vector3f restTranslation = child.restTranslation();
             final Vector3f restScale = child.restScale();
             
@@ -105,7 +108,28 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
             final Vector3f newScale = new Vector3f(restScale.mul(scale));
             
             child.setTransformation(newTranslation, null, newScale);
-        }
+        });
+    }
+    
+    /**
+     * Sets the new {@code scale} of this {@link DisplayEntity}.
+     *
+     * @param scale - The new scale to set.
+     * @see #getScale()
+     * @see #editScale(VectorEdit)
+     */
+    public void setScale(@NotNull Vector3f scale) {
+        this.setScale(scale, null);
+    }
+    
+    /**
+     * Edits the {@code scale} of this {@link DisplayEntity} and applies it.
+     *
+     * @param edit          - The edit to perform.
+     * @param scoreboardTag - The tag for which children to update the scale, or {@code null} to update for all children.
+     */
+    public void editScale(@NotNull VectorEdit edit, @Nullable @CaseSensitive String scoreboardTag) {
+        this.setScale(edit.edit0(scale), scoreboardTag);
     }
     
     /**
@@ -114,7 +138,7 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
      * @param edit - The edit to perform.
      */
     public void editScale(@NotNull VectorEdit edit) {
-        this.setScale(edit.edit0(scale));
+        this.editScale(edit, null);
     }
     
     /**
@@ -147,11 +171,12 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
     /**
      * Sets the {@code rotation} of this {@link DisplayEntity}.
      *
-     * @param rotation - The new rotation to set.
+     * @param rotation      - The new rotation to set.
+     * @param scoreboardTag - The tag for which children to update the rotation, or {@code null} to update for all children.
      * @see #getRotation()
      * @see #editRotation(VectorEdit)
      */
-    public void setRotation(@NotNull Vector3f rotation) {
+    public void setRotation(@NotNull Vector3f rotation, @Nullable @CaseSensitive String scoreboardTag) {
         this.rotation = rotation;
         
         final Quaternionf rotationQuaternion = new Quaternionf()
@@ -160,7 +185,7 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
                 .rotateZ(rotation.z());
         
         // Rotate children
-        for (DisplayPart child : this.children) {
+        this.stream(scoreboardTag).forEach(child -> {
             final Vector3f restTranslation = child.restTranslation();
             final Quaternionf restRotation = child.restRotation();
             
@@ -168,7 +193,28 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
             final Quaternionf newRotation = new Quaternionf(rotationQuaternion).mul(restRotation).normalize();
             
             child.setTransformation(newTranslation, newRotation, null);
-        }
+        });
+    }
+    
+    /**
+     * Sets the {@code rotation} of this {@link DisplayEntity}.
+     *
+     * @param rotation - The new rotation to set.
+     * @see #getRotation()
+     * @see #editRotation(VectorEdit)
+     */
+    public void setRotation(@NotNull Vector3f rotation) {
+        this.setRotation(rotation, null);
+    }
+    
+    /**
+     * Edits the {@code rotation} of this {@link DisplayEntity} and applies it.
+     *
+     * @param edit          - The edit to perform.
+     * @param scoreboardTag - The tag for which children to update the rotation, or {@code null} to update for all children.
+     */
+    public void editRotation(@NotNull VectorEdit edit, @Nullable @CaseSensitive String scoreboardTag) {
+        this.setRotation(edit.edit0(rotation), scoreboardTag);
     }
     
     /**
@@ -177,7 +223,7 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
      * @param edit - The edit to perform.
      */
     public void editRotation(@NotNull VectorEdit edit) {
-        this.setRotation(edit.edit0(rotation));
+        this.editRotation(edit, null);
     }
     
     /**
@@ -490,11 +536,11 @@ public class DisplayEntity implements Iterable<DisplayPart>, Removable, Located,
     /**
      * Creates a {@link Stream} of the {@link DisplayPart} that are tagged with the given {@code scoreboardTag}.
      *
-     * @param scoreboardTag - The scoreboard tag.
+     * @param scoreboardTag - The scoreboard tag, or {@code null} to stream all children.
      * @return a stream of display parts that are tagged with the given scoreboard tag.
      */
-    public @NotNull Stream<DisplayPart> stream(@NotNull String scoreboardTag) {
-        return children.stream().filter(displayPart -> displayPart.isTagged(scoreboardTag));
+    public @NotNull Stream<DisplayPart> stream(@Nullable @CaseSensitive String scoreboardTag) {
+        return children.stream().filter(displayPart -> scoreboardTag == null || displayPart.isTagged(scoreboardTag));
     }
     
 }
