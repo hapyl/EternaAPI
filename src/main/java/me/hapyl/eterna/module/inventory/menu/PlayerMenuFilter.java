@@ -33,7 +33,7 @@ import java.util.function.Consumer;
  */
 public abstract class PlayerMenuFilter<E, F extends Enum<F>> {
     
-    private static final ComponentStyler STYLER = ComponentStyler.builder(Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC)).withPadding(3).build();
+    private static final ComponentStyler STYLER = ComponentStyler.builder(Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC)).withPadding(4).build();
     
     private final Class<F> enumClass;
     private final List<F> filters;
@@ -123,7 +123,7 @@ public abstract class PlayerMenuFilter<E, F extends Enum<F>> {
                 builder.addLore(
                         isCurrent
                         ? Component.text("➥ ", NamedTextColor.GREEN).append(Component.text("No filter!"))
-                        : Component.text(" No filter!", NamedTextColor.DARK_GRAY)
+                        : Component.text("   No filter!", NamedTextColor.DARK_GRAY)
                 );
             }
             // Otherwise it's an enum constant
@@ -131,7 +131,7 @@ public abstract class PlayerMenuFilter<E, F extends Enum<F>> {
                 builder.addLore(
                         isCurrent
                         ? Component.text("➥ ", NamedTextColor.GREEN).append(Component.text(value.toString(), NamedTextColor.GREEN, TextDecoration.BOLD))
-                        : Component.text(" ").append(Component.text(value.toString(), NamedTextColor.DARK_GRAY, TextDecoration.BOLD))
+                        : Component.text("   ").append(Component.text(value.toString(), NamedTextColor.DARK_GRAY, TextDecoration.BOLD))
                 );
                 
                 // If it's enum is described, append the description

@@ -356,14 +356,13 @@ public final class LocationHelper {
     }
     
     /**
-     * Creates a copy of the given {@link Location}.
+     * Creates a copy of the give {@link Location} {@code x}, {@code y} and {@code z} coordinates, without the rotation.
      *
      * @param location - The location to copy.
-     * @return a copied location, or {@code null} if the provided location was {@code null}.
+     * @return a copied location.
      */
-    @Nullable
-    public static Location copyOfNullable(@Nullable @DefensiveCopy Location location) {
-        return location != null ? copyOf(location) : null;
+    public static @NotNull Location copyOfPosition(@NotNull @DefensiveCopy Location location) {
+        return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), 0, 0);
     }
     
     /**

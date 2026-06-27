@@ -133,6 +133,33 @@ public final class DisplayPart implements Removable {
         return Objects.equals(this.display, that.display);
     }
     
+    /**
+     * Gets a copy of the rest translation of this display part.
+     *
+     * @return a copy of the rest translation of this display part.
+     */
+    public @NotNull Vector3f restTranslation() {
+        return new Vector3f(restTranslation);
+    }
+    
+    /**
+     * Gets a copy of the rest rotation of this display part.
+     *
+     * @return a copy of the rest rotation of this display part.
+     */
+    public @NotNull Quaternionf restRotation() {
+        return new Quaternionf(restRotation);
+    }
+    
+    /**
+     * Gets a copy of the rest scale of this display part.
+     *
+     * @return a copy of the rest scale of this display part.
+     */
+    public @NotNull Vector3f restScale() {
+        return new Vector3f(restScale);
+    }
+    
     @ApiStatus.Internal
     void setTransformation(@Nullable Vector3f translation, @Nullable Quaternionf rotation, @Nullable Vector3f scale) {
         final Transformation transformation = display.getTransformation();
@@ -143,21 +170,6 @@ public final class DisplayPart implements Removable {
                 scale != null ? scale : transformation.getScale(),
                 transformation.getRightRotation() // Don't care about right rotation
         ));
-    }
-    
-    @ApiStatus.Internal
-    @NotNull Vector3f restTranslation() {
-        return new Vector3f(restTranslation);
-    }
-    
-    @ApiStatus.Internal
-    @NotNull Quaternionf restRotation() {
-        return new Quaternionf(restRotation);
-    }
-    
-    @ApiStatus.Internal
-    @NotNull Vector3f restScale() {
-        return new Vector3f(restScale);
     }
     
 }
