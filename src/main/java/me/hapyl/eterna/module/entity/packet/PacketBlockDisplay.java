@@ -3,7 +3,7 @@ package me.hapyl.eterna.module.entity.packet;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -24,7 +24,7 @@ public class PacketBlockDisplay extends PacketEntityImpl<Display.BlockDisplay> {
      * @param location - The initial location.
      */
     public PacketBlockDisplay(@NotNull Location location) {
-        super(new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, getWorld(location)), location);
+        super(new Display.BlockDisplay(EntityTypes.BLOCK_DISPLAY, getWorld(location)), location);
     }
     
     /**

@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.component;
 
 import me.hapyl.eterna.module.annotate.SelfReturn;
-import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.util.Buildable;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;

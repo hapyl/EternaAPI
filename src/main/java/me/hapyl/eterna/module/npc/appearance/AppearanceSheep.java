@@ -2,12 +2,12 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.npc.Npc;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.sheep.Sheep;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a {@link EntityType#SHEEP} appearance.
+ * Represents a {@link Sheep} appearance.
  */
 public class AppearanceSheep extends Appearance {
     
@@ -15,7 +15,7 @@ public class AppearanceSheep extends Appearance {
     private boolean sheared;
     
     public AppearanceSheep(@NotNull Npc npc, @NotNull SheepColor color) {
-        super(npc, new Sheep(EntityType.SHEEP, dummyWorld()));
+        super(npc, new Sheep(EntityTypes.SHEEP, dummyWorld()));
         
         this.sheepColor = color;
     }
@@ -60,7 +60,7 @@ public class AppearanceSheep extends Appearance {
     }
     
     @Override
-    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+    public void onDataUpdated(@NotNull SynchedEntityData entityData) {
         entityData.set(sheepColor.getAccessor(), (byte) ((sheepColor.ordinal() & 0x0F) | (sheared ? 0x10 : 0)));
     }
     

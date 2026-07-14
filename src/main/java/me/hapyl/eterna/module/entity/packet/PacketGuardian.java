@@ -1,7 +1,7 @@
 package me.hapyl.eterna.module.entity.packet;
 
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.Guardian;
 import org.bukkit.Location;
 import org.jetbrains.annotations.ApiStatus;
@@ -19,7 +19,7 @@ public class PacketGuardian extends PacketLivingEntityImpl<Guardian> {
      * @param location - The initial location.
      */
     public PacketGuardian(@NotNull Location location) {
-        super(new Guardian(EntityType.GUARDIAN, getWorld(location)), location);
+        super(new Guardian(EntityTypes.GUARDIAN, getWorld(location)), location);
     }
     
     /**

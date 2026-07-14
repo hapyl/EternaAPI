@@ -4,14 +4,8 @@ import me.hapyl.eterna.EternaColors;
 import me.hapyl.eterna.module.annotate.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.event.inventory.ClickType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Represents a utility class that creates buttons {@link Component} (eg: "Left-click to", "Right-click to")

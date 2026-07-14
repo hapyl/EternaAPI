@@ -7,22 +7,30 @@ import me.hapyl.eterna.module.command.ArgumentList;
 import me.hapyl.eterna.module.component.Components;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.Scheduler;
+import me.hapyl.eterna.module.util.StringList;
 import me.hapyl.eterna.module.util.TypeConverter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.Internal
 public abstract class EternaTest {
+    
+    protected static final Plugin PLUGIN = Eterna.getPlugin();
+    protected static final Random RANDOM = new Random();
+    
+    private static @Nullable EternaTest CURRENT_TEST;
     
     private final Key key;
     
@@ -31,11 +39,18 @@ public abstract class EternaTest {
         this.key = key;
     }
     
-    public final void test0(@NotNull Player player, @NotNull ArgumentList args) {
+    public final void test(@NotNull Player player, @NotNull ArgumentList args) {
+        if (CURRENT_TEST != null) {
+            EternaLogger.test(player, Component.text("Cannot run tests right now, awaiting `%s`!".formatted(CURRENT_TEST.key), NamedTextColor.RED));
+            return;
+        }
+        
         final List<Component> warnings = Lists.newArrayList();
         final CompletableFuture<Void> future = new CompletableFuture<>();
         
         future.thenRun(() -> {
+                  CURRENT_TEST = null;
+                  
                   if (warnings.isEmpty()) {
                       EternaLogger.test(player, Component.text("Test `%s` passed!".formatted(key), NamedTextColor.GREEN));
                   }
@@ -53,6 +68,8 @@ public abstract class EternaTest {
                   }
               })
               .exceptionally(ex -> {
+                  CURRENT_TEST = null;
+                  
                   final String exceptionMessage = Objects.requireNonNullElseGet(ex.getMessage(), () -> ex.getCause().getMessage());
                   
                   EternaLogger.test(player, Component.text("Test `%s` failed!".formatted(key), NamedTextColor.DARK_RED));
@@ -61,9 +78,10 @@ public abstract class EternaTest {
               });
         
         try {
+            CURRENT_TEST = this;
             EternaLogger.test(player, Component.text("Testing `%s`...".formatted(key), NamedTextColor.YELLOW));
             
-            test(new EternaTestContext() {
+            this.test(new EternaTestContext() {
                 @Override
                 @NotNull
                 public Player player() {
@@ -170,6 +188,10 @@ public abstract class EternaTest {
         }
     }
     
-    protected abstract void test(@NotNull EternaTestContext context) throws EternaTestException;
+    public abstract void test(@NotNull EternaTestContext context) throws EternaTestException;
+    
+    public @NotNull StringList tabComplete(@NotNull ArgumentList args) {
+        return StringList.of();
+    }
     
 }

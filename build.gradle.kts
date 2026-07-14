@@ -5,6 +5,7 @@ plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
     id("maven-publish")
     id("xyz.jpenilla.run-paper") version "3.0.2"
+    id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.3.1"
 }
 
 repositories {
@@ -14,11 +15,11 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("26.1.2.build.+")
+    paperweight.paperDevBundle("26.2.build.+")
 }
 
 group = "me.hapyl"
-version = "6.2.16-SNAPSHOT"
+version = "6.3.0-SNAPSHOT"
 description = "EternaAPI"
 
 // Set java settings, attach sources and javadocs
@@ -63,21 +64,19 @@ tasks {
         isFailOnError = false
     }
 
-    // Copy version from project to `plugin.yml`, because gradle can't do
-    // that automatically ¯\_(ツ)_/¯
-    named<ProcessResources>("processResources") {
-        filteringCharset = "UTF-8"
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-        from(sourceSets.main.get().resources.srcDirs) {
-            include("plugin.yml")
-            expand("version" to project.version)
-        }
+    // Create `plugin.yml`
+    bukkitPluginYaml {
+        main = "me.hapyl.eterna.EternaPlugin"
+        prefix = "EternaAPI"
+        apiVersion = "26.1.2"
+        authors = listOf("hapyl")
     }
 
     runServer {
-        minecraftVersion("26.1.2")
+        minecraftVersion("26.2")
     }
 }
+
+
 
 

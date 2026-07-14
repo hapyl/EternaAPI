@@ -116,33 +116,33 @@ public class Nulls {
     }
     
     /**
-     * Applies the given {@link Function} to the given {@link T} if it is non-{@code null}, returning the result if also non-{@code null};
-     * otherwise returns the default value.
-     *
-     * @param object             - The object to unwrap.
-     * @param unwrappingFunction - The function to apply if {@code object} is non-{@code null}.
-     * @param defaultValue       - The value to return if either {@code object} or the result of the function is {@code null}.
-     * @return The unwrapped value or {@code defaultValue} if unavailable.
-     */
-    public static <T, R> R unwrap(@Nullable T object, @NotNull Function<T, R> unwrappingFunction, @Nullable R defaultValue) {
-        if (object == null) {
-            return null;
-        }
-        
-        final R r = unwrappingFunction.apply(object);
-        return r != null ? r : defaultValue;
-    }
-    
-    /**
      * Applies the given {@link Function} to the given {@link T} if it is non-{@code null}, returning the result.
      *
      * @param object             - The object to unwrap.
      * @param unwrappingFunction - The unwrapping function.
      * @return the unwrapped object, or {@code null}.
      */
-    @Nullable
-    public static <T, R> R unwrap(@Nullable T object, @NotNull Function<T, R> unwrappingFunction) {
-        return unwrap(object, unwrappingFunction, null);
+    public static <T, R> @Nullable R unwrap(@Nullable T object, @NotNull Function<@NotNull T, @Nullable R> unwrappingFunction) {
+        if (object == null) {
+            return null;
+        }
+        
+        return unwrappingFunction.apply(object);
+    }
+    
+    /**
+     * Applies the given {@link Function} to the given {@link T} if it is non-{@code null}, returning the result if also non-{@code null};
+     * otherwise returns the default value.
+     *
+     * @param object             - The object to unwrap.
+     * @param unwrappingFunction - The function to apply if {@code object} is non-{@code null}.
+     * @param defaultValue       - The value to return if either {@code object} or the result of the function is {@code null}.
+     * @return The unwrapped value or {@code defaultValue} if either {@link T} is {@code null} or the return value of the function is {@code null}.
+     */
+    public static <T, R> @NotNull R unwrap(@Nullable T object, @NotNull Function<@NotNull T, @Nullable R> unwrappingFunction, @NotNull R defaultValue) {
+        final R r = unwrap(object, unwrappingFunction);
+        
+        return r != null ? r : defaultValue;
     }
     
     /**
@@ -158,4 +158,5 @@ public class Nulls {
     public static <T> T or(@Nullable T element, @NotNull Supplier<T> orSupplier) {
         return element != null ? element : Objects.requireNonNull(orSupplier.get(), "Supplier element must not be null!");
     }
+    
 }

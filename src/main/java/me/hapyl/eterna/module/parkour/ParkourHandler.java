@@ -224,7 +224,7 @@ public final class ParkourHandler extends EternaHandler<Key, Parkour> implements
             final ParkourPosition finish = parkour.getFinish();
             
             // Start/Finish has shared cooldown
-            if (PlayerLib.isOnCooldown(player, cooldownStart)) {
+            if (PlayerLib.hasCooldown(player, cooldownStart)) {
                 return;
             }
             
@@ -264,7 +264,7 @@ public final class ParkourHandler extends EternaHandler<Key, Parkour> implements
             }
             
             // Check for whether we're doing parkour or cooldown
-            if (data == null || PlayerLib.isOnCooldown(player, cooldownCheckpoint)) {
+            if (data == null || PlayerLib.hasCooldown(player, cooldownCheckpoint)) {
                 return;
             }
             

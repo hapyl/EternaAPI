@@ -148,7 +148,7 @@ public final class Reflect {
      */
     @PacketOperation
     public static void updateEntityData(@NotNull Player player, @NotNull net.minecraft.world.entity.Entity entity) {
-        sendPacket(player, PacketFactory.makePacketSetEntityData(entity));
+        sendPacket(player, PacketFactory.makePacketSetEntityData(entity, true));
     }
     
     /**

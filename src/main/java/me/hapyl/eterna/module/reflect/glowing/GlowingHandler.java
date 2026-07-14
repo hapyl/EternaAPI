@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import me.hapyl.eterna.EternaHandler;
 import me.hapyl.eterna.EternaKey;
-import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.EternaPlugin;
 import me.hapyl.eterna.module.event.protocol.PacketSendEvent;
 import me.hapyl.eterna.module.reflect.Reflect;
@@ -22,7 +21,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @ApiStatus.Internal
 public final class GlowingHandler extends EternaHandler<Player, GlowingImpl> implements Listener {
