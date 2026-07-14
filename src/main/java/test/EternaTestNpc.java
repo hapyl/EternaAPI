@@ -15,6 +15,7 @@ import me.hapyl.eterna.module.util.StringList;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -37,7 +38,7 @@ public final class EternaTestNpc extends EternaTest {
     EternaTestNpc(@NotNull Key key) {
         super(key);
         
-        // Register custom placeholder
+        // Register custom placeholders
         NpcPlaceholder.register("health", (_npc, _player) -> Component.text("%.1f ❤".formatted(_player.getHealth()), NamedTextColor.RED));
         NpcPlaceholder.register(
                 "held_item", (_npc, _player) -> {
@@ -60,11 +61,7 @@ public final class EternaTestNpc extends EternaTest {
             return;
         }
         
-        final Npc npc = new Npc(
-                player.getLocation(),
-                Component.text("Emilie"),
-                builder.apply(context)
-        ) {
+        final Npc npc = new Npc(player.getLocation(), Component.text("Emilie"), builder.apply(context)) {
             @Override
             public void tick() {
                 super.tick();
@@ -132,6 +129,14 @@ public final class EternaTestNpc extends EternaTest {
                    context.info(Component.text("Invisible: ").append(Component.text("false", NamedTextColor.RED)));
                    npc.setInvisible(false);
                }, 40))
+                .then(SchedulerTask.later(() -> {
+                    final double scale = 0.5;
+                    
+                    context.info(Component.text("Set scale to %.1f".formatted(scale)));
+                    
+                    npc.setAttribute(Attributes.SCALE, scale);
+                    npc.updateAttributes();
+                }, 40))
                .then(SchedulerTask.await(await -> {
                    int delay = 0;
                    

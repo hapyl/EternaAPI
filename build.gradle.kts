@@ -19,7 +19,7 @@ dependencies {
 }
 
 group = "me.hapyl"
-version = "6.3.0-SNAPSHOT"
+version = "6.3.1-SNAPSHOT"
 description = "EternaAPI"
 
 // Set java settings, attach sources and javadocs
@@ -68,7 +68,7 @@ tasks {
     bukkitPluginYaml {
         main = "me.hapyl.eterna.EternaPlugin"
         prefix = "EternaAPI"
-        apiVersion = "26.1.2"
+        apiVersion = "26.2"
         authors = listOf("hapyl")
     }
 

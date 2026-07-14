@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import me.hapyl.eterna.module.annotate.DefensiveCopy;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.component.ComponentList;
+import me.hapyl.eterna.module.entity.PacketAttributes;
 import me.hapyl.eterna.module.entity.Showable;
 import me.hapyl.eterna.module.event.PlayerInteractNpcEvent;
 import me.hapyl.eterna.module.hologram.Hologram;
@@ -13,7 +14,6 @@ import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.npc.appearance.Appearance;
 import me.hapyl.eterna.module.npc.appearance.AppearanceBuilder;
-import me.hapyl.eterna.module.npc.appearance.NpcBase;
 import me.hapyl.eterna.module.npc.tag.TagLayout;
 import me.hapyl.eterna.module.npc.tag.TagPart;
 import me.hapyl.eterna.module.reflect.Reflect;
@@ -25,13 +25,17 @@ import me.hapyl.eterna.module.util.Ticking;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minecraft.core.Holder;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.AreaEffectCloud;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.ApiStatus;
@@ -45,7 +49,7 @@ import java.util.function.Consumer;
 /**
  * Represents a very customizable npc implementation.
  */
-public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
+public class Npc implements Located, Showable, Disposable, Ticking, NpcBase, PacketAttributes {
     
     public static final double CHAIR_Y_OFFSET;
     
@@ -313,6 +317,10 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
         return LocationHelper.copyOf(this.location);
     }
     
+    public @DefensiveCopy @NotNull Location getEyeLocation() {
+        return LocationHelper.copyOf(this.location).add(0, appearance.getHeight(), 0);
+    }
+    
     /**
      * Sets the {@link Location} of this {@link Npc}.
      * <p>
@@ -537,7 +545,7 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
             
             // Look at the closest player
             if (closestPlayer != null) {
-                lookAt(closestPlayer, LookAnchor.FEET);
+                this.lookAt(closestPlayer, LookAnchor.EYES);
             }
             else {
                 // Check for rest position
@@ -557,7 +565,7 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
      */
     public void lookAt(@NotNull @DefensiveCopy Location lookAt) {
         // Calculate yaw & pitch
-        final Location location = getLocation();
+        final Location location = this.getEyeLocation();
         location.setDirection(LocationHelper.copyOf(lookAt).subtract(location).toVector());
         
         // Update position via packets
@@ -565,12 +573,12 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
     }
     
     /**
-     * Makes this {@link Npc} look at the given {@link LivingEntity}.
+     * Makes this {@link Npc} look at the given {@link Entity}.
      *
      * @param entity - The entity at which to look.
      * @param anchor - The look anchor.
      */
-    public void lookAt(@NotNull LivingEntity entity, @NotNull LookAnchor anchor) {
+    public void lookAt(@NotNull Entity entity, @NotNull LookAnchor anchor) {
         this.lookAt(anchor.apply(entity));
     }
     
@@ -583,7 +591,7 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
      * @param pitch - The desired pitch.
      */
     public void setHeadRotation(float yaw, float pitch) {
-        final Entity handle = appearance.getHandle();
+        final LivingEntity handle = appearance.getHandle();
         
         // If yaw and pitch already set, we simply ignore it, which technically can be considered
         // a bug, but optimization is better
@@ -659,6 +667,39 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
         }
         
         return false;
+    }
+    
+    @Override
+    public @NotNull Optional<AttributeInstance> getAttributeInstance(@NotNull Holder<Attribute> attribute) {
+        return Optional.ofNullable(appearance.getHandle().getAttribute(attribute));
+    }
+    
+    @Override
+    public @Nullable Double getAttribute(@NotNull Holder<Attribute> attribute) {
+        final AttributeInstance attributeInstance = appearance.getHandle().getAttribute(attribute);
+        
+        return attributeInstance != null ? attributeInstance.getBaseValue() : 0.0;
+    }
+    
+    @Override
+    public void setAttribute(@NotNull Holder<Attribute> attribute, double value) {
+        final AttributeInstance attributeInstance = appearance.getHandle().getAttribute(attribute);
+        
+        if (attributeInstance != null) {
+            attributeInstance.setBaseValue(value);
+        }
+    }
+    
+    @Override
+    public void updateAttributes(@NotNull Player player) {
+        Reflect.sendPacket(player, PacketAttributes.createUpdateAttributesPacket(appearance.getHandle()));
+    }
+    
+    @Override
+    public void updateAttributes() {
+        final ClientboundUpdateAttributesPacket packet = PacketAttributes.createUpdateAttributesPacket(appearance.getHandle());
+        
+        playerData.keySet().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
     /**

@@ -1,5 +1,6 @@
 package me.hapyl.eterna.module.entity.packet;
 
+import me.hapyl.eterna.module.entity.PacketAttributes;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.minecraft.core.Holder;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
@@ -12,7 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-public class PacketLivingEntityImpl<T extends LivingEntity> extends PacketEntityImpl<T> implements PacketLivingEntity {
+import java.util.Optional;
+
+public class PacketLivingEntityImpl<T extends LivingEntity> extends PacketEntityImpl<T> implements PacketAttributes {
     
     PacketLivingEntityImpl(@NonNull T entity, @NotNull Location location) {
         super(entity, location);
@@ -23,6 +26,11 @@ public class PacketLivingEntityImpl<T extends LivingEntity> extends PacketEntity
         super.show(player);
         
         this.updateAttributes(player);
+    }
+    
+    @Override
+    public @NotNull Optional<AttributeInstance> getAttributeInstance(@NotNull Holder<Attribute> attribute) {
+        return Optional.ofNullable(entity.getAttribute(attribute));
     }
     
     @Nullable
@@ -44,12 +52,14 @@ public class PacketLivingEntityImpl<T extends LivingEntity> extends PacketEntity
     
     @Override
     public void updateAttributes(@NotNull Player player) {
-        Reflect.sendPacket(player, new ClientboundUpdateAttributesPacket(entity.getId(), entity.getAttributes().getSyncableAttributes()));
+        Reflect.sendPacket(player, PacketAttributes.createUpdateAttributesPacket(entity));
     }
     
     @Override
     public void updateAttributes() {
-        showingTo.forEach(this::updateAttributes);
+        final ClientboundUpdateAttributesPacket packet = PacketAttributes.createUpdateAttributesPacket(entity);
+        
+        showingTo.forEach(player -> Reflect.sendPacket(player, packet));
     }
     
 }

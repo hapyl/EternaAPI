@@ -70,6 +70,8 @@ public final class EternaCommand extends SimpleAdminCommand {
             public void execute(@NotNull CommandSender sender, @NotNull ArgumentList args) {
                 final Updater updater = Eterna.getUpdater();
                 
+                EternaLogger.message(sender, Component.text("Checking for updates...", NamedTextColor.GREEN));
+                
                 updater.checkForUpdates().thenAccept(response -> {
                     EternaLogger.message(sender, response.result().asComponent());
                     

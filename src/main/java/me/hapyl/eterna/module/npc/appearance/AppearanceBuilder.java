@@ -24,10 +24,10 @@ public interface AppearanceBuilder<T extends Appearance> {
     T build(@NotNull Npc npc);
     
     /**
-     * A static factory method for creating {@link AppearanceBuilder}.
+     * A static factory method for creating {@link AppearanceBuilder} and applying the given {@link Consumer} to it.
      *
      * @param builder  - The builder.
-     * @param consumer - The build action.
+     * @param consumer - The consumer to apply to the appearance.
      * @param <T>      - The appearance type.
      * @return a new {@link AppearanceBuilder}.
      */

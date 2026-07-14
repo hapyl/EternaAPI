@@ -13,6 +13,7 @@ import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockCanBuildEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,25 +43,26 @@ public final class PacketFactory {
      * @param x      - The {@code x} coordinate.
      * @param y      - The {@code y} coordinate.
      * @param z      - The {@code z} coordinate.
+     * @param yaw    - The {@code yaw} rotation.
+     * @param pitch  - The {@code pitch} rotation.
      * @return a new packet.
      */
     @NotNull
-    public static ClientboundAddEntityPacket makePacketAddEntity(@NotNull Entity entity, double x, double y, double z) {
+    public static ClientboundAddEntityPacket makePacketAddEntity(@NotNull Entity entity, double x, double y, double z, float yaw, float pitch) {
         final int entityId = entity.getId();
-        final UUID uuid = entity.getUUID();
         
         return new ClientboundAddEntityPacket(
                 entityId,
-                uuid,
+                entity.getUUID(),
                 x,
                 y,
                 z,
-                entity.getXRot(),
-                entity.getYRot(),
+                pitch, // xRot = pitch
+                yaw,   // yRot = yaw
                 entity.getType(),
-                entityId,
+                0,
                 entity.getDeltaMovement(),
-                entity.getYHeadRot()
+                yaw   // yHeadRot = yaw (again, but for the head specifically)
         );
     }
     
@@ -73,7 +75,7 @@ public final class PacketFactory {
      */
     @NotNull
     public static ClientboundAddEntityPacket makePacketAddEntity(@NotNull Entity entity, @NotNull Location location) {
-        return makePacketAddEntity(entity, location.getX(), location.getY(), location.getZ());
+        return makePacketAddEntity(entity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
     
     /**
