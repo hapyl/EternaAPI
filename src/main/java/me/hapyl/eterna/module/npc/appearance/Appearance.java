@@ -2,6 +2,7 @@ package me.hapyl.eterna.module.npc.appearance;
 
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.npc.Npc;
+import me.hapyl.eterna.module.npc.NpcBase;
 import me.hapyl.eterna.module.npc.NpcPose;
 import me.hapyl.eterna.module.reflect.Reflect;
 import me.hapyl.eterna.module.reflect.packet.PacketFactory;
@@ -11,6 +12,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
@@ -24,7 +26,10 @@ import java.util.function.Consumer;
 
 /**
  * Represents a base appearance class.
- * <p>Appearance is the way {@link Npc} looks, be it {@link AppearanceMannequin} or {@link AppearanceSheep}.</p>
+ *
+ * <p>
+ * Appearance is the way {@link Npc} looks, be it {@link AppearanceMannequin} or {@link AppearanceSheep}.
+ * </p>
  */
 public abstract class Appearance implements NpcBase {
     
@@ -37,7 +42,7 @@ public abstract class Appearance implements NpcBase {
     private static final EntityDataAccessor<Byte> ACCESSOR_PROPERTIES = EntityDataSerializers.BYTE.createAccessor(0);
     
     protected final Npc npc;
-    protected final Entity handle;
+    protected final LivingEntity handle;
     
     private NpcPose pose;
     
@@ -47,7 +52,7 @@ public abstract class Appearance implements NpcBase {
      * @param npc    - The npc this appearance belongs to.
      * @param handle - The entity handle.
      */
-    public Appearance(@NotNull Npc npc, @NotNull Entity handle) {
+    public Appearance(@NotNull Npc npc, @NotNull LivingEntity handle) {
         this.handle = handle;
         this.npc = npc;
         this.pose = NpcPose.STANDING;
@@ -77,8 +82,8 @@ public abstract class Appearance implements NpcBase {
      * @return the entity handle.
      */
     @NotNull
-    public Entity getHandle() {
-        return this.handle;
+    public LivingEntity getHandle() {
+        return handle;
     }
     
     /**

@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Internal
 public class SkinImpl implements Skin {
     
+    static Skin EMPTY = new SkinImpl("", "");
+    
     private final String[] values;
     
     SkinImpl(@NotNull String value, @NotNull String signature) {

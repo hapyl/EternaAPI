@@ -47,7 +47,6 @@ public final class Updater extends EternaKeyed {
                 final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 final JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
                 
-                
                 final String pluginVersion = Eterna.getPlugin().getPluginMeta().getVersion();
                 final String latestVersion = json.get("tag_name").getAsString();
                 
@@ -63,15 +62,10 @@ public final class Updater extends EternaKeyed {
                                          .append(Component.text("Download from ", NamedTextColor.GREEN))
                                          .append(
                                                  Component.text("GITHUB", NamedTextColor.AQUA, TextDecoration.BOLD, TextDecoration.UNDERLINED)
-                                                          .hoverEvent(
-                                                                  HoverEvent.showText(Component.text("Click to open the link in your browser!", NamedTextColor.YELLOW, TextDecoration.UNDERLINED))
-                                                          )
-                                                          .clickEvent(
-                                                                  ClickEvent.clickEvent(
-                                                                          ClickEvent.Action.OPEN_URL,
-                                                                          ClickEvent.Payload.string(downloadUrl)
-                                                                  )
-                                                          )
+                                                          .hoverEvent(HoverEvent.showText(
+                                                                  Component.text("Click to open the link in your browser!", NamedTextColor.YELLOW, TextDecoration.UNDERLINED)
+                                                          ))
+                                                          .clickEvent(ClickEvent.openUrl(downloadUrl))
                                          ).build()
                 ));
             }

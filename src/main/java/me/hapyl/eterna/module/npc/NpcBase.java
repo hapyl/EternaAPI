@@ -1,7 +1,5 @@
-package me.hapyl.eterna.module.npc.appearance;
+package me.hapyl.eterna.module.npc;
 
-import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.npc.NpcPose;
 import net.minecraft.network.syncher.SynchedEntityData;
 import org.jetbrains.annotations.NotNull;
 

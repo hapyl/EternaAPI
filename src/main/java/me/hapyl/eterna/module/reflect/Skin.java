@@ -87,4 +87,13 @@ public interface Skin {
                                  .orElseThrow(() -> new IllegalArgumentException("Cannot find texture for player `%s`!".formatted(player.getName()))));
     }
     
+    /**
+     * A static factory method for retrieving a {@link Skin} instance with empty texture and signature.
+     *
+     * @return an empty skin instance.
+     */
+    static @NotNull Skin empty() {
+        return SkinImpl.EMPTY;
+    }
+    
 }
