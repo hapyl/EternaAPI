@@ -14,8 +14,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -195,50 +193,36 @@ public final class LocationHelper {
      * Gets the squared distance between the two {@link Location} along the given {@link Axis}.
      *
      * <p>
-     * If the worlds of the given locations don't match, {@link Double#MAX_VALUE} is returned.
+     * Unlike {@link Location#distanceSquared(Location)}, this method ignores the {@link World} of the locations and returns
+     * {@link Double#MAX_VALUE} if they don't match.
      * </p>
      *
      * @param from - The first location.
      * @param to   - The second location.
-     * @param axis - The axis along which to measure the distance.
      * @return the squared distance between the two location along the given axis.
      */
-    public static double distanceSquared(@NotNull Location from, @NotNull Location to, @NotNull @Range(from = 1, to = 3) Axis... axis) {
+    public static double distanceSquared(@NotNull Location from, @NotNull Location to) {
         if (!from.getWorld().equals(to.getWorld())) {
             return Double.MAX_VALUE;
         }
         
-        double distance = 0.0;
-        
-        if (varargsEmptyOrContain(axis, Axis.X)) {
-            distance += Numbers.square(from.getX() - to.getX());
-        }
-        
-        if (varargsEmptyOrContain(axis, Axis.Y)) {
-            distance += Numbers.square(from.getY() - to.getY());
-        }
-        
-        if (varargsEmptyOrContain(axis, Axis.Z)) {
-            distance += Numbers.square(from.getZ() - to.getZ());
-        }
-        
-        return distance;
+        return Numbers.square(from.getX() - to.getX()) + Numbers.square(from.getY() - to.getY()) + Numbers.square(from.getZ() - to.getZ());
     }
     
     /**
      * Gets the distance between the two {@link Location} along the given {@link Axis}.
      *
      * <p>
-     * If the worlds of the given locations don't match, {@link Double#MAX_VALUE} is returned.
+     * Unlike {@link Location#distance(Location)}, this method ignores the {@link World} of the locations and returns
+     * {@link Double#MAX_VALUE} if they don't match.
      * </p>
      *
      * @param from - The first location.
      * @param to   - The second location.
-     * @param axis - The axis along which to measure the distance.
      * @return the distance between the two location along the given axis.
      */
-    public static double distance(@NotNull Location from, @NotNull Location to, @NotNull @Range(from = 1, to = 3) Axis... axis) {
-        return Math.sqrt(distanceSquared(from, to, axis));
+    public static double distance(@NotNull Location from, @NotNull Location to) {
+        return Math.sqrt(distanceSquared(from, to));
     }
     
     /**

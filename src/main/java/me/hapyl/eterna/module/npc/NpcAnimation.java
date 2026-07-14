@@ -13,13 +13,11 @@ public enum NpcAnimation {
     
     /**
      * Swings the main hand.
-     * FIXME @Jan 09, 2026 (xanyjl) -> Does not work for mannequins, will be fixed in 26.1
      */
     SWING_MAIN_HAND(ClientboundAnimatePacket.SWING_MAIN_HAND),
     
     /**
      * Swings the offhand.
-     * FIXME @Jan 09, 2026 (xanyjl) -> Does not work for mannequins, will be fixed in 26.1
      */
     SWING_OFF_HAND(ClientboundAnimatePacket.SWING_OFF_HAND),
     

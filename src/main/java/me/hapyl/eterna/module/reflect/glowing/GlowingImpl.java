@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 
 @ApiStatus.Internal
 public class GlowingImpl implements Ticking {
@@ -20,7 +19,9 @@ public class GlowingImpl implements Ticking {
     
     GlowingImpl(@NotNull Player player) {
         this.player = player;
-        this.entityMap = Maps.newHashMap();
+        // This can, is VERY VERY VERY rare cases throw a concurrent exception, probably because some race
+        // condition with packets, hence it's concurrent map
+        this.entityMap = Maps.newConcurrentMap();
     }
     
     @NotNull

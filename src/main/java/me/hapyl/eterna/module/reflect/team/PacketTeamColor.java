@@ -3,8 +3,7 @@ package me.hapyl.eterna.module.reflect.team;
 import me.hapyl.eterna.module.reflect.glowing.Glowing;
 import me.hapyl.eterna.module.util.CollectionUtils;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minecraft.ChatFormatting;
-import org.jetbrains.annotations.ApiStatus;
+import net.minecraft.world.scores.TeamColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -18,82 +17,82 @@ public enum PacketTeamColor {
     /**
      * Represents a black color.
      */
-    BLACK(ChatFormatting.BLACK),
+    BLACK(TeamColor.BLACK),
     
     /**
      * Represents a dark blue color.
      */
-    DARK_BLUE(ChatFormatting.DARK_BLUE),
+    DARK_BLUE(TeamColor.DARK_BLUE),
     
     /**
      * Represents a dark green color.
      */
-    DARK_GREEN(ChatFormatting.DARK_GREEN),
+    DARK_GREEN(TeamColor.DARK_GREEN),
     
     /**
      * Represents a dark aqua color.
      */
-    DARK_AQUA(ChatFormatting.DARK_AQUA),
+    DARK_AQUA(TeamColor.DARK_AQUA),
     
     /**
      * Represents a dark red color.
      */
-    DARK_RED(ChatFormatting.DARK_RED),
+    DARK_RED(TeamColor.DARK_RED),
     
     /**
      * Represents a dark purple color.
      */
-    DARK_PURPLE(ChatFormatting.DARK_PURPLE),
+    DARK_PURPLE(TeamColor.DARK_PURPLE),
     
     /**
      * Represents a gold color.
      */
-    GOLD(ChatFormatting.GOLD),
+    GOLD(TeamColor.GOLD),
     
     /**
      * Represents a gray color.
      */
-    GRAY(ChatFormatting.GRAY),
+    GRAY(TeamColor.GRAY),
     
     /**
      * Represents a dark gray color.
      */
-    DARK_GRAY(ChatFormatting.DARK_GRAY),
+    DARK_GRAY(TeamColor.DARK_GRAY),
     
     /**
      * Represents a blue color.
      */
-    BLUE(ChatFormatting.BLUE),
+    BLUE(TeamColor.BLUE),
     
     /**
      * Represents a green color.
      */
-    GREEN(ChatFormatting.GREEN),
+    GREEN(TeamColor.GREEN),
     
     /**
      * Represents an aqua color.
      */
-    AQUA(ChatFormatting.AQUA),
+    AQUA(TeamColor.AQUA),
     
     /**
      * Represents a red color.
      */
-    RED(ChatFormatting.RED),
+    RED(TeamColor.RED),
     
     /**
      * Represents a light purple color.
      */
-    LIGHT_PURPLE(ChatFormatting.LIGHT_PURPLE),
+    LIGHT_PURPLE(TeamColor.LIGHT_PURPLE),
     
     /**
      * Represents a yellow color.
      */
-    YELLOW(ChatFormatting.YELLOW),
+    YELLOW(TeamColor.YELLOW),
     
     /**
      * Represents a white color.
      */
-    WHITE(ChatFormatting.WHITE);
+    WHITE(TeamColor.WHITE);
     
     private static final Map<NamedTextColor, PacketTeamColor> NAMED_COLOR_TO_PACKET_TEAM_COLOR_MAP = Map.ofEntries(
             Map.entry(NamedTextColor.BLACK, BLACK),
@@ -114,16 +113,20 @@ public enum PacketTeamColor {
             Map.entry(NamedTextColor.WHITE, WHITE)
     );
     
-    private final ChatFormatting nmsColor;
+    private final TeamColor teamColor;
     
-    PacketTeamColor(@NotNull ChatFormatting nmsColor) {
-        this.nmsColor = nmsColor;
+    PacketTeamColor(@NotNull TeamColor teamColor) {
+        this.teamColor = teamColor;
     }
     
+    /**
+     * Gets the {@link TeamColor} of the wrapper.
+     *
+     * @return the team color.
+     */
     @NotNull
-    @ApiStatus.Internal
-    public ChatFormatting getNmsColor() {
-        return nmsColor;
+    public TeamColor getTeamColor() {
+        return teamColor;
     }
     
     /**

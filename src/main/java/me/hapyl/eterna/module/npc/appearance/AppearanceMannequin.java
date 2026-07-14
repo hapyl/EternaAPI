@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile;
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.reflect.Skin;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.decoration.Mannequin;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +14,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Represents a {@link EntityType#MANNEQUIN} appearance.
+ * Represents a {@link Mannequin} appearance.
  */
 public class AppearanceMannequin extends AppearanceHumanoid {
     
@@ -22,14 +22,14 @@ public class AppearanceMannequin extends AppearanceHumanoid {
     @NotNull private Skin skin;
     
     public AppearanceMannequin(@NotNull Npc npc, @NotNull Skin skin) {
-        super(npc, new Mannequin(EntityType.MANNEQUIN, dummyWorld()));
+        super(npc, new Mannequin(EntityTypes.MANNEQUIN, dummyWorld()));
         
         this.skinParts = EnumSet.allOf(SkinPart.class);
         this.skin = skin;
     }
     
     @Override
-    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+    public void onDataUpdated(@NotNull SynchedEntityData entityData) {
         // Write skin
         getHandle().setProfile(ResolvableProfile.createResolved(new GameProfile(getUuid(), "", skin.asPropertyMap())));
         

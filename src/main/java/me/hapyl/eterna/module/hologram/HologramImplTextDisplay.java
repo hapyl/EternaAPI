@@ -9,7 +9,7 @@ import me.hapyl.eterna.module.reflect.packet.PacketFactory;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -142,7 +142,7 @@ public class HologramImplTextDisplay extends AbstractHologram {
         private final TextDisplay bukkitEntity;
         
         PacketTextDisplay(@NotNull Location location) {
-            this.entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, Reflect.getHandle(location.getWorld()));
+            this.entity = new Display.TextDisplay(EntityTypes.TEXT_DISPLAY, Reflect.getHandle(location.getWorld()));
             this.entity.teleportTo(location.getX(), location.getY(), location.getZ());
             this.entity.setBillboardConstraints(Display.BillboardConstraints.CENTER);
             

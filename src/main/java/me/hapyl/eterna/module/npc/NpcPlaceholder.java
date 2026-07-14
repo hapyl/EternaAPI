@@ -2,7 +2,6 @@ package me.hapyl.eterna.module.npc;
 
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.module.annotate.ForceLowercase;
-import me.hapyl.eterna.module.annotate.Mutates;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;

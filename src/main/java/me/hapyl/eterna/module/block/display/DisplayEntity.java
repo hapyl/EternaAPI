@@ -1,7 +1,6 @@
 package me.hapyl.eterna.module.block.display;
 
 import io.papermc.paper.entity.TeleportFlag;
-import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.annotate.CaseSensitive;
 import me.hapyl.eterna.module.location.Coordinates;
 import me.hapyl.eterna.module.location.Located;
@@ -14,7 +13,6 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -25,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**

@@ -16,7 +16,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Represents a {@link Packet}-related utility class, allowing to easily create packets.
@@ -87,24 +90,31 @@ public final class PacketFactory {
     /**
      * Creates a new {@link ClientboundSetEntityDataPacket}.
      *
-     * @param entity     - The entity whose data to update.
-     * @param entityData - The entity data to update with.
+     * @param entity          - The entity whose data to update.
+     * @param entityData      - The entity data to update with.
+     * @param includeDefaults - Whether to include default values of the entity data.
+     *                        <ul>
+     *                          <li>If you're spawning the entity, do not include default values to save on packet size.
+     *                          <li>If you're updating entity data, include all values.
+     *                        </ul>
      * @return a new packet.
      */
     @NotNull
-    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity, @NotNull SynchedEntityData entityData) {
-        return new ClientboundSetEntityDataPacket(entity.getId(), Objects.requireNonNull(entityData.getNonDefaultValues(), "Non-default entity data values are null!"));
+    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity, @NotNull SynchedEntityData entityData, boolean includeDefaults) {
+        return new ClientboundSetEntityDataPacket(entity.getId(), packDataValues(entityData, includeDefaults));
     }
     
     /**
      * Creates a new {@link ClientboundSetEntityDataPacket}.
      *
-     * @param entity - The entity whose data to update.
+     * @param entity          - The entity whose data to update.
+     * @param includeDefaults - Whether to include default values of the entity data.
      * @return a new packet.
+     * @see #makePacketSetEntityData(Entity, SynchedEntityData, boolean)
      */
     @NotNull
-    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity) {
-        return makePacketSetEntityData(entity, entity.getEntityData());
+    public static ClientboundSetEntityDataPacket makePacketSetEntityData(@NotNull Entity entity, boolean includeDefaults) {
+        return makePacketSetEntityData(entity, entity.getEntityData(), includeDefaults);
     }
     
     /**
@@ -259,4 +269,17 @@ public final class PacketFactory {
     public static ClientboundOpenSignEditorPacket makePacketOpenSignEditor(@NotNull Location location, boolean isFrontText) {
         return new ClientboundOpenSignEditorPacket(new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), isFrontText);
     }
+    
+    private static @NotNull List<SynchedEntityData.DataValue<?>> packDataValues(@NotNull SynchedEntityData entityData, boolean includeDefaults) {
+        if (includeDefaults) {
+            // Packing all never returns a null list, so just return it
+            return entityData.packAll();
+        }
+        
+        // Non default values on the other hand returns null if all values are default, so default to an empty list
+        final List<SynchedEntityData.DataValue<?>> nonDefaultValues = entityData.getNonDefaultValues();
+        
+        return nonDefaultValues != null ? nonDefaultValues : List.of();
+    }
+    
 }

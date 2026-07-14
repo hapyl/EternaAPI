@@ -3,7 +3,7 @@ package me.hapyl.eterna.module.npc.appearance;
 import me.hapyl.eterna.module.npc.Npc;
 import me.hapyl.eterna.module.util.Validate;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.fox.Fox;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +12,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Represents a {@link EntityType#FOX} appearance.
+ * Represents a {@link Fox} appearance.
  */
 public class AppearanceFox extends Appearance {
     
@@ -20,7 +20,7 @@ public class AppearanceFox extends Appearance {
     private FoxType foxType;
     
     public AppearanceFox(@NotNull Npc npc, @NotNull FoxType foxType) {
-        super(npc, new Fox(EntityType.FOX, dummyWorld()));
+        super(npc, new Fox(EntityTypes.FOX, dummyWorld()));
         
         this.behaviours = EnumSet.noneOf(FoxBehaviour.class);
         this.foxType = foxType;
@@ -68,7 +68,7 @@ public class AppearanceFox extends Appearance {
     }
     
     @Override
-    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+    public void onDataUpdated(@NotNull SynchedEntityData entityData) {
         entityData.set(foxType.getAccessor(), foxType.getValue());
         entityData.set(FoxBehaviour.SITTING.getAccessor(), (byte) behaviours.stream().mapToInt(FoxBehaviour::getValue).reduce(0, (mask, value) -> mask | value));
     }

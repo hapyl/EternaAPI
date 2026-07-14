@@ -736,6 +736,7 @@ public abstract class PlayerMenu implements Cooldown {
      * </p>
      */
     public void broadcastUpdate() {
+        // Because we mutate the PLAYER_MENUS in PlayerMenu#openMenu, a defensive copy is required here
         final List<PlayerMenu> defensiveCopy = PLAYER_MENUS.values().stream().filter(playerMenu -> playerMenu.getClass() == this.getClass()).toList();
         
         defensiveCopy.forEach(PlayerMenu::openMenu);

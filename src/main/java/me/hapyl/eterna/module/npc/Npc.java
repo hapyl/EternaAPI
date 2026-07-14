@@ -13,6 +13,7 @@ import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.math.Numbers;
 import me.hapyl.eterna.module.npc.appearance.Appearance;
 import me.hapyl.eterna.module.npc.appearance.AppearanceBuilder;
+import me.hapyl.eterna.module.npc.appearance.NpcBase;
 import me.hapyl.eterna.module.npc.tag.TagLayout;
 import me.hapyl.eterna.module.npc.tag.TagPart;
 import me.hapyl.eterna.module.reflect.Reflect;
@@ -26,6 +27,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.Location;
@@ -38,11 +40,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Represents a very customizable npc implementation.
  */
-public class Npc implements Located, Showable, Disposable, Ticking {
+public class Npc implements Located, Showable, Disposable, Ticking, NpcBase {
     
     public static final double CHAIR_Y_OFFSET;
     
@@ -118,27 +121,6 @@ public class Npc implements Located, Showable, Disposable, Ticking {
     @NotNull
     public PacketTeam getPacketTeam() {
         return packetTeam;
-    }
-    
-    /**
-     * Gets the {@link NpcPose} of this {@link Npc}.
-     *
-     * @return the npc pose of this npc.
-     */
-    @NotNull
-    public NpcPose getPose() {
-        return this.appearance.getPose();
-    }
-    
-    /**
-     * Sets the {@link NpcPose} for this {@link Npc}.
-     *
-     * @param pose - The new npc pose.
-     */
-    public void setPose(@NotNull NpcPose pose) {
-        if (this.appearance.setPose(pose)) {
-            this.syncHologram();
-        }
     }
     
     /**
@@ -651,13 +633,32 @@ public class Npc implements Located, Showable, Disposable, Ticking {
         this.sendPacketToAll(animation.makePacket(appearance.getHandle()));
     }
     
-    /**
-     * Sets whether this {@link Npc} is shaking.
-     *
-     * @param shaking - {@code true} to make the npc shake; {@code false} otherwise.
-     */
     public void setShaking(boolean shaking) {
         this.appearance.setShaking(shaking);
+    }
+    
+    @Override
+    public void setInvisible(boolean invisible) {
+        this.appearance.setInvisible(invisible);
+    }
+    
+    @Override
+    public void editEntityData(@NotNull Consumer<? super SynchedEntityData> editor) {
+        this.appearance.editEntityData(editor);
+    }
+    
+    @Override
+    public @NotNull NpcPose getPose() {
+        return this.appearance.getPose();
+    }
+    
+    public boolean setPose(@NotNull NpcPose pose) {
+        if (this.appearance.setPose(pose)) {
+            this.syncHologram();
+            return true;
+        }
+        
+        return false;
     }
     
     /**
@@ -713,20 +714,6 @@ public class Npc implements Located, Showable, Disposable, Ticking {
     }
     
     @ApiStatus.Internal
-    private void updateSitting(@NotNull Player player) {
-        // Explicit chair check
-        if (chairEntity == null) {
-            return;
-        }
-        
-        // Create the chair entity to the player
-        Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(chairEntity));
-        Reflect.sendPacket(player, PacketFactory.makePacketSetEntityData(chairEntity));
-        Reflect.sendPacket(player, PacketFactory.makePacketTeleportEntity(chairEntity));
-        Reflect.sendPacket(player, PacketFactory.makePacketSetPassengers(chairEntity));
-    }
-    
-    @ApiStatus.Internal
     final void sendPacketToAll(@NotNull Packet<?> packet) {
         playerData.values().forEach(playerData -> {
             if (playerData.visibility == Visibility.VISIBLE) {
@@ -766,6 +753,20 @@ public class Npc implements Located, Showable, Disposable, Ticking {
         if (response == PlayerInteractNpcEvent.ClickResponse.OK) {
             onClick(player, clickType);
         }
+    }
+    
+    @ApiStatus.Internal
+    private void updateSitting(@NotNull Player player) {
+        // Explicit chair check
+        if (chairEntity == null) {
+            return;
+        }
+        
+        // Create the chair entity to the player
+        Reflect.sendPacket(player, PacketFactory.makePacketAddEntity(chairEntity));
+        Reflect.sendPacket(player, PacketFactory.makePacketSetEntityData(chairEntity, false));
+        Reflect.sendPacket(player, PacketFactory.makePacketTeleportEntity(chairEntity));
+        Reflect.sendPacket(player, PacketFactory.makePacketSetPassengers(chairEntity));
     }
     
 }

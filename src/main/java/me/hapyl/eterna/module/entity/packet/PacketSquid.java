@@ -1,6 +1,6 @@
 package me.hapyl.eterna.module.entity.packet;
 
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.squid.Squid;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +16,6 @@ public class PacketSquid extends PacketLivingEntityImpl<Squid> {
      * @param location - The initial location.
      */
     public PacketSquid(@NotNull Location location) {
-        super(new Squid(EntityType.SQUID, getWorld(location)), location);
+        super(new Squid(EntityTypes.SQUID, getWorld(location)), location);
     }
 }

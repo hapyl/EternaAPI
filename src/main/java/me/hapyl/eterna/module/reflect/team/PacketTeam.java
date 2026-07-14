@@ -4,12 +4,11 @@ import io.papermc.paper.adventure.PaperAdventure;
 import me.hapyl.eterna.module.annotate.EventLike;
 import me.hapyl.eterna.module.reflect.Reflect;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.TeamColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.ApiStatus;
@@ -17,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -82,7 +82,8 @@ public class PacketTeam {
     }
     
     public void color(@NotNull Player player, @NotNull PacketTeamColor color) {
-        update(player, team -> team.setColor(color.getNmsColor()));
+        // Weird way of doing color but ok Mojang
+        update(player, team -> team.setColor(Optional.of(color.getTeamColor())));
     }
     
     public void option(@NotNull Player player, @NotNull Team.Option option, @NotNull Team.OptionStatus status) {
@@ -158,7 +159,7 @@ public class PacketTeam {
         private final Value<Team.OptionStatus, net.minecraft.world.scores.Team.Visibility> nameTagVisibility;
         private final Value<Component, net.minecraft.network.chat.Component> prefix;
         private final Value<Component, net.minecraft.network.chat.Component> suffix;
-        private final Value<TextColor, ChatFormatting> color;
+        private final Value<TextColor, Optional<TeamColor>> color;
         
         OptionTracker(@NotNull Team team) {
             this.friendlyFire = Value.track(team::allowFriendlyFire, Function.identity());
@@ -169,10 +170,20 @@ public class PacketTeam {
             this.prefix = Value.track(team::prefix, PaperAdventure::asVanilla);
             this.suffix = Value.track(team::suffix, PaperAdventure::asVanilla);
             
-            // If the team doesn't have a color set, we default to WHITE to avoid throwing exceptions
+            // Team#color() throw exception instead of just fucking returning a `null` or empty Optional, love the old bukkit design
             this.color = team.hasColor()
-                         ? Value.track(team::color, color -> Objects.requireNonNull(ChatFormatting.getByHexValue(color.value()), "Unsupported color: `%s`!".formatted(color.asHexString())))
-                         : Value.track(() -> NamedTextColor.WHITE, color -> ChatFormatting.WHITE);
+                         ? Value.track(team::color, OptionTracker::bukkitColorToTeamColor)
+                         : Value.track(() -> null, color -> Optional.empty());
+        }
+        
+        private static @NotNull Optional<TeamColor> bukkitColorToTeamColor(@NotNull TextColor textColor) {
+            for (TeamColor teamColor : TeamColor.values()) {
+                if (teamColor.rgb() == textColor.value()) {
+                    return Optional.of(teamColor);
+                }
+            }
+            
+            return Optional.empty();
         }
         
         @ApiStatus.Internal
@@ -201,12 +212,12 @@ public class PacketTeam {
             public abstract N toNms(@NotNull B b);
             
             @NotNull
-            static <T, C> Value<T, C> track(@NotNull Supplier<T> supplier, @NotNull Function<T, C> function) {
+            static <B, N> Value<B, N> track(@NotNull Supplier<B> supplier, @NotNull Function<B, N> function) {
                 return new Value<>(supplier) {
                     @NotNull
                     @Override
-                    public C toNms(@NotNull T t) {
-                        return function.apply(t);
+                    public N toNms(@NotNull B b) {
+                        return function.apply(b);
                     }
                 };
             }

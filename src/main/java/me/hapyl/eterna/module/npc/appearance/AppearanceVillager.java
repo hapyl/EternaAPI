@@ -5,13 +5,13 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a {@link EntityType#VILLAGER} appearance.
+ * Represents a {@link Villager} appearance.
  */
 public class AppearanceVillager extends Appearance {
     
@@ -22,7 +22,7 @@ public class AppearanceVillager extends Appearance {
     private VillagerLevel level;
     
     public AppearanceVillager(@NotNull Npc npc, @NotNull VillagerVariant variant, @NotNull VillagerProfession profession, @NotNull VillagerLevel level) {
-        super(npc, new Villager(EntityType.VILLAGER, dummyWorld()));
+        super(npc, new Villager(EntityTypes.VILLAGER, dummyWorld()));
         
         this.variant = variant;
         this.profession = profession;
@@ -92,7 +92,7 @@ public class AppearanceVillager extends Appearance {
     }
     
     @Override
-    public void updateEntityData(@NotNull SynchedEntityData entityData) {
+    public void onDataUpdated(@NotNull SynchedEntityData entityData) {
         entityData.set(
                 ACCESSOR,
                 new VillagerData(

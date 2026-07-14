@@ -10,7 +10,6 @@ import me.hapyl.eterna.module.command.ArgumentList;
 import me.hapyl.eterna.module.command.SimpleAdminCommand;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.util.StringList;
-import me.hapyl.eterna.module.util.TypeConverter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
@@ -144,12 +143,27 @@ public final class EternaCommand extends SimpleAdminCommand {
                     return;
                 }
                 
-                test.test0(player, args.copyOfRange(1));
+                test.test(player, args.copyOfRange(1));
             }
             
             @NotNull
             @Override
             public List<String> tabComplete(@NotNull ArgumentList args) {
+                if (args.length > 1) {
+                    final Key key = args.get(0).toKey();
+                    
+                    if (key == null) {
+                        return List.of();
+                    }
+                    
+                    final EternaTest test = EternaTestRegistry.get(key);
+                    
+                    if (test == null) {
+                        return List.of();
+                    }
+                    
+                    return test.tabComplete(args.copyOfRange(1));
+                }
                 if (args.length == 1) {
                     return EternaTestRegistry.listTests();
                 }
