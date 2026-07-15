@@ -736,6 +736,9 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase, Pac
         
         // Create hologram
         this.hologram.show(player);
+        
+        // Update attributes
+        this.updateAttributes(player);
     }
     
     /**
