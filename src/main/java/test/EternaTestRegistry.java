@@ -2,12 +2,7 @@ package test;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaLogger;
-import me.hapyl.eterna.module.npc.Npc;
-import me.hapyl.eterna.module.npc.appearance.AppearanceBuilder;
-import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.registry.Key;
-import me.hapyl.eterna.module.scheduler.SchedulerTask;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
