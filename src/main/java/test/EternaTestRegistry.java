@@ -3,6 +3,7 @@ package test;
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaLogger;
 import me.hapyl.eterna.module.registry.Key;
+import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +65,7 @@ public final class EternaTestRegistry {
     }
     
     @ApiStatus.Internal
-    static void register(@NotNull String key, @NotNull Function<Key, EternaTest> constructor) {
+    static void register(@Pattern("^(?!.*test).*$") @NotNull String key, @NotNull Function<Key, EternaTest> constructor) {
         if (key.toLowerCase().contains("test")) {
             throw new IllegalArgumentException("Test key cannot contain `test`!");
         }

@@ -61,8 +61,6 @@ public class Sequencer {
      * @param players - The players for whom to play the sequence.
      */
     public void play(@NotNull Collection<? extends Player> players) {
-        this.onStartPlaying();
-        
         final int maxNote = compiled.lastKey();
         
         new EternaRunnable(plugin) {
@@ -72,7 +70,6 @@ public class Sequencer {
             public void run() {
                 if (note > maxNote) {
                     this.cancel();
-                    Sequencer.this.onStopPlaying();
                     return;
                 }
                 
@@ -95,20 +92,6 @@ public class Sequencer {
      */
     public void play(@NotNull Player player) {
         this.play(List.of(player));
-    }
-    
-    /**
-     * An event-like method which is called whenever the sequence starts playing.
-     */
-    @EventLike
-    public void onStartPlaying() {
-    }
-    
-    /**
-     * An event-like method which is called whenever the sequence stops playing.
-     */
-    @EventLike
-    public void onStopPlaying() {
     }
     
     /**
