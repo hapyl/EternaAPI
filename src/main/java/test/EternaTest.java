@@ -30,6 +30,8 @@ public abstract class EternaTest {
     protected static final Plugin PLUGIN = Eterna.getPlugin();
     protected static final Random RANDOM = new Random();
     
+    private static final String ARGUMENT_FORCE_TEST = "-f";
+    
     private static @Nullable EternaTest CURRENT_TEST;
     
     private final Key key;
@@ -41,8 +43,10 @@ public abstract class EternaTest {
     
     public final void test(@NotNull Player player, @NotNull ArgumentList args) {
         if (CURRENT_TEST != null) {
-            EternaLogger.test(player, Component.text("Cannot run tests right now, awaiting `%s`!".formatted(CURRENT_TEST.key), NamedTextColor.RED));
-            return;
+            if (!args.get(0).toString().equals(ARGUMENT_FORCE_TEST)) {
+                EternaLogger.test(player, Component.text("Cannot run tests right now, awaiting `%s`!".formatted(CURRENT_TEST.key), NamedTextColor.RED));
+                return;
+            }
         }
         
         final List<Component> warnings = Lists.newArrayList();

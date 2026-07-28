@@ -2,12 +2,13 @@ package me.hapyl.eterna.module.component;
 
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.module.annotate.UtilityClass;
-import me.hapyl.eterna.module.text.CenterText;
 import me.hapyl.eterna.module.util.MapMaker;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.flattener.FlattenerListener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -268,15 +269,11 @@ public final class Components {
     /**
      * Creates a new {@link Component} with the given text centered.
      *
-     * <p>
-     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} and may look off center.
-     * </p>
-     *
      * @param text        - The text to center.
      * @param color       - The component text color.
      * @param decorations - The component text decorations.
      * @return a new component with the given text centered.
-     * @see CenterText
+     * @see ComponentCenter
      */
     @NotNull
     public static Component centerText(@NotNull String text, @Nullable TextColor color, @NotNull TextDecoration... decorations) {
@@ -286,13 +283,9 @@ public final class Components {
     /**
      * Creates a new {@link Component} with the given text centered.
      *
-     * <p>
-     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} and may look off center.
-     * </p>
-     *
      * @param text - The text to center.
      * @return a new component with the given text centered.
-     * @see CenterText
+     * @see ComponentCenter
      */
     @NotNull
     public static Component centerText(@NotNull String text) {
@@ -302,16 +295,13 @@ public final class Components {
     /**
      * Centers the given {@link Component} text, preserving the origin {@link Style}.
      *
-     * <p>
-     * Note that centering <b>does not</b> account for {@link TextDecoration#BOLD} and may look off center.
-     * </p>
-     *
      * @param component - The component to center.
      * @return the centered component.
+     * @see ComponentCenter
      */
     @NotNull
     public static Component center(@NotNull Component component) {
-        return Component.text(CenterText.center(toString(component), CenterText.CENTER_PX)).style(component.style());
+        return ComponentCenter.center(component);
     }
     
     /**
