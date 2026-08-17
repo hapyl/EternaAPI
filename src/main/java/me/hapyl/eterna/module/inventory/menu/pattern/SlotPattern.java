@@ -62,7 +62,7 @@ public final class SlotPattern {
     public static final SlotPattern INNER_LEFT_TO_RIGHT;
     
     /**
-     * Defines the <i>inner right-to-right</i> {@link SlotPattern}, as example:
+     * Defines the <i>inner right-to-left</i> {@link SlotPattern}, as example:
      * <pre>{@code
      * | _ _ _ _ _ _ _ 1 _ |
      * | _ _ _ _ _ _ 1 2 _ |
@@ -104,7 +104,7 @@ public final class SlotPattern {
     public static final SlotPattern DEFAULT;
     
     /**
-     * Defines the inner right-to-right {@link SlotPattern}, as example:
+     * Defines the default {@link SlotPattern}, as example:
      * <pre>{@code
      * | 1 _ _ _ _ _ _ _ _ |
      * | 1 2 _ _ _ _ _ _ _ |
@@ -120,7 +120,7 @@ public final class SlotPattern {
     public static final SlotPattern LEFT_TO_RIGHT;
     
     /**
-     * Defines the inner right-to-right {@link SlotPattern}, as example:
+     * Defines the left-to-right {@link SlotPattern}, as example:
      * <pre>{@code
      * | _ _ _ _ _ _ _ _ 1 |
      * | _ _ _ _ _ _ _ 1 2 |
@@ -136,7 +136,7 @@ public final class SlotPattern {
     public static final SlotPattern RIGHT_TO_LEFT;
     
     /**
-     * Defines the inner right-to-right {@link SlotPattern}, as example:
+     * Defines the right-to-left {@link SlotPattern}, as example:
      * <pre>{@code
      * | _ _ _ _ 1 _ _ _ _ |
      * | _ _ _ 1 _ 2 _ _ _ |
@@ -244,7 +244,7 @@ public final class SlotPattern {
      * Gets the {@code byte[]} pattern matching the given size or the closest smaller size.
      *
      * @param size - The size of the item list to match a pattern for.
-     * @return The {@code bute[]} representing the pattern for the given size.
+     * @return The {@code byte[]} representing the pattern for the given size.
      * @throws IllegalArgumentException if no suitable pattern exists for the size.
      */
     public byte[] patternFor(int size) {
