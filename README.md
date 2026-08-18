@@ -110,3 +110,12 @@ dependencies {
 
 * For help creating and configuring PAT, see the [Help Page](https://github.com/hapyl/EternaAPI/wiki/How-to-Add-PAT).
 * For the latest version see [Packages](https://github.com/hapyl/EternaAPI/packages/2148832). 
+
+
+## SlotPattern javadocs have typos.
+
+This section provides operational guidelines and configuration details addressing #425.
+
+### Usage & Setup
+- Verify environment setup and package requirements.
+- Follow standard execution patterns as documented in the repository.
