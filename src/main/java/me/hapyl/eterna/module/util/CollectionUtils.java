@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 /**
@@ -442,13 +443,44 @@ public class CollectionUtils {
      * @return a list of varargs.
      * @throws IllegalArgumentException if the given varargs are empty.
      */
-    @NotNull
-    public static <T> List<T> varargsAsList(@NotNull T... varargs) throws IllegalArgumentException {
+    public static <T> @NotNull List<T> varargsAsList(@NotNull T... varargs) throws IllegalArgumentException {
         return Arrays.asList(Validate.varargs(varargs));
     }
     
-    @NotNull
-    private static <I, E> Optional<E> get0(@NotNull I indexed, int index, @NotNull Function<I, Integer> getLength, @NotNull BiFunction<I, Integer, E> get) {
+    /**
+     * Merges the two given {@link Set} into a new immutable {@link Set}.
+     *
+     * @param first  - The first set to merge.
+     * @param second - The second set to merge.
+     * @param <E>    - The type of the elements.
+     * @return a new immutable set containing elements from both sets.
+     */
+    public static <E> @NotNull Set<? extends E> merge(@NotNull Set<? extends E> first, @NotNull Set<? extends E> second) {
+        return Set.copyOf(merge0(first, second, HashSet::new));
+    }
+    
+    /**
+     * Merges the two given {@link List} into a new immutable {@link List}.
+     *
+     * @param first  - The first list to merge.
+     * @param second - The second list to merge.
+     * @param <E>    - The type of the elements.
+     * @return a new immutable list containing elements from both lists.
+     */
+    public static <E> @NotNull List<? extends E> merge(@NotNull List<? extends E> first, @NotNull List<? extends E> second) {
+        return List.copyOf(merge0(first, second, ArrayList::new));
+    }
+    
+    private static <E, C extends Collection<E>> @NotNull C merge0(@NotNull Collection<? extends E> original, @NotNull Collection<? extends E> toMerge, @NotNull IntFunction<C> factory) {
+        final C merged = factory.apply(original.size() + toMerge.size());
+        
+        merged.addAll(original);
+        merged.addAll(toMerge);
+        
+        return merged;
+    }
+    
+    private static <I, E> @NotNull Optional<E> get0(@NotNull I indexed, int index, @NotNull Function<I, Integer> getLength, @NotNull BiFunction<I, Integer, E> get) {
         final int length = getLength.apply(indexed);
         
         return index < 0 || index >= length

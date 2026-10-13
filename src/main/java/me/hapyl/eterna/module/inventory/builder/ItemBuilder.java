@@ -1348,11 +1348,23 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return "";
     }
     
-    private static @NotNull Component normalizeName(@NotNull Component component) {
+    /**
+     * Normalizes the given {@link Component} with the {@link #DEFAULT_NAME_COLOR}.
+     *
+     * @param component - The component to normalize.
+     * @return a normalized component.
+     */
+    public static @NotNull Component normalizeName(@NotNull Component component) {
         return normalizeComponent(component, DEFAULT_NAME_COLOR);
     }
     
-    private static @NotNull Component normalizeLore(@NotNull Component component) {
+    /**
+     * Normalizes the given {@link Component} with the {@link #DEFAULT_LORE_COLOR}.
+     *
+     * @param component - The component to normalize.
+     * @return a normalized component.
+     */
+    public static @NotNull Component normalizeLore(@NotNull Component component) {
         return normalizeComponent(component, DEFAULT_LORE_COLOR);
     }
     

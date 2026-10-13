@@ -89,4 +89,27 @@ public final class Strings {
         
         return output;
     }
+    
+    /**
+     * Converts the given number into occurrences string, up to {@code 10}.
+     *
+     * @param number - The number to convert.
+     * @return a converted number.
+     */
+    public static @NotNull String occurrencesToString(int number) {
+        return switch (number) {
+            case 1 -> "once";
+            case 2 -> "twice";
+            case 3 -> "thrice";
+            case 4 -> "four times";
+            case 5 -> "five times";
+            case 6 -> "six times";
+            case 7 -> "seven times";
+            case 8 -> "eight times";
+            case 9 -> "nine times";
+            case 10 -> "ten times";
+            default -> number + " times";
+        };
+    }
+    
 }
