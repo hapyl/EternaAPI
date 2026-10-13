@@ -9,16 +9,18 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
  * Represents a response for {@link SignInput}, containing the modified {@code lines}.
  */
 public final class SignResponse {
     
     private final Player player;
-    private final String[] lines;
+    private final List<? extends String> lines;
     
     @ApiStatus.Internal
-    SignResponse(@NotNull Player player, @NotNull String[] lines) {
+    SignResponse(@NotNull Player player, @NotNull List<? extends String> lines) {
         this.player = player;
         this.lines = lines;
     }
@@ -28,8 +30,7 @@ public final class SignResponse {
      *
      * @return the responding player.
      */
-    @NotNull
-    public Player getPlayer() {
+    public @NotNull Player getPlayer() {
         return player;
     }
     
@@ -39,9 +40,12 @@ public final class SignResponse {
      * @param index - The index to retrieve the element at.
      * @return the element at the given {@code index} wrapped in type converter.
      */
-    @NotNull
-    public TypeConverter get(int index) {
-        return TypeConverter.fromNullable(CollectionUtils.get(lines, index).orElse(null));
+    public @NotNull TypeConverter get(int index) {
+        if (index < 0 || index >= lines.size()) {
+            return TypeConverter.empty();
+        }
+        
+        return TypeConverter.fromNullable(lines.get(index));
     }
     
     /**
@@ -51,11 +55,11 @@ public final class SignResponse {
      * @return the string representation of this sign response.
      */
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         final StringBuilder builder = new StringBuilder();
         
-        for (int i = 0; i < lines.length; i++) {
-            final String line = lines[i];
+        for (int i = 0; i < lines.size(); i++) {
+            final String line = lines.get(i);
             
             // Stop at the separator
             if (line.equals(SignInput.DASHED_LINE)) {

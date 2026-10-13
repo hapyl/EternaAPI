@@ -53,14 +53,12 @@ public final class EternaTestRegistry {
     private EternaTestRegistry() {
     }
     
-    @Nullable
     @ApiStatus.Internal
-    public static EternaTest get(@NotNull Key key) {
+    public static @Nullable EternaTest get(@NotNull Key key) {
         return REGISTRY.get(key);
     }
     
-    @NotNull
-    public static List<String> listTests() {
+    public static @NotNull List<String> listTests() {
         return REGISTRY.keySet().stream().map(Key::getKey).toList();
     }
     

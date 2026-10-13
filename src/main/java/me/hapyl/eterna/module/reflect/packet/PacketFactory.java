@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockCanBuildEvent;
@@ -269,7 +270,7 @@ public final class PacketFactory {
      */
     @NotNull
     public static ClientboundOpenSignEditorPacket makePacketOpenSignEditor(@NotNull Location location, boolean isFrontText) {
-        return new ClientboundOpenSignEditorPacket(new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), isFrontText);
+        return new ClientboundOpenSignEditorPacket(new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), isFrontText ? SignTextSlot.FRONT : SignTextSlot.BACK);
     }
     
     private static @NotNull List<SynchedEntityData.DataValue<?>> packDataValues(@NotNull SynchedEntityData entityData, boolean includeDefaults) {

@@ -15,11 +15,11 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("26.2.build.+")
+    paperweight.paperDevBundle("26.3.build.+")
 }
 
 group = "me.hapyl"
-version = "6.3.3-SNAPSHOT"
+version = "6.4.0-SNAPSHOT"
 description = "EternaAPI"
 
 // Set java settings, attach sources and javadocs
@@ -68,12 +68,12 @@ tasks {
     bukkitPluginYaml {
         main = "me.hapyl.eterna.EternaPlugin"
         prefix = "EternaAPI"
-        apiVersion = "26.2"
+        apiVersion = "26.3"
         authors = listOf("hapyl")
     }
 
     runServer {
-        minecraftVersion("26.2")
+        minecraftVersion("26.3")
     }
 }
 
