@@ -1,8 +1,11 @@
 package me.hapyl.eterna.module.text;
 
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 /**
  * Represents a utility class that converts a {@link Number} into its word.
@@ -29,13 +32,12 @@ public final class NumberToWord {
     }
     
     /**
-     * Converts the given number into a word.
+     * Converts the given number into a {@link String}.
      *
      * @param number - The number to convert.
-     * @return a number as a word.
+     * @return the number as a string.
      */
-    @NotNull
-    public static String toWord(int number) {
+    public static @NotNull String toWord(int number) {
         if (number == 0) {
             return ZERO;
         }
@@ -43,6 +45,36 @@ public final class NumberToWord {
         final String string = doConvert(number).trim();
         
         return number > 0 ? string : "%s %s".formatted(NEGATIVE, string);
+    }
+    
+    /**
+     * Converts the given number into a lowercase {@link String}.
+     *
+     * @param number - The number to convert.
+     * @return the number as a lowercase string.
+     */
+    public static @NotNull String toWordLowerCase(int number) {
+        return toWord(number).toLowerCase();
+    }
+    
+    /**
+     * Converts the given number into a {@link Component}.
+     *
+     * @param number - The number to convert.
+     * @return the number as a component.
+     */
+    public static @NotNull Component toComponent(int number) {
+        return Component.text(toWord(number));
+    }
+    
+    /**
+     * Converts the given number into a lowercase {@link Component}.
+     *
+     * @param number - The number to convert.
+     * @return the number as lowercase component.
+     */
+    public static @NotNull Component toComponentLowercase(int number) {
+        return Component.text(toWordLowerCase(number));
     }
     
     @NotNull
