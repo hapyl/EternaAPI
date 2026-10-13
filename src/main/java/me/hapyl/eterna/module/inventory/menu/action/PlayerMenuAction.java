@@ -108,6 +108,15 @@ public interface PlayerMenuAction {
     }
     
     /**
+     * A static factory method for creating {@link PlayerMenuAction} that will close the {@link PlayerMenu}.
+     *
+     * @return a new player action.
+     */
+    static @NotNull PlayerMenuAction ofMenuClose() {
+        return (menu, player, clickType, slot, hotbarNumber) -> menu.closeMenu();
+    }
+    
+    /**
      * Creates a new {@link Builder} for {@link PlayerMenuAction}, allowing per-click actions.
      *
      * @return a new builder.

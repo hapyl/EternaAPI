@@ -421,11 +421,11 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     /**
      * Inserts the given {@link List} lore at the given index.
      *
-     * @param lore  - The lore to insert.
      * @param index - The index to insert at.
+     * @param lore  - The lore to insert.
      */
     @SelfReturn
-    public ItemBuilder insertLore(@NotNull List<? extends Component> lore, int index) {
+    public ItemBuilder insertLore(int index, @NotNull List<? extends Component> lore) {
         return editLore(existingLore -> {
             final int normalizedIndex = Math.clamp(index, 0, existingLore.size());
             existingLore.addAll(normalizedIndex, lore.stream().map(ItemBuilder::normalizeLore).toList());
