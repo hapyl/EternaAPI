@@ -32,7 +32,7 @@ public final class EternaTestRegistry {
         register("player_menu_page", EternaTestPlayerMenuPage::new);
         register("sign_input", EternaTestSignInput::new);
         register("tablist", EternaTestTablist::new);
-        register("outline", EternaTestOutline::new);
+        register("vignette", EternaTestVignette::new);
         register("bd_engine", EternaTestBdEngine::new);
         register("bd_engine_rotation", EternaTestBdEngineRotation::new);
         register("particle_builder", EternaTestParticleBuilder::new);

@@ -1,32 +1,29 @@
 package test;
 
-import me.hapyl.eterna.module.player.PlayerOutline;
+import me.hapyl.eterna.module.player.Vignette;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public final class EternaTestOutline extends EternaTest {
+public final class EternaTestVignette extends EternaTest {
     
-    EternaTestOutline(@NotNull Key key) {
+    EternaTestVignette(@NotNull Key key) {
         super(key);
     }
     
     @Override
     public void test(@NotNull EternaTestContext context) throws EternaTestException {
-        final PlayerOutline border = new PlayerOutline(context.player());
+        final Player player = context.player();
         
         context.info(Component.text("Set color to RED"));
-        border.setColor(PlayerOutline.Color.RED, 5);
+        Vignette.red(player);
         
         context.scheduler()
                .then(SchedulerTask.later(() -> {
-                   context.info(Component.text("Set color to GREEN"));
-                   border.setColor(PlayerOutline.Color.GREEN, 5);
-               }, 60))
-               .then(SchedulerTask.later(() -> {
+                   Vignette.clear(player);
                    context.assertTestPassed();
-                   border.dispose();
                }, 60))
                .execute();
     }
