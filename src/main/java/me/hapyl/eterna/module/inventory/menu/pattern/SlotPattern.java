@@ -244,7 +244,7 @@ public final class SlotPattern {
      * Gets the {@code byte[]} pattern matching the given size or the closest smaller size.
      *
      * @param size - The size of the item list to match a pattern for.
-     * @return The {@code bute[]} representing the pattern for the given size.
+     * @return The {@code byte[]} representing the pattern for the given size.
      * @throws IllegalArgumentException if no suitable pattern exists for the size.
      */
     public byte[] patternFor(int size) {
