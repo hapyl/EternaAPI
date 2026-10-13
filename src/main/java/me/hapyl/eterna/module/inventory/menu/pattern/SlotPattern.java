@@ -62,7 +62,7 @@ public final class SlotPattern {
     public static final SlotPattern INNER_LEFT_TO_RIGHT;
     
     /**
-     * Defines the <i>inner right-to-right</i> {@link SlotPattern}, as example:
+     * Defines the <i>inner right-to-left</i> {@link SlotPattern}, as example:
      * <pre>{@code
      * | _ _ _ _ _ _ _ 1 _ |
      * | _ _ _ _ _ _ 1 2 _ |
@@ -104,7 +104,7 @@ public final class SlotPattern {
     public static final SlotPattern DEFAULT;
     
     /**
-     * Defines the inner right-to-right {@link SlotPattern}, as example:
+     * Defines the <i>left-to-right</i> {@link SlotPattern}, as example:
      * <pre>{@code
      * | 1 _ _ _ _ _ _ _ _ |
      * | 1 2 _ _ _ _ _ _ _ |
@@ -120,7 +120,7 @@ public final class SlotPattern {
     public static final SlotPattern LEFT_TO_RIGHT;
     
     /**
-     * Defines the inner right-to-right {@link SlotPattern}, as example:
+     * Defines the <i>right-to-left</i> {@link SlotPattern}, as example:
      * <pre>{@code
      * | _ _ _ _ _ _ _ _ 1 |
      * | _ _ _ _ _ _ _ 1 2 |
@@ -136,7 +136,7 @@ public final class SlotPattern {
     public static final SlotPattern RIGHT_TO_LEFT;
     
     /**
-     * Defines the inner right-to-right {@link SlotPattern}, as example:
+     * Defines the <i>fancy</i> {@link SlotPattern}, as example:
      * <pre>{@code
      * | _ _ _ _ 1 _ _ _ _ |
      * | _ _ _ 1 _ 2 _ _ _ |
@@ -258,15 +258,13 @@ public final class SlotPattern {
     }
     
     /**
-     * Compiles multiple slot patterns into a {@link SlotPattern} instance,
-     * indexing each pattern by the number of filled {@code ones} it contains.
+     * Compiles the given {@code byte[][]} into a {@link SlotPattern}, indexing each pattern by the number of filled {@code ones}.
      *
      * @param patterns - The {@code array} of {@code byte[]} representing slot patterns.
      * @return A compiled {@link SlotPattern} mapping sizes to patterns.
      * @throws IllegalArgumentException if a pattern length is invalid or the pattern is empty.
      */
-    @NotNull
-    public static SlotPattern compile(byte[][] patterns) {
+    public static @NotNull SlotPattern compile(byte[][] patterns) {
         final TreeMap<Integer, byte[]> compiled = Maps.newTreeMap();
         
         for (byte[] pattern : patterns) {
