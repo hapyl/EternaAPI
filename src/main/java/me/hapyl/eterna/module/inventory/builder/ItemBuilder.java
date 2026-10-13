@@ -419,6 +419,22 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     /**
+     * Inserts the given {@link List} lore at the given index.
+     *
+     * @param index - The index to insert at.
+     * @param lore  - The lore to insert.
+     */
+    @SelfReturn
+    public ItemBuilder insertLore(int index, @NotNull List<? extends Component> lore) {
+        return editLore(existingLore -> {
+            final int normalizedIndex = Math.clamp(index, 0, existingLore.size());
+            existingLore.addAll(normalizedIndex, lore.stream().map(ItemBuilder::normalizeLore).toList());
+        });
+    }
+    
+    // *-* Names *-* //
+    
+    /**
      * Sets this {@link ItemBuilder} custom name.
      *
      * @param name - The name to set.
@@ -444,6 +460,8 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return editMeta(meta -> meta.customName(Component.empty()));
     }
     
+    // *-* Meta edits *-* //
+    
     /**
      * Edits the {@link BookMeta} on this {@link ItemBuilder}.
      * <p>Only applicable if material is {@link Material#WRITTEN_BOOK}.</p>
@@ -455,8 +473,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public ItemBuilder editBookMeta(@NotNull Consumer<BookMeta> edit) {
         return editMeta(BookMeta.class, edit);
     }
-    
-    // *-* Meta edits *-* //
     
     /**
      * Edits the {@link PotionMeta} on this {@link ItemBuilder}.
@@ -1332,11 +1348,23 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return "";
     }
     
-    private static @NotNull Component normalizeName(@NotNull Component component) {
+    /**
+     * Normalizes the given {@link Component} with the {@link #DEFAULT_NAME_COLOR}.
+     *
+     * @param component - The component to normalize.
+     * @return a normalized component.
+     */
+    public static @NotNull Component normalizeName(@NotNull Component component) {
         return normalizeComponent(component, DEFAULT_NAME_COLOR);
     }
     
-    private static @NotNull Component normalizeLore(@NotNull Component component) {
+    /**
+     * Normalizes the given {@link Component} with the {@link #DEFAULT_LORE_COLOR}.
+     *
+     * @param component - The component to normalize.
+     * @return a normalized component.
+     */
+    public static @NotNull Component normalizeLore(@NotNull Component component) {
         return normalizeComponent(component, DEFAULT_LORE_COLOR);
     }
     

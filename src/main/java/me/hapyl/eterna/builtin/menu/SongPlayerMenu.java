@@ -13,7 +13,6 @@ import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.inventory.menu.ChestSize;
 import me.hapyl.eterna.module.inventory.menu.PlayerMenuTitle;
 import me.hapyl.eterna.module.inventory.menu.PlayerPageMenu;
-import me.hapyl.eterna.module.inventory.menu.SlotBoundItemStack;
 import me.hapyl.eterna.module.inventory.menu.action.PlayerMenuAction;
 import me.hapyl.eterna.module.inventory.menu.pattern.SlotPattern;
 import me.hapyl.eterna.module.inventory.sign.SignInput;
@@ -35,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Represents an internal menu for song player.
@@ -42,7 +42,6 @@ import java.util.List;
 @ApiStatus.Internal
 public final class SongPlayerMenu extends PlayerPageMenu<Song> {
     
-    private static final ItemStack ITEM_EMPTY_CONTENTS_NO_SONGS_ON_SEVER;
     private static final ProgressBar PROGRESS_BAR;
     private static final ProgressBar PROGRESS_BAR_PAUSED;
     
@@ -50,21 +49,6 @@ public final class SongPlayerMenu extends PlayerPageMenu<Song> {
     private static final ComponentStyler DESCRIPTION_STYLER = ComponentStyler.builder(Style.style(NamedTextColor.GRAY)).withPadding(1).build();
     
     static {
-        ITEM_EMPTY_CONTENTS_NO_SONGS_ON_SEVER = new ItemBuilder(Material.MUSIC_DISC_11)
-                .setName(Component.text("No Songs!", NamedTextColor.RED))
-                .addLore()
-                .addWrappedLore(Component.text("There isn't anything to show here, because there aren't any songs on the server!"))
-                .addLore()
-                .addWrappedLore(
-                        Component.empty()
-                                 .append(Component.text("Make sure to put `.nbs` files into ", NamedTextColor.GRAY))
-                                 .append(Component.text("/songs ", NamedTextColor.YELLOW))
-                                 .append(Component.text("folder and do ", NamedTextColor.GRAY))
-                                 .append(Component.text("/nbs reload", NamedTextColor.YELLOW))
-                                 .append(Component.text("!", NamedTextColor.GRAY))
-                )
-                .asIcon();
-        
         PROGRESS_BAR = new ProgressBar("|", 50, Style.style(NamedTextColor.GREEN));
         PROGRESS_BAR_PAUSED = PROGRESS_BAR.copyOfStyle(Style.style(NamedTextColor.YELLOW));
     }
@@ -84,12 +68,55 @@ public final class SongPlayerMenu extends PlayerPageMenu<Song> {
         this.setFrom(ChestSize.SIZE_2);
         this.setTo(ChestSize.SIZE_5);
         
-        this.setItemArrowPrevious(SlotBoundItemStack.of(2, ITEM_ARROW_PREVIOUS));
-        this.setItemArrowNext(SlotBoundItemStack.of(6, ITEM_ARROW_NEXT));
-        
-        this.setItemEmptyContents(SlotBoundItemStack.of(22, createEmptyContentsNoSongsToQueryItem(supplier)));
-        
         this.openMenu();
+    }
+    
+    @Override
+    public int getPreviousPageSlot() {
+        return 2;
+    }
+    
+    @Override
+    public int getNextPageSlot() {
+        return 6;
+    }
+    
+    @Override
+    public int getNoContentsSlot() {
+        return 22;
+    }
+    
+    @Override
+    public @NotNull ItemBuilder getNoContentsItemBuilder() {
+        if (supplier.isQuerying()) {
+            return new ItemBuilder(Material.MUSIC_DISC_11)
+                    .setName(Component.text("No Songs!", NamedTextColor.RED))
+                    .addLore()
+                    .addWrappedLore(
+                            Component.empty()
+                                     .append(Component.text("There aren't any songs that match the query ", NamedTextColor.GRAY))
+                                     .append(Component.text("\"%s\"".formatted(supplier.query().trim()), NamedTextColor.YELLOW))
+                                     .append(Component.text("!", NamedTextColor.GRAY))
+                                     .append(Component.newline())
+                                     .append(Component.newline())
+                                     .append(Component.text("Right-click the sign below to clear the search query!", EternaColors.AMBER))
+                    );
+        }
+        else {
+            return new ItemBuilder(Material.MUSIC_DISC_11)
+                    .setName(Component.text("No Songs!", NamedTextColor.RED))
+                    .addLore()
+                    .addWrappedLore(Component.text("There isn't anything to show here, because there aren't any songs on the server!"))
+                    .addLore()
+                    .addWrappedLore(
+                            Component.empty()
+                                     .append(Component.text("Make sure to put `.nbs` files into ", NamedTextColor.GRAY))
+                                     .append(Component.text("/songs ", NamedTextColor.YELLOW))
+                                     .append(Component.text("folder and do ", NamedTextColor.GRAY))
+                                     .append(Component.text("/nbs reload", NamedTextColor.YELLOW))
+                                     .append(Component.text("!", NamedTextColor.GRAY))
+                    );
+        }
     }
     
     @Override
@@ -449,26 +476,6 @@ public final class SongPlayerMenu extends PlayerPageMenu<Song> {
         }
         
         return builder.asIcon();
-    }
-    
-    @NotNull
-    private ItemStack createEmptyContentsNoSongsToQueryItem(@NotNull SongSupplier supplier) {
-        if (supplier.isQuerying()) {
-            return new ItemBuilder(Material.MUSIC_DISC_11)
-                    .setName(Component.text("No Songs!", NamedTextColor.RED))
-                    .addLore()
-                    .addWrappedLore(
-                            Component.empty()
-                                     .append(Component.text("There aren't any songs that match the query", NamedTextColor.GRAY))
-                                     .append(Component.text("\"%s\"".formatted(supplier.query().trim()), NamedTextColor.YELLOW))
-                                     .append(Component.text("!", NamedTextColor.GRAY))
-                                     .append(Component.newline())
-                                     .append(Component.text("Right-click the sign below to clear the search query!", EternaColors.AMBER))
-                    )
-                    .asIcon();
-        }
-        
-        return ITEM_EMPTY_CONTENTS_NO_SONGS_ON_SEVER;
     }
     
     /**

@@ -12,6 +12,7 @@ import me.hapyl.eterna.module.hologram.Hologram;
 import me.hapyl.eterna.module.location.Located;
 import me.hapyl.eterna.module.location.LocationHelper;
 import me.hapyl.eterna.module.math.Numbers;
+import me.hapyl.eterna.module.npc.animation.NpcAnimation;
 import me.hapyl.eterna.module.npc.appearance.Appearance;
 import me.hapyl.eterna.module.npc.appearance.AppearanceBuilder;
 import me.hapyl.eterna.module.npc.tag.TagLayout;
@@ -26,6 +27,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.core.Holder;
+import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
@@ -317,10 +319,6 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase, Pac
         return LocationHelper.copyOf(this.location);
     }
     
-    public @DefensiveCopy @NotNull Location getEyeLocation() {
-        return LocationHelper.copyOf(this.location).add(0, appearance.getHeight(), 0);
-    }
-    
     /**
      * Sets the {@link Location} of this {@link Npc}.
      * <p>
@@ -340,6 +338,10 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase, Pac
         // Call eventlike
         final Location copyOf = LocationHelper.copyOf(location);
         this.playerData.keySet().forEach(player -> this.onTeleport(player, copyOf));
+    }
+    
+    public @DefensiveCopy @NotNull Location getEyeLocation() {
+        return LocationHelper.copyOf(this.location).add(0, appearance.getHeight(), 0);
     }
     
     /**
@@ -633,12 +635,22 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase, Pac
     }
     
     /**
-     * Plays the given {@link NpcAnimation}.
+     * Plays the given {@link NpcAnimation} to all players who can see this {@link Npc}.
      *
      * @param animation - The animation to play.
      */
     public void playAnimation(@NotNull NpcAnimation animation) {
-        this.sendPacketToAll(animation.makePacket(appearance.getHandle()));
+        sendPacketToAll(animation.createPacket(this));
+    }
+    
+    /**
+     * Plays the given {@link NpcAnimation} to the given {@link Player}, regardless whether they can see this {@link Npc}.
+     *
+     * @param animation - The animation to play.
+     * @param player    - The player for whom to play the animation.
+     */
+    public void playAnimation(@NotNull NpcAnimation animation, @NotNull Player player) {
+        Reflect.sendPacket(player, animation.createPacket(this));
     }
     
     public void setShaking(boolean shaking) {
@@ -702,6 +714,15 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase, Pac
         playerData.keySet().forEach(player -> Reflect.sendPacket(player, packet));
     }
     
+    @ApiStatus.Internal
+    public final void sendPacketToAll(@NotNull Packet<? extends PacketListener> packet) {
+        playerData.values().forEach(playerData -> {
+            if (playerData.visibility == Visibility.VISIBLE) {
+                Reflect.sendPacket(playerData.player, packet);
+            }
+        });
+    }
+    
     /**
      * Gets the {@link NpcPlayerData} for the given {@link Player}.
      *
@@ -755,15 +776,6 @@ public class Npc implements Located, Showable, Disposable, Ticking, NpcBase, Pac
         if (this.chairEntity != null) {
             Reflect.sendPacket(player, PacketFactory.makePacketRemoveEntity(chairEntity));
         }
-    }
-    
-    @ApiStatus.Internal
-    final void sendPacketToAll(@NotNull Packet<?> packet) {
-        playerData.values().forEach(playerData -> {
-            if (playerData.visibility == Visibility.VISIBLE) {
-                Reflect.sendPacket(playerData.player, packet);
-            }
-        });
     }
     
     @ApiStatus.Internal

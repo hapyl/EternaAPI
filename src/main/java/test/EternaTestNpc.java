@@ -4,12 +4,15 @@ import me.hapyl.eterna.Runnables;
 import me.hapyl.eterna.module.command.ArgumentList;
 import me.hapyl.eterna.module.inventory.Equipment;
 import me.hapyl.eterna.module.npc.*;
+import me.hapyl.eterna.module.npc.animation.NpcAnimation;
+import me.hapyl.eterna.module.npc.animation.SwingType;
 import me.hapyl.eterna.module.npc.appearance.*;
 import me.hapyl.eterna.module.npc.tag.TagLayout;
 import me.hapyl.eterna.module.npc.tag.TagPart;
 import me.hapyl.eterna.module.reflect.Skin;
 import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
+import me.hapyl.eterna.module.util.Hand;
 import me.hapyl.eterna.module.util.ListMaker;
 import me.hapyl.eterna.module.util.StringList;
 import net.kyori.adventure.text.Component;
@@ -33,6 +36,17 @@ public final class EternaTestNpc extends EternaTest {
             "fox", _ -> AppearanceBuilder.ofFox(FoxType.RED),
             "husk", _ -> AppearanceBuilder.ofHusk(),
             "villager", _ -> AppearanceBuilder.ofVillager(VillagerVariant.PLAINS, VillagerProfession.LEATHERWORKER, VillagerLevel.NOVICE)
+    );
+    
+    private final List<NpcAnimation> npcAnimations = List.of(
+            NpcAnimation.takeDamage(),
+            NpcAnimation.criticalHit(),
+            NpcAnimation.criticalHitMagic(),
+            NpcAnimation.swingHand(Hand.MAINHAND, SwingType.NONE),
+            NpcAnimation.swingHand(Hand.MAINHAND, SwingType.WHACK),
+            NpcAnimation.swingHand(Hand.MAINHAND, SwingType.STAB),
+            NpcAnimation.swingHand(Hand.MAINHAND, SwingType.STAB, 18),
+            NpcAnimation.swingHand(Hand.OFFHAND, SwingType.WHACK, 10)
     );
     
     EternaTestNpc(@NotNull Key key) {
@@ -140,9 +154,9 @@ public final class EternaTestNpc extends EternaTest {
                .then(SchedulerTask.await(await -> {
                    int delay = 0;
                    
-                   for (NpcAnimation npcAnimation : NpcAnimation.values()) {
+                   for (NpcAnimation npcAnimation : npcAnimations) {
                        Runnables.later(() -> {
-                           context.info(Component.text("Animation: ").append(Component.text(npcAnimation.name(), NamedTextColor.GREEN)));
+                           context.info(Component.text("Animation: ").append(Component.text(npcAnimation.toString(), NamedTextColor.GREEN)));
                            
                            npc.playAnimation(npcAnimation);
                        }, delay += 10);

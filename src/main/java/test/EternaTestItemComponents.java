@@ -50,6 +50,8 @@ public final class EternaTestItemComponents extends EternaTest {
         inventory.addItem(itemFood.build());
         inventory.addItem(itemTool.build());
         inventory.addItem(itemEquippable.build());
+        
+        context.assertTestPassed();
     }
     
 }

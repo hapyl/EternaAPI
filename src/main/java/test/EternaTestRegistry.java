@@ -32,7 +32,7 @@ public final class EternaTestRegistry {
         register("player_menu_page", EternaTestPlayerMenuPage::new);
         register("sign_input", EternaTestSignInput::new);
         register("tablist", EternaTestTablist::new);
-        register("outline", EternaTestOutline::new);
+        register("vignette", EternaTestVignette::new);
         register("bd_engine", EternaTestBdEngine::new);
         register("bd_engine_rotation", EternaTestBdEngineRotation::new);
         register("particle_builder", EternaTestParticleBuilder::new);
@@ -53,14 +53,12 @@ public final class EternaTestRegistry {
     private EternaTestRegistry() {
     }
     
-    @Nullable
     @ApiStatus.Internal
-    public static EternaTest get(@NotNull Key key) {
+    public static @Nullable EternaTest get(@NotNull Key key) {
         return REGISTRY.get(key);
     }
     
-    @NotNull
-    public static List<String> listTests() {
+    public static @NotNull List<String> listTests() {
         return REGISTRY.keySet().stream().map(Key::getKey).toList();
     }
     

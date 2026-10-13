@@ -3,12 +3,12 @@ package me.hapyl.eterna.module.inventory.menu;
 import com.google.common.collect.Lists;
 import me.hapyl.eterna.module.annotate.DefensiveCopy;
 import me.hapyl.eterna.module.annotate.EventLike;
+import me.hapyl.eterna.module.component.ButtonComponents;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.inventory.menu.action.PlayerMenuAction;
 import me.hapyl.eterna.module.inventory.menu.pattern.SlotPattern;
 import me.hapyl.eterna.module.inventory.menu.pattern.SlotPatternApplier;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Range;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Represents a {@link PlayerMenu} with native page support via {@link SlotPattern}.
@@ -29,38 +30,25 @@ import java.util.List;
 public abstract class PlayerPageMenu<T> extends PlayerMenu {
     
     /**
-     * Defines the default {@link ItemStack} used as "Next Page".
+     * Defines the default texture for "Next Page" button.
      */
-    @NotNull
-    public static final ItemStack ITEM_ARROW_NEXT = ItemBuilder.playerHead("19bf3292e126a105b54eba713aa1b152d541a1d8938829c56364d178ed22bf")
-                                                               .setName(Component.text("Next Page"))
-                                                               .asIcon();
+    public static final String TEXTURE_PAGE_ARROW_NEXT = "19bf3292e126a105b54eba713aa1b152d541a1d8938829c56364d178ed22bf";
     
     /**
-     * Defines the default {@link ItemStack} used as "Previous Page".
+     * Defines the default texture for "Previous Page" button.
      */
-    @NotNull
-    public static final ItemStack ITEM_ARROW_PREVIOUS = ItemBuilder.playerHead("bd69e06e5dadfd84e5f3d1c21063f2553b2fa945ee1d4d7152fdc5425bc12a9")
-                                                                   .setName(Component.text("Previous Page"))
-                                                                   .asIcon();
+    public static final String TEXTURE_PAGE_ARROW_PREVIOUS = "bd69e06e5dadfd84e5f3d1c21063f2553b2fa945ee1d4d7152fdc5425bc12a9";
     
     /**
-     * Defines the default {@link ItemStack} used as "Empty!".
+     * Defines the default texture for "No Contents" button.
      */
-    @NotNull
-    public static final ItemStack ITEM_EMPTY_CONTENTS = ItemBuilder.playerHead("7df0ee9d25b41cb645dd2fe5c7746cbb8a1d37fd3e01e25e013242f9d03a30d6")
-                                                                   .setName(Component.text("Empty!"))
-                                                                   .asItemStack();
+    public static final String TEXTURE_NO_CONTENTS = "7df0ee9d25b41cb645dd2fe5c7746cbb8a1d37fd3e01e25e013242f9d03a30d6";
     
-    @NotNull private SlotPattern pattern;
-    @NotNull private LinkedList<T> contents;
+    private @NotNull SlotPattern pattern;
+    private @NotNull LinkedList<T> contents;
     
-    @NotNull private ChestSize from;
-    @NotNull private ChestSize to;
-    
-    @NotNull private SlotBoundItemStack itemArrowNext;
-    @NotNull private SlotBoundItemStack itemArrowPrevious;
-    @NotNull private SlotBoundItemStack itemEmptyContents;
+    private @NotNull ChestSize from;
+    private @NotNull ChestSize to;
     
     private int currentPage;
     
@@ -73,13 +61,6 @@ public abstract class PlayerPageMenu<T> extends PlayerMenu {
      */
     public PlayerPageMenu(@NotNull Player player, @NotNull PlayerMenuTitle title, @NotNull ChestSize size) {
         super(player, title, PlayerMenuType.chest(size));
-        
-        final int inventorySize = super.getMenuSize();
-        
-        this.itemArrowNext = SlotBoundItemStack.of(inventorySize - 3, ITEM_ARROW_NEXT);
-        this.itemArrowPrevious = SlotBoundItemStack.of(inventorySize - 7, ITEM_ARROW_PREVIOUS);
-        this.itemEmptyContents = SlotBoundItemStack.of(size.getCentre(), ITEM_EMPTY_CONTENTS);
-        
         this.contents = Lists.newLinkedList();
         this.pattern = SlotPattern.DEFAULT;
         this.from = ChestSize.SIZE_1;
@@ -134,6 +115,38 @@ public abstract class PlayerPageMenu<T> extends PlayerMenu {
     public void onPageChange(@NotNull Player player, int previousPage, int newPage) {
     }
     
+    public int getPreviousPageSlot() {
+        return getMenuSize() - 7;
+    }
+    
+    public @NotNull ItemBuilder getPreviousPageItemBuilder(int previousPage) {
+        return ItemBuilder.playerHead(TEXTURE_PAGE_ARROW_PREVIOUS)
+                .setAmount(previousPage)
+                .setName(Component.text("Previous Page"))
+                .addLore()
+                .addLore(ButtonComponents.left("open previous page"));
+    }
+    
+    public int getNextPageSlot() {
+        return getMenuSize() - 3;
+    }
+    
+    public @NotNull ItemBuilder getNextPageItemBuilder(int nextPage) {
+        return ItemBuilder.playerHead(TEXTURE_PAGE_ARROW_NEXT)
+                .setAmount(nextPage)
+                .setName(Component.text("Next Page"))
+                .addLore()
+                .addLore(ButtonComponents.left("open previous page"));
+    }
+    
+    public int getNoContentsSlot() {
+        return getMenuSize() - 3;
+    }
+    
+    public @NotNull ItemBuilder getNoContentsItemBuilder() {
+        return ItemBuilder.playerHead(TEXTURE_NO_CONTENTS).setName(Component.text("No Contents!"));
+    }
+    
     /**
      * Updates this {@link PlayerPageMenu}.
      */
@@ -141,30 +154,29 @@ public abstract class PlayerPageMenu<T> extends PlayerMenu {
     @OverridingMethodsMustInvokeSuper
     public void onOpen() {
         if (contents.isEmpty()) {
-            this.setItem(itemEmptyContents.slot(), itemEmptyContents.itemStack(), PlayerMenuAction.of(HumanEntity::closeInventory));
+            this.setItem(getNoContentsSlot(), getNoContentsItemBuilder().asIcon(), PlayerMenuAction.ofMenuClose());
             return;
         }
         
+        final int maximumPages = getMaximumPages();
         final int maxItemsPerPage = getMaximumItemsPerPage();
         final SlotPatternApplier component = newSlotPatternApplier(pattern, from, to);
         
         // Set "Previous Page" arrow
         if (currentPage > 1) {
-            final ItemStack itemStack = itemArrowPrevious.itemStack();
             final int previousPage = currentPage - 1;
             
-            this.setItem(itemArrowPrevious.slot(), itemStack, PlayerMenuAction.of(player -> {
+            this.setItem(getPreviousPageSlot(), getPreviousPageItemBuilder(previousPage).asIcon(), PlayerMenuAction.of(player -> {
                 this.openInventory(previousPage);
                 this.onPageChange(player, currentPage, previousPage);
             }));
         }
         
         // Set "Next Page" arrow
-        if (currentPage < getMaximumPages()) {
-            final ItemStack itemStack = itemArrowNext.itemStack();
+        if (currentPage < maximumPages) {
             final int nextPage = currentPage + 1;
             
-            this.setItem(itemArrowNext.slot(), itemStack, PlayerMenuAction.of(player -> {
+            this.setItem(getNextPageSlot(), getNextPageItemBuilder(nextPage).asIcon(), PlayerMenuAction.of(player -> {
                 this.openInventory(nextPage);
                 this.onPageChange(player, currentPage, nextPage);
             }));
@@ -276,33 +288,6 @@ public abstract class PlayerPageMenu<T> extends PlayerMenu {
     public void setTo(@NotNull ChestSize to) {
         this.to = to;
         this.validateFromIsNotGreaterThanTo();
-    }
-    
-    /**
-     * Sets the {@link SlotBoundItemStack} for {@code "Next Page"} button.
-     *
-     * @param itemArrowNext - The item to set.
-     */
-    public void setItemArrowNext(@NotNull SlotBoundItemStack itemArrowNext) {
-        this.itemArrowNext = itemArrowNext;
-    }
-    
-    /**
-     * Sets the {@link SlotBoundItemStack} for {@code "Previous Page"} button.
-     *
-     * @param itemArrowPrevious - The item to set.
-     */
-    public void setItemArrowPrevious(@NotNull SlotBoundItemStack itemArrowPrevious) {
-        this.itemArrowPrevious = itemArrowPrevious;
-    }
-    
-    /**
-     * Sets the {@link SlotBoundItemStack} for {@code "Empty!"} item, which is shown when there are no {@code contents}.
-     *
-     * @param itemEmptyContents - The item to set.
-     */
-    public void setItemEmptyContents(@NotNull SlotBoundItemStack itemEmptyContents) {
-        this.itemEmptyContents = itemEmptyContents;
     }
     
     /**

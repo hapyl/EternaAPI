@@ -29,9 +29,7 @@ public final class SignHandler extends EternaKeyed implements Listener {
                 return;
             }
             
-            final String[] lines = packet.getLines();
-            
-            awaitingSign.onResponse(new SignResponse(player, lines));
+            awaitingSign.onResponse(new SignResponse(player, packet.lines()));
             awaitingSign.clearSign();
         });
     }

@@ -216,4 +216,14 @@ public final class Vectors {
         return vector.lengthSquared() > 0 ? vector.normalize() : zero();
     }
     
+    /**
+     * Creates a copy of the given {@link Vector}.
+     *
+     * @param vector - The vector to copy.
+     * @return a new copied vector.
+     */
+    public static @NotNull Vector copyOf(@NotNull Vector vector) {
+        return new Vector(vector.getX(), vector.getY(), vector.getZ());
+    }
+    
 }

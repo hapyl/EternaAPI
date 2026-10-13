@@ -70,7 +70,7 @@ public class TimeFormat {
             return format(millis, Part.HOURS, Part.MINUTES, Part.SECONDS);
         }
         else if (millis >= 60_000) {
-            format(millis, Part.MINUTES, Part.SECONDS);
+            return format(millis, Part.MINUTES, Part.SECONDS);
         }
         
         return format(millis, Part.SECONDS);

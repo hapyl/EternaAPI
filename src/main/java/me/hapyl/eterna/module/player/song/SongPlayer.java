@@ -52,11 +52,10 @@ public class SongPlayer extends EternaRunnable {
     private final SongQueue queue;
     private final Set<Player> listeners;
     
-    @Nullable
-    private SongInstance currentSong;
+    private @Nullable SongInstance currentSong;
     
-    @NotNull private Status status;
-    @NotNull private SongFormatter formatter;
+    private @NotNull Status status;
+    private @NotNull SongFormatter formatter;
     
     @Range(from = 0, to = 1)
     private float volume;
