@@ -419,6 +419,22 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     }
     
     /**
+     * Inserts the given {@link List} lore at the given index.
+     *
+     * @param lore  - The lore to insert.
+     * @param index - The index to insert at.
+     */
+    @SelfReturn
+    public ItemBuilder insertLore(@NotNull List<? extends Component> lore, int index) {
+        return editLore(existingLore -> {
+            final int normalizedIndex = Math.clamp(index, 0, existingLore.size());
+            existingLore.addAll(normalizedIndex, lore.stream().map(ItemBuilder::normalizeLore).toList());
+        });
+    }
+    
+    // *-* Names *-* //
+    
+    /**
      * Sets this {@link ItemBuilder} custom name.
      *
      * @param name - The name to set.
@@ -444,6 +460,8 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         return editMeta(meta -> meta.customName(Component.empty()));
     }
     
+    // *-* Meta edits *-* //
+    
     /**
      * Edits the {@link BookMeta} on this {@link ItemBuilder}.
      * <p>Only applicable if material is {@link Material#WRITTEN_BOOK}.</p>
@@ -455,8 +473,6 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     public ItemBuilder editBookMeta(@NotNull Consumer<BookMeta> edit) {
         return editMeta(BookMeta.class, edit);
     }
-    
-    // *-* Meta edits *-* //
     
     /**
      * Edits the {@link PotionMeta} on this {@link ItemBuilder}.
