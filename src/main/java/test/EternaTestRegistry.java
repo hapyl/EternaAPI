@@ -2,6 +2,7 @@ package test;
 
 import com.google.common.collect.Maps;
 import me.hapyl.eterna.EternaLogger;
+import me.hapyl.eterna.module.command.ArgumentList;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.registry.Key;
 import net.kyori.adventure.text.Component;
