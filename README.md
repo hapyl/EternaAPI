@@ -106,6 +106,15 @@ dependencies {
 > [!IMPORTANT]
 > You must have PAT (Personal Access Token) set up with at least `read:packages` in order to access the package!
 
+## Command API migration (6.4.0)
+
+Command registration now uses Paper's lifecycle command API. Register `SimpleCommand`
+instances during your plugin's `onEnable()` method.
+
+This migration removes the legacy `CommandHandle` implementation and the
+`SimpleCommand#getHandle()` / `Handle<Command>` API. Code that depended on those
+Bukkit command handles must migrate to Paper's command API.
+
 # 🔗 Links
 
 * For help creating and configuring PAT, see the [Help Page](https://github.com/hapyl/EternaAPI/wiki/How-to-Add-PAT).
