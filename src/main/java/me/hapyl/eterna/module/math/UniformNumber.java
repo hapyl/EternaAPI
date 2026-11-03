@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * the {@code min} and {@code max}.
  * </p>
  */
-public class UniformNumber implements AsNumber {
+public class UniformNumber implements NumericObject {
     
     private final double min;
     private final double max;

@@ -110,7 +110,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
     /**
      * Defines the default {@link ComponentStyler} used in {@link ItemBuilder#addWrappedLore(Component, ComponentStyler, int)}.
      */
-    public static final ComponentStyler DEFAULT_LORE_MAPPER;
+    public static final ComponentStyler DEFAULT_LORE_STYLER;
     
     private static final Map<Key, ItemFunctionList> FUNCTIONS;
     
@@ -129,7 +129,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
         DEFAULT_NAME_COLOR = NamedTextColor.DARK_GREEN;
         DEFAULT_LORE_COLOR = NamedTextColor.GRAY;
         
-        DEFAULT_LORE_MAPPER = ComponentStyler.create(Style.style(DEFAULT_LORE_COLOR));
+        DEFAULT_LORE_STYLER = ComponentStyler.create(Style.style(DEFAULT_LORE_COLOR));
         
         FUNCTIONS = Maps.newHashMap();
         
@@ -306,18 +306,17 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      * Wraps the given {@link Component} and adds it to this {@link ItemBuilder} lore.
      *
      * @param component - The component to wrap.
-     * @param mapper    - The mapper to handle each component after it has been wrapped.
+     * @param styler    - The styler to handle each component after it has been wrapped.
      * @param maxLength - The max length of each line.
      * @see Components#wrap(Component, int)
      */
     @SelfReturn
-    public ItemBuilder addWrappedLore(@NotNull Component component, @NotNull ComponentStyler mapper, int maxLength) {
+    public ItemBuilder addWrappedLore(@NotNull Component component, @NotNull ComponentStyler styler, int maxLength) {
         return editLore(existingLore -> existingLore.addAll(
                 Components.wrap(component, maxLength)
                           .stream()
-                          .map(ItemBuilder::normalizeLore)
                           .map(_component -> {
-                              return normalizeLore(mapper.prefix()).append(Components.normalizeStyle(_component, mapper.style()));
+                              return normalizeLore(styler.prefix().append(Components.normalizeStyle(_component, styler.style())));
                           })
                           .toList()
         ));
@@ -331,19 +330,19 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      * </p>
      *
      * @param component - The component to wrap.
-     * @param mapper    - The mapper to handle each component after it has been wrapped.
+     * @param styler    - The styler to handle each component after it has been wrapped.
      * @see Components#wrap(Component, int)
      */
     @SelfReturn
-    public ItemBuilder addWrappedLore(@NotNull Component component, @NotNull ComponentStyler mapper) {
-        return addWrappedLore(component, mapper, DEFAULT_COMPONENT_WRAP_LIMIT);
+    public ItemBuilder addWrappedLore(@NotNull Component component, @NotNull ComponentStyler styler) {
+        return addWrappedLore(component, styler, DEFAULT_COMPONENT_WRAP_LIMIT);
     }
     
     /**
      * Wraps the given {@link Component} and adds it to this {@link ItemBuilder} lore.
      *
      * <p>
-     * This method uses {@link #DEFAULT_LORE_MAPPER} as a {@link ComponentStyler}.
+     * This method uses {@link #DEFAULT_LORE_STYLER} as a {@link ComponentStyler}.
      * </p>
      *
      * @param component - The component to wrap.
@@ -351,13 +350,13 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     @SelfReturn
     public ItemBuilder addWrappedLore(@NotNull Component component, int maxLength) {
-        return addWrappedLore(component, DEFAULT_LORE_MAPPER, maxLength);
+        return addWrappedLore(component, DEFAULT_LORE_STYLER, maxLength);
     }
     
     /**
      * Wraps the given {@link Component} and adds it to this {@link ItemBuilder} lore.
      * <p>
-     * This method uses {@link #DEFAULT_COMPONENT_WRAP_LIMIT} as a limit for component wrap and a {@link #DEFAULT_LORE_MAPPER} as a {@link ComponentStyler}.
+     * This method uses {@link #DEFAULT_COMPONENT_WRAP_LIMIT} as a limit for component wrap and a {@link #DEFAULT_LORE_STYLER} as a {@link ComponentStyler}.
      * </p>
      *
      * @param component - The component to wrap.
@@ -365,7 +364,7 @@ public class ItemBuilder implements CloneableKeyed, Keyed {
      */
     @SelfReturn
     public ItemBuilder addWrappedLore(@NotNull Component component) {
-        return addWrappedLore(component, DEFAULT_LORE_MAPPER, DEFAULT_COMPONENT_WRAP_LIMIT);
+        return addWrappedLore(component, DEFAULT_LORE_STYLER, DEFAULT_COMPONENT_WRAP_LIMIT);
     }
     
     /**

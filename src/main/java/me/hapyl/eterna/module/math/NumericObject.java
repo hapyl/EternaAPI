@@ -10,15 +10,15 @@ public interface NumericObject {
      *
      * @return an integer representation of this object.
      */
-    int toInt();
+    int asInt();
     
     /**
      * Gets a {@link Long} representation of this object.
      *
      * @return a long representation of this object.
      */
-    default long toLong() {
-        return toInt();
+    default long asLong() {
+        return asInt();
     }
     
     /**
@@ -26,8 +26,8 @@ public interface NumericObject {
      *
      * @return a double representation of this object.
      */
-    default double toDouble() {
-        return toInt();
+    default double asDouble() {
+        return asInt();
     }
     
     /**
@@ -35,8 +35,8 @@ public interface NumericObject {
      *
      * @return a float representation of this object.
      */
-    default float toFloat() {
-        return toInt();
+    default float asFloat() {
+        return asInt();
     }
     
 }

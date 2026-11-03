@@ -1,145 +1,139 @@
 package me.hapyl.eterna.module.math;
 
-import me.hapyl.eterna.module.annotate.UtilityClass;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 /**
- * A helper utility class for converting minecraft ticks.
+ * Represents a wrapper of a Minecraft tick unit.
  */
-@UtilityClass
-public final class Tick {
+public interface Tick extends ComponentLike {
     
     /**
-     * Defines an infinity character used for negative ticks.
+     * Defines an infinity component that is used for invalid ticks formats.
      */
-    public static final String INFINITY_CHAR = "∞";
+    @NotNull Component INFINITY = Component.text("∞");
     
-    private Tick() {
-        UtilityClass.Validator.throwIt();
+    /**
+     * Gets the value of this {@link Tick} in {@code ticks}.
+     *
+     * @return the value of this tick in ticks.
+     */
+    int ticks();
+    
+    /**
+     * Gets the value of this {@link Tick} in {@code seconds}.
+     *
+     * @return the value of this tick in seconds.
+     */
+    float seconds();
+    
+    /**
+     * Gets the value of this {@link Tick} in {@code minutes}.
+     *
+     * @return the value of this tick in minutes.
+     */
+    float minutes();
+    
+    /**
+     * Gets the value of this {@link Tick} in {@code hours}.
+     *
+     * @return the value of this tick in hours.
+     */
+    float hours();
+    
+    /**
+     * Formats this {@link Tick} into seconds with {@link Precision#COMPACT} precision.
+     *
+     * @return formatted ticks as seconds.
+     */
+    @Override
+    default @NotNull Component asComponent() {
+        return format(this.ticks(), Precision.COMPACT);
     }
     
     /**
-     * Converts the given {@code tick} to seconds and formats it to one decimal place with an <code>s</code> suffix.
+     * Formats this {@link Tick} into seconds with the given {@link Precision}.
      *
-     * <pre>{@code
-     * Tick.format(20); // 1.0s
-     * Tick.format(40); // 2.0s
-     * Tick.format(15); // 0.7s
-     * Tick.format(69); // 3.4s
-     * Tick.format(-1); // ∞
-     * }</pre>
-     *
-     * @param tick – The number of ticks to format.
-     * @return the formatted time in seconds.
+     * @param precision - The precision to use.
+     * @return formatted ticks as seconds.
      */
-    @NotNull
-    public static String format(int tick) {
-        return tick < 0 ? INFINITY_CHAR : "%.1fs".formatted((double) tick / 20);
+    default @NotNull Component asComponent(@NotNull Precision precision) {
+        return format(this.ticks(), precision);
     }
     
     /**
-     * Converts the given {@code tick} to seconds and formats it with either no decimals (if whole) or one decimal.
+     * A static factory method for creating {@link Tick} from the given {@code ticks}.
      *
-     * <pre>{@code
-     * Tick.round(20); // 1s
-     * Tick.round(40); // 2s
-     * Tick.round(15); // 0.8s
-     * Tick.round(69); // 3.4s
-     * Tick.round(-1); // ∞
-     * }</pre>
-     *
-     * @param tick – The number of ticks to round.
-     * @return the rounded time in seconds.
+     * @param ticks - The duration in ticks.
+     * @return a new {@link Tick} instance.
      */
-    @NotNull
-    public static String round(int tick) {
-        if (tick < 0) {
-            return INFINITY_CHAR;
+    static @NotNull Tick ofTicks(int ticks) {
+        return new TickImpl(ticks);
+    }
+    
+    /**
+     * A static factory method for creating {@link Tick} from the given {@code seconds}.
+     *
+     * @param seconds - The duration in seconds.
+     * @return a new {@link Tick} instance.
+     */
+    static @NotNull Tick ofSeconds(float seconds) {
+        return new TickImpl((int) Math.round(seconds * TickImpl.RATIO_TICKS_TO_SECONDS));
+    }
+    
+    /**
+     * A static factory method for creating {@link Tick} from the given {@code minutes}.
+     *
+     * @param minutes - The duration in minutes.
+     * @return a new {@link Tick} instance.
+     */
+    static @NotNull Tick ofMinutes(float minutes) {
+        return new TickImpl((int) Math.round(minutes * TickImpl.RATIO_TICKS_TO_MINUTES));
+    }
+    
+    /**
+     * A static factory method for creating {@link Tick} from the given {@code hours}.
+     *
+     * @param hours - The duration in hours.
+     * @return a new {@link Tick} instance.
+     */
+    static @NotNull Tick ofHours(float hours) {
+        return new TickImpl((int) Math.round(hours * TickImpl.RATIO_TICKS_TO_HOURS));
+    }
+    
+    /**
+     * Formats the given {@code ticks} into seconds with the given {@link Precision}.
+     *
+     * @param ticks     - The ticks to format.
+     * @param precision - The precision to use.
+     * @return the formatted ticks.
+     */
+    static @NotNull Component format(int ticks, @NotNull Precision precision) {
+        if (ticks < 0) {
+            return INFINITY;
         }
         
-        final double decimal = (double) tick / 20;
+        // Format compact ticks by directly dividing by 20
+        if (precision == Precision.COMPACT && ticks % 20 == 0) {
+            return Component.text((ticks / 20) + "s");
+        }
         
-        return tick % 20 == 0 ? "%.0fs".formatted(decimal) : "%.1fs".formatted(decimal);
+        // We format using `String.format` because `formatted` does not have overloads that allow using a different Locale,
+        // which we need to preserve the `.` formats for decimals across all locales.
+        return Component.text(String.format(Locale.ROOT, precision.format, (double) ticks / 20));
     }
     
     /**
-     * Converts hours into ticks.
+     * Formats the given {@code ticks} into seconds with the {@link Precision#COMPACT} precision.
      *
-     * @param hour – The number of hours.
-     * @return the equivalent duration in ticks.
+     * @param ticks - The ticks to format.
+     * @return the formatted ticks.
      */
-    public static int fromHours(float hour) {
-        return (int) (hour * 20 * 60 * 60);
-    }
-    
-    /**
-     * Converts minutes into ticks.
-     *
-     * @param minutes – The number of minutes.
-     * @return the equivalent duration in ticks.
-     */
-    public static int fromMinutes(float minutes) {
-        return (int) (minutes * 20 * 60);
-    }
-    
-    /**
-     * Converts seconds into ticks.
-     *
-     * @param second – The number of seconds.
-     * @return the equivalent duration in ticks.
-     */
-    public static int fromSeconds(float second) {
-        return Math.round(second * 20f);
-    }
-    
-    /**
-     * Converts milliseconds into ticks.
-     *
-     * @param millis – The number of milliseconds.
-     * @return the equivalent duration in ticks.
-     */
-    public static int fromMillis(float millis) {
-        return Math.round(millis / 50f);
-    }
-    
-    /**
-     * Converts ticks into hours.
-     *
-     * @param tick – The number of ticks.
-     * @return the equivalent duration in hours.
-     */
-    public static float toHours(int tick) {
-        return tick / 20f / 60f / 60f;
-    }
-    
-    /**
-     * Converts ticks into minutes.
-     *
-     * @param tick – The number of ticks.
-     * @return the equivalent duration in minutes.
-     */
-    public static float toMinutes(int tick) {
-        return tick / 20f / 60f;
-    }
-    
-    /**
-     * Converts ticks into seconds.
-     *
-     * @param tick – The number of ticks.
-     * @return the equivalent duration in seconds.
-     */
-    public static float toSeconds(int tick) {
-        return tick / 20f;
-    }
-    
-    /**
-     * Converts ticks into milliseconds.
-     *
-     * @param ticks – The number of ticks.
-     * @return the equivalent duration in milliseconds.
-     */
-    public static float toMillis(int ticks) {
-        return ticks * 50f;
+    static @NotNull Component format(int ticks) {
+        return format(ticks, Precision.COMPACT);
     }
     
 }

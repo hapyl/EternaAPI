@@ -8,6 +8,7 @@ import me.hapyl.eterna.module.registry.Key;
 import me.hapyl.eterna.module.scheduler.SchedulerTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.util.Ticks;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -51,7 +52,7 @@ public final class EternaTestGlowing extends EternaTest {
         final int glowingTime = 200;
         final int colorChangeTime = glowingTime / 2;
         
-        context.info(Component.text("Set glowing for %s.".formatted(Tick.round(glowingTime))));
+        context.info(Component.text("Set glowing for %s.".formatted(Tick.format(glowingTime))));
         Glowing.setGlowing(player, entity, glowingColor, glowingTime);
         
         context.scheduler()

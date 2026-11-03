@@ -38,7 +38,7 @@ public interface CommandFormatter extends Formatter {
             sender.sendMessage(
                     Component.text()
                              .append(Component.text("This command is on cooldown for ", NamedTextColor.DARK_RED))
-                             .append(Component.text(Tick.format(cooldown), NamedTextColor.RED))
+                             .append(Tick.format(cooldown).color(NamedTextColor.RED))
                              .append(Component.text("!", NamedTextColor.DARK_RED))
                              .build()
             );
