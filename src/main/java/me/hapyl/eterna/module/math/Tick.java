@@ -7,9 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 
 /**
- * Represents a wrapper of a Minecraft tick unit.
+ * Represents an immutable wrapper of a Minecraft tick unit, with helpful conversion and formatting methods.
  */
-public interface Tick extends ComponentLike {
+public interface Tick extends ComponentLike, Comparable<Tick> {
     
     /**
      * Defines an infinity component that is used for invalid ticks formats.
@@ -43,6 +43,35 @@ public interface Tick extends ComponentLike {
      * @return the value of this tick in hours.
      */
     float hours();
+    
+    /**
+     * Gets whether this {@link Tick} has a value of {@code 0}.
+     *
+     * @return true if this tick has value of {@code 0}; false otherwise.
+     */
+    boolean isZero();
+    
+    /**
+     * Gets whether this {@link Tick} has a value of {@code 1}.
+     *
+     * @return {@code true} if this tick has value of {@code 1}; {@code false} otherwise.
+     */
+    boolean isOne();
+    
+    /**
+     * Gets whether this {@link Tick} is positive, meaning the value of it is greater than {@code 0}.
+     *
+     * @return {@code true} if this tick is positive; {@code false} otherwise.
+     */
+    boolean isPositive();
+    
+    /**
+     * Gets whether this {@link Tick} is negative, meaning the value of it is less than {@code 0}.
+     *
+     * @return {@code true} if this tick is negative; {@code false} otherwise.
+     */
+    
+    boolean isNegative();
     
     /**
      * Formats this {@link Tick} into seconds with {@link Precision#COMPACT} precision.
@@ -105,6 +134,33 @@ public interface Tick extends ComponentLike {
     }
     
     /**
+     * A static factory method for getting a {@link Tick} instance for value of {@code 0}.
+     *
+     * <p>
+     * The returned tick instance is guarantee to return {@code true} when {@link #isZero()} is called.
+     * </p>
+     *
+     * @return a singleton tick instance for value of {@code 0}.
+     */
+    static @NotNull Tick zero() {
+        return TickImpl.ZERO;
+    }
+    
+    /**
+     * A static factory method for getting a {@link Tick} instance for value of {@code 1}.
+     *
+     * <p>
+     * The returned tick instance is guarantee to return {@code true} when {@link #isOne()} is called.
+     * </p>
+     *
+     * @return a singleton tick instance for value of {@code 1}.
+     */
+    
+    static @NotNull Tick one() {
+        return TickImpl.ONE;
+    }
+    
+    /**
      * Formats the given {@code ticks} into seconds with the given {@link Precision}.
      *
      * @param ticks     - The ticks to format.
@@ -123,7 +179,7 @@ public interface Tick extends ComponentLike {
         
         // We format using `String.format` because `formatted` does not have overloads that allow using a different Locale,
         // which we need to preserve the `.` formats for decimals across all locales.
-        return Component.text(String.format(Locale.ROOT, precision.format, (double) ticks / 20));
+        return Component.text(String.format(Locale.ROOT, precision.format, (double) ticks / 20) + "s");
     }
     
     /**

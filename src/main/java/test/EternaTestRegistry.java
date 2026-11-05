@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.util.Ticks;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.intellij.lang.annotations.Pattern;
@@ -55,6 +56,35 @@ public final class EternaTestRegistry {
         register("scoreboard", EternaTestScoreboard::new);
         register("npc", EternaTestNpc::new);
         register("sequencer", EternaTestSequencer::new);
+        
+        register("tick", k -> new EternaTest(k) {
+            @Override
+            public void test(@NotNull EternaTestContext context) throws EternaTestException {
+                int[] values = { -1, 0, 40, 45, 50 };
+                
+                final Tick zero = Tick.zero();
+                final Tick one = Tick.one();
+                
+                final Tick positive = Tick.ofTicks(420);
+                final Tick negative = Tick.ofTicks(-67);
+                
+                context.assertTrue(zero.isZero());
+                context.assertTrue(one.isOne());
+                
+                context.assertTrue(positive.isPositive());
+                context.assertTrue(negative.isNegative());
+                
+                for (Precision precision : Precision.values()) {
+                    context.info(Component.text(precision.name()));
+                    
+                    for (int value : values) {
+                        context.player().sendMessage(Tick.format(value, precision));
+                    }
+                }
+                
+                context.assertTestPassed();
+            }
+        });
         
         EternaLogger.info("Tests successfully instantiated! (%sms)".formatted(System.currentTimeMillis() - startMillis));
     }

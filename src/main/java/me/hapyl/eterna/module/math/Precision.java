@@ -56,7 +56,7 @@ public enum Precision {
     public final String format;
     
     Precision(int places) {
-        this.format = "%,." + places + "fs";
+        this.format = "%,." + places + "f";
     }
     
 }
