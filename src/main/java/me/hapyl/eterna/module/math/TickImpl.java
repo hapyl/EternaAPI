@@ -2,6 +2,9 @@ package me.hapyl.eterna.module.math;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 @ApiStatus.Internal
 public final class TickImpl implements Tick {
@@ -62,6 +65,31 @@ public final class TickImpl implements Tick {
     @Override
     public int compareTo(@NotNull Tick that) {
         return Integer.compare(this.ticks, that.ticks());
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.ticks);
+    }
+    
+    @Override
+    public boolean equals(@Nullable Object object) {
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+        
+        final TickImpl that = (TickImpl) object;
+        return this.ticks == that.ticks;
+    }
+    
+    @Override
+    public @NotNull Tick plus(@NotNull Tick that) {
+        return new TickImpl(this.ticks + that.ticks());
+    }
+    
+    @Override
+    public @NotNull Tick minus(@NotNull Tick that) {
+        return new TickImpl(this.ticks - that.ticks());
     }
     
     @Override

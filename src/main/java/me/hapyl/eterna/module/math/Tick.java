@@ -3,6 +3,7 @@ package me.hapyl.eterna.module.math;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
@@ -70,8 +71,32 @@ public interface Tick extends ComponentLike, Comparable<Tick> {
      *
      * @return {@code true} if this tick is negative; {@code false} otherwise.
      */
-    
     boolean isNegative();
+    
+    /**
+     * Gets whether the tick value of the two objects equal.
+     *
+     * @param object the reference object with which to compare.
+     * @return {@code true} if the value if the tick values are equal; {@code false} otherwise.
+     */
+    @Override
+    boolean equals(@Nullable Object object);
+    
+    /**
+     * Adds the given {@link Tick} to this one.
+     *
+     * @param that - The tick to add.
+     * @return a new tick repressing the sum.
+     */
+    @NotNull Tick plus(@NotNull Tick that);
+    
+    /**
+     * Subtracts the given {@link Tick} from this one.
+     *
+     * @param that - The tick to subtract.
+     * @return a new tick representing the difference.
+     */
+    @NotNull Tick minus(@NotNull Tick that);
     
     /**
      * Formats this {@link Tick} into seconds with {@link Precision#COMPACT} precision.
@@ -155,9 +180,19 @@ public interface Tick extends ComponentLike, Comparable<Tick> {
      *
      * @return a singleton tick instance for value of {@code 1}.
      */
-    
     static @NotNull Tick one() {
         return TickImpl.ONE;
+    }
+    
+    /**
+     * Adds the two {@link Tick} together using {@link #plus(Tick)}.
+     *
+     * @param a - The first tick.
+     * @param b - The second tick.
+     * @return a new tick representing the sum of both ticks.
+     */
+    static @NotNull Tick sum(@NotNull Tick a, @NotNull Tick b) {
+        return a.plus(b);
     }
     
     /**
