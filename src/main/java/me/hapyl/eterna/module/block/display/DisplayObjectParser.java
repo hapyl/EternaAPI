@@ -1,10 +1,10 @@
 package me.hapyl.eterna.module.block.display;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.hapyl.eterna.module.inventory.builder.ItemBuilder;
 import me.hapyl.eterna.module.util.Enums;
-import me.hapyl.eterna.module.util.JsonOptionals;
+import me.hapyl.eterna.module.util.json.JsonOptionals;
+import me.hapyl.eterna.module.util.json.JsonProperty;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Material;
@@ -13,7 +13,9 @@ import org.bukkit.entity.TextDisplay;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Function;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents an internal {@link DisplayObject} parser.
@@ -25,17 +27,22 @@ public enum DisplayObjectParser {
      * Represents a parser for {@link DisplayObjectBlock}.
      */
     BLOCK("block_display") {
+        
+        private static final JsonProperty<JsonObject> PROPERTY_BLOCK_STATE = JsonProperty.ofJsonObject("block_state");
+        private static final JsonProperty<JsonObject> PROPERTY_PROPERTIES = JsonProperty.ofJsonObject("properties");
+        
+        private static final JsonProperty<String> PROPERTY_ID = JsonProperty.ofString("id");
+        
         @Override
-        @NotNull DisplayObjectBlock parse(@NotNull JsonObject json) {
-            // Parse block state
-            final JsonObject blockState = json.getAsJsonObject("block_state");
-            final JsonObject properties = blockState.getAsJsonObject("Properties");
+        protected @NotNull DisplayObjectBlock parse(@NotNull JsonObject json) {
+            final JsonObject blockState = PROPERTY_BLOCK_STATE.readOrThrow(json);
+            final JsonObject properties = PROPERTY_PROPERTIES.read(blockState);
             
-            final String blockName = blockState.get("Name").getAsString().replace("minecraft:", "");
-            final Material material = Enums.byName(Material.class, blockName);
+            final String id = PROPERTY_ID.readOrThrow(blockState).replace("minecraft:", "");
+            final Material material = Enums.byName(Material.class, id);
             
             if (material == null) {
-                throw BDEngineParseException.nullMaterial(blockName);
+                throw BDEngineParseException.nullMaterial(id);
             }
             
             if (!material.isBlock()) {
@@ -62,14 +69,18 @@ public enum DisplayObjectParser {
      * Represents a parser for {@link DisplayObjectBlock}.
      */
     ITEM("item_display") {
+        
+        private static final JsonProperty<JsonObject> PROPERTY_ITEM = JsonProperty.ofJsonObject("item");
+        private static final JsonProperty<String> PROPERTY_ID = JsonProperty.ofString("id");
+        private static final JsonProperty<ItemDisplay.ItemDisplayTransform> PROPERTY_ITEM_DISPLAY_TRANSFORM = JsonProperty.ofEnum("item_display", ItemDisplay.ItemDisplayTransform.class);
+        
         @Override
-        @NotNull DisplayObjectItem parse(@NotNull JsonObject json) {
-            final JsonObject item = json.getAsJsonObject("item");
-            final String itemId = item.get("id").getAsString().replace("minecraft:", "");
+        protected @NotNull DisplayObjectItem parse(@NotNull JsonObject json) {
+            final JsonObject item = PROPERTY_ITEM.readOrThrow(json);
+            final String itemId = PROPERTY_ID.readOrThrow(item).replace("minecraft:", "");
             
             final Material material = Enums.byName(Material.class, itemId);
-            final ItemDisplay.ItemDisplayTransform itemDisplayTransform = JsonOptionals.getEnum(json, "item_display", ItemDisplay.ItemDisplayTransform.class)
-                                                                                       .orElse(ItemDisplay.ItemDisplayTransform.NONE);
+            final ItemDisplay.ItemDisplayTransform itemDisplayTransform = PROPERTY_ITEM_DISPLAY_TRANSFORM.read(json, ItemDisplay.ItemDisplayTransform.NONE);
             
             if (material == null) {
                 throw BDEngineParseException.nullMaterial(itemId);
@@ -102,42 +113,45 @@ public enum DisplayObjectParser {
      * Represents a parser for {@link DisplayObjectText}.
      */
     TEXT_DISPLAY("text_display") {
+        
+        private static final JsonProperty<TextDisplay.TextAlignment> PROPERTY_TEXT_ALIGNMENT = JsonProperty.ofEnum("alignment", TextDisplay.TextAlignment.class);
+        
+        private static final JsonProperty<Integer> PROPERTY_LINE_WIDTH = JsonProperty.ofInteger("line_width");
+        private static final JsonProperty<Integer> PROPERTY_BACKGROUND = JsonProperty.ofInteger("background");
+        
+        private static final JsonProperty<Boolean> PROPERTY_DEFAULT_BACKGROUND = JsonProperty.ofBoolean("default_background");
+        private static final JsonProperty<Boolean> PROPERTY_SEE_THROUGH = JsonProperty.ofBoolean("see_through");
+        private static final JsonProperty<Boolean> PROPERTY_SHADOW = JsonProperty.ofBoolean("shadow");
+        
+        private static final JsonProperty<Byte> PROPERTY_TEXT_OPACITY = JsonProperty.ofByte("text_opacity");
+        
         private static final int DEFAULT_LINE_WIDTH = 200;
         private static final int DEFAULT_BACKGROUND = 1073741824;
         
         private static final byte DEFAULT_OPACITY = -1;
         
         @Override
-        @NotNull
-        DisplayObjectText parse(@NotNull JsonObject json) {
+        protected @NotNull DisplayObjectText parse(@NotNull JsonObject json) {
             // Parse properties
-            final TextDisplay.TextAlignment alignment = JsonOptionals.getEnum(json, "alignment", TextDisplay.TextAlignment.class).orElse(TextDisplay.TextAlignment.CENTER);
+            final TextDisplay.TextAlignment alignment = PROPERTY_TEXT_ALIGNMENT.read(json, TextDisplay.TextAlignment.CENTER);
             
-            final int lineWidth = JsonOptionals.getInteger(json, "line_width").orElse(DEFAULT_LINE_WIDTH);
-            final int background = JsonOptionals.getInteger(json, "background").orElse(DEFAULT_BACKGROUND);
+            final int lineWidth = PROPERTY_LINE_WIDTH.read(json, DEFAULT_LINE_WIDTH);
+            final int background = PROPERTY_BACKGROUND.read(json, DEFAULT_BACKGROUND);
             
-            final boolean defaultBackground = JsonOptionals.getBoolean(json, "default_background").orElse(false);
-            final boolean seeThrough = JsonOptionals.getBoolean(json, "see_through").orElse(false);
-            final boolean shadow = JsonOptionals.getBoolean(json, "shadow").orElse(false);
+            final boolean defaultBackground = PROPERTY_DEFAULT_BACKGROUND.read(json, false);
+            final boolean seeThrough = PROPERTY_SEE_THROUGH.read(json, false);
+            final boolean shadow = PROPERTY_SHADOW.read(json, false);
             
-            final byte textOpacity = JsonOptionals.getByte(json, "text_opacity").orElse(DEFAULT_OPACITY);
+            final byte textOpacity = PROPERTY_TEXT_OPACITY.read(json, DEFAULT_OPACITY);
             
             // Parse text
             final Component text = GsonComponentSerializer.gson().deserializeFromTree(json.get("text"));
             
-            return new DisplayObjectText(
-                    json,
-                    text,
-                    alignment,
-                    lineWidth,
-                    background,
-                    defaultBackground,
-                    seeThrough,
-                    shadow,
-                    textOpacity
-            );
+            return new DisplayObjectText(json, text, alignment, lineWidth, background, defaultBackground, seeThrough, shadow, textOpacity);
         }
     };
+    
+    private static final Map<String, DisplayObjectParser> PARSERS = Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(parser -> parser.id, parser -> parser));
     
     private final String id;
     
@@ -145,29 +159,19 @@ public enum DisplayObjectParser {
         this.id = id;
     }
     
-    @NotNull
-    DisplayObject<?> parse(@NotNull JsonObject json) {
+    protected @NotNull DisplayObject<?> parse(@NotNull JsonObject json) throws BDEngineParseException {
         throw new BDEngineParseException("Illegal invocation of " + this);
     }
     
-    @NotNull
-    static DisplayObject<?> parse(@NotNull String id, @NotNull JsonObject json) {
+    static @NotNull DisplayObject<?> parse(@NotNull String id, @NotNull JsonObject json) {
         final String idWithoutNamespace = id.substring(id.indexOf(":") + 1);
+        final DisplayObjectParser parser = PARSERS.get(idWithoutNamespace);
         
-        for (DisplayObjectParser objectParser : values()) {
-            if (objectParser.id.equals(idWithoutNamespace)) {
-                return objectParser.parse(json);
-            }
+        if (parser == null) {
+            throw new IllegalArgumentException("Unknown parser: " + idWithoutNamespace);
         }
         
-        throw new IllegalArgumentException("Unsupported parser: " + idWithoutNamespace);
-    }
-    
-    @NotNull
-    private static <E> E jsonValue(@NotNull JsonObject json, @NotNull String key, @NotNull Function<JsonElement, E> function, @NotNull E defaultValue) {
-        final JsonElement element = json.get(key);
-        
-        return element != null ? function.apply(element) : defaultValue;
+        return parser.parse(json);
     }
     
 }

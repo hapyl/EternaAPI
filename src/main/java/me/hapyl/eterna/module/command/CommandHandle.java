@@ -34,7 +34,7 @@ public final class CommandHandle extends Command {
     }
     
     @Override
-    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
+    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String @NotNull [] args) {
         // Check for disable command
         if (command instanceof DisabledCommand) {
             formatter.disabledCommand(sender);
@@ -84,7 +84,7 @@ public final class CommandHandle extends Command {
     @Override
     @NotNull
     @SuppressWarnings("deprecation") // Legacy chat color
-    public List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+    public List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String @NotNull [] args) throws IllegalArgumentException {
         // Check for player only command
         if (command.isAllowOnlyPlayer() && !(sender instanceof Player)) {
             return List.of();
