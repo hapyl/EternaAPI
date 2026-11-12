@@ -13,9 +13,19 @@ import java.util.Locale;
 public interface Tick extends ComponentLike, Comparable<Tick> {
     
     /**
-     * Defines an infinity component that is used for invalid ticks formats.
+     * Defines an indefinite component that is used for indefinite ticks.
      */
-    @NotNull Component INFINITY = Component.text("∞");
+    @NotNull Component COMPONENT_INDEFINITE = Component.text("∞");
+    
+    /**
+     * Defines the constant for the {@link Tick} to be considered indefinite.
+     *
+     * <p>
+     * This constant <b>must not</b> be used for indefinability check, as it is not reliable, since <b>any negative tick</b>
+     * is considered as "indefinite", prefer {@link Tick#isIndefinite()} or {@link #isIndefinite(int)} instead.
+     * </p>
+     */
+    int INDEFINITE = -1;
     
     /**
      * Gets the value of this {@link Tick} in {@code ticks}.
@@ -60,18 +70,18 @@ public interface Tick extends ComponentLike, Comparable<Tick> {
     boolean isOne();
     
     /**
-     * Gets whether this {@link Tick} is positive, meaning the value of it is greater than {@code 0}.
+     * Gets whether this {@link Tick} is finite, meaning its value is {@code >= 0}.
      *
-     * @return {@code true} if this tick is positive; {@code false} otherwise.
+     * @return {@code true} if this tick is finite; {@code false} otherwise.
      */
-    boolean isPositive();
+    boolean isFinite();
     
     /**
-     * Gets whether this {@link Tick} is negative, meaning the value of it is less than {@code 0}.
+     * Gets whether this {@link Tick} is indefinite, meaning its value is {@code < 0}.
      *
-     * @return {@code true} if this tick is negative; {@code false} otherwise.
+     * @return {@code true} if this is indefinite, {@code false} otherwise.
      */
-    boolean isNegative();
+    boolean isIndefinite();
     
     /**
      * Gets whether the tick value of the two objects equal.
@@ -203,8 +213,8 @@ public interface Tick extends ComponentLike, Comparable<Tick> {
      * @return the formatted ticks.
      */
     static @NotNull Component format(int ticks, @NotNull Precision precision) {
-        if (ticks < 0) {
-            return INFINITY;
+        if (isIndefinite(ticks)) {
+            return COMPONENT_INDEFINITE;
         }
         
         // Format compact ticks by directly dividing by 20
@@ -225,6 +235,16 @@ public interface Tick extends ComponentLike, Comparable<Tick> {
      */
     static @NotNull Component format(int ticks) {
         return format(ticks, Precision.COMPACT);
+    }
+    
+    /**
+     * Gets whether the given {@code tick} is indefinite, meaning its value is {@code < 0}.
+     *
+     * @param tick - The tick to check.
+     * @return {@code true} if the tick is indefinite; {@code false} otherwise.
+     */
+    static boolean isIndefinite(int tick) {
+        return tick < 0;
     }
     
 }
