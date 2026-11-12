@@ -1,9 +1,10 @@
-package me.hapyl.eterna.module.util;
+package me.hapyl.eterna.module.util.json;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import me.hapyl.eterna.module.annotate.UtilityClass;
+import me.hapyl.eterna.module.util.Enums;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -31,8 +32,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code boolean} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Boolean> getBoolean(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Boolean> getBoolean(@NotNull JsonObject json, @NotNull String key) {
         return getPrimitive0(json, key, JsonPrimitive::isBoolean, JsonPrimitive::getAsBoolean);
     }
     
@@ -43,8 +43,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code string} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<String> getString(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<String> getString(@NotNull JsonObject json, @NotNull String key) {
         return getPrimitive0(json, key, JsonPrimitive::isString, JsonPrimitive::getAsString);
     }
     
@@ -55,8 +54,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code number} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Number> getNumber(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Number> getNumber(@NotNull JsonObject json, @NotNull String key) {
         return getNumber0(json, key, JsonPrimitive::getAsNumber);
     }
     
@@ -67,8 +65,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code double} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Double> getDouble(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Double> getDouble(@NotNull JsonObject json, @NotNull String key) {
         return getNumber0(json, key, JsonPrimitive::getAsDouble);
     }
     
@@ -79,8 +76,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code float} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Float> getFloat(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Float> getFloat(@NotNull JsonObject json, @NotNull String key) {
         return getNumber0(json, key, JsonPrimitive::getAsFloat);
     }
     
@@ -91,8 +87,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code long} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Long> getLong(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Long> getLong(@NotNull JsonObject json, @NotNull String key) {
         return getNumber0(json, key, JsonPrimitive::getAsLong);
     }
     
@@ -103,8 +98,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code short} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Short> getShort(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Short> getShort(@NotNull JsonObject json, @NotNull String key) {
         return getNumber0(json, key, JsonPrimitive::getAsShort);
     }
     
@@ -115,8 +109,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code integer} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Integer> getInteger(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Integer> getInteger(@NotNull JsonObject json, @NotNull String key) {
         return getNumber0(json, key, JsonPrimitive::getAsInt);
     }
     
@@ -127,8 +120,7 @@ public class JsonOptionals {
      * @param key  - The key of the element.
      * @return a {@code byte} wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static Optional<Byte> getByte(@NotNull JsonObject json, @NotNull String key) {
+    public static @NotNull Optional<Byte> getByte(@NotNull JsonObject json, @NotNull String key) {
         return getNumber0(json, key, JsonPrimitive::getAsByte);
     }
     
@@ -141,8 +133,7 @@ public class JsonOptionals {
      * @param getter  - The getter function.
      * @return a value wrapped in an optional, or an empty optional if it doesn't exist.
      */
-    @NotNull
-    public static <E> Optional<E> get(@NotNull JsonObject json, @NotNull String key, @NotNull Predicate<JsonElement> checker, @NotNull Function<JsonElement, E> getter) {
+    public static <E> @NotNull Optional<E> get(@NotNull JsonObject json, @NotNull String key, @NotNull Predicate<JsonElement> checker, @NotNull Function<JsonElement, E> getter) {
         final JsonElement jsonElement = json.get(key);
         
         if (jsonElement == null || !checker.test(jsonElement)) {
@@ -152,8 +143,7 @@ public class JsonOptionals {
         return Optional.ofNullable(getter.apply(jsonElement));
     }
     
-    @NotNull
-    public static <E extends Enum<E>> Optional<E> getEnum(@NotNull JsonObject json, @NotNull String key, @NotNull Class<E> enumClass) {
+    public static <E extends Enum<E>> @NotNull Optional<E> getEnum(@NotNull JsonObject json, @NotNull String key, @NotNull Class<E> enumClass) {
         // Not calling `getPrimitive0` or `getString` to reduce unnecessary Optional wrapping
         final JsonElement jsonElement = json.get(key);
         
@@ -164,8 +154,7 @@ public class JsonOptionals {
         return Optional.ofNullable(Enums.byName(enumClass, jsonPrimitive.getAsString()));
     }
     
-    @NotNull
-    private static <E> Optional<E> getPrimitive0(@NotNull JsonObject json, @NotNull String key, @NotNull Predicate<JsonPrimitive> checker, @NotNull Function<JsonPrimitive, E> getter) {
+    private static <E> @NotNull Optional<E> getPrimitive0(@NotNull JsonObject json, @NotNull String key, @NotNull Predicate<JsonPrimitive> checker, @NotNull Function<JsonPrimitive, E> getter) {
         final JsonElement jsonElement = json.get(key);
         
         // instanceof is simpler than calling `isPrimitive` since it does the exact same thing
@@ -176,8 +165,7 @@ public class JsonOptionals {
         return Optional.of(getter.apply(jsonPrimitive));
     }
     
-    @NotNull
-    private static <E extends Number> Optional<E> getNumber0(@NotNull JsonObject json, @NotNull String key, @NotNull Function<JsonPrimitive, E> getter) {
+    private static <E extends Number> @NotNull Optional<E> getNumber0(@NotNull JsonObject json, @NotNull String key, @NotNull Function<JsonPrimitive, E> getter) {
         return getPrimitive0(json, key, JsonPrimitive::isNumber, getter);
     }
     

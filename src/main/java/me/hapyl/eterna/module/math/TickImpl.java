@@ -53,12 +53,12 @@ public final class TickImpl implements Tick {
     }
     
     @Override
-    public boolean isPositive() {
-        return ticks > 0;
+    public boolean isFinite() {
+        return ticks >= 0;
     }
     
     @Override
-    public boolean isNegative() {
+    public boolean isIndefinite() {
         return ticks < 0;
     }
     

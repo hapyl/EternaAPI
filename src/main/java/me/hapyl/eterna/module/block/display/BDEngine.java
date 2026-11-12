@@ -19,6 +19,8 @@ public final class BDEngine {
     
     private static final String TAG_PASSENGERS = "Passengers";
     
+    private static final String PASSENGER_ID = "id";
+    
     private static final Gson GSON = new Gson();
     
     private BDEngine() {
@@ -36,13 +38,12 @@ public final class BDEngine {
      * @return a parsed display model.
      * @throws BDEngineParseException if parsing failed.
      */
-    @NotNull
-    public static DisplayModel parse(@NotNull String command) {
+    public static @NotNull DisplayModel parse(@NotNull String command) {
         // We only care about passengers, so strip everything until `{`
         command = command.substring(command.indexOf(STRING_STARTS_WITH));
         
         if (!command.startsWith(STRING_STARTS_WITH) || !command.endsWith(STRING_ENDS_WITH)) {
-            throw new BDEngineParseException("Illegal command! Must contains `%s` and end with `%s`!".formatted(STRING_STARTS_WITH, STRING_ENDS_WITH));
+            throw new BDEngineParseException("Illegal command! Must contain `%s` and end with `%s`!".formatted(STRING_STARTS_WITH, STRING_ENDS_WITH));
         }
         
         if (!command.contains(TAG_PASSENGERS)) {
@@ -54,12 +55,18 @@ public final class BDEngine {
         final JsonObject jsonObject = GSON.fromJson(command, JsonObject.class);
         final JsonArray passengersArray = jsonObject.get(TAG_PASSENGERS).getAsJsonArray();
         
-        for (JsonElement passengerElement : passengersArray) {
-            final JsonObject passenger = passengerElement.getAsJsonObject();
-            final String id = passenger.get("id").getAsString();
-            
-            // Parse the object by its id
-            displayModel.objects.add(DisplayObjectParser.parse(id, passenger));
+        // Don't crash the server because mojang renamed the fucking fields again
+        try {
+            for (JsonElement passengerElement : passengersArray) {
+                final JsonObject passenger = passengerElement.getAsJsonObject();
+                final String id = passenger.get(PASSENGER_ID).getAsString();
+                
+                // Parse the object by its id
+                displayModel.objects.add(DisplayObjectParser.parse(id, passenger));
+            }
+        }
+        catch (Exception ex) {
+            throw new BDEngineParseException(ex.getMessage());
         }
         
         return displayModel;
